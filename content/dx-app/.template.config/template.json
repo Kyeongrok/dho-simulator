@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Kyeongrok",
+  "classifications": ["Windows", "DirectX", "Game"],
+  "identity": "Kyeongrok.DirectXApp",
+  "name": "DirectX (D3D11) App",
+  "shortName": "dx-app",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "MyApp",
+  "preferNameDirectory": true
+}
