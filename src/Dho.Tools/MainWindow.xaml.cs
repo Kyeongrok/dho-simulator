@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -73,7 +73,21 @@ public partial class MainWindow : Window
         DiscoveryGrid.ItemsSource = _data.Discoveries;
         SeaGrid.ItemsSource = _data.Seas;
         BerthGrid.ItemsSource = _data.Settings.Berths;
-        BuildSettingsForm();
+        DisasterGrid.ItemsSource = _data.Disasters;
+        SkillRuleGrid.ItemsSource = _data.SkillRules;
+        SkillGrid.ItemsSource = _data.Skills;
+        ShipGrid.ItemsSource = _data.Ships;
+        MarketGrid.ItemsSource = _data.Markets;
+        GoodGrid.ItemsSource = _data.Goods;
+        StartLineGrid.ItemsSource = _data.Start.Lines;
+        StartNationGrid.ItemsSource = _data.Start.Nations;
+        CityOverrideBox.DataContext = _data.Start;
+        CityOverrideBox.SetBinding(TextBox.TextProperty, new Binding(nameof(StartData.CityOverride)));
+        BuildForm(ShipRulesForm, _data.Settings.Ships, null);
+        BuildForm(TradeRulesForm, _data.Settings.Trade, null);
+        SupplyGrid.ItemsSource = _data.Supplies;
+        BuildForm(SettingsForm, _data.Settings, SettingNames);
+        BuildForm(RulesForm, _data.Settings.Voyage, RuleNames);
 
         QuestList.SelectedIndex = _quests.Count > 0 ? 0 : -1;
         QuestForm.IsEnabled = _quests.Count > 0;
@@ -87,10 +101,12 @@ public partial class MainWindow : Window
     {
         // 글상자에 치던 값을 마저 넣는다
         if (Keyboard.FocusedElement is TextBox box) box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-        foreach (var grid in new[] { LandingGrid, CityGrid, DiscoveryGrid, SeaGrid, BerthGrid }) grid.CommitEdit(DataGridEditingUnit.Row, true);
+        foreach (var grid in new[] { LandingGrid, CityGrid, DiscoveryGrid, SeaGrid, BerthGrid, DisasterGrid, SupplyGrid, SkillRuleGrid, SkillGrid, ShipGrid, MarketGrid, GoodGrid, StartLineGrid, StartNationGrid }) grid.CommitEdit(DataGridEditingUnit.Row, true);
 
         _data.Quests = _quests.ToList();
+        _data.FillMarkets();
         _data.Save();
+        MarketGrid.Items.Refresh();
         DrawMarks();
         Status($"저장했습니다 — {DateTime.Now:HH:mm:ss}  ({_data.Directory})");
     }
@@ -325,7 +341,7 @@ public partial class MainWindow : Window
         [nameof(SettingsData.PlayerName)] = "제독 이름",
         [nameof(SettingsData.Money)] = "소지금",
         [nameof(SettingsData.StartCity)] = "시작 도시(도시 번호)",
-        [nameof(SettingsData.ShipEntry)] = "배 모형(sh0000 항목 번호)",
+        [nameof(SettingsData.StartShip)] = "대본용 시작 배(배 번호)",
         [nameof(SettingsData.StartSkyPhase)] = "시작 시각(0 자정 ~ 0.5 한낮)",
         [nameof(SettingsData.SecondsPerDay)] = "항해 하루(초)",
         [nameof(SettingsData.SecondsPerSkyCycle)] = "낮밤 한 바퀴(초)",
@@ -336,27 +352,56 @@ public partial class MainWindow : Window
         [nameof(SettingsData.LandingRange)] = "상륙할 수 있는 거리",
     };
 
-    private void BuildSettingsForm()
+    private static readonly Dictionary<string, string> RuleNames = new()
     {
-        SettingsForm.Children.Clear();
-        SettingsForm.RowDefinitions.Clear();
-        SettingsForm.ColumnDefinitions.Clear();
-        SettingsForm.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(260) });
-        SettingsForm.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(260) });
-        SettingsForm.DataContext = _data.Settings;
+        [nameof(VoyageRules.StartWater)] = "처음 싣고 있는 물",
+        [nameof(VoyageRules.StartFood)] = "처음 싣고 있는 식량",
+        [nameof(VoyageRules.MaxWater)] = "물 창고",
+        [nameof(VoyageRules.MaxFood)] = "식량 창고",
+        [nameof(VoyageRules.RationPerCrewDay)] = "선원 한 명이 하루에 먹는 양",
+        [nameof(VoyageRules.FatiguePerDay)] = "하루에 쌓이는 피로",
+        [nameof(VoyageRules.FatigueWhenStarving)] = "굶을 때 하루에 더 쌓이는 피로",
+        [nameof(VoyageRules.WaterPrice)] = "물 값(한 통)",
+        [nameof(VoyageRules.FoodPrice)] = "식량 값(한 통)",
+        [nameof(VoyageRules.RepairPricePerPoint)] = "수리 값(내구 1)",
+        [nameof(VoyageRules.CrewPrice)] = "선원 모집 값(한 명)",
+        [nameof(VoyageRules.StormChancePerDay)] = "하루에 폭풍이 올 확률",
+        [nameof(VoyageRules.StormDays)] = "폭풍이 이어지는 날 수",
+        [nameof(VoyageRules.StormDurabilityPerDay)] = "폭풍에 돛을 편 채 하루에 잃는 내구",
+        [nameof(VoyageRules.WreckMoneyLoss)] = "난파 때 잃는 소지금 비율",
+    };
+
+    private void DeleteSave_Click(object sender, RoutedEventArgs e)
+    {
+        _data.DeleteSave();
+        Status("이어 하기를 지웠습니다. 다음에 게임을 켜면 캐릭터 만들기부터 합니다.");
+    }
+
+    /// <param name="names">칸 이름표. null 이면 숫자·글 속성을 모두 속성 이름으로 늘어놓는다.</param>
+    private void BuildForm(Grid form, object source, Dictionary<string, string>? names)
+    {
+        names ??= source.GetType().GetProperties()
+            .Where(p => p.PropertyType == typeof(int) || p.PropertyType == typeof(double) || p.PropertyType == typeof(string))
+            .ToDictionary(p => p.Name, p => p.Name);
+        form.Children.Clear();
+        form.RowDefinitions.Clear();
+        form.ColumnDefinitions.Clear();
+        form.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(260) });
+        form.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(260) });
+        form.DataContext = source;
 
         int row = 0;
-        foreach (var (property, label) in SettingNames)
+        foreach (var (property, label) in names)
         {
-            SettingsForm.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            form.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var name = new TextBlock { Text = label, Style = (Style)FindResource("Label") };
             var box = new TextBox();
             box.SetBinding(TextBox.TextProperty, new Binding(property));
             Grid.SetRow(name, row);
             Grid.SetRow(box, row);
             Grid.SetColumn(box, 1);
-            SettingsForm.Children.Add(name);
-            SettingsForm.Children.Add(box);
+            form.Children.Add(name);
+            form.Children.Add(box);
             row++;
         }
     }

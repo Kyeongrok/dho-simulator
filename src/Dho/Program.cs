@@ -1,4 +1,4 @@
-namespace Dho;
+﻿namespace Dho;
 
 internal static class Program
 {
@@ -11,7 +11,8 @@ internal static class Program
         for (int i = 0; i + 1 < args.Length; i++)
             if (args[i] == "--script") script = args[i + 1];
 
-        using var window = new GameWindow(script);
+        // --new : 이어 하기를 지우고 캐릭터 만들기부터
+        using var window = new GameWindow(script, args.Contains("--new"));
         window.Run();
     }
 }

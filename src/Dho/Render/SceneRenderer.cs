@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -81,7 +81,12 @@ internal sealed class SceneRenderer : IDisposable
             if (dot(n, v) < 0) n = -n;
             float diffuse = saturate(dot(n, SunDirection)) * 0.85 + 0.15 * saturate(n.y * 0.5 + 0.5);
             float3 lit = base.rgb * (Ambient + SunColor * diffuse);
-            if (Params.x > 0.5) lit = base.rgb * 1.7 * min(1.0, Ambient.g + SunColor.g * 0.55);
+            if (Params.x > 0.5)
+            {
+                float3 x = base.rgb * 1.7;
+                float3 over = max(x - 0.6, 0.0);
+                lit = (min(x, 0.6) + over / (1.0 + over * 2.5)) * min(1.0, Ambient.g + SunColor.g * 0.55);
+            }
             return float4(ApplyFog(lit, i.world), base.a);
         }
         """;
@@ -125,8 +130,16 @@ internal sealed class SceneRenderer : IDisposable
         """;
 
     private const string OceanShader = Common + """
+        Texture3D Waves : register(t1);
+        SamplerState Wrap : register(s0);
         struct VSOut { float4 pos : SV_Position; float3 world : TEXCOORD0; };
         static const float K = 95.0;
+
+        float2 WaveSlope(float2 uv, float frame)
+        {
+            float3 s = Waves.Sample(Wrap, float3(uv, frame)).rgb;
+            return (s.rb - 0.502) * 2.0;
+        }
 
         float Height(float2 p, float t)
         {
@@ -156,22 +169,24 @@ internal sealed class SceneRenderer : IDisposable
             float hx = Height(p + float2(e, 0), Time);
             float hz = Height(p + float2(0, e), Time);
             float2 slope = float2(hx - h0, hz - h0) / e;
-            float2 q = p * 0.11;
-            float2 ripple = float2(Noise(q + Time * 0.35) - Noise(q + float2(0.7, 0) + Time * 0.35),
-                                   Noise(q.yx + 11.0 - Time * 0.28) - Noise(q.yx + float2(11.7, 11.0) - Time * 0.28));
-            float2 q2 = p * 0.37;
-            ripple += 0.5 * float2(Noise(q2 - Time * 0.6) - Noise(q2 + float2(0.7, 0) - Time * 0.6),
-                                   Noise(q2.yx + 5.0 + Time * 0.5) - Noise(q2.yx + float2(5.7, 5.0) + Time * 0.5));
+            float frame = Time / 5.0;
+            float2 ripple = WaveSlope(p / 46.0, frame) * 2.2;
+            ripple += WaveSlope(float2(p.y, -p.x) / 131.0 + 0.37, frame * 0.61 + 0.5) * 2.6;
+            float near = saturate(1.0 - dist / 420.0);
+            ripple += WaveSlope(p / 13.0 + 0.11, frame * 1.7) * 1.1 * near;
             float calm = saturate(1.0 - dist / 3500.0);
-            float3 n = normalize(float3(-(slope.x * 0.6 + ripple.x * 0.55) * calm, 1.0, -(slope.y * 0.6 + ripple.y * 0.55) * calm));
+            float3 n = normalize(float3(-(slope.x * 0.6 + ripple.x) * calm, 1.0, -(slope.y * 0.6 + ripple.y) * calm));
 
             float3 v = normalize(CameraPosition - i.world);
             float fresnel = 0.03 + 0.97 * pow(1.0 - saturate(dot(n, v)), 5.0);
             float3 reflected = SkyColor(reflect(-v, n));
-            float3 color = lerp(WaterColor * (0.55 + 0.45 * saturate(dot(n, SunDirection))), reflected, fresnel * 0.75);
+            float facing = saturate(dot(n, SunDirection));
+            float crest = saturate((ripple.x + ripple.y) * 0.9 + 0.1) * calm;
+            float3 body = WaterColor * (0.62 + 0.38 * facing) + (WaterColor * 0.9 + HorizonColor * 0.12) * crest * 0.55;
+            float3 color = lerp(body, reflected, fresnel * 0.7);
 
             float3 halfway = normalize(v + SunDirection);
-            color += SunColor * pow(saturate(dot(n, halfway)), 220.0) * 0.45;
+            color += SunColor * pow(saturate(dot(n, halfway)), 90.0) * 0.22;
 
             float2 rel = (i.world.xz - ShipPosition) / K;
             float along = dot(rel, ShipDirection);
@@ -195,6 +210,7 @@ internal sealed class SceneRenderer : IDisposable
     private readonly ID3D11Buffer _oceanVertices, _oceanIndices;
     private readonly int _oceanIndexCount;
     private readonly ID3D11ShaderResourceView _white;
+    private readonly ID3D11ShaderResourceView _waves;
 
     public SceneRenderer(Gfx gfx)
     {
@@ -231,6 +247,7 @@ internal sealed class SceneRenderer : IDisposable
         _oceanIndexCount = indices.Length;
 
         _white = Texture.Solid(gfx, 0xFFFFFFFF);
+        _waves = Texture.Waves(gfx);
 
         static float Spread(float t) => MathF.Sign(t) * MathF.Pow(MathF.Abs(t), 3f);
     }
@@ -252,6 +269,7 @@ internal sealed class SceneRenderer : IDisposable
         ctx.IASetInputLayout(_oceanLayout);
         ctx.VSSetShader(_oceanVs);
         ctx.PSSetShader(_oceanPs);
+        ctx.PSSetShaderResource(1, _waves);
         ctx.IASetVertexBuffer(0, _oceanVertices, 12);
         ctx.IASetIndexBuffer(_oceanIndices, Format.R32_UInt, 0);
         ctx.DrawIndexed((uint)_oceanIndexCount, 0, 0);
@@ -277,6 +295,7 @@ internal sealed class SceneRenderer : IDisposable
     public void Dispose()
     {
         _white.Dispose();
+        _waves.Dispose();
         _oceanIndices.Dispose();
         _oceanVertices.Dispose();
         _oceanLayout.Dispose();
@@ -291,6 +310,48 @@ internal static unsafe class Texture
 {
     /// <summary>한 가지 색(0xAARRGGBB)의 1x1 텍스처.</summary>
     public static ID3D11ShaderResourceView Solid(Gfx gfx, uint argb) => FromBgra(gfx, 1, 1, [argb]);
+
+    /// <summary>
+    /// 원본 물결 — <c>0001\oc0000.bin</c>(MFTF 안 XFTX)의 64 × 64 그림 150장. 빨강·파랑에 물결의 기울기(128 이 평평)가 들어 있다.
+    /// 장을 깊이로 쌓은 3D 텍스처로 올려, 깊이를 따라가며 읽으면 장 사이가 저절로 이어진다. 파일이 없으면 평평한 한 장.
+    /// </summary>
+    public static ID3D11ShaderResourceView Waves(Gfx gfx)
+    {
+        int size = 1, frames = 1;
+        byte[] pixels = [128, 255, 128, 255];
+        try
+        {
+            var data = Dho.Data.GvoFiles.Read(@"0001\oc0000.bin");
+            int I32(int at) => System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(at));
+            int xftx = I32(24), count = I32(xftx + 16);
+            int first = xftx + I32(xftx + 20);
+            int width = System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(first));
+            if (I32(first + 4) == 21 && width > 0 && count > 0)
+            {
+                var all = new byte[width * width * 4 * count];
+                for (int i = 0; i < count; i++)
+                {
+                    int record = xftx + I32(xftx + 20 + i * 4);
+                    Array.Copy(data, record + I32(record + 12), all, i * width * width * 4, width * width * 4);
+                }
+                (size, frames, pixels) = (width, count, all);
+            }
+        }
+        catch (Exception) { }
+        fixed (byte* bytes = pixels)
+        {
+            using var texture = gfx.Device.CreateTexture3D(new Texture3DDescription
+            {
+                Width = (uint)size,
+                Height = (uint)size,
+                Depth = (uint)frames,
+                MipLevels = 1,
+                Format = Format.B8G8R8A8_UNorm,
+                BindFlags = BindFlags.ShaderResource,
+            }, [new SubresourceData(bytes, (uint)(size * 4), (uint)(size * size * 4))]);
+            return gfx.Device.CreateShaderResourceView(texture);
+        }
+    }
 
     /// <summary>BGRA 화소(0xAARRGGBB)로 텍스처를 만든다.</summary>
     public static ID3D11ShaderResourceView FromBgra(Gfx gfx, int width, int height, ReadOnlySpan<uint> pixels)

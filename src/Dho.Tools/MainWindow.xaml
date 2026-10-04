@@ -1,4 +1,4 @@
-<Window x:Class="Dho.Tools.MainWindow"
+﻿<Window x:Class="Dho.Tools.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="대항해시대 온라인 개발도구" Width="1280" Height="820">
@@ -139,10 +139,75 @@
                 <DataGrid x:Name="SeaGrid" Margin="8" AutoGenerateColumns="True" CanUserAddRows="False" />
             </TabItem>
 
+            <TabItem Header="재해">
+                <DockPanel Margin="8">
+                    <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,6" Foreground="#FF505050"
+                               Text="이름·알림 글은 클라이언트 화면 글(dt000002)의 id 로 가리킨다(StateText·StartText·EndText). 확률(하루)·피해(하루)·속도 배수는 지은 값. CureSupply 는 대처하는 보급품 번호." />
+                    <DataGrid x:Name="SupplyGrid" DockPanel.Dock="Bottom" AutoGenerateColumns="True" CanUserAddRows="True" Height="170" />
+                    <TextBlock DockPanel.Dock="Bottom" Text="보급품" FontWeight="Bold" Margin="0,8,0,4" />
+                    <DataGrid x:Name="DisasterGrid" AutoGenerateColumns="True" CanUserAddRows="True" />
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="스킬">
+                <DockPanel Margin="8">
+                    <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,6" Foreground="#FF505050"
+                               Text="위: 스킬이 게임에서 하는 일(지은 값). Effect = Speed·Turn·Survey·Find·Appraise·CrewLoss·Cure·Rest·Discount. Targets 는 발견물 갈래 번호(Find·Appraise) 또는 재해 번호(Cure). 아래: 클라이언트 표 6 의 스킬(이름·설명·습득 비용)." />
+                    <DataGrid x:Name="SkillGrid" DockPanel.Dock="Bottom" AutoGenerateColumns="True" CanUserAddRows="False" Height="300" MaxColumnWidth="520" />
+                    <DataGrid x:Name="SkillRuleGrid" AutoGenerateColumns="False" CanUserAddRows="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="SkillId" Binding="{Binding SkillId}" />
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                            <DataGridTextColumn Header="Effect" Binding="{Binding Effect}" />
+                            <DataGridTextColumn Header="PerRank" Binding="{Binding PerRank}" />
+                            <DataGridTextColumn Header="Targets" Binding="{Binding TargetsText}" Width="200" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="배">
+                <DockPanel Margin="8">
+                    <StackPanel DockPanel.Dock="Right" Width="420" Margin="10,0,0,0">
+                        <TextBlock Text="능력치를 지어 내는 계수" FontWeight="Bold" Margin="0,0,0,4" />
+                        <Grid x:Name="ShipRulesForm" />
+                    </StackPanel>
+                    <DataGrid x:Name="ShipGrid" AutoGenerateColumns="True" CanUserAddRows="False" MaxColumnWidth="360" />
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="교역">
+                <DockPanel Margin="8">
+                    <StackPanel DockPanel.Dock="Right" Width="420" Margin="10,0,0,0">
+                        <TextBlock Text="값 셈의 계수 (갈래별 기준값은 settings.json 의 Trade.KindPrices)" FontWeight="Bold" Margin="0,0,0,4" TextWrapping="Wrap" />
+                        <Grid x:Name="TradeRulesForm" />
+                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="도시가 파는 품목 (Goods = 교역품 번호를 쉼표로). 비워 두고 저장하면 자동으로 채운다." Margin="0,0,0,4" Foreground="#FF505050" />
+                    <DataGrid x:Name="GoodGrid" DockPanel.Dock="Bottom" AutoGenerateColumns="True" CanUserAddRows="False" Height="260" MaxColumnWidth="420" />
+                    <DataGrid x:Name="MarketGrid" AutoGenerateColumns="True" CanUserAddRows="False" />
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="시작">
+                <StackPanel Margin="8" MaxWidth="760" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Text="시작 도시 덮어쓰기 (0 = 나라의 본거지)" Style="{StaticResource Label}" />
+                        <TextBox x:Name="CityOverrideBox" Width="80" />
+                        <Button Content="이어 하기 지우기 (다음 실행 때 캐릭터 만들기)" Margin="20,0,0,0" Click="DeleteSave_Click" />
+                    </StackPanel>
+                    <TextBlock Text="직업 계열별 시작 조건 (지은 값) — Skills 는 스킬 번호를 쉼표로" FontWeight="Bold" Margin="0,0,0,4" />
+                    <DataGrid x:Name="StartLineGrid" AutoGenerateColumns="True" CanUserAddRows="False" Height="130" />
+                    <TextBlock Text="나라와 시작 도시" FontWeight="Bold" Margin="0,10,0,4" />
+                    <DataGrid x:Name="StartNationGrid" AutoGenerateColumns="True" CanUserAddRows="True" Height="220" />
+                </StackPanel>
+            </TabItem>
+
             <TabItem Header="설정">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="8" MaxWidth="640" HorizontalAlignment="Left">
                         <Grid x:Name="SettingsForm" />
+                        <TextBlock Text="배 살림과 날씨 (지은 값)" FontWeight="Bold" Margin="0,14,0,4" />
+                        <Grid x:Name="RulesForm" />
                         <TextBlock Text="항구 장면에서 배가 뜨는 자리 (장면 번호 · X · Z · 뱃머리 각)" FontWeight="Bold" Margin="0,14,0,4" />
                         <DataGrid x:Name="BerthGrid" AutoGenerateColumns="True" CanUserAddRows="True" MinHeight="120" />
                     </StackPanel>

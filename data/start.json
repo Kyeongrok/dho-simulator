@@ -1,0 +1,16 @@
+{
+  "CityOverride": 0,
+  "Nations": [
+    { "NationId": 1, "CityId": 1 },
+    { "NationId": 2, "CityId": 2 },
+    { "NationId": 3, "CityId": 3 },
+    { "NationId": 4, "CityId": 4 },
+    { "NationId": 5, "CityId": 5 },
+    { "NationId": 6, "CityId": 6 }
+  ],
+  "Lines": [
+    { "Line": 0, "Name": "모험", "JobId": 1, "Money": 5000, "ShipId": 1, "Skills": "20,16,5,1" },
+    { "Line": 1, "Name": "교역", "JobId": 2, "Money": 8000, "ShipId": 1, "Skills": "50,51,13,1" },
+    { "Line": 2, "Name": "전투", "JobId": 3, "Money": 5000, "ShipId": 1, "Skills": "100,123,127,1" }
+  ]
+}

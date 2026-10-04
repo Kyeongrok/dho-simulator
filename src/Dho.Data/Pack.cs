@@ -35,6 +35,19 @@ public sealed class Pack
         for (int i = 0; i <= count; i++) _offsets[i] = BinaryPrimitives.ReadInt32LittleEndian(table.AsSpan(i * 4));
     }
 
+    public int Size(int index) => _offsets[index + 1] - _offsets[index];
+
+    /// <summary>항목의 한 토막만 읽는다(머리만 볼 때).</summary>
+    public byte[] Slice(int index, int offset, int count)
+    {
+        count = Math.Max(0, Math.Min(count, Size(index) - offset));
+        using var stream = File.OpenRead(_path);
+        stream.Position = _offsets[index] + offset;
+        var data = new byte[count];
+        stream.ReadExactly(data);
+        return data;
+    }
+
     public byte[] Entry(int index)
     {
         using var stream = File.OpenRead(_path);

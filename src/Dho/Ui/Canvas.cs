@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Dho.Render;
 using Vortice.Direct2D1;
 using Vortice.DirectWrite;
@@ -28,6 +28,7 @@ internal sealed class Canvas : IDisposable
     private readonly Gfx _gfx;
     private readonly ID2D1SolidColorBrush _brush;
     private readonly Dictionary<(float, bool, int), IDWriteTextFormat> _formats = new();
+    private readonly Dictionary<string, ID2D1Bitmap?> _images = new();
 
     public Pointer Pointer;
 
@@ -67,6 +68,55 @@ internal sealed class Canvas : IDisposable
         var ellipse = new Ellipse(new Vector2(x, y), radius, radius);
         if (filled) _gfx.D2D.FillEllipse(ellipse, _brush);
         else _gfx.D2D.DrawEllipse(ellipse, _brush, stroke);
+    }
+
+    /// <summary>
+    /// BGRA 그림을 그린다. <paramref name="key"/> 로 한 번만 올려 두고 다시 쓴다. 그림이 없으면 false.
+    /// </summary>
+    /// <param name="angle">가운데를 축으로 돌리는 각(라디안, 시계 방향).</param>
+    /// <param name="refresh">참이면 올려 둔 것을 버리고 다시 올린다 — 프레임마다 바뀌는 그림(주변 지도).</param>
+    public bool Image(string key, Func<(int Width, int Height, byte[] Bgra)?> load, float x, float y, float w, float h,
+                      float angle = 0, bool refresh = false, float opacity = 1)
+    {
+        if (refresh && _images.Remove(key, out var old)) old?.Dispose();
+        if (angle != 0)
+        {
+            var before = _gfx.D2D.Transform;
+            _gfx.D2D.Transform = Matrix3x2.CreateRotation(angle, new Vector2(x + w / 2, y + h / 2)) * before;
+            bool drawn = Image(key, load, x, y, w, h, 0, false, opacity);
+            _gfx.D2D.Transform = before;
+            return drawn;
+        }
+        if (!_images.TryGetValue(key, out var bitmap))
+        {
+            bitmap = null;
+            try
+            {
+                if (load() is { } image)
+                {
+                    // Direct2D 는 알파를 미리 곱한 색을 받는다
+                    var pixels = image.Bgra;
+                    for (int i = 0; i < pixels.Length; i += 4)
+                    {
+                        int a = pixels[i + 3];
+                        pixels[i] = (byte)(pixels[i] * a / 255);
+                        pixels[i + 1] = (byte)(pixels[i + 1] * a / 255);
+                        pixels[i + 2] = (byte)(pixels[i + 2] * a / 255);
+                    }
+                    unsafe
+                    {
+                        fixed (byte* data = pixels)
+                            bitmap = _gfx.D2D.CreateBitmap(new SizeI(image.Width, image.Height), (IntPtr)data, (uint)image.Width * 4,
+                                new BitmapProperties(new Vortice.DCommon.PixelFormat(Vortice.DXGI.Format.B8G8R8A8_UNorm, Vortice.DCommon.AlphaMode.Premultiplied)));
+                    }
+                }
+            }
+            catch (Exception) { bitmap = null; }      // 게임 폴더에 그림이 없어도 창은 뜬다
+            _images[key] = bitmap;
+        }
+        if (bitmap == null) return false;
+        _gfx.D2D.DrawBitmap(bitmap, new Rect(x, y, w, h), opacity, BitmapInterpolationMode.Linear, null);
+        return true;
     }
 
     /// <summary>창 바탕 — 짙은 남색에 금빛 테두리.</summary>
@@ -128,6 +178,7 @@ internal sealed class Canvas : IDisposable
     public void Dispose()
     {
         foreach (var format in _formats.Values) format.Dispose();
+        foreach (var image in _images.Values) image?.Dispose();
         _brush.Dispose();
     }
 }

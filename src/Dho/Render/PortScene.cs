@@ -30,10 +30,20 @@ internal sealed class PortScene : IDisposable
     private readonly Dictionary<(int Set, int Texture), MeshBuilder> _builders = new();
 
     private const int OwnTextures = 0, SharedTextures = 1;
+    private const float GroundShade = 0.68f;
 
-    public PortScene(Gfx gfx, int sceneNumber)
+    private Vector3 _min = new(float.MaxValue), _max = new(float.MinValue);
+    /// <summary>장면 메시(GRM)의 가운데와 반지름 — 시내를 내려다볼 때 쓴다.</summary>
+    public Vector3 Center => (_min + _max) / 2;
+    public float Radius => Vector3.Distance(_min, _max) / 2;
+
+    private readonly TownGrid? _grid;
+
+    /// <param name="grid">시내의 걷는 면. 주면 장면 메시를 읽으면서 지붕 높이를 적는다.</param>
+    public PortScene(Gfx gfx, int sceneNumber, TownGrid? grid = null)
     {
         _gfx = gfx;
+        _grid = grid;
         var grm = GvoFiles.Read($@"0002\{0x20000 + sceneNumber:D8}.bin");
         int I32(byte[] data, int at) => BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(at));
 
@@ -112,7 +122,11 @@ internal sealed class PortScene : IDisposable
                 int texture = U16(record + 2), kind = data[record + 4];
                 int vertexBuffer = data[record + 6], indexBuffer = data[record + 7];
                 int firstIndex = U16(record + 20), triangles = U16(record + 22);
+                // 텍스처 묶음 값 255 는 땅바닥 — 집·부두만큼 밝히면 하얗게 날아간다
+                float shade = data[record + 9] == 0xFF ? GroundShade : 1f;
                 if (kind is 0 or 0xFF || triangles == 0 || vertexBuffer >= vertexBuffers || indexBuffer >= indexBuffers) continue;
+                // 텍스처가 없는(0xFFFF) 땅 겹은 시내 장면에만 있고, 그대로 그리면 광장이 흰 민무늬로 덮인다
+                if (texture == 0xFFFF && data[record + 9] == 0xFF) continue;
 
                 int vertices = I32(vertexTable + vertexBuffer * 16), fvf = I32(vertexTable + vertexBuffer * 16 + 8);
                 int stride = I32(vertexTable + vertexBuffer * 16 + 12);
@@ -123,6 +137,19 @@ internal sealed class PortScene : IDisposable
                 if (!_builders.TryGetValue((textureSet, texture), out var builder))
                     _builders[(textureSet, texture)] = builder = new MeshBuilder();
 
+                // 땅바닥이 아닌 면의 높이(지붕)를 적어 둔다 — 카메라 가림에 쓴다
+                if (_grid != null && data[record + 9] != 0xFF)
+                    for (int i = 0; i < triangles; i++)
+                    {
+                        Vector3 Corner(int k)
+                        {
+                            int v = U16(indices + (firstIndex + i * 3 + k) * 2);
+                            int p = vertices + (v < vertexCount ? v : 0) * stride;
+                            return Vector3.Transform(new Vector3(F32(p), F32(p + 4), F32(p + 8)), transform);
+                        }
+                        _grid.Cover(Corner(0), Corner(1), Corner(2));
+                    }
+
                 for (int i = 0; i < triangles * 3; i++)
                 {
                     int v = U16(indices + (firstIndex + i) * 2);
@@ -131,7 +158,15 @@ internal sealed class PortScene : IDisposable
                     {
                         int p = vertices + v * stride;
                         var color = new Vector4(data[p + colorAt + 2], data[p + colorAt + 1], data[p + colorAt], data[p + colorAt + 3]) / 255f;
+                        // 장면 안쪽 테두리의 꼭짓점은 새빨갛게 칠해져 있다(경계 표시로 보인다) — 흰빛으로 돌린다
+                        if (color.X > 0.75f && color.Y < 0.5f && color.Z < 0.5f) color = new Vector4(0.9f, 0.9f, 0.9f, color.W);
+                        color = new Vector4(color.X * shade, color.Y * shade, color.Z * shade, color.W);
                         var position = Vector3.Transform(new Vector3(F32(p), F32(p + 4), F32(p + 8)), transform);
+                        if (textureSet == OwnTextures)
+                        {
+                            _min = Vector3.Min(_min, position);
+                            _max = Vector3.Max(_max, position);
+                        }
                         index = builder.Add(position, Vector3.UnitY, color, new Vector2(F32(p + stride - 8), F32(p + stride - 4)));
                         remap[(builder, vertexBuffer, v)] = index;
                     }

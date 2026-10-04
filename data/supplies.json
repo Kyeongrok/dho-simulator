@@ -1,0 +1,6 @@
+[
+  { "Id": 1, "Name": "모래주머니", "Description": "화재를 끈다.", "Price": 300 },
+  { "Id": 2, "Name": "수리용 통", "Description": "침수를 멈춘다.", "Price": 300 },
+  { "Id": 3, "Name": "라임주스", "Description": "괴혈병을 낫게 한다.", "Price": 400 },
+  { "Id": 4, "Name": "쥐약", "Description": "쥐를 없앤다.", "Price": 250 }
+]

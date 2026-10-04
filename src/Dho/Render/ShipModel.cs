@@ -1,4 +1,4 @@
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Numerics;
 using Dho.Data;
 using Vortice.Direct3D11;
@@ -19,26 +19,61 @@ namespace Dho.Render;
 /// </remarks>
 internal sealed class ShipModel : IDisposable
 {
-    /// <summary>큰 세 돛대 가로돛 배 <c>SHIP16_01</c> — 선체 110, 돛 112·114·116.</summary>
-    public const int Ship16 = 110;
 
     private const int FvfSail = 0x316;
 
     private readonly List<(Mesh Mesh, ID3D11ShaderResourceView? Texture, Vector4 Tint)> _parts = [];
     private readonly ID3D11ShaderResourceView _hullTexture, _sailTexture;
 
-    public ShipModel(Gfx gfx, int hullEntry = Ship16)
+    private static Dictionary<string, (string Pack, int Entry)>? _names;
+
+    /// <summary>
+    /// 배 표의 모형 번호 nn 으로 모형을 찾는다 — <c>sh0000</c>~<c>sh0003</c> 에서 이름이 <c>SHIPnn_01</c> 인 선체 항목.
+    /// 선체 다음부터 <c>NL_SHIPnn</c> 앞까지가 (뼈대, 돛) 쌍이다. 못 찾으면 <paramref name="fallbackModel"/> 의 것을 쓴다.
+    /// </summary>
+    public ShipModel(Gfx gfx, int model, int fallbackModel = 16)
     {
         _hullTexture = GameTexture.FromMftf(gfx, new Pack(@"0001\sh0004.bin").Entry(0));
         _sailTexture = GameTexture.FromMftf(gfx, new Pack(@"0001\sa0000.bin").Entry(0));
 
-        var pack = new Pack(@"0001\sh0000.bin");
-        for (int entry = hullEntry; entry < hullEntry + 7; entry++)
+        _names ??= IndexNames();
+        if (!_names.TryGetValue($"SHIP{model:D2}_01", out var found)) found = _names[$"SHIP{fallbackModel:D2}_01"];
+
+        var pack = new Pack(found.Pack);
+        for (int entry = found.Entry; entry < Math.Min(pack.Count, found.Entry + 14); entry++)
         {
+            if (entry > found.Entry && NameOf(pack, entry).StartsWith("NL_")) break;
             var data = pack.Entry(entry);
             if (data.Length < 0x80 || !data.AsSpan(0, 4).SequenceEqual("XKMD"u8)) continue;
-            Load(gfx, data, isHull: entry == hullEntry);
+            Load(gfx, data, isHull: entry == found.Entry);
         }
+    }
+
+    private static Dictionary<string, (string, int)> IndexNames()
+    {
+        var names = new Dictionary<string, (string, int)>();
+        foreach (string file in (string[])[@"0001\sh0000.bin", @"0001\sh0001.bin", @"0001\sh0002.bin", @"0001\sh0003.bin"])
+        {
+            var pack = new Pack(file);
+            for (int entry = 0; entry < pack.Count; entry++)
+            {
+                string name = NameOf(pack, entry);
+                if (name.StartsWith("SHIP")) names.TryAdd(name, (file, entry));
+            }
+        }
+        return names;
+    }
+
+    /// <summary>XKMD 항목의 이름 — 머리 +0x5C 가 이름 구역 자리, 그 +4 부터 32바이트.</summary>
+    private static string NameOf(Pack pack, int entry)
+    {
+        var head = pack.Slice(entry, 0, 0x80);
+        if (head.Length < 0x80 || !head.AsSpan(0, 4).SequenceEqual("XKMD"u8)) return "";
+        int at = BinaryPrimitives.ReadInt32LittleEndian(head.AsSpan(0x4C + 4 * 4));
+        if (at == 0) return "";
+        var name = pack.Slice(entry, at + 4, 32);
+        int end = Array.IndexOf(name, (byte)0);
+        return System.Text.Encoding.ASCII.GetString(name, 0, end < 0 ? name.Length : end);
     }
 
     private void Load(Gfx gfx, byte[] data, bool isHull)

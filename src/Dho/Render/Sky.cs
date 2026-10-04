@@ -33,6 +33,23 @@ internal readonly record struct Sky(
         return new Sky(direction, light, ambient, horizon, zenith, water, night);
     }
 
+    /// <summary>구름이 낀 만큼(0 맑음 ~ 1 폭풍) 하늘을 잿빛으로 가라앉힌다.</summary>
+    public Sky Overcast(float amount)
+    {
+        if (amount <= 0) return this;
+        float brightness = (Horizon.X + Horizon.Y + Horizon.Z) / 3;
+        var gray = new Vector3(0.42f, 0.45f, 0.50f) * (0.25f + brightness);
+        return this with
+        {
+            Horizon = Vector3.Lerp(Horizon, gray, amount),
+            Zenith = Vector3.Lerp(Zenith, gray * 0.55f, amount),
+            Water = Vector3.Lerp(Water, gray * 0.22f, amount * 0.8f),
+            LightColor = LightColor * (1 - 0.75f * amount),
+            Ambient = Vector3.Lerp(Ambient, Ambient * 0.75f, amount),
+            Night = Night * (1 - amount),
+        };
+    }
+
     private static float Smooth(float from, float to, float value)
     {
         float t = Math.Clamp((value - from) / (to - from), 0, 1);
