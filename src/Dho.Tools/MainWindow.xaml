@@ -1,0 +1,153 @@
+<Window x:Class="Dho.Tools.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="대항해시대 온라인 개발도구" Width="1280" Height="820">
+    <DockPanel>
+        <!-- 위: 저장 · 다시 뽑기 · 게임 실행 -->
+        <Border DockPanel.Dock="Top" Padding="8" Background="#FF1C2A5A">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button Content="저장 (Ctrl+S)" Click="Save_Click" />
+                    <Button Content="게임 실행" Click="RunGame_Click" />
+                    <Button Content="게임 자료에서 다시 뽑기" Click="Extract_Click" />
+                </StackPanel>
+                <TextBlock x:Name="StatusText" Foreground="White" VerticalAlignment="Center" Margin="12,0,0,0" />
+            </DockPanel>
+        </Border>
+
+        <TabControl x:Name="Tabs" Margin="6">
+            <!-- 의뢰 -->
+            <TabItem Header="의뢰">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Margin="0,0,10,0">
+                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="새 의뢰" Click="AddQuest_Click" />
+                            <Button Content="지우기" Click="RemoveQuest_Click" />
+                        </StackPanel>
+                        <ListBox x:Name="QuestList" SelectionChanged="QuestList_SelectionChanged" />
+                    </DockPanel>
+                    <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                        <Grid x:Name="QuestForm">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="번호" Style="{StaticResource Label}" />
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Id}" Width="80" HorizontalAlignment="Left" />
+                            <TextBlock Grid.Row="1" Text="제목" Style="{StaticResource Label}" />
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" TextChanged="QuestTitle_TextChanged" />
+                            <TextBlock Grid.Row="2" Text="의뢰인" Style="{StaticResource Label}" />
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Client}" />
+                            <TextBlock Grid.Row="3" Text="조합 마스터의 말" Style="{StaticResource Label}" />
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Request}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" />
+                            <TextBlock Grid.Row="4" Text="목표 한 줄" Style="{StaticResource Label}" />
+                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Hint}" />
+                            <TextBlock Grid.Row="5" Text="받는 도시" Style="{StaticResource Label}" />
+                            <ComboBox Grid.Row="5" Grid.Column="1" x:Name="QuestCity" Margin="0,2" DisplayMemberPath="Label"
+                                      SelectedValuePath="Id" SelectedValue="{Binding CityId}" IsEditable="True" IsTextSearchEnabled="True" />
+                            <TextBlock Grid.Row="6" Text="발견물" Style="{StaticResource Label}" />
+                            <ComboBox Grid.Row="6" Grid.Column="1" x:Name="QuestDiscovery" Margin="0,2" DisplayMemberPath="Label"
+                                      SelectedValuePath="Id" SelectedValue="{Binding DiscoveryId}" IsEditable="True" IsTextSearchEnabled="True"
+                                      SelectionChanged="QuestDiscovery_SelectionChanged" />
+                            <TextBlock Grid.Row="7" Grid.Column="1" x:Name="DiscoveryInfo" TextWrapping="Wrap" Foreground="#FF505050" Margin="0,2,0,6" />
+                            <TextBlock Grid.Row="8" Text="상륙지" Style="{StaticResource Label}" />
+                            <DockPanel Grid.Row="8" Grid.Column="1">
+                                <Button DockPanel.Dock="Right" Content="지도에서 자리 찍기" Margin="6,2,0,2" Click="PickLanding_Click" />
+                                <ComboBox x:Name="QuestLanding" Margin="0,2" DisplayMemberPath="Label" SelectedValuePath="Id"
+                                          SelectedValue="{Binding LandingId}" IsEditable="True" IsTextSearchEnabled="True" />
+                            </DockPanel>
+                            <TextBlock Grid.Row="9" Text="상륙했을 때 글" Style="{StaticResource Label}" />
+                            <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding LandingText}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                            <TextBlock Grid.Row="10" Text="선금" Style="{StaticResource Label}" />
+                            <TextBox Grid.Row="10" Grid.Column="1" Text="{Binding Advance}" Width="120" HorizontalAlignment="Left" />
+                            <TextBlock Grid.Row="11" Text="보수" Style="{StaticResource Label}" />
+                            <TextBox Grid.Row="11" Grid.Column="1" Text="{Binding Reward}" Width="120" HorizontalAlignment="Left" />
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!-- 지도 -->
+            <TabItem Header="지도">
+                <DockPanel Margin="8">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="찍을 상륙지" Style="{StaticResource Label}" />
+                        <ComboBox x:Name="MapLanding" Width="260" DisplayMemberPath="Label" IsEditable="True" IsTextSearchEnabled="True"
+                                  SelectionChanged="MapLanding_SelectionChanged" />
+                        <TextBlock Text="확대" Style="{StaticResource Label}" Margin="16,0,8,0" />
+                        <Slider x:Name="ZoomSlider" Width="160" Minimum="0.25" Maximum="12" Value="1" ValueChanged="Zoom_ValueChanged" VerticalAlignment="Center" />
+                        <Button Content="도시로 가기" Margin="16,0,6,0" Click="GoToCity_Click" />
+                        <ComboBox x:Name="MapCity" Width="160" DisplayMemberPath="Label" IsEditable="True" IsTextSearchEnabled="True" />
+                        <TextBlock x:Name="MapInfo" Margin="16,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Bottom" Margin="0,6,0,0" Foreground="#FF505050"
+                               Text="왼쪽 클릭: 고른 상륙지의 자리를 그곳으로 · 빨강 = 항구 앞바다, 노랑 = 자리를 찍어 둔 상륙지, 초록 = 뭍(통행 판정 지도)" />
+                    <ScrollViewer x:Name="MapScroll" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" Background="#FF101830">
+                        <Grid x:Name="MapGrid" Width="4096" Height="2048" HorizontalAlignment="Left" VerticalAlignment="Top"
+                              MouseMove="Map_MouseMove" MouseLeftButtonDown="Map_MouseLeftButtonDown">
+                            <Grid.LayoutTransform>
+                                <ScaleTransform x:Name="MapScale" ScaleX="1" ScaleY="1" />
+                            </Grid.LayoutTransform>
+                            <Image x:Name="MapImage" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                            <Canvas x:Name="MapMarks" IsHitTestVisible="False" />
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="상륙지">
+                <DockPanel Margin="8">
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="찾기" Style="{StaticResource Label}" />
+                        <TextBox Tag="Landings" TextChanged="Filter_TextChanged" />
+                    </DockPanel>
+                    <DataGrid x:Name="LandingGrid" AutoGenerateColumns="True" CanUserAddRows="False" />
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="도시">
+                <DockPanel Margin="8">
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="찾기" Style="{StaticResource Label}" />
+                        <TextBox Tag="Cities" TextChanged="Filter_TextChanged" />
+                    </DockPanel>
+                    <DataGrid x:Name="CityGrid" AutoGenerateColumns="True" CanUserAddRows="False" />
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="발견물">
+                <DockPanel Margin="8">
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <TextBlock Text="찾기" Style="{StaticResource Label}" />
+                        <TextBox Tag="Discoveries" TextChanged="Filter_TextChanged" />
+                    </DockPanel>
+                    <DataGrid x:Name="DiscoveryGrid" AutoGenerateColumns="True" CanUserAddRows="False" EnableRowVirtualization="True" MaxColumnWidth="560" />
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="해역">
+                <DataGrid x:Name="SeaGrid" Margin="8" AutoGenerateColumns="True" CanUserAddRows="False" />
+            </TabItem>
+
+            <TabItem Header="설정">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8" MaxWidth="640" HorizontalAlignment="Left">
+                        <Grid x:Name="SettingsForm" />
+                        <TextBlock Text="항구 장면에서 배가 뜨는 자리 (장면 번호 · X · Z · 뱃머리 각)" FontWeight="Bold" Margin="0,14,0,4" />
+                        <DataGrid x:Name="BerthGrid" AutoGenerateColumns="True" CanUserAddRows="True" MinHeight="120" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

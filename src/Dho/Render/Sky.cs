@@ -1,0 +1,41 @@
+using System.Numerics;
+
+namespace Dho.Render;
+
+/// <summary>하늘의 때(0 = 자정, 0.5 = 한낮)에 따른 빛과 빛깔.</summary>
+internal readonly record struct Sky(
+    Vector3 LightDirection, Vector3 LightColor, Vector3 Ambient,
+    Vector3 Horizon, Vector3 Zenith, Vector3 Water, float Night)
+{
+    public static Sky At(double phase)
+    {
+        float angle = (float)((phase - 0.25) * Math.Tau);
+        var sun = Vector3.Normalize(new Vector3(MathF.Cos(angle) * 0.8f, MathF.Sin(angle), 0.45f));
+        float elevation = sun.Y;
+
+        float day = Smooth(-0.08f, 0.30f, elevation);
+        float dusk = Smooth(-0.25f, 0.05f, elevation) * (1 - Smooth(0.05f, 0.45f, elevation));
+        float night = 1 - Smooth(-0.22f, 0.02f, elevation);
+
+        var zenith = Vector3.Lerp(new Vector3(0.03f, 0.05f, 0.16f), new Vector3(0.22f, 0.40f, 0.74f), day);
+        var horizon = Vector3.Lerp(new Vector3(0.08f, 0.12f, 0.27f), new Vector3(0.60f, 0.74f, 0.90f), day);
+        horizon = Vector3.Lerp(horizon, new Vector3(0.86f, 0.52f, 0.36f), dusk * 0.7f);
+        var water = Vector3.Lerp(new Vector3(0.012f, 0.03f, 0.13f), new Vector3(0.03f, 0.13f, 0.36f), day);
+
+        // 해가 지면 달빛(해의 맞은편)으로 비춘다
+        bool moon = elevation < -0.04f;
+        var direction = moon ? Vector3.Normalize(new Vector3(-sun.X, MathF.Max(0.35f, -sun.Y), -sun.Z)) : Vector3.Normalize(sun with { Y = MathF.Max(sun.Y, 0.06f) });
+        var light = moon
+            ? new Vector3(0.20f, 0.25f, 0.40f)
+            : Vector3.Lerp(new Vector3(1.0f, 0.55f, 0.30f), new Vector3(1.0f, 0.96f, 0.88f), day) * (0.35f + 0.65f * day);
+        var ambient = Vector3.Lerp(new Vector3(0.10f, 0.13f, 0.24f), new Vector3(0.38f, 0.42f, 0.50f), day);
+
+        return new Sky(direction, light, ambient, horizon, zenith, water, night);
+    }
+
+    private static float Smooth(float from, float to, float value)
+    {
+        float t = Math.Clamp((value - from) / (to - from), 0, 1);
+        return t * t * (3 - 2 * t);
+    }
+}

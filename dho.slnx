@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Dho.Data/Dho.Data.csproj" />
+    <Project Path="src/Dho.Tools/Dho.Tools.csproj" />
+    <Project Path="src/Dho/Dho.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,22 @@
+{
+  "PlayerName": "김선민",
+  "Money": 1093057,
+  "StartCity": 28,
+  "ShipEntry": 110,
+  "StartSkyPhase": 0.4,
+  "SecondsPerDay": 60,
+  "SecondsPerSkyCycle": 600,
+  "MaxKnots": 14,
+  "UnitsPerKnotSecond": 0.16,
+  "TurnRate": 0.9,
+  "PortRange": 14,
+  "LandingRange": 16,
+  "Berths": [
+    {
+      "Scene": 7004,
+      "X": 39500,
+      "Z": 28500,
+      "Yaw": 1.15
+    }
+  ]
+}

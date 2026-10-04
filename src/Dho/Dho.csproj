@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <RootNamespace>Dho</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3" />
+        <PackageReference Include="Vortice.Direct2D1" Version="3.8.3" />
+        <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Dho.Data\Dho.Data.csproj" />
+    </ItemGroup>
+
+</Project>

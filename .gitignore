@@ -12,3 +12,9 @@ obj/
 
 # NuGet
 *.nupkg
+
+# 게임 클라이언트에서 뽑은 자료 (저작물이라 저장소에 두지 않는다)
+data/extracted/
+
+# Python
+__pycache__/
