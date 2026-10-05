@@ -41,9 +41,12 @@ internal sealed partial class Voyage
         Data.SkillRules.Where(r => Rank(r.SkillId) == 0)
             .Select(r => Data.Skills.Find(s => s.Id == r.SkillId)).OfType<SkillData>();
 
-    public void Learn(SkillData skill)
+    /// <param name="taught">가르치는 사람을 따지지 않는다(대본 · 개발용).</param>
+    public void Learn(SkillData skill, bool taught = false)
     {
         if (Mode != Mode.Port || Rank(skill.Id) > 0 || Money < skill.Cost) return;
+        // 스킬은 그 갈래의 조합 마스터에게 배운다 — 모험가조합 · 상인조합 · 해양조합
+        if (!taught && Teacher != skill.Group) return;
         Money -= skill.Cost;
         Skills[skill.Id] = new SkillState();
         Say($"{skill.Name} 스킬을 익혔다. ({skill.Cost:N0} 두캇)");

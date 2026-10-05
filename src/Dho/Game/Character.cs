@@ -68,7 +68,11 @@ internal sealed partial class Voyage
     public int[] Looks { get; private set; } = [0, 0, 0, 0, 0, 0, -1];
 
     /// <summary>고를 수 있는 몸 틀 — 남성형은 짝수 묶음, 여성형은 홀수 묶음. 0 · 1 이 옷과 머리가 다 있는 기본 체형이다.</summary>
-    public static int[] FramesOf(bool male) => male ? [0, 2, 4, 6] : [1, 5, 7];
+    /// <summary>
+    /// 고를 수 있는 몸 틀. 묶음 2 ~ 7 은 뼈대와 부위 짜임이 달라서 지금은 깨져 선다(머리가 돌아가 붙거나 몸이 빈다) —
+    /// 제대로 서는 0(남) · 1(여)만 내놓는다.
+    /// </summary>
+    public static int[] FramesOf(bool male) => male ? [0] : [1];
 
     public static readonly string[] LookNames = ["체형", "얼굴", "머리", "옷", "신발", "손", "모자"];
 
@@ -180,7 +184,8 @@ internal sealed partial class Voyage
         foreach (int recipe in save.Recipes) Recipes.Add(recipe);
         if (save.QuickSlots.Length > 0) Array.Copy(save.QuickSlots, QuickSlots, Math.Min(save.QuickSlots.Length, QuickSlotCount));
         else foreach (var rule in SeaSkills()) AddQuickSlot(rule.SkillId);      // 예전 저장: 익힌 스킬을 올려 둔다
-        Looks = save.Looks.Length == 7 ? save.Looks : [FramesOf(Male)[0], 0, 0, 0, 0, 0, -1];
+        // 이제 안 내놓는 몸 틀로 만든 캐릭터는 같은 성별의 기본 틀로 돌린다
+        Looks = save.Looks.Length == 7 && FramesOf(Male).Contains(save.Looks[0]) ? save.Looks : [FramesOf(Male)[0], 0, 0, 0, 0, 0, -1];
         if (save.Build.Length >= 2 && (save.Build[0] != 0 || save.Build[1] != 0))
         {
             (ShipMaterialId, ShipLoad) = (save.Build[0], save.Build[1]);

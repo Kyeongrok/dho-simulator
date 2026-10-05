@@ -28,7 +28,21 @@ internal sealed partial class Voyage
     private readonly Dictionary<int, string> _seas;
 
     public Mode Mode { get; private set; } = Mode.Port;
-    public Dialog Dialog { get; set; } = Dialog.None;
+    private Dialog _dialog = Dialog.None;
+    /// <summary>떠 있는 창. 스킬 창을 그냥 열면 가르치는 사람이 없는 것이다(<see cref="LearnFrom"/> 로 열어야 배운다).</summary>
+    public Dialog Dialog
+    {
+        get => _dialog;
+        set { _dialog = value; Teacher = -1; }
+    }
+
+    /// <summary>스킬을 가르치는 조합 마스터의 갈래 — 0 모험, 1 교역, 2 전투. 없으면 -1.</summary>
+    public int Teacher { get; private set; } = -1;
+
+    /// <summary>조합 마스터에게 스킬을 배우러 스킬 창을 연다.</summary>
+    public void LearnFrom(int group) => (_dialog, Teacher) = (Dialog.Skills, group);
+
+    public static string TeacherName(int group) => group switch { 0 => "모험가조합", 1 => "상인조합", 2 => "해양조합", _ => "조합" };
     /// <summary>항구에서 시내를 내려다보고 있는가.</summary>
     private bool _townView;
 
@@ -97,8 +111,8 @@ internal sealed partial class Voyage
     {
         switch (_interiorPlace)
         {
-            case 2: Say($"{InteriorHost}: 「교역 의뢰는 아직 들어온 것이 없네. 시세는 교역소에서 보게.」"); break;
-            case 3: Say($"{InteriorHost}: 「토벌 의뢰는 아직 들어온 것이 없다. 바다가 조용하군.」"); break;
+            case 2: Say($"{InteriorHost}: 「교역 의뢰는 아직 없네. 장사에 쓸 기술이라면 가르쳐 주지.」"); LearnFrom(1); break;
+            case 3: Say($"{InteriorHost}: 「토벌 의뢰는 아직 없다. 싸우는 기술이라면 가르쳐 주마.」"); LearnFrom(2); break;
             case 16: Say($"{InteriorHost}: 「지도와 기록은 여기 다 있소. 찾는 곳이 있으면 모험가조합의 의뢰부터 받아 오시오.」"); break;
             case 201 or 202 or 203:
                 if (Fatigue > 0) { Fatigue = 0; Say($"{InteriorHost}와(과) 함께 기도를 올렸다. 피로가 풀렸다."); }

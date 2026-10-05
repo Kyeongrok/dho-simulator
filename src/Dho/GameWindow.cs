@@ -99,7 +99,7 @@ internal sealed class GameWindow : IDisposable
         _canvas = new Canvas(_gfx);
         _hud = new Hud(_canvas, _voyage)
         {
-            SetDisplay = SetDisplay, WalkTo = WalkTo,
+            SetDisplay = SetDisplay, WalkTo = WalkTo, JumpTo = JumpTo,
             Minimize = () => Win32.ShowWindow(_hwnd, Win32.SW_MINIMIZE),
             Quit = () => Win32.PostMessageW(_hwnd, Win32.WM_CLOSE, IntPtr.Zero, IntPtr.Zero),
             PartCount = (frame, part) => CharacterModel.PartsOf(frame).TryGetValue(part, out var list) ? list.Count : 0,
@@ -399,6 +399,17 @@ internal sealed class GameWindow : IDisposable
     /// <summary>시내 걷기 — W·S 는 보는 쪽으로 앞뒤, A·D 는 옆. 벽에 걸리면 벽을 따라 미끄러진다.</summary>
     private List<Vector2> _route = [];
     private TownMark? _bound;
+
+    /// <summary>도시 메뉴에서 고른 시설 앞으로 바로 옮겨 가서 그 시설의 일을 연다.</summary>
+    private void JumpTo(TownMark mark)
+    {
+        if (!Walking) return;
+        (_route, _bound) = ([], null);
+        var keeper = _keepers.Find(k => k.Mark.Place == mark.Place);
+        _walk = _grid!.Nearest(keeper.Name != null ? keeper.Spot + new Vector2(MathF.Sin(keeper.Facing), MathF.Cos(keeper.Facing)) * 180f : mark.Scene);
+        if (keeper.Name != null) _walkYaw = MathF.Atan2(keeper.Spot.X - _walk.X, keeper.Spot.Y - _walk.Y);
+        _voyage.Visit(mark);
+    }
 
     /// <summary>지도에서 시설을 누르면 그리로 걸어간다.</summary>
     private void WalkTo(TownMark mark)
@@ -935,7 +946,7 @@ internal sealed class GameWindow : IDisposable
             case "buygood": if (_voyage.GoodsHere().ElementAtOrDefault((int)Number()) is { } good) _voyage.BuyGood(good, 50); break;
             case "sellall": foreach (int id in _voyage.Cargo.Keys.ToList()) if (_voyage.Good(id) is { } g) _voyage.SellGood(g, int.MaxValue); break;
             case "use": if (_voyage.Data.SkillRules.Find(r => r.SkillId == (int)Number()) is { } used) _voyage.UseSkill(used); break;
-            case "learn": if (_voyage.Data.Skills.Find(s => s.Id == (int)Number()) is { } skill) _voyage.Learn(skill); break;
+            case "learn": if (_voyage.Data.Skills.Find(s => s.Id == (int)Number()) is { } skill) _voyage.Learn(skill, true); break;
             case "supply": _voyage.Dialog = Dialog.Supply; break;
             case "buy": if (_voyage.Data.Supplies.Find(s => s.Id == (int)Number()) is { } item) _voyage.BuySupply(item); break;
             case "cure": if (_voyage.Disasters.FirstOrDefault() is { } first) _voyage.Cure(first); break;
