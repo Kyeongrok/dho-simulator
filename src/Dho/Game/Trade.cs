@@ -56,7 +56,7 @@ internal sealed partial class Voyage
     /// <summary>회계 스킬이 있으면 시세가 보이고 흥정이 된다.</summary>
     public bool CanSeeMarket => Has("Haggle");
     public int MarketPercent(GoodData good) => (int)Math.Round(MarketIndex(good, City) * 100);
-    private double Haggle => Math.Min(Settings.Trade.MaxHaggle, Bonus("Haggle"));
+    private double Haggle => Math.Min(Settings.Trade.MaxHaggle, Bonus("Haggle") + AideHaggle);
 
     public int BuyPrice(GoodData good) => Math.Max(1, (int)(BasePrice(good) * MarketIndex(good, City) * (1 - Haggle)));
 

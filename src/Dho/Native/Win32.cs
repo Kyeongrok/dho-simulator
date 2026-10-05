@@ -31,6 +31,37 @@ internal static class Win32
     public const int VK_RETURN = 0x0D, VK_SPACE = 0x20, VK_ESCAPE = 0x1B;
 
     public const int IDC_ARROW = 32512;
+    public const int WS_POPUP = unchecked((int)0x80000000);
+    public const int GWL_STYLE = -16;
+    public const int SM_CXSCREEN = 0, SM_CYSCREEN = 1;
+    public const uint SWP_NOZORDER = 0x0004, SWP_FRAMECHANGED = 0x0020, SWP_SHOWWINDOW = 0x0040;
+    public const int VK_F11 = 0x7A, VK_CONTROL = 0x11;
+    public const int WS_THICKFRAME = 0x00040000, WS_MINIMIZEBOX = 0x00020000, WS_SYSMENU = 0x00080000;
+    /// <summary>제목 줄을 스스로 그리는 창 — 테두리로 크기는 바꿀 수 있다.</summary>
+    public const int WS_OWNTITLE = WS_POPUP | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU;
+    public const uint WM_NCCALCSIZE = 0x0083, WM_NCHITTEST = 0x0084;
+    public const int HTCLIENT = 1, HTCAPTION = 2, HTLEFT = 10, HTRIGHT = 11, HTTOP = 12, HTTOPLEFT = 13, HTTOPRIGHT = 14, HTBOTTOM = 15, HTBOTTOMLEFT = 16, HTBOTTOMRIGHT = 17;
+    public const int SW_MINIMIZE = 6;
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetWindowRect(IntPtr hWnd, out Rect rect);
+
+    [DllImport("user32.dll")]
+    public static extern uint GetDpiForWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr PostMessageW(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SetWindowLongPtrW(IntPtr hWnd, int index, IntPtr value);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetWindowPos(IntPtr hWnd, IntPtr after, int x, int y, int width, int height, uint flags);
+
+    [DllImport("user32.dll")]
+    public static extern int GetSystemMetrics(int index);
 
     [StructLayout(LayoutKind.Sequential)]
     public struct Point { public int X, Y; }

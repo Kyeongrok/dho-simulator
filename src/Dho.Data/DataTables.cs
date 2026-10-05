@@ -10,6 +10,8 @@ public sealed record Discovery(int Id, string Name, string Description, int Kind
 public sealed record Skill(int Id, string Name, string Description, int Group, int Sub, int Basic, int Cost, int Job);
 public sealed record Good(int Id, string Name, string Description, int Kind);
 public sealed record Ship(int Id, string Name, string Description, int Model, int Height, int Width, int Length, int SizeClass, int Kind, int Masts);
+/// <summary>배 부품. Slot: 0 보조돛(A 가로돛, B 세로돛) · 1 장갑(A 장갑, B 속도 줄임) · 2 선수상(A ~ D 효과 넷).</summary>
+public sealed record ShipPart(int Id, string Name, string Description, int Slot, int A, int B, int C, int D, int Durability);
 public sealed record Nation(int Id, string Name, string Description);
 public sealed record Job(int Id, string Name, string Description, int Line);
 
@@ -24,7 +26,7 @@ public sealed record Job(int Id, string Name, string Description, int Line);
 public sealed class DataTables
 {
     private const int CityTable = 10, SeaTable = 8, LandingTable = 11, DiscoveryKindTable = 31, DiscoveryTable = 32;
-    private const int SkillTable = 6, GoodKindTable = 18, GoodTable = 19, ShipTable = 28, NationTable = 4, JobTable = 5;
+    private const int SkillTable = 6, GoodKindTable = 18, GoodTable = 19, ShipTable = 28, NationTable = 4, JobTable = 5, PlaceTable = 40, AideTable = 131, DutyTable = 36, ArmorTable = 23, SailTable = 25, FigureheadTable = 27;
 
     public IReadOnlyDictionary<int, City> Cities { get; }
     public IReadOnlyDictionary<int, SeaZone> Seas { get; }
@@ -44,6 +46,14 @@ public sealed class DataTables
     public IReadOnlyList<Nation> Nations { get; }
     /// <summary>직업: id, 이름, 설명, u16 계열(0 모험 · 1 교역 · 2 전투).</summary>
     public IReadOnlyList<Job> Jobs { get; }
+    /// <summary>배 부품 — 보조돛(표 25: u32 가로돛, 세로돛, ?, 내구) · 장갑(표 23: u16 장갑, u16 속도 줄임, u32 내구) · 선수상(표 27: u32 × 4, u32 내구).</summary>
+    public IReadOnlyList<ShipPart> ShipParts { get; }
+    /// <summary>부관 후보(표 131): id, 이름, u8 얼굴 번호로 짐작, u8 차례. 32명.</summary>
+    public IReadOnlyList<(int Id, string Name, int A, int B)> Aides { get; }
+    /// <summary>부관의 담당(표 36): 0 항해장 · 1 감시 · 2 회계사 · 3 창고당번 · 4 부함장 · 5 선의.</summary>
+    public IReadOnlyDictionary<int, string> Duties { get; }
+    /// <summary>시내 장소 이름(표 40): 9 조선소 · 10 교역소 · 14 은행 … — 시내 지도의 표식이 이 번호를 쓴다.</summary>
+    public IReadOnlyDictionary<int, string> Places { get; }
 
     public DataTables(int language = GvoFiles.Korean)
     {
@@ -88,6 +98,19 @@ public sealed class DataTables
         });
         Nations = Rows(Table(NationTable), (r, id) => new Nation(id, r.Text(id), r.Text(id)));
         Jobs = Rows(Table(JobTable), (r, id) => new Job(id, r.Text(id), r.Text(id), r.UInt16()));
+        var parts = Rows(Table(SailTable), (r, id) =>
+        {
+            string name = r.Text(id), description = r.Text(id);
+            int square = r.Int32(), foreAft = r.Int32();
+            r.Int32();
+            return new ShipPart(id, name, description, 0, square, foreAft, 0, 0, r.Int32());
+        });
+        parts.AddRange(Rows(Table(ArmorTable), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 1, r.UInt16(), r.UInt16(), 0, 0, r.Int32())));
+        parts.AddRange(Rows(Table(FigureheadTable), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 2, r.Int32(), r.Int32(), r.Int32(), r.Int32(), r.Int32())));
+        ShipParts = parts;
+        Aides = Rows(Table(AideTable), (r, id) => (id, r.Text(id), r.Byte(), r.Byte()));
+        Duties = Rows(Table(DutyTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(d => d.Id, d => d.Name);
+        Places = Rows(Table(PlaceTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(p => p.Id, p => p.Name);
     }
 
     private static List<T> Rows<T>(byte[] table, Func<Reader, int, T> row)

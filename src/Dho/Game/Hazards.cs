@@ -178,13 +178,14 @@ internal sealed partial class Voyage
     {
         double days = dt / Settings.SecondsPerDay;
         // 생존 스킬이 선원 피해를 줄인다
-        double loss = 1 - Math.Min(0.75, Bonus("CrewLoss"));
+        double loss = (1 - Math.Min(0.75, Bonus("CrewLoss"))) * AideCrewLoss;
+        UpdateAides(days);
         // 재해 표의 피해는 선원 80명·내구 400짜리 배가 기준이다. 배 크기에 맞춰 늘리고 줄인다.
         double crewScale = Stats.MaxCrew / 80.0, hullScale = Stats.Durability / 400.0;
 
         // 물과 식량
         // 운용 스킬이 물과 식량을 아낀다
-        double ration = Crew * Rules.RationPerCrewDay * days * (1 - Math.Min(0.5, Bonus("Ration")));
+        double ration = Crew * Rules.RationPerCrewDay * days * (1 - Math.Min(0.5, Bonus("Ration"))) * AideRation;
         Water = Math.Max(0, Water - ration);
         Food = Math.Max(0, Food - ration);
         bool starving = Water <= 0 || Food <= 0;
@@ -196,7 +197,7 @@ internal sealed partial class Voyage
         if (!starving) _starvingSaid = false;
 
         double fatigueBefore = Fatigue;
-        Fatigue = Math.Min(100, Fatigue + (Rules.FatiguePerDay + (starving ? Rules.FatigueWhenStarving : 0)) * days);
+        Fatigue = Math.Min(100, Fatigue + (Rules.FatiguePerDay + (starving ? Rules.FatigueWhenStarving : 0)) * days * AideFatigue);
         if (starving)
         {
             Crew -= Crew * 0.04 * days * loss;
@@ -214,7 +215,7 @@ internal sealed partial class Voyage
             _stormDays -= days;
             if (Sail > 0)
             {
-                Durability -= Rules.StormDurabilityPerDay * hullScale * days * Sail / SailSteps;
+                Durability -= Rules.StormDurabilityPerDay * hullScale * days * Sail / SailSteps * PartDamage;
                 Crew -= 6 * days * loss * crewScale;
                 TrainEffect("CrewLoss", 40 * days);
             }
@@ -233,7 +234,7 @@ internal sealed partial class Voyage
         {
             var d = disaster.Data;
             disaster.Days += days;
-            Durability -= d.DurabilityPerDay * hullScale * days;
+            Durability -= d.DurabilityPerDay * hullScale * days * PartDamage;
             Crew -= d.CrewPerDay * days * loss * crewScale;
             if (d.CrewPerDay > 0) TrainEffect("CrewLoss", 40 * days);
             Food = Math.Max(0, Food - d.FoodPerDay * days);
@@ -248,10 +249,10 @@ internal sealed partial class Voyage
         {
             if (DaysAtSea < data.MinDays || Fatigue < data.MinFatigue || (data.NearLand && !nearLand)) continue;
             if (data.NearLand && Knots < 3) continue;        // 서 있는 배는 암초에 걸리지 않는다
-            if (Roll(data.ChancePerDay, days)) Begin(data);
+            if (Roll(data.ChancePerDay * PartLuck * AideLuck, days)) Begin(data);
         }
 
-        if (Durability <= 0 || Crew < 1) Wreck();
+        if ((Durability <= 0 || Crew < 1) && !UseLifebuoy()) Wreck();
     }
 
     /// <summary>하루 확률 p 인 일이 days 동안에 일어났는가.</summary>

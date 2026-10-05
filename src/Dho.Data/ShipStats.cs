@@ -18,19 +18,22 @@ public sealed class ShipData
     public int Masts { get; set; }
 }
 
-/// <summary>배의 크기에서 능력치를 지어 내는 계수. 원본 능력치는 클라이언트에 없다.</summary>
+/// <summary>
+/// 배의 크기에서 능력치를 지어 내는 계수. 원본 능력치는 클라이언트에 없다.
+/// 기본값은 원본 조선소 화면의 바사(길이 18 · 폭 8 · 높이 12 — 내구 18, 선원 5, 대포 2, 창고 43, 선회 14, 값 2,000)에 맞췄다.
+/// </summary>
 public sealed class ShipRules
 {
     /// <summary>내구 = 길이 × 폭 ÷ 이 값.</summary>
-    public double DurabilityDivisor { get; set; } = 4;
+    public double DurabilityDivisor { get; set; } = 8;
     /// <summary>창고 = 길이 × 폭 ÷ 이 값.</summary>
-    public double HoldDivisor { get; set; } = 3;
+    public double HoldDivisor { get; set; } = 3.35;
     /// <summary>선원 정원 = 길이 × 폭 ÷ 이 값.</summary>
-    public double CrewDivisor { get; set; } = 12;
+    public double CrewDivisor { get; set; } = 29;
     /// <summary>필요 선원 = 정원 × 이 값.</summary>
     public double MinCrewRate { get; set; } = 0.4;
     /// <summary>값 = 길이 × 폭 × 높이 × 이 값.</summary>
-    public double PriceFactor { get; set; } = 6;
+    public double PriceFactor { get; set; } = 1.16;
     /// <summary>팔 때 받는 비율.</summary>
     public double SellRate { get; set; } = 0.5;
     /// <summary>돛 성능 = 높이 × 돛대 수 × 이 값.</summary>
@@ -45,6 +48,15 @@ public sealed class ShipRules
 /// <summary>지어 낸 배 능력치.</summary>
 public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCrew, double Knots, double TurnFactor, int Price, int SellPrice)
 {
+    // 조선소 화면에 보이는 값들 — 원본 화면의 칸 그대로(세로돛 · 가로돛 · 조력 · 선회 · 내파 · 장갑 · 대포)
+    public int VerticalSail { get; init; }
+    public int HorizontalSail { get; init; }
+    public int Rowing { get; init; }
+    public int Turn { get; init; }
+    public int WaveResist { get; init; }
+    public int Armor { get; init; }
+    public int Guns { get; init; }
+
     public static ShipStats Of(ShipData ship, ShipRules rules)
     {
         double area = ship.Length * ship.Width;
@@ -61,6 +73,16 @@ public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCre
             // 작은 배가 잘 돈다
             TurnFactor: Math.Max(4, 24 - ship.Length / 6.0) / 12,
             Price: price,
-            SellPrice: (int)(price * rules.SellRate));
+            SellPrice: (int)(price * rules.SellRate))
+        {
+            // 돛대가 적은 작은 배는 세로돛(삼각돛) 배, 돛대가 많을수록 가로돛이 는다. 갤리는 노를 젓는다.
+            VerticalSail = (int)(sail * (ship.Masts <= 1 ? 2.6 : ship.Masts == 2 ? 1.4 : 0.6)),
+            HorizontalSail = (int)(sail * (ship.Masts <= 1 ? 0.14 : ship.Masts == 2 ? 0.9 : 1.5)),
+            Rowing = ship.Kind == 2 ? ship.Length / 2 : 0,
+            Turn = Math.Max(3, (int)Math.Round(17 - ship.Length / 6.0)),
+            WaveResist = 2 + ship.SizeClass * 2,
+            Armor = 2 + ship.SizeClass * 3,
+            Guns = Math.Max(2, ship.Length / (ship.Kind == 2 ? 18 : 9)),
+        };
     }
 }

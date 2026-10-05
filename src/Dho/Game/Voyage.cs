@@ -1,11 +1,11 @@
-﻿using Dho.Data;
+using Dho.Data;
 
 namespace Dho.Game;
 
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -80,6 +80,11 @@ internal sealed partial class Voyage
         Begin(developer);
     }
 
+    /// <summary>지금 있는 곳의 배경음 번호 — 항구·시내는 도시의 것, 바다는 해역의 것.</summary>
+    public int MusicNumber => Mode == Mode.Sea
+        ? Data.Seas.Find(s => s.Id == Zones.ZoneAt(ShipX, ShipY))?.Music ?? 0
+        : City.Music;
+
     public string SeaName => _seas.TryGetValue(Zones.ZoneAt(ShipX, ShipY), out var name) ? name : "먼 바다";
 
     public DiscoveryData? QuestDiscovery => Quest != null && _discoveries.TryGetValue(Quest.DiscoveryId, out var d) ? d : null;
@@ -96,7 +101,39 @@ internal sealed partial class Voyage
     }
 
     /// <summary>이 도시에 조선소가 있는가(교역 탭의 Shipyard).</summary>
-    public bool HasShipyard => Data.Markets.Find(m => m.CityId == City.Id)?.Shipyard ?? true;
+    public bool HasShipyard => TownMap is { Marks.Count: > 0 } map
+        ? map.Marks.Any(m => m.Place is 9 or 30)
+        : Data.Markets.Find(m => m.CityId == City.Id)?.Shipyard ?? true;
+
+    private (int City, TownMap? Map) _townMap;
+
+    /// <summary>이 도시의 원본 시내 지도(그림과 시설 자리). 없으면 null.</summary>
+    public TownMap? TownMap
+    {
+        get
+        {
+            if (_townMap.City != City.Id) _townMap = (City.Id, Dho.Data.TownMap.Load(City.Id));
+            return _townMap.Map;
+        }
+    }
+
+    /// <summary>소지품 창을 도구점 쪽지로 열라는 표시(창이 보고 끈다).</summary>
+    public bool ItemShopOpen { get; set; }
+
+    public string PlaceName(int place) => Data.Places.Find(p => p.Id == place)?.Name ?? (place > 1000 ? "저택" : $"장소 {place}");
+
+    /// <summary>시내에서 그 시설에 닿았을 때 — 하는 일이 있는 곳이면 창을 연다.</summary>
+    public void Visit(TownMark mark)
+    {
+        string name = PlaceName(mark.Place);
+        Say($"{name}에 왔다.");
+        if (mark.Place is 4 or 5) TownView = false;                          // 항구 · 항구(항구 앞) → 부두로
+        else if (mark.Place is 9 or 30) Dialog = Dialog.Shipyard;
+        else if (mark.Place is 10 or 19 or 26 or 27 or 32) Dialog = Dialog.Trade;
+        else if (mark.Place == 1) Dialog = Dialog.Guild;
+        else if (mark.Place is 11 or 31) { ItemShopOpen = true; Dialog = Dialog.Items; }
+        else if (mark.Place == 13) Dialog = Dialog.Aides;
+    }
 
     /// <summary>의뢰를 주는 곳의 이름 — 조합 건물이 있는 도시는 열세 곳뿐이고 나머지는 의뢰 중개인이 준다.</summary>
     public string GuildName => City.Buildings.Contains("모험가조합") ? "모험가 조합" : "의뢰 중개인";
@@ -155,6 +192,7 @@ internal sealed partial class Voyage
         MoorAt(city);
         Say($"{city.Name}에 입항했다. (항해 {days}일)");
         RestInPort();
+        OrderOnArrive();
     }
 
     // ── 의뢰 ─────────────────────────────────────────────────────────────────
@@ -226,6 +264,7 @@ internal sealed partial class Voyage
         ReportedDiscovery = QuestDiscovery;
         Money += Quest!.Reward;
         _done.Add(Quest.Id);
+        OrderOnReport();
         Say($"의뢰 「{Quest.Title}」을(를) 보고했다. 보수 {Quest.Reward:N0} 두캇.");
         Quest = null;
         QuestStage = QuestStage.None;
@@ -292,7 +331,7 @@ internal sealed partial class Voyage
         // 선원이 모자라거나 재해가 있으면 느려진다
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
         double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor()
-                        * (1 + Bonus("Speed"));
+                        * (1 + Bonus("Speed")) * PartSpeed * AideSpeed;
         Knots += (target - Knots) * Math.Min(1, dt * 0.8);
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;

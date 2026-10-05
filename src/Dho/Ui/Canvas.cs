@@ -38,10 +38,20 @@ internal sealed class Canvas : IDisposable
         _brush = gfx.D2D.CreateSolidColorBrush(White);
     }
 
-    public float Width => _gfx.Width;
-    public float Height => _gfx.Height;
+    /// <summary>위에서 비워 두는 높이(제목 줄). 그 밑이 y = 0 이 되고, 제목 줄은 y 가 음수인 자리에 그린다.</summary>
+    public float Top;
 
-    public void Begin() => _gfx.D2D.BeginDraw();
+    /// <summary>화면 글과 창의 배율 — 4K 처럼 촘촘한 화면에서 키운다. 너비·높이·마우스는 모두 이 배율로 나눈 값이다.</summary>
+    public float Scale = 1;
+
+    public float Width => _gfx.Width / Scale;
+    public float Height => _gfx.Height / Scale - Top;
+
+    public void Begin()
+    {
+        _gfx.D2D.BeginDraw();
+        _gfx.D2D.Transform = Matrix3x2.CreateTranslation(0, Top) * Matrix3x2.CreateScale(Scale);
+    }
     public void End() => _gfx.D2D.EndDraw();
 
     public void Fill(float x, float y, float w, float h, Color4 color)

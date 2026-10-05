@@ -49,6 +49,8 @@ public sealed class CityData
     public int TownScene { get; set; }
     /// <summary>들어갈 수 있는 건물 이름들(장면 표의 건물 줄)을 쉼표로. 길드 사무소·빈집은 뺀다.</summary>
     public string Buildings { get; set; } = "";
+    /// <summary>배경음 번호(<c>0006\0000NN.bin</c>) — 장면 표의 시내 줄에 있다. 0 이면 없음.</summary>
+    public int Music { get; set; }
 }
 
 public sealed class LandingData
@@ -79,6 +81,8 @@ public sealed class NamedData
     public string Name { get; set; } = "";
     /// <summary>해역이면 큰 바다 id.</summary>
     public int Group { get; set; }
+    /// <summary>해역이면 배경음 번호.</summary>
+    public int Music { get; set; }
 }
 
 /// <summary>
@@ -284,6 +288,44 @@ public sealed class StartData
     public List<StartLineData> Lines { get; set; } = [];
 }
 
+/// <summary>소비 아이템 — 이름과 번호는 클라이언트 아이템 표(14)의 것이고, 하는 일과 값은 지은 것이다.</summary>
+public sealed class ItemData
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    /// <summary>Fatigue 피로를 Amount 만큼 풀기 · Repair 내구를 Amount % 고치기 · Cure 재해(Amount = 재해 번호) 풀기 · Lifebuoy 난파를 한 번 막고 내구 Amount % 로.</summary>
+    public string Effect { get; set; } = "";
+    public double Amount { get; set; }
+    public int Price { get; set; }
+}
+
+/// <summary>칙명 하나. 전부 지은 것이다(클라이언트에는 「칙명청부」라는 차림 이름과 임명장 아이템뿐이다).</summary>
+public sealed class OrderData
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = "";
+    public string Text { get; set; } = "";
+    /// <summary>Visit 다른 나라 본거지에 들르기 · Far 먼 바다(다른 큰 바다)의 항구에 들르기 · Bring 그 갈래 교역품을 Count 개 바치기 · Discover 발견물 Count 개 보고하기.</summary>
+    public string Kind { get; set; } = "";
+    /// <summary>Bring 이면 교역품 갈래 번호.</summary>
+    public int Target { get; set; }
+    public int Count { get; set; } = 1;
+    /// <summary>이 작위(0 부터) 이상이어야 내린다.</summary>
+    public int MinTitle { get; set; }
+    public int Reward { get; set; }
+    /// <summary>공적 — 쌓이면 작위가 오른다.</summary>
+    public int Merit { get; set; }
+}
+
+public sealed class OrderBook
+{
+    /// <summary>작위 이름들(낮은 것부터).</summary>
+    public List<string> Titles { get; set; } = [];
+    public List<OrderData> Orders { get; set; } = [];
+    /// <summary>다음 작위까지의 공적 = 이 값 × (지금 작위 + 1).</summary>
+    public int MeritPerTitle { get; set; } = 20;
+}
+
 /// <summary>이어 하기 — 항구에 들어올 때 적는다.</summary>
 public sealed class SaveData
 {
@@ -307,6 +349,16 @@ public sealed class SaveData
     public Dictionary<int, int> Supplies { get; set; } = new();
     public Dictionary<int, long[]> Cargo { get; set; } = new();       // id → [수, 산 값의 합]
     public List<int> DoneQuests { get; set; } = [];
+    /// <summary>소지품 — 아이템 번호 → 수.</summary>
+    public Dictionary<int, int> Items { get; set; } = new();
+    /// <summary>작위(0 부터) · 공적 · 받은 칙명 id · 칙명의 진행(들른 곳 수나 보고한 발견 수).</summary>
+    public int[] Court { get; set; } = [0, 0, 0, 0];
+    /// <summary>고용한 부관 — [후보 id, 담당, 레벨, 경험].</summary>
+    public List<double[]> Aides { get; set; } = [];
+    /// <summary>타고 있는 배에 단 부품.</summary>
+    public List<int> Parts { get; set; } = [];
+    /// <summary>부두의 배들 — [배 id, 내구, 단 부품 …].</summary>
+    public List<double[]> Dock { get; set; } = [];
     public int QuestId { get; set; }
     public int QuestStage { get; set; }
 }
@@ -333,6 +385,15 @@ public sealed class SettingsData
     public double StartSkyPhase { get; set; } = 0.40;
     public double SecondsPerDay { get; set; } = 60;
     public double SecondsPerSkyCycle { get; set; } = 600;
+    /// <summary>창 안쪽 크기(해상도). 게임의 「화면」 창에서 바꾸면 여기에 적힌다.</summary>
+    public int WindowWidth { get; set; } = 1280;
+    public int WindowHeight { get; set; } = 800;
+    /// <summary>테두리 없는 전체 화면.</summary>
+    public bool Fullscreen { get; set; }
+    /// <summary>화면 글과 창의 배율. 0 이면 윈도의 배율(175% 면 1.75)을 따른다.</summary>
+    public double UiScale { get; set; }
+    /// <summary>배경음 크기(0 ~ 1). 0 이면 끈다.</summary>
+    public double MusicVolume { get; set; } = 0.5;
     public double MaxKnots { get; set; } = 14;
     /// <summary>1노트로 1초에 가는 세계 좌표.</summary>
     public double UnitsPerKnotSecond { get; set; } = 0.16;
@@ -373,6 +434,15 @@ public sealed class GameData
     public List<SkillRuleData> SkillRules { get; set; } = [];
     public List<SkillData> Skills { get; set; } = [];
     public List<ShipData> Ships { get; set; } = [];
+    public OrderBook Orders { get; set; } = new();
+    public List<ItemData> Items { get; set; } = [];
+    public List<ShipPart> ShipParts { get; set; } = [];
+    /// <summary>부관 후보(표 131) — Group 은 표의 첫 바이트.</summary>
+    public List<NamedData> Aides { get; set; } = [];
+    /// <summary>부관의 담당 이름(표 36).</summary>
+    public List<NamedData> Duties { get; set; } = [];
+    /// <summary>시내 장소 이름(표 40).</summary>
+    public List<NamedData> Places { get; set; } = [];
     public List<GoodData> Goods { get; set; } = [];
     public List<NamedData> GoodKinds { get; set; } = [];
     public List<MarketData> Markets { get; set; } = [];
@@ -407,7 +477,8 @@ public sealed class GameData
 
         if (!File.Exists(Path.Combine(extracted, "cities.json")) || !File.Exists(Path.Combine(extracted, "skills.json"))
             || !File.Exists(Path.Combine(extracted, "ships.json")) || !File.Exists(Path.Combine(extracted, "goods.json"))
-            || !File.Exists(Path.Combine(extracted, "nations.json")))
+            || !File.Exists(Path.Combine(extracted, "nations.json")) || !File.Exists(Path.Combine(extracted, "places.json"))
+            || !File.Exists(Path.Combine(extracted, ExtractVersion)))
         {
             data.ExtractFromClient();
             data.SaveExtracted();
@@ -425,10 +496,16 @@ public sealed class GameData
             data.GoodKinds = Read<List<NamedData>>(Path.Combine(extracted, "good-kinds.json")) ?? [];
             data.Nations = Read<List<NamedData>>(Path.Combine(extracted, "nations.json")) ?? [];
             data.Jobs = Read<List<NamedData>>(Path.Combine(extracted, "jobs.json")) ?? [];
+        data.Places = Read<List<NamedData>>(Path.Combine(extracted, "places.json")) ?? [];
+        data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
+        data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
+        data.ShipParts = Read<List<ShipPart>>(Path.Combine(extracted, "ship-parts.json")) ?? [];
         }
 
         data.Settings = Read<SettingsData>(Path.Combine(directory, "settings.json")) ?? new SettingsData();
         data.Quests = Read<List<QuestData>>(Path.Combine(directory, "quests.json")) ?? [];
+        data.Items = Read<List<ItemData>>(Path.Combine(directory, "items.json")) ?? [];
+        data.Orders = Read<OrderBook>(Path.Combine(directory, "orders.json")) ?? new OrderBook();
         data.Disasters = Read<List<DisasterData>>(Path.Combine(directory, "disasters.json")) ?? [];
         data.Supplies = Read<List<SupplyData>>(Path.Combine(directory, "supplies.json")) ?? [];
         data.SkillRules = Read<List<SkillRuleData>>(Path.Combine(directory, "skill-rules.json")) ?? [];
@@ -442,11 +519,16 @@ public sealed class GameData
     }
 
     /// <summary>직접 지은 것과 뽑은 것을 모두 적는다.</summary>
+    /// <summary>설정만 적는다(게임에서 해상도를 바꿨을 때).</summary>
+    public void SaveSettings() => Write(Path.Combine(Directory, "settings.json"), Settings);
+
     public void Save()
     {
         System.IO.Directory.CreateDirectory(Directory);
         Write(Path.Combine(Directory, "settings.json"), Settings);
         Write(Path.Combine(Directory, "quests.json"), Quests);
+        Write(Path.Combine(Directory, "orders.json"), Orders);
+        Write(Path.Combine(Directory, "items.json"), Items);
         Write(Path.Combine(Directory, "disasters.json"), Disasters);
         Write(Path.Combine(Directory, "supplies.json"), Supplies);
         Write(Path.Combine(Directory, "skill-rules.json"), SkillRules);
@@ -474,11 +556,17 @@ public sealed class GameData
         Write(Path.Combine(extracted, "good-kinds.json"), GoodKinds);
         Write(Path.Combine(extracted, "nations.json"), Nations);
         Write(Path.Combine(extracted, "jobs.json"), Jobs);
+        Write(Path.Combine(extracted, "places.json"), Places);
+        Write(Path.Combine(extracted, "ship-parts.json"), ShipParts);
+        Write(Path.Combine(extracted, "aides.json"), Aides);
+        Write(Path.Combine(extracted, "duties.json"), Duties);
+        File.WriteAllText(Path.Combine(extracted, ExtractVersion), "");
     }
 
     /// <summary>게임 클라이언트의 표에서 도시·해역·상륙지·발견물을 다시 뽑는다. 찍어 둔 상륙지 자리는 지킨다.</summary>
     public void ExtractFromClient()
     {
+        var sceneRows = GvoFiles.ReadMwc(@"0000\local\dt000000.bin", GvoFiles.Korean);
         var tables = new DataTables();
         var map = new WorldMap();
         var scenes = GvoFiles.ReadMwc(@"0000\local\dt000000.bin", GvoFiles.Korean);
@@ -493,9 +581,10 @@ public sealed class GameData
                 Id = c.Id, Name = c.Name, Kind = c.Kind, Nation = c.Nation, Culture = c.Culture,
                 X = land.X, Y = land.Y, SeaX = sea.X, SeaY = sea.Y, PortScene = PortSceneNumber(scenes, c.Id),
                 TownScene = FindScene(scenes, (uint)(0x0800 + c.Id) << 16, c.Id)?.Number ?? 0, Buildings = BuildingsOf(scenes, c.Id),
+                Music = SceneMusic(scenes, (uint)(0x0800 + c.Id) << 16),
             };
         }).ToList();
-        Seas = tables.Seas.Values.OrderBy(s => s.Id).Select(s => new NamedData { Id = s.Id, Name = s.Name, Group = s.Ocean }).ToList();
+        Seas = tables.Seas.Values.OrderBy(s => s.Id).Select(s => new NamedData { Id = s.Id, Name = s.Name, Group = s.Ocean, Music = SceneMusic(sceneRows, (uint)(0x0400 + s.Id) << 16) }).ToList();
         Landings = tables.Landings.Values.OrderBy(l => l.Id).Select(l =>
         {
             points.TryGetValue(l.Id, out var point);
@@ -513,6 +602,10 @@ public sealed class GameData
         Goods = tables.Goods.Select(g => new GoodData { Id = g.Id, Name = g.Name, Description = g.Description, Kind = g.Kind }).ToList();
         Nations = tables.Nations.Select(n => new NamedData { Id = n.Id, Name = n.Name }).ToList();
         Jobs = tables.Jobs.Select(j => new NamedData { Id = j.Id, Name = j.Name, Group = j.Line }).ToList();
+        Aides = tables.Aides.Select(a => new NamedData { Id = a.Id, Name = a.Name, Group = a.A }).ToList();
+        Duties = tables.Duties.OrderBy(d => d.Key).Select(d => new NamedData { Id = d.Key, Name = d.Value }).ToList();
+        ShipParts = tables.ShipParts.Where(p => p.Name.Length > 0 && !p.Name.StartsWith('※')).ToList();
+        Places = tables.Places.OrderBy(p => p.Key).Select(p => new NamedData { Id = p.Key, Name = p.Value }).ToList();
         GoodKinds = tables.GoodKinds.OrderBy(k => k.Key).Select(k => new NamedData { Id = k.Key, Name = k.Value }).ToList();
         // 빈 줄(※)과 개조·명품·기념·체험 판은 뺀다
         string[] variants = ["개조", "명품", "기념", "체험", "개량"];
@@ -585,6 +678,40 @@ public sealed class GameData
             if (!row.Name.Contains("길드 사무소") && row.Name != "빈집") names.Add(row.Name);
         }
         return string.Join(", ", names);
+    }
+
+    /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
+    private const string ExtractVersion = "extracted-6";
+
+    /// <summary>
+    /// 장면 줄의 배경음 번호 — 꼬리(글 셋 뒤)의 여덟째 u32. 아홉째는 소리 크기(100)다.
+    /// 리스본 3 · 세비야 4 · 마르세이유 5 · 베네치아 6 · 런던 7 · 암스테르담 8, 북유럽 9 · 이베리아 10 · 아프리카 11 · 이슬람 12 · 인도 13 …, 해역은 18 · 20 · 21 …
+    /// </summary>
+    public static int SceneMusic(byte[] sceneTable, uint sceneId)
+    {
+        var key = new byte[4];
+        BinaryPrimitives.WriteUInt32LittleEndian(key, sceneId);
+        for (int at = 0; ; at += 4)
+        {
+            int found = sceneTable.AsSpan(at).IndexOf(key);
+            if (found < 0) return 0;
+            at += found;
+            if (at + 14 > sceneTable.Length) return 0;
+            int cursor = at + 12, length = BinaryPrimitives.ReadUInt16LittleEndian(sceneTable.AsSpan(cursor));
+            if (length > 400 || length % 4 != 0) continue;
+            cursor += 2 + length;
+            bool named = true;
+            for (int i = 0; i < 3 && named; i++)
+            {
+                int end = cursor < sceneTable.Length ? Array.IndexOf(sceneTable, (byte)0, cursor) : -1;
+                if (end < 0 || end - cursor > 60 || (i == 0 && end - cursor < 6)) named = false;
+                else cursor = end + 1;
+            }
+            if (!named || cursor + 36 > sceneTable.Length) continue;
+            int music = BinaryPrimitives.ReadInt32LittleEndian(sceneTable.AsSpan(cursor + 28));
+            int volume = BinaryPrimitives.ReadInt32LittleEndian(sceneTable.AsSpan(cursor + 32));
+            if (music is > 0 and < 1000 && volume is > 0 and <= 100) return music;
+        }
     }
 
     /// <summary>장면 표에서 줄 하나 — 이름과 장면 번호.</summary>

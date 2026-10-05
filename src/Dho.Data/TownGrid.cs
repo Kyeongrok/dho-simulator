@@ -217,6 +217,67 @@ public sealed class TownGrid
         return from;
     }
 
+    /// <summary>
+    /// <paramref name="from"/> 에서 <paramref name="to"/> 까지 걸어가는 길(꺾이는 점들). 못 가면 빈 목록.
+    /// 닿는 칸을 따라 너비 먼저 뒤지고, 곧게 갈 수 있는 구간은 줄인다.
+    /// </summary>
+    public List<Vector2> Path(Vector2 from, Vector2 to)
+    {
+        to = Nearest(to);
+        if (!Inside(from.X, from.Y) || !Inside(to.X, to.Y)) return [];
+        int Cell(Vector2 p) => (int)(p.Y / Fine) * _fineWidth + (int)(p.X / Fine);
+        Vector2 Middle(int cell) => new((cell % _fineWidth + 0.5f) * Fine, (cell / _fineWidth + 0.5f) * Fine);
+        bool Open(int cell) => Walkable((cell % _fineWidth + 0.5f) * Fine, (cell / _fineWidth + 0.5f) * Fine);
+
+        int start = Cell(from), goal = Cell(to);
+        var came = new Dictionary<int, int> { [goal] = goal };
+        var queue = new Queue<int>();
+        queue.Enqueue(goal);
+        while (queue.Count > 0 && !came.ContainsKey(start))
+        {
+            int cell = queue.Dequeue(), x = cell % _fineWidth, z = cell / _fineWidth;
+            for (int dz = -1; dz <= 1; dz++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                int nx = x + dx, nz = z + dz, next = nz * _fineWidth + nx;
+                if ((dx == 0 && dz == 0) || nx < 0 || nz < 0 || nx >= _fineWidth || nz >= _fineHeight || came.ContainsKey(next)) continue;
+                // 모서리를 비껴 지나지 않게, 비스듬히 갈 때는 두 옆 칸도 비어 있어야 한다
+                if (next != start && (!Open(next) || (dx != 0 && dz != 0 && (!Open(z * _fineWidth + nx) || !Open(nz * _fineWidth + x))))) continue;
+                came[next] = cell;
+                queue.Enqueue(next);
+            }
+        }
+        if (!came.ContainsKey(start)) return [];
+
+        var cells = new List<Vector2>();
+        for (int cell = start; cell != goal; cell = came[cell]) cells.Add(Middle(cell));
+        cells.Add(to);
+
+        // 사이가 트인 점은 건너뛴다
+        bool Clear(Vector2 a, Vector2 b)
+        {
+            int steps = Math.Max(1, (int)(Vector2.Distance(a, b) / (Fine * 0.4f)));
+            for (int i = 0; i <= steps; i++)
+            {
+                var p = Vector2.Lerp(a, b, i / (float)steps);
+                if (!Walkable(p.X, p.Y) || !Walkable(p.X + 60, p.Y) || !Walkable(p.X - 60, p.Y) || !Walkable(p.X, p.Y + 60) || !Walkable(p.X, p.Y - 60)) return false;
+            }
+            return true;
+        }
+        var path = new List<Vector2>();
+        var anchor = from;
+        for (int i = 0; i < cells.Count; )
+        {
+            int far = i;
+            for (int k = Math.Min(cells.Count - 1, i + 60); k > i; k--)
+                if (Clear(anchor, cells[k])) { far = k; break; }
+            path.Add(cells[far]);
+            anchor = cells[far];
+            i = far + 1;
+        }
+        return path;
+    }
+
     /// <summary>들어설 자리 — 막는 선(좌판)들이 몰린 곳, 곧 사람이 모이는 거리.</summary>
     public Vector2 Entry()
     {

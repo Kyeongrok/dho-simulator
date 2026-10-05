@@ -105,6 +105,11 @@ internal sealed partial class Voyage
             Supplies = new Dictionary<int, int>(Supplies),
             Cargo = Cargo.ToDictionary(c => c.Key, c => new[] { c.Value.Count, c.Value.Cost }),
             DoneQuests = _done.ToList(),
+            Items = new Dictionary<int, int>(Items),
+            Parts = Parts.Select(p => p.Id).ToList(),
+            Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
+            Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp }).ToList(),
+            Dock = Dock.Select(d => new double[] { d.Ship.Id, d.Durability }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
             QuestId = Quest?.Id ?? 0, QuestStage = (int)QuestStage,
         });
     }
@@ -131,6 +136,20 @@ internal sealed partial class Voyage
         foreach (var (id, count) in save.Supplies) Supplies[id] = count;
         foreach (var (id, item) in save.Cargo) Cargo[id] = new CargoItem { Count = (int)item[0], Cost = item[1] };
         foreach (int id in save.DoneQuests) _done.Add(id);
+        foreach (var (id, count) in save.Items) Items[id] = count;
+        foreach (var docked in save.Dock)
+            if (Data.Ships.Find(s => s.Id == (int)docked[0]) is { } stored)
+                Dock.Add(new DockedShip
+                {
+                    Ship = stored, Durability = docked[1],
+                    Parts = docked.Skip(2).Select(id => Data.ShipParts.Find(p => p.Id == (int)id)).OfType<ShipPart>().ToList(),
+                });
+        foreach (var saved in save.Aides)
+            if (saved.Length >= 4 && Data.Aides.Find(a => a.Id == (int)saved[0]) is { } who)
+                Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3] });
+        if (save.Court.Length >= 4)
+            (Title, Merit, Order, OrderProgress) = (save.Court[0], save.Court[1], Data.Orders.Orders.Find(o => o.Id == save.Court[2]), save.Court[3]);
+        Parts = save.Parts.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>().ToList();
         Quest = Data.Quests.Find(q => q.Id == save.QuestId);
         QuestStage = Quest == null ? QuestStage.None : (QuestStage)save.QuestStage;
         Enter();

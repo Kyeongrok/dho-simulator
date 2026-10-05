@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using Dho.Data;
@@ -43,6 +43,8 @@ internal sealed class GameWindow : IDisposable
     private Canvas _canvas = null!;
     private Hud _hud = null!;
     private Voyage _voyage = null!;
+    private Dho.Audio.Music? _music;
+    private bool _musicOn;
 
     // 시점: 배를 가운데 두고 도는 카메라
     private float _yaw = 2.75f, _pitch = 0.50f, _distance = 30000f;
@@ -87,7 +89,19 @@ internal sealed class GameWindow : IDisposable
         _shipModel = _voyage.Ship.Model;
         _ship = new ShipModel(_gfx, _shipModel);
         _canvas = new Canvas(_gfx);
-        _hud = new Hud(_canvas, _voyage);
+        _hud = new Hud(_canvas, _voyage)
+        {
+            SetDisplay = SetDisplay, WalkTo = WalkTo,
+            Minimize = () => Win32.ShowWindow(_hwnd, Win32.SW_MINIMIZE),
+            Quit = () => Win32.PostMessageW(_hwnd, Win32.WM_CLOSE, IntPtr.Zero, IntPtr.Zero),
+        };
+        // 대본으로 돌릴 때는 조용히 — 대본의 music 명령으로 켠다
+        _musicOn = !_scripted;
+        _music = new Dho.Audio.Music();
+        // 대본으로 돌릴 때는 화면 크기를 건드리지 않는다(찍은 그림의 크기가 같아야 견줄 수 있다)
+        var settings = data.Settings;
+        if (!_scripted && (settings.Fullscreen || settings.WindowWidth != StartWidth || settings.WindowHeight != StartHeight))
+            SetDisplay(settings.WindowWidth, settings.WindowHeight, settings.Fullscreen, false);
 
         Win32.ShowWindow(_hwnd, 5);
         Win32.UpdateWindow(_hwnd);
@@ -110,6 +124,11 @@ internal sealed class GameWindow : IDisposable
             double dt = Math.Min(now - last, 0.1);
             last = now;
 
+            // 그리는 크기는 늘 실제 창 안쪽 크기 — 어긋나면 그림이 늘어나 글씨가 뭉개지고 마우스 자리도 안 맞는다
+            if (Win32.GetClientRect(_hwnd, out var inside)) _gfx.Resize(inside.Width, inside.Height);
+            _hud.Screen = (Win32.GetSystemMetrics(Win32.SM_CXSCREEN), Win32.GetSystemMetrics(Win32.SM_CYSCREEN));
+            _hud.Pixels = (_gfx.Width, _gfx.Height);
+
             RunScript(dt);
             Tick(dt);
             Render();
@@ -117,6 +136,45 @@ internal sealed class GameWindow : IDisposable
         }
         _voyage.Save();
     }
+
+    /// <summary>해상도를 바꾼다 — 창 안쪽 크기를 맞추거나, 테두리 없는 전체 화면으로. 고른 것은 설정에 적는다.</summary>
+    private void SetDisplay(int width, int height, bool fullscreen) => SetDisplay(width, height, fullscreen, true);
+
+    private void SetDisplay(int width, int height, bool fullscreen, bool remember)
+    {
+        int screenWidth = Win32.GetSystemMetrics(Win32.SM_CXSCREEN), screenHeight = Win32.GetSystemMetrics(Win32.SM_CYSCREEN);
+        // 화면보다 큰 창은 못 만든다(윈도가 창을 화면 크기로 막는다)
+        (width, height) = (Math.Min(width, screenWidth), Math.Min(height, screenHeight));
+        if (fullscreen)
+        {
+            Win32.SetWindowLongPtrW(_hwnd, Win32.GWL_STYLE, (IntPtr)unchecked((uint)(Win32.WS_POPUP | Win32.WS_VISIBLE)));
+            Win32.SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, screenWidth, screenHeight, Win32.SWP_NOZORDER | Win32.SWP_FRAMECHANGED | Win32.SWP_SHOWWINDOW);
+        }
+        else
+        {
+            var rect = new Win32.Rect { Left = 0, Top = 0, Right = width, Bottom = height };
+            Win32.SetWindowLongPtrW(_hwnd, Win32.GWL_STYLE, (IntPtr)unchecked((uint)(Win32.WS_OWNTITLE | Win32.WS_VISIBLE)));
+            Win32.SetWindowPos(_hwnd, IntPtr.Zero, Math.Max(0, (screenWidth - rect.Width) / 2), Math.Max(0, (screenHeight - rect.Height) / 2),
+                rect.Width, rect.Height, Win32.SWP_NOZORDER | Win32.SWP_FRAMECHANGED | Win32.SWP_SHOWWINDOW);
+        }
+        if (!remember) return;
+        var settings = _voyage.Data.Settings;
+        (settings.WindowWidth, settings.WindowHeight, settings.Fullscreen) = (width, height, fullscreen);
+        _voyage.Data.SaveSettings();
+    }
+
+    /// <summary>화면 글의 배율 — 설정값, 없으면 윈도의 배율. 대본으로 돌릴 때는 1(찍은 그림을 견주려고).</summary>
+    private float UiScale
+    {
+        get
+        {
+            if (_scripted && !_scaleInScript) return 1;
+            double set = _voyage?.Data.Settings.UiScale ?? 0;
+            return (float)Math.Clamp(set > 0 ? set : Win32.GetDpiForWindow(_hwnd) / 96.0, 0.75, 3);
+        }
+    }
+
+    private bool _scaleInScript;
 
     private static void RegisterClassOnce()
     {
@@ -140,11 +198,10 @@ internal sealed class GameWindow : IDisposable
     private void CreateNativeWindow()
     {
         var rect = new Win32.Rect { Left = 0, Top = 0, Right = StartWidth, Bottom = StartHeight };
-        Win32.AdjustWindowRect(ref rect, Win32.WS_OVERLAPPEDWINDOW, false);
 
         _active = this;
         _hwnd = Win32.CreateWindowExW(0, ClassName, "대항해시대 온라인 — 항해 (개인용)",
-            Win32.WS_OVERLAPPEDWINDOW, Win32.CW_USEDEFAULT, Win32.CW_USEDEFAULT,
+            Win32.WS_OWNTITLE, 80, 60,
             rect.Width, rect.Height,
             IntPtr.Zero, IntPtr.Zero, Win32.GetModuleHandleW(null), IntPtr.Zero);
         if (_hwnd == IntPtr.Zero) throw new InvalidOperationException("창을 만들지 못했습니다.");
@@ -157,6 +214,31 @@ internal sealed class GameWindow : IDisposable
             case Win32.WM_DESTROY:
                 Win32.PostQuitMessage(0);
                 return IntPtr.Zero;
+            case Win32.WM_NCCALCSIZE when wParam != IntPtr.Zero:
+                return IntPtr.Zero;                    // 창 전체가 그리는 곳 — 제목 줄은 우리가 그린다
+            case Win32.WM_NCHITTEST:
+            {
+                Win32.GetWindowRect(hWnd, out var frame);
+                int px = (short)Win32.LowWord(lParam) - frame.Left, py = (short)Win32.HighWord(lParam) - frame.Top;
+                const int edge = 6;
+                bool sizable = !(_voyage?.Data.Settings.Fullscreen ?? false);
+                if (sizable)
+                {
+                    bool left = px < edge, right = px >= frame.Width - edge, top = py < edge, bottom = py >= frame.Height - edge;
+                    if (top && left) return Win32.HTTOPLEFT;
+                    if (top && right) return Win32.HTTOPRIGHT;
+                    if (bottom && left) return Win32.HTBOTTOMLEFT;
+                    if (bottom && right) return Win32.HTBOTTOMRIGHT;
+                    if (left) return Win32.HTLEFT;
+                    if (right) return Win32.HTRIGHT;
+                    if (top) return Win32.HTTOP;
+                    if (bottom) return Win32.HTBOTTOM;
+                }
+                // 제목 줄: 햄버거(왼쪽)와 내리기·닫기(오른쪽) 단추는 우리가 받고, 나머지는 잡고 끄는 자리
+                float scale = UiScale;
+                if (py < Hud.TitleHeight * scale && px >= Hud.TitleMenuWidth * scale && px < frame.Width - Hud.TitleButtonsWidth * scale) return Win32.HTCAPTION;
+                return Win32.HTCLIENT;
+            }
             case Win32.WM_ERASEBKGND:
                 return 1;
             case Win32.WM_SIZE:
@@ -210,11 +292,29 @@ internal sealed class GameWindow : IDisposable
 
     private void KeyPressed(int key)
     {
+        if (key == Win32.VK_F11)
+        {
+            var settings = _voyage.Data.Settings;
+            SetDisplay(settings.WindowWidth, settings.WindowHeight, !settings.Fullscreen);
+            return;
+        }
         if (!_voyage.Created) return;
         switch (key)
         {
             case Win32.VK_ESCAPE:
                 if (_voyage.Dialog != Dialog.None) _voyage.Dialog = Dialog.None;
+                break;
+            case '5' when _keys.Contains(Win32.VK_CONTROL):
+                _hud.TownMapOpen = !_hud.TownMapOpen;      // 원본의 지도 단축키
+                break;
+            case 'I':
+                if (_voyage.Dialog == Dialog.Items) _voyage.Dialog = Dialog.None;
+                else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.Items;
+                break;
+            case 'X':
+                // 원본처럼 X 로 스킬 창을 여닫는다
+                if (_voyage.Dialog == Dialog.Skills) _voyage.Dialog = Dialog.None;
+                else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.Skills;
                 break;
             case 'W' or Win32.VK_UP: _voyage.ChangeSail(+1); break;
             case 'S' or Win32.VK_DOWN: _voyage.ChangeSail(-1); break;
@@ -234,16 +334,55 @@ internal sealed class GameWindow : IDisposable
         if (_keys.Contains('A') || _keys.Contains(Win32.VK_LEFT)) steer -= 1;
         if (_keys.Contains('D') || _keys.Contains(Win32.VK_RIGHT)) steer += 1;
         _voyage.Update(dt, steer);
+        if (_music != null)
+        {
+            _music.Volume = (float)_voyage.Data.Settings.MusicVolume;
+            _music.Play(_musicOn && _voyage.Created && _voyage.Data.Settings.MusicVolume > 0 ? _voyage.MusicNumber : 0);
+        }
         if (Walking && _voyage.Dialog == Dialog.None) Walk((float)dt);
     }
 
     private bool Walking => _townView && _grid != null;
 
     /// <summary>시내 걷기 — W·S 는 보는 쪽으로 앞뒤, A·D 는 옆. 벽에 걸리면 벽을 따라 미끄러진다.</summary>
+    private List<Vector2> _route = [];
+    private TownMark? _bound;
+
+    /// <summary>지도에서 시설을 누르면 그리로 걸어간다.</summary>
+    private void WalkTo(TownMark mark)
+    {
+        if (!Walking) return;
+        _route = _grid!.Path(_walk, mark.Scene);
+        _bound = _route.Count > 0 ? mark : null;
+        _voyage.Say(_route.Count > 0 ? $"{_voyage.PlaceName(mark.Place)}(으)로 간다." : $"{_voyage.PlaceName(mark.Place)}까지 가는 길을 못 찾았다.");
+    }
+
     private void Walk(float dt)
     {
         const float speed = 900f;
         bool Down(int a, int b) => _keys.Contains(a) || _keys.Contains(b);
+        bool keyed = Down('W', Win32.VK_UP) || Down('S', Win32.VK_DOWN) || Down('A', Win32.VK_LEFT) || Down('D', Win32.VK_RIGHT);
+        if (keyed) (_route, _bound) = ([], null);              // 손으로 걸으면 자동 이동을 그만둔다
+        else if (_route.Count > 0)
+        {
+            var toward = _route[0] - _walk;
+            float left = toward.Length(), stride = speed * dt;
+            if (left <= stride)
+            {
+                _walk = _route[0];
+                _route.RemoveAt(0);
+                if (_route.Count == 0 && _bound is { } reached) { _bound = null; _voyage.Visit(reached); }
+            }
+            else
+            {
+                _walk += toward / left * stride;
+                _walkYaw = MathF.Atan2(toward.X, toward.Y);
+                // 가는 쪽을 등 뒤에서 보게 카메라가 천천히 따라 돈다
+                float want = MathF.Atan2(-toward.X, -toward.Y), turn = MathF.IEEERemainder(want - _yaw, MathF.Tau);
+                if (!_orbiting) _yaw += turn * MathF.Min(1, dt * 1.5f);
+            }
+            return;
+        }
         var forward = new Vector2(-MathF.Sin(_yaw), -MathF.Cos(_yaw));
         var right = new Vector2(MathF.Cos(_yaw), -MathF.Sin(_yaw));
         var direction = forward * ((Down('W', Win32.VK_UP) ? 1 : 0) - (Down('S', Win32.VK_DOWN) ? 1 : 0))
@@ -370,9 +509,11 @@ internal sealed class GameWindow : IDisposable
         if (!town) _ship.Draw(_scene, shipWorld);
 
         // 화면 글과 창
-        _canvas.Pointer = new Pointer { X = _mouseX, Y = _mouseY, Clicked = _clicked };
+        _canvas.Scale = UiScale;
+        _canvas.Pointer = new Pointer { X = _mouseX / UiScale, Y = _mouseY / UiScale - Hud.TitleHeight, Clicked = _clicked };
+        _canvas.Top = Hud.TitleHeight;
         _canvas.Begin();
-        (_hud.TownGrid, _hud.TownSpot) = (Walking ? _grid : null, _walk);
+        (_hud.TownGrid, _hud.TownSpot, _hud.TownFacing) = (Walking ? _grid : null, _walk, _walkYaw);
         _hud.Draw();
         _canvas.End();
 
@@ -476,6 +617,10 @@ internal sealed class GameWindow : IDisposable
             case "shot": _shotPath = argument; break;
             case "quit": _running = false; break;
             case "depart": _voyage.Depart(); break;
+            case "display":
+                var size = argument.Split('x');
+                SetDisplay(int.Parse(size[0]), int.Parse(size[1]), false, false);
+                break;
             case "town": _voyage.TownView = !_voyage.TownView; break;
             case "hold": _keys.Add(argument[0]); break;
             case "release": _keys.Remove(argument[0]); break;
@@ -514,6 +659,26 @@ internal sealed class GameWindow : IDisposable
             case "skills": _voyage.Dialog = Dialog.Skills; break;
             case "wizard": _hud.Fill(argument); break;
             case "create": _hud.Finish(); break;
+            case "aides": _voyage.Dialog = Dialog.Aides; break;
+            case "hire": if (_voyage.AidesToHire().ElementAtOrDefault((int)Number()) is { } who) _voyage.HireAide(who); break;
+            case "court": _voyage.Dialog = Dialog.Court; break;
+            case "order": if (_voyage.OrdersOffered().ElementAtOrDefault((int)Number()) is { } royal) _voyage.AcceptOrder(royal); break;
+            case "fulfil": _voyage.CompleteOrder(); break;
+            case "buyitem": if (_voyage.ItemOf((int)Number()) is { } wares) _voyage.BuyItem(wares); break;
+            case "parts": _voyage.Dialog = Dialog.ShipParts; break;
+            case "buypart": if (_voyage.PartsForSale().ElementAtOrDefault((int)Number()) is { } part) _voyage.BuyPart(part); break;
+            case "items": _voyage.Dialog = Dialog.Items; break;
+            case "additem": _voyage.AddItem((int)Number()); break;
+            case "useitem": _voyage.UseItem((int)Number()); break;
+            case "uiscale": _scaleInScript = true; _voyage.Data.Settings.UiScale = Number(); break;
+            case "menu": _hud.OpenMenu((int)Number()); break;
+            case "music": _musicOn = !_musicOn; break;
+            case "goto":
+                if (_voyage.TownMap?.Marks.Find(m => m.Place == (int)Number()) is { } there) WalkTo(there);
+                break;
+            case "swap": _voyage.Dialog = Dialog.ShipSwap; break;
+            case "board": if (_voyage.Dock.ElementAtOrDefault((int)Number()) is { } docked) _voyage.SwapShip(docked); break;
+            case "skilltab": _hud.SkillTab = (int)Number(); break;
             case "shipyard": _voyage.Dialog = Dialog.Shipyard; break;
             case "trade": _voyage.Dialog = Dialog.Trade; break;
             case "ship": if (_voyage.Data.Ships.Find(s => s.Id == (int)Number()) is { } ship) _voyage.BuyShip(ship); break;
@@ -530,6 +695,7 @@ internal sealed class GameWindow : IDisposable
     public void Dispose()
     {
         if (_active == this) _active = null;
+        _music?.Dispose();
         _canvas?.Dispose();
         _port?.Dispose();
         _town?.Dispose();
