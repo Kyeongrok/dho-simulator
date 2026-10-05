@@ -67,6 +67,7 @@ internal sealed partial class Voyage
         made.Cost += cost;
         Fatigue = Math.Min(100, Fatigue + 0.5 * times);
         if (RecipeSkill(rule) is { } used) Train(used.SkillId, 25 * times);
+        Studied("Produce", times);
         Say($"{Good(rule.Output)?.Name ?? "물건"} {rule.OutputCount * times}개를 만들었다.");
     }
 }

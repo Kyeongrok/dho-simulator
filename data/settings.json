@@ -57,7 +57,11 @@
   "WindowWidth": 2560,
   "WindowHeight": 1440,
   "Fullscreen": false,
+  "UiScale": 0,
   "MusicVolume": 0.5,
+  "Keys": {
+    "Map": 53
+  },
   "MaxKnots": 14,
   "UnitsPerKnotSecond": 0.16,
   "TurnRate": 0.9,

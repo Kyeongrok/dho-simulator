@@ -86,6 +86,7 @@ internal sealed partial class Voyage
         Money -= BuildCost(ship, material);
         Ordered = new ShipOrder { Ship = ship, Material = material, Load = load, DaysLeft = BuildDays(ship) };
         TrainEffect("Shipbuilding", 40 + ship.SizeClass * 30);
+        Studied("Build");
         Say($"{ship.Name}의 건조를 맡겼다. 재질 {MaterialOf(material)?.Name}, 건조일수 {BuildDays(ship)}일.");
     }
 
@@ -128,7 +129,7 @@ internal sealed partial class Voyage
     }
 
     /// <summary>부두에 둘 수 있는 배의 수(타고 있는 배는 빼고).</summary>
-    public const int DockSlots = 4;
+    public const int DockSlots = 40;
 
     /// <summary>타고 있지 않은 내 배들. 어느 항구에서나 불러낸다(원본은 맡긴 항구에 있다 — 줄였다).</summary>
     public List<DockedShip> Dock { get; } = [];

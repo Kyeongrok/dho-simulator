@@ -108,6 +108,7 @@ internal sealed partial class Voyage
         Money -= RepairCost;
         Durability = Stats.Durability;
         Say("배를 수리했다.");
+        Studied("Repair");
     }
 
     public void Hire()
@@ -142,6 +143,7 @@ internal sealed partial class Voyage
     private void End(ActiveDisaster disaster)
     {
         Disasters.Remove(disaster);
+        Studied("Cure");
         Say(Text((uint)disaster.Data.EndText, $"{disaster.Data.Name} — 풀렸다."));
     }
 

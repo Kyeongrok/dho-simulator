@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -87,7 +87,8 @@ internal sealed partial class Voyage
             1 => (["모험가조합"], "조합 마스터", Dialog.Guild),
             2 => (["상인조합"], "상인조합 마스터", Dialog.None),
             3 => (["해양조합"], "해양조합 마스터", Dialog.None),
-            13 => (["주점"], "주점 주인", Dialog.Aides),
+            13 => (["주점"], "주점 주인", Dialog.Tavern),
+            29 => (["양성학교", "학교"], "교수", Dialog.University),
             16 => (["서고"], "학자", Dialog.None),
             201 => (["교회", "성당"], "신부", Dialog.None),
             202 => (["모스크", "교회", "성당"], "이맘", Dialog.None),
@@ -113,6 +114,7 @@ internal sealed partial class Voyage
         {
             case 2: Say($"{InteriorHost}: 「교역 의뢰는 아직 없네. 장사에 쓸 기술이라면 가르쳐 주지.」"); LearnFrom(1); break;
             case 3: Say($"{InteriorHost}: 「토벌 의뢰는 아직 없다. 싸우는 기술이라면 가르쳐 주마.」"); LearnFrom(2); break;
+            case 29: Say($"{InteriorHost}: 「항해자 양성학교다. 수업은 아직 열지 않았다 — 조합에서 의뢰를 받으며 익히게.」"); break;
             case 16: Say($"{InteriorHost}: 「지도와 기록은 여기 다 있소. 찾는 곳이 있으면 모험가조합의 의뢰부터 받아 오시오.」"); break;
             case 201 or 202 or 203:
                 if (Fatigue > 0) { Fatigue = 0; Say($"{InteriorHost}와(과) 함께 기도를 올렸다. 피로가 풀렸다."); }
@@ -228,6 +230,7 @@ internal sealed partial class Voyage
     public static string? KeeperName(int place) => place switch
     {
         9 or 30 => "조선소 주인",
+        14 or 21 or 22 or 25 => "은행원",
         10 or 32 => "교역소 주인",
         11 or 31 => "도구점 주인",
         13 => "주점 주인",
@@ -259,12 +262,68 @@ internal sealed partial class Voyage
         }
         if (mark.Place == InsideExit) { LeaveInterior(); return; }
         if (mark.Place is 4 or 5) TownView = false;                          // 항구 · 항구(항구 앞) → 부두로
-        else if (mark.Place is 9 or 30) Dialog = Dialog.Shipyard;
+        else if (mark.Place is 9 or 30) Dialog = Dialog.ShipyardMenu;
         else if (mark.Place is 10 or 19 or 26 or 27 or 32) Dialog = Dialog.Trade;
+        else if (mark.Place is 14 or 21 or 22 or 25) Dialog = Dialog.Bank;
         else if (mark.Place == 1) EnterGuild();
         else if (mark.Place is 11 or 31) { ItemShopOpen = true; Dialog = Dialog.Items; }
-        else if (mark.Place == 13) { if (!EnterPlace(13)) Dialog = Dialog.Aides; }
+        else if (mark.Place == 13) { if (!EnterPlace(13)) Dialog = Dialog.Tavern; }
         else EnterPlace(mark.Place);
+    }
+
+    /// <summary>은행에 맡긴 돈 — 난파해도 남는다. 이자는 없다(원본도 없다).</summary>
+    public long Savings { get; private set; }
+
+    /// <summary>은행에 맡긴다(양수) · 찾는다(음수). 가진 만큼만.</summary>
+    public void Bank(long amount)
+    {
+        if (amount > 0)
+        {
+            int put = (int)Math.Min(amount, Money);
+            if (put <= 0) return;
+            (Money, Savings) = (Money - put, Savings + put);
+            Say($"은행에 {put:N0} 두캇을 맡겼다. (예금 {Savings:N0})");
+        }
+        else
+        {
+            int take = (int)Math.Min(Math.Min(-amount, Savings), int.MaxValue - Money);
+            if (take <= 0) return;
+            (Money, Savings) = (Money + take, Savings - take);
+            Say($"은행에서 {take:N0} 두캇을 찾았다. (예금 {Savings:N0})");
+        }
+    }
+
+    /// <summary>은행 보관함 — 아이템을 맡겨 둔다. 난파해도 남는다.</summary>
+    public Dictionary<int, int> Vault { get; } = new();
+    public const int VaultSlots = 50;
+
+    /// <summary>보관함에 넣는다(양수) · 꺼낸다(음수).</summary>
+    public void Stash(int item, int count)
+    {
+        var (from, to) = count > 0 ? (Items, Vault) : (Vault, Items);
+        int move = Math.Min(Math.Abs(count), from.GetValueOrDefault(item));
+        if (move <= 0) return;
+        if (count > 0 && !Vault.ContainsKey(item) && Vault.Count >= VaultSlots) { Say("보관함이 가득 찼다."); return; }
+        if ((from[item] -= move) <= 0) from.Remove(item);
+        to[item] = to.GetValueOrDefault(item) + move;
+        Say(count > 0 ? $"{ItemName(item)} {move}개를 보관함에 맡겼다." : $"{ItemName(item)} {move}개를 보관함에서 꺼냈다.");
+    }
+
+    /// <summary>주점에서 한턱낸다 — 선원 수만큼 술값을 내고 피로를 푼다.</summary>
+    public int TreatCost => 200 + (int)Crew * 20;
+    public void Treat()
+    {
+        if (Mode != Mode.Port || Money < TreatCost || Fatigue <= 0) return;
+        Money -= TreatCost;
+        Fatigue = Math.Max(0, Fatigue - 40);
+        Say($"선원들에게 한턱냈다. 피로가 풀렸다. ({TreatCost:N0} 두캇)");
+    }
+
+    /// <summary>경험치로 셈한 레벨과, 다음 레벨까지 남은 경험치. 원본의 레벨 표를 몰라 지은 것이다(레벨 n 까지 50 × n²).</summary>
+    public static (int Level, int Next) LevelOf(int exp)
+    {
+        int level = (int)Math.Sqrt(Math.Max(0, exp) / 50.0);
+        return (level, 50 * (level + 1) * (level + 1) - Math.Max(0, exp));
     }
 
     /// <summary>의뢰를 주는 곳의 이름 — 조합 건물이 있는 도시는 열세 곳뿐이고 나머지는 의뢰 중개인이 준다.</summary>
@@ -325,6 +384,8 @@ internal sealed partial class Voyage
         int days = DaysAtSea;
         MoorAt(city);
         Say($"{city.Name}에 입항했다. (항해 {days}일)");
+        Studied("Voyage");
+        if (days >= 15) Studied("LongVoyage");
         RestInPort();
         OrderOnArrive();
     }
@@ -399,6 +460,7 @@ internal sealed partial class Voyage
         Money += Quest!.Reward;
         _done.Add(Quest.Id);
         OrderOnReport();
+        Studied("Discover");
         Say($"의뢰 「{Quest.Title}」을(를) 보고했다. 보수 {Quest.Reward:N0} 두캇.");
         Quest = null;
         QuestStage = QuestStage.None;

@@ -141,6 +141,7 @@ internal sealed partial class Voyage
         if (!Cargo.TryGetValue(good.Id, out var item)) Cargo[good.Id] = item = new CargoItem();
         item.Count += count;
         item.Cost += (long)count * price;
+        Studied("Buy");
     }
 
     public void SellGood(GoodData good, int count)
@@ -159,6 +160,8 @@ internal sealed partial class Voyage
         {
             TradeExp += (int)(profit / 100);
             TrainEffect("Haggle", Math.Min(60, profit / 50.0));
+            Studied("Profit");
+            if (profit >= 50_000) Studied("BigProfit");
         }
         Say($"{good.Name} {count}개를 팔았다. ({(profit >= 0 ? "이익" : "손해")} {Math.Abs(profit):N0})");
     }

@@ -24,8 +24,9 @@ public sealed class TownMap
     public byte[] Bgra { get; }
     public List<TownMark> Marks { get; } = [];
 
-    // 장면 → 지도: mapX = _ax × z + _bx, mapY = _ay × x + _by (표식들에서 맞춘다)
-    private readonly float _ax = -1 / 255f, _bx = Width / 2f, _ay = 1 / 255f, _by;
+    // 장면 → 지도: mapX = _ax × x + _bx, mapY = _ay × z + _by (표식들에서 맞춘다). 지도 오른쪽이 장면 +x, 아래가 +z 다.
+    // 처음에 x 와 z 를 바꿔 맞춰서 내 자리 표시가 엉뚱한 데 찍혔다(세비야 · 리스본의 표식으로 다시 확인)
+    private readonly float _ax = 1 / 295f, _bx = Width / 2f, _ay = 1 / 265f, _by;
 
     private TownMap(byte[] picture, List<TownMark> marks)
     {
@@ -35,8 +36,8 @@ public sealed class TownMap
         _by = Height / 2f;
         if (marks.Count >= 2)
         {
-            (_ax, _bx) = Fit(marks.Select(m => (m.Scene.Y, (float)m.MapX)).ToList(), _ax, _bx);
-            (_ay, _by) = Fit(marks.Select(m => (m.Scene.X, (float)m.MapY)).ToList(), _ay, _by);
+            (_ax, _bx) = Fit(marks.Select(m => (m.Scene.X, (float)m.MapX)).ToList(), _ax, _bx);
+            (_ay, _by) = Fit(marks.Select(m => (m.Scene.Y, (float)m.MapY)).ToList(), _ay, _by);
         }
     }
 
@@ -50,10 +51,10 @@ public sealed class TownMap
         return (slope, meanY - slope * meanX);
     }
 
-    public Vector2 ToMap(Vector2 scene) => new(_ax * scene.Y + _bx, _ay * scene.X + _by);
+    public Vector2 ToMap(Vector2 scene) => new(_ax * scene.X + _bx, _ay * scene.Y + _by);
 
     /// <summary>장면에서의 방향(x, z)을 지도 위의 방향으로.</summary>
-    public Vector2 ToMapDirection(Vector2 scene) => new(MathF.Sign(_ax) * scene.Y, MathF.Sign(_ay) * scene.X);
+    public Vector2 ToMapDirection(Vector2 scene) => new(MathF.Sign(_ax) * scene.X, MathF.Sign(_ay) * scene.Y);
 
     private static byte[]? _marks;
 

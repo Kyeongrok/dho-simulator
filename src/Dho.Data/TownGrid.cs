@@ -311,6 +311,59 @@ public sealed class TownGrid
 
     private bool[]? _reached;
 
+    /// <summary>걸어서 닿는 칸 가운데 그 자리에서 가장 가까운(또는 가장 먼) 칸의 가운데. <see cref="Seal"/> 뒤에 부른다.</summary>
+    public Vector2? Reached(Vector2 from, bool farthest = false)
+    {
+        if (_reached == null) return null;
+        int best = -1;
+        float value = farthest ? -1 : float.MaxValue;
+        for (int cell = 0; cell < _reached.Length; cell++)
+        {
+            if (!_reached[cell]) continue;
+            float d = Vector2.DistanceSquared(new((cell % _fineWidth + 0.5f) * Fine, (cell / _fineWidth + 0.5f) * Fine), from);
+            if (farthest ? d > value : d < value) (best, value) = (cell, d);
+        }
+        return best < 0 ? null : new Vector2((best % _fineWidth + 0.5f) * Fine, (best / _fineWidth + 0.5f) * Fine);
+    }
+
+    /// <summary>
+    /// 걸어서는 못 닿지만 바닥은 있는 가장 큰 자리(계산대 안쪽 같은 곳)의 가운데와, 거기서 가장 가까운 닿는 자리.
+    /// <see cref="Seal"/> 뒤에 부른다. 그런 자리가 없으면 null.
+    /// </summary>
+    public (Vector2 Inside, Vector2 Front)? Pocket(int least = 6, int most = 400)
+    {
+        if (_reached == null) return null;
+        var seen = new bool[_blocked.Length];
+        List<int>? best = null;
+        for (int start = 0; start < seen.Length; start++)
+        {
+            if (seen[start] || _reached[start] || _blocked[start]) continue;
+            var cells = new List<int>();
+            var queue = new Queue<int>();
+            queue.Enqueue(start);
+            seen[start] = true;
+            bool edge = false;
+            while (queue.Count > 0)
+            {
+                int cell = queue.Dequeue(), x = cell % _fineWidth, z = cell / _fineWidth;
+                cells.Add(cell);
+                if (x == 0 || z == 0 || x == _fineWidth - 1 || z == _fineHeight - 1) { edge = true; continue; }
+                foreach (int next in (int[])[cell - 1, cell + 1, cell - _fineWidth, cell + _fineWidth])
+                    if (!seen[next] && !_reached[next] && !_blocked[next]) { seen[next] = true; queue.Enqueue(next); }
+            }
+            if (!edge && cells.Count >= least && cells.Count <= most && (best == null || cells.Count > best.Count)) best = cells;
+        }
+        if (best == null) return null;
+        Vector2 Middle(int cell) => new((cell % _fineWidth + 0.5f) * Fine, (cell / _fineWidth + 0.5f) * Fine);
+        var centre = new Vector2(best.Average(c => Middle(c).X), best.Average(c => Middle(c).Y));
+        var inside = Middle(best.MinBy(c => Vector2.DistanceSquared(Middle(c), centre)));
+        int front = -1;
+        float nearest = float.MaxValue;
+        for (int cell = 0; cell < _reached.Length; cell++)
+            if (_reached[cell] && Vector2.DistanceSquared(Middle(cell), inside) is var d && d < nearest) (front, nearest) = (cell, d);
+        return front < 0 ? null : (inside, Middle(front));
+    }
+
     /// <summary>
     /// <paramref name="entry"/> 에서 걸어서 닿는 칸을 가려낸다. 닿지 못하는 뭍 칸은 집 안이므로
     /// 둘레 벽의 높이를 안으로 번지게 해서 카메라가 속이 빈 집 안으로 들어가지 않게 한다.

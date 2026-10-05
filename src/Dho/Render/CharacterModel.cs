@@ -53,6 +53,7 @@ internal sealed class CharacterModel : IDisposable
     private Quaternion[] _bindTurn = [];
     private Vector3[] _bindSpot = [];
     private Matrix4x4[] _bindInverse = [];
+    private Matrix4x4[] _bindWorld = [];
     private Motion? _idle, _walk, _run;
 
     /// <summary>
@@ -220,6 +221,7 @@ internal sealed class CharacterModel : IDisposable
             _bindSpot[i] = new Vector3(F32(at + 32), F32(at + 36), F32(at + 40));
             Matrix4x4.Invert(world[i], out _bindInverse[i]);
         }
+        _bindWorld = world;
         for (int m = 0; m < matrices; m++) _matrixNode[m] = U16(mapAt + m * 8 + 2);
     }
 
@@ -250,7 +252,7 @@ internal sealed class CharacterModel : IDisposable
             var part = parts[b] = new Part
             {
                 Positions = new Vector3[count], Normals = new Vector3[count], Uvs = new Vector2[count],
-                Bones = new int[count * 3], Weights = new float[count * 3], Indices = [],
+                Bones = new int[count * 4], Weights = new float[count * 4], Indices = [],
             };
             Vector3 min = new(float.MaxValue), max = new(float.MinValue);
             for (int v = 0; v < count; v++)
@@ -259,7 +261,7 @@ internal sealed class CharacterModel : IDisposable
                 part.Positions[v] = new Vector3(F32(p), F32(p + 4), F32(p + 8));
                 part.Normals[v] = new Vector3(F32(p + normalAt), F32(p + normalAt + 4), F32(p + normalAt + 8));
                 part.Uvs[v] = new Vector2(F32(p + uvAt), F32(p + uvAt + 4));
-                (part.Bones[v * 3], part.Weights[v * 3]) = (-1, 1);
+                (part.Bones[v * 4], part.Weights[v * 4]) = (-1, 1);
                 min = Vector3.Min(min, part.Positions[v]);
                 max = Vector3.Max(max, part.Positions[v]);
             }
@@ -279,7 +281,7 @@ internal sealed class CharacterModel : IDisposable
                 for (int v = 0; v < count; v++)
                 {
                     part.Positions[v] += shift;
-                    part.Bones[v * 3] = Head;
+                    part.Bones[v * 4] = Head;
                 }
                 weightCounts[b] = -1;              // 조각의 행렬 번호는 안 쓴다
             }
@@ -300,23 +302,35 @@ internal sealed class CharacterModel : IDisposable
 
                 // 행렬 번호가 20 아래인 조각은 뼈대가 아니라 그 옷에 딸린 마디(늘어진 천 · 장식)에 붙는다.
                 // 그 마디의 자리를 못 풀어서 그리지 않는다 — 그대로 그리면 발밑에 조각이 떨어져 보인다
-                if (weightCounts[buffer] >= 0 && I16(record + 0x20) is >= 0 and < 20) continue;
+                // 다만 레코드 첫 바이트에 0x40 이 없는 조각은 몫 없이 뼈대의 마디 하나(레코드 +4)에 통째로 붙는 딱딱한 조각이다
+                // (무릎 보호대 · 팔 장식 · 가슴 장식). 정점이 그 마디 기준 좌표라서 선 자세의 마디 행렬로 몸 좌표로 옮겨 둔다
+                if (weightCounts[buffer] >= 0 && (data[record] & 0x40) == 0 && U16(record + 4) is var rigid && rigid < _bindWorld.Length)
+                {
+                    for (int v = firstVertex; v < Math.Min(firstVertex + vertexCount, part.Positions.Length); v++)
+                    {
+                        part.Positions[v] = Vector3.Transform(part.Positions[v], _bindWorld[rigid]);
+                        part.Normals[v] = Vector3.TransformNormal(part.Normals[v], _bindWorld[rigid]);
+                        for (int k = 0; k < 4; k++) (part.Bones[v * 4 + k], part.Weights[v * 4 + k]) = (k == 0 ? rigid : -1, k == 0 ? 1 : 0);
+                    }
+                }
+                else if (weightCounts[buffer] >= 0 && I16(record + 0x20) is >= 0 and < 20) continue;
+                else
 
                 // 이 조각의 정점들에 마디와 몫을 적는다
                 if (weightCounts[buffer] >= 0)
                 {
-                    int given = Math.Min(weightCounts[buffer], 2);
+                    int given = Math.Min(weightCounts[buffer], 3);          // 몫이 셋이면 마디는 넷(마지막은 나머지)
                     for (int v = firstVertex; v < Math.Min(firstVertex + vertexCount, part.Positions.Length); v++)
                     {
                         float rest = 1;
-                        for (int k = 0; k < 3; k++)
+                        for (int k = 0; k < 4; k++)
                         {
                             int matrix = I16(record + 0x20 + k * 2);
                             int node = matrix >= 0 && _matrixNode.TryGetValue(matrix, out int mapped) ? mapped : -1;
                             float weight = k < given ? F32(weightData[buffer].At + v * weightData[buffer].Stride + k * 4) : rest;
                             if (node < 0) weight = 0;
                             rest -= weight;
-                            (part.Bones[v * 3 + k], part.Weights[v * 3 + k]) = (node, weight);
+                            (part.Bones[v * 4 + k], part.Weights[v * 4 + k]) = (node, weight);
                             if (k >= given) break;
                         }
                     }
@@ -435,17 +449,17 @@ internal sealed class CharacterModel : IDisposable
                 {
                     Vector3 position = Vector3.Zero, normal = Vector3.Zero;
                     float total = 0;
-                    for (int k = 0; k < 3; k++)
+                    for (int k = 0; k < 4; k++)
                     {
-                        int bone = part.Bones[v * 3 + k];
-                        float weight = part.Weights[v * 3 + k];
+                        int bone = part.Bones[v * 4 + k];
+                        float weight = part.Weights[v * 4 + k];
                         if (weight <= 0 || bone < 0 || bone >= moved.Length) continue;
                         position += Vector3.Transform(part.Positions[v], moved[bone]) * weight;
                         normal += Vector3.TransformNormal(part.Normals[v], moved[bone]) * weight;
                         total += weight;
                     }
                     if (total < 0.01f) (position, normal) = (part.Positions[v], part.Normals[v]);
-                    else if (total < 0.99f) position += part.Positions[v] * (1 - total);
+                    else if (total < 0.99f) (position, normal) = (position / total, normal / total);      // 못 푼 마디의 몫은 나머지에 나눠 준다
                     builder.Add(position, normal, Vector4.One, part.Uvs[v]);
                 }
                 builder.Indices.AddRange(part.Indices);

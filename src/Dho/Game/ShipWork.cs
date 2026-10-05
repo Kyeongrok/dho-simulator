@@ -105,11 +105,23 @@ internal sealed partial class Voyage
     }
 
     /// <summary>강화한다 — 부품마다 정해진 능력치가 오르고(상한까지), 조합이 맞으면 옵션 스킬이 붙는다.</summary>
+    /// <summary>성능초기화 — 타고 있는 배의 강화치를 모두 0 으로(재질은 남는다). 되돌릴 수 없다.</summary>
+    public void ResetWork()
+    {
+        if (Mode != Mode.Port || Work.Times == 0) return;
+        Work = new ShipWork();
+        Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work);
+        Durability = Math.Min(Durability, Stats.Durability);
+        Crew = Math.Min(Crew, Stats.MaxCrew);
+        Say($"{Ship.Name}의 성능을 초기화했다. 강화치가 모두 0 이 되었다.");
+    }
+
     public void Strengthen(IReadOnlyCollection<int> parts)
     {
         if (Mode != Mode.Port || WorkBlocker(parts) != null) return;
         var plain = StatsOf(Ship, ShipMaterialId, ShipLoad);
         Money -= WorkCost(parts);
+        Studied("Build");
         var gained = new List<string>();
         foreach (int id in parts)
         {

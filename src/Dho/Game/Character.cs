@@ -72,7 +72,7 @@ internal sealed partial class Voyage
     /// 고를 수 있는 몸 틀. 묶음 2 ~ 7 은 뼈대와 부위 짜임이 달라서 지금은 깨져 선다(머리가 돌아가 붙거나 몸이 빈다) —
     /// 제대로 서는 0(남) · 1(여)만 내놓는다.
     /// </summary>
-    public static int[] FramesOf(bool male) => male ? [0] : [1];
+    public static int[] FramesOf(bool male) => male ? [0, 6] : [1];      // 6(뚱뚱한 남자)도 온전히 선다
 
     public static readonly string[] LookNames = ["체형", "얼굴", "머리", "옷", "신발", "손", "모자"];
 
@@ -138,6 +138,9 @@ internal sealed partial class Voyage
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
+            Bank = Savings,
+            Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
+            Vault = new Dictionary<int, int>(Vault),
             Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp }).ToList(),
             Dock = Dock.Select(d => new double[] { d.Ship.Id, d.Durability, d.Material, d.Load }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
             QuestId = Quest?.Id ?? 0, QuestStage = (int)QuestStage,
@@ -179,6 +182,11 @@ internal sealed partial class Voyage
         foreach (var saved in save.Aides)
             if (saved.Length >= 4 && Data.Aides.Find(a => a.Id == (int)saved[0]) is { } who)
                 Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3] });
+        Savings = Math.Max(0, save.Bank);
+        (Major, Credits, Studying) = (save.Major, save.Credits, Data.Research.Find(r => r.No == save.Research && save.Research != 0));
+        foreach (var (action, count) in save.ResearchProgress) StudyProgress[action] = count;
+        foreach (int done in save.ResearchDone) StudyDone.Add(done);
+        foreach (var (id, count) in save.Vault) Vault[id] = count;
         if (save.Court.Length >= 4)
             (Title, Merit, Order, OrderProgress) = (save.Court[0], save.Court[1], Data.Orders.Orders.Find(o => o.Id == save.Court[2]), save.Court[3]);
         foreach (int recipe in save.Recipes) Recipes.Add(recipe);

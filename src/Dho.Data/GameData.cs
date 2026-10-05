@@ -322,6 +322,26 @@ public sealed class RecipeRule
 }
 
 /// <summary>소비 아이템 — 이름과 번호는 클라이언트 아이템 표(14)의 것이고, 하는 일과 값은 지은 것이다.</summary>
+/// <summary>연구 하나 — 연구동 레벨, 전공, (직업), 해야 하는 행동들과 횟수, 필요 페이지, 얻는 스킬, 학점.</summary>
+public sealed class ResearchFact
+{
+    public int No { get; set; }
+    public string Name { get; set; } = "";
+    public int Level { get; set; }
+    public string Major { get; set; } = "";
+    public string Job { get; set; } = "";
+    public List<ResearchAction> Actions { get; set; } = [];
+    public int Pages { get; set; }
+    public string Skill { get; set; } = "";
+    public int Credit { get; set; }
+}
+
+public sealed class ResearchAction
+{
+    public string Name { get; set; } = "";
+    public int Count { get; set; }
+}
+
 public sealed class ItemData
 {
     public int Id { get; set; }
@@ -399,6 +419,16 @@ public sealed class SaveData
     public List<int> Recipes { get; set; } = [];
     /// <summary>작위(0 부터) · 공적 · 받은 칙명 id · 칙명의 진행(들른 곳 수나 보고한 발견 수).</summary>
     public int[] Court { get; set; } = [0, 0, 0, 0];
+    /// <summary>은행에 맡긴 돈.</summary>
+    public long Bank { get; set; }
+    /// <summary>대학 — 전공, 하고 있는 연구 번호, 그 연구의 행동별 진행, 학점, 마친 연구 번호.</summary>
+    public string Major { get; set; } = "";
+    public int Research { get; set; }
+    public Dictionary<string, int> ResearchProgress { get; set; } = new();
+    public int Credits { get; set; }
+    public List<int> ResearchDone { get; set; } = [];
+    /// <summary>은행 보관함에 맡긴 아이템 — 번호와 개수.</summary>
+    public Dictionary<int, int> Vault { get; set; } = new();
     /// <summary>고용한 부관 — [후보 id, 담당, 레벨, 경험].</summary>
     public List<double[]> Aides { get; set; } = [];
     /// <summary>타고 있는 배에 단 부품.</summary>
@@ -486,6 +516,8 @@ public sealed class GameData
     public List<RecipeData> Recipes { get; set; } = [];
     public List<RecipeRule> RecipeRules { get; set; } = [];
     public List<ItemData> Items { get; set; } = [];
+    /// <summary>대학의 연구 목록 — <c>data\extracted\research-facts.json</c>(ssjoy 에서 모은 것, 저장소에는 안 둔다). 없으면 대학은 빈다.</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<ResearchFact> Research { get; set; } = [];
     public List<ShipMaterial> ShipMaterials { get; set; } = [];
     public ShipWorkBook ShipWorks { get; set; } = new();
     public List<ShipPart> ShipParts { get; set; } = [];
@@ -551,6 +583,7 @@ public sealed class GameData
         ShipStats.Facts = (Read<List<ShipFact>>(Path.Combine(extracted, "ship-facts.json")) ?? [])
             .GroupBy(f => f.Name).ToDictionary(g => g.Key, g => g.First());
         data.Places = Read<List<NamedData>>(Path.Combine(extracted, "places.json")) ?? [];
+        data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
         data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
         data.ShipParts = Read<List<ShipPart>>(Path.Combine(extracted, "ship-parts.json")) ?? [];
