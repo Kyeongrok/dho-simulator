@@ -9,6 +9,19 @@ internal sealed class DockedShip
     public double Durability { get; set; }
     /// <summary>그 배에 달려 있는 부품.</summary>
     public List<ShipPart> Parts { get; init; } = [];
+    /// <summary>커스텀설정 조선으로 지은 배면 그 재질 번호와 적재 변경(%). 조선소에서 산 배는 0, 0.</summary>
+    public int Material { get; init; }
+    public int Load { get; init; }
+}
+
+/// <summary>조선소에 맡겨 둔 배.</summary>
+internal sealed class ShipOrder
+{
+    public required ShipData Ship { get; init; }
+    public int Material { get; init; }
+    public int Load { get; init; }
+    /// <summary>다 지어질 때까지 남은 날(바다에서 보낸 날로 센다).</summary>
+    public double DaysLeft { get; set; }
 }
 
 /// <summary>
@@ -19,10 +32,85 @@ internal sealed partial class Voyage
 {
     public ShipData Ship { get; private set; } = new();
     public ShipStats Stats { get; private set; } = null!;
+    /// <summary>타고 있는 배의 재질 번호와 적재 변경(%).</summary>
+    public int ShipMaterialId { get; private set; }
+    public int ShipLoad { get; private set; }
+    /// <summary>조선소에 맡겨 둔 배.</summary>
+    public ShipOrder? Ordered { get; private set; }
+
+    public ShipMaterial? MaterialOf(int id) => Data.ShipMaterials.Find(m => m.Id == id);
+
+    /// <summary>그 배의 능력치 — 재질과 적재 변경을 입힌 것.</summary>
+    public ShipStats StatsOf(ShipData ship, int material, int load)
+    {
+        var stats = ShipStats.Of(ship, Settings.Ships);
+        return material == 0 && load == 0 ? stats : stats.Built(MaterialOf(material), load, Settings.Ships);
+    }
+
+    public ShipStats StatsOf(DockedShip docked) => StatsOf(docked.Ship, docked.Material, docked.Load);
+
+    // ── 커스텀설정 조선 ──────────────────────────────────────────────────────
+
+    /// <summary>조선 스킬의 랭크(스킬 규칙의 Shipbuilding).</summary>
+    public int ShipbuildingRank => Data.SkillRules.Where(r => r.Effect == "Shipbuilding").Select(r => Rank(r.SkillId)).DefaultIfEmpty(0).Max();
+
+    /// <summary>적재를 바꿀 수 있는 조선 랭크(원본은 20 — 이 게임의 랭크 상한에 맞춰 줄였다).</summary>
+    public const int LoadRank = 5;
+
+    /// <summary>지금 랭크로 고를 수 있는 재질.</summary>
+    public List<ShipMaterial> MaterialsToUse() => Data.ShipMaterials.Where(m => m.MinRank <= ShipbuildingRank).ToList();
+
+    /// <summary>건조일수 — 화면 글에 칸만 있고 값은 없어서 크기 등급에서 짓는다.</summary>
+    public static int BuildDays(ShipData ship) => 3 + ship.SizeClass * 4;
+
+    /// <summary>맡기는 값 — 조선소에서 사는 것보다 싸다.</summary>
+    public int BuildCost(ShipData ship, int material) => (int)(ShipStats.Of(ship, Settings.Ships).Price * (MaterialOf(material)?.Price ?? 1) * 0.8);
+
+    public string? BuildBlocker(ShipData ship, int material, int load)
+    {
+        if (ShipbuildingRank <= 0) return "조선 스킬이 없다";
+        if (Ordered != null) return "이미 맡겨 둔 배가 있다";
+        if (ship.SizeClass * 2 > ShipbuildingRank) return $"조선 랭크 {ship.SizeClass * 2} 이 있어야 이 크기를 짓는다";
+        if (load != 0 && ShipbuildingRank < LoadRank) return $"적재 변경은 조선 랭크 {LoadRank} 부터";
+        if (Money < BuildCost(ship, material)) return "돈이 모자라다";
+        return null;
+    }
+
+    /// <summary>건조를 맡긴다. 날이 차면 어느 조선소에서나 받는다.</summary>
+    public void OrderShip(ShipData ship, int material, int load)
+    {
+        load = Math.Clamp(load, -25, 25);
+        if (Mode != Mode.Port || BuildBlocker(ship, material, load) != null) return;
+        Money -= BuildCost(ship, material);
+        Ordered = new ShipOrder { Ship = ship, Material = material, Load = load, DaysLeft = BuildDays(ship) };
+        TrainEffect("Shipbuilding", 40 + ship.SizeClass * 30);
+        Say($"{ship.Name}의 건조를 맡겼다. 재질 {MaterialOf(material)?.Name}, 건조일수 {BuildDays(ship)}일.");
+    }
+
+    public string? ReceiveBlocker => Ordered == null ? "맡겨 둔 배가 없다" : Ordered.DaysLeft > 0 ? $"{Math.Ceiling(Ordered.DaysLeft):0}일 더 걸린다" : Dock.Count >= DockSlots ? "부두에 둘 자리가 없다" : null;
+
+    /// <summary>다 지어진 배를 받아 부두에 둔다.</summary>
+    public void ReceiveShip()
+    {
+        if (Mode != Mode.Port || ReceiveBlocker != null || Ordered is not { } order) return;
+        var stats = StatsOf(order.Ship, order.Material, order.Load);
+        Dock.Add(new DockedShip { Ship = order.Ship, Durability = stats.Durability, Material = order.Material, Load = order.Load });
+        Ordered = null;
+        Say($"{order.Ship.Name}을(를) 넘겨받아 부두에 매어 두었다. 선박교환에서 갈아탄다.");
+    }
+
+    /// <summary>바다에서 보낸 날만큼 건조가 나아간다.</summary>
+    private void UpdateBuild(double days)
+    {
+        if (Ordered is not { DaysLeft: > 0 } order) return;
+        order.DaysLeft -= days;
+        if (order.DaysLeft <= 0) Say($"맡겨 둔 {order.Ship.Name}이(가) 다 지어졌을 것이다. 조선소에서 받는다.");
+    }
 
     private void StartShip(int shipId)
     {
         Ship = Data.Ships.Find(s => s.Id == shipId) ?? Data.Ships.FirstOrDefault() ?? new ShipData { Name = "배", Length = 60, Width = 20, Height = 30, Masts = 2 };
+        (ShipMaterialId, ShipLoad) = (0, 0);
         Stats = ShipStats.Of(Ship, Settings.Ships);
     }
 
@@ -53,19 +141,20 @@ internal sealed partial class Voyage
         return null;
     }
 
-    private void Board(ShipData ship, double durability, List<ShipPart>? parts = null)
+    private void Board(ShipData ship, double durability, List<ShipPart>? parts = null, int material = 0, int load = 0)
     {
-        Dock.Add(new DockedShip { Ship = Ship, Durability = Durability, Parts = Parts });
+        Dock.Add(new DockedShip { Ship = Ship, Durability = Durability, Parts = Parts, Material = ShipMaterialId, Load = ShipLoad });
         Parts = parts ?? [];
         Ship = ship;
-        Stats = ShipStats.Of(ship, Settings.Ships);
+        (ShipMaterialId, ShipLoad) = (material, load);
+        Stats = StatsOf(ship, material, load);
         Durability = Math.Clamp(durability, 1, Stats.Durability);
         Crew = Math.Min(Crew, Stats.MaxCrew);
     }
 
     /// <summary>부두의 배로 갈아타지 못하는 까닭.</summary>
     public string? SwapBlocker(DockedShip docked) =>
-        CargoCount > ShipStats.Of(docked.Ship, Settings.Ships).Hold ? "짐이 그 배의 창고보다 많다" : null;
+        CargoCount > StatsOf(docked).Hold ? "짐이 그 배의 창고보다 많다" : null;
 
     /// <summary>선박교환 — 부두의 배로 갈아탄다. 타던 배가 부두에 남는다.</summary>
     public void SwapShip(DockedShip docked)
@@ -73,13 +162,13 @@ internal sealed partial class Voyage
         if (Mode != Mode.Port || !Dock.Remove(docked)) return;
         if (SwapBlocker(docked) != null) { Dock.Add(docked); return; }
         Say($"{Ship.Name}에서 {docked.Ship.Name}(으)로 갈아탔다.");
-        Board(docked.Ship, docked.Durability, docked.Parts);
+        Board(docked.Ship, docked.Durability, docked.Parts, docked.Material, docked.Load);
     }
 
     /// <summary>부두의 배를 팔 때 받는 값 — 상한 만큼 깎인다.</summary>
     public int DockedPrice(DockedShip docked)
     {
-        var stats = ShipStats.Of(docked.Ship, Settings.Ships);
+        var stats = StatsOf(docked);
         return (int)(stats.SellPrice * Math.Clamp(docked.Durability / stats.Durability, 0.2, 1));
     }
 

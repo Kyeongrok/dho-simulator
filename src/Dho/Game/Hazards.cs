@@ -180,6 +180,7 @@ internal sealed partial class Voyage
         // 생존 스킬이 선원 피해를 줄인다
         double loss = (1 - Math.Min(0.75, Bonus("CrewLoss"))) * AideCrewLoss;
         UpdateAides(days);
+        UpdateBuild(days);
         // 재해 표의 피해는 선원 80명·내구 400짜리 배가 기준이다. 배 크기에 맞춰 늘리고 줄인다.
         double crewScale = Stats.MaxCrew / 80.0, hullScale = Stats.Durability / 400.0;
 

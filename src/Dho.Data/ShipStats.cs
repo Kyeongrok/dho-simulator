@@ -45,7 +45,42 @@ public sealed class ShipRules
     public int OtherMaxClass { get; set; } = 2;
 }
 
-/// <summary>지어 낸 배 능력치.</summary>
+/// <summary>
+/// 배의 실제 능력치 한 줄 — 이용자들이 모은 자료(ssjoy.org 의 선박 표)에서 옮긴 것.
+/// <c>data\extracted\ship-facts.json</c> 에 있으면 쓰고(저장소에는 안 둔다), 없으면 크기에서 지어 낸다.
+/// </summary>
+public sealed class ShipFact
+{
+    public string Name { get; set; } = "";
+    public int Adventure { get; set; }
+    public int Trade { get; set; }
+    public int Battle { get; set; }
+    public int Durability { get; set; }
+    public int VerticalSail { get; set; }
+    public int HorizontalSail { get; set; }
+    public int Turn { get; set; }
+    public int WaveResist { get; set; }
+    public int Armor { get; set; }
+    /// <summary>선실 — 태울 수 있는 선원 수.</summary>
+    public int Cabin { get; set; }
+    public int Hold { get; set; }
+}
+
+/// <summary>
+/// 선박 재질 — 내구도와 돛의 배율은 이용자들이 모은 자료의 값이고(너도밤나무가 기준 100%),
+/// 고를 수 있게 되는 조선 랭크와 값 배율은 지은 것이다. Id 는 클라이언트 재료 표(30)의 번호.
+/// </summary>
+public sealed class ShipMaterial
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public double Durability { get; set; } = 1;
+    public double Sail { get; set; } = 1;
+    public int MinRank { get; set; }
+    public double Price { get; set; } = 1;
+}
+
+/// <summary>배 능력치 — 실제 값이 있으면 그것, 없으면 지어 낸 값.</summary>
 public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCrew, double Knots, double TurnFactor, int Price, int SellPrice)
 {
     // 조선소 화면에 보이는 값들 — 원본 화면의 칸 그대로(세로돛 · 가로돛 · 조력 · 선회 · 내파 · 장갑 · 대포)
@@ -57,8 +92,63 @@ public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCre
     public int Armor { get; init; }
     public int Guns { get; init; }
 
+    /// <summary>이름 → 실제 능력치. 자료를 읽을 때 채운다.</summary>
+    public static Dictionary<string, ShipFact> Facts { get; set; } = new();
+
+    /// <summary>운항에 필요한 레벨(모험 · 교역 · 전투). 실제 값을 모르면 0.</summary>
+    public (int Adventure, int Trade, int Battle) Levels { get; init; }
+    /// <summary>실제 값에서 온 것인가.</summary>
+    public bool Real { get; init; }
+
+    /// <summary>
+    /// 커스텀설정 조선으로 지은 배의 능력치 — 재질의 배율과 적재 변경을 입힌다.
+    /// 적재 변경 x%(창고 쪽이 +): 창고가 x% 늘고 선실이 그만큼(반은 포실 몫) 준다.
+    /// 20% 까지는 손해가 없고 그 너머는 넘은 1% 마다 돛과 내파가 2% 깎인다(원본 규칙 — 풀이 글).
+    /// </summary>
+    public ShipStats Built(ShipMaterial? material, int load, ShipRules rules)
+    {
+        double durability = material?.Durability ?? 1, sail = material?.Sail ?? 1;
+        double penalty = 1 - Math.Max(0, Math.Abs(load) - 20) * 0.02;
+        int moved = (int)Math.Round(Hold * load / 100.0);
+        int vertical = (int)(VerticalSail * sail * penalty), horizontal = (int)(HorizontalSail * sail * penalty);
+        int price = (int)(Price * (material?.Price ?? 1));
+        return this with
+        {
+            Durability = Math.Max(1, (int)Math.Round(Durability * durability)),
+            Hold = Math.Max(1, Hold + moved),
+            MaxCrew = Math.Max(MinCrew, MaxCrew - moved / 2),
+            Knots = Knots * sail * penalty,
+            VerticalSail = vertical, HorizontalSail = horizontal,
+            WaveResist = Math.Max(0, (int)Math.Round(WaveResist * penalty)),
+            Guns = Math.Max(0, Guns - moved / 20),
+            Price = price, SellPrice = (int)(price * rules.SellRate),
+        };
+    }
+
     public static ShipStats Of(ShipData ship, ShipRules rules)
     {
+        if (Facts.TryGetValue(ship.Name, out var fact) && fact.Durability > 0)
+        {
+            // 값은 표에 없어서 크기에서 짓는다. 속도는 돛 성능에서.
+            int cost = (int)(ship.Length * ship.Width * ship.Height * rules.PriceFactor);
+            return new ShipStats(
+                Durability: fact.Durability,
+                Hold: fact.Hold,
+                MaxCrew: Math.Max(2, fact.Cabin),
+                MinCrew: Math.Max(1, (int)Math.Round(fact.Cabin * 0.2)),
+                Knots: rules.BaseKnots + (fact.VerticalSail + fact.HorizontalSail) / 80.0,
+                TurnFactor: Math.Max(4, fact.Turn) / 12.0,
+                Price: cost,
+                SellPrice: (int)(cost * rules.SellRate))
+            {
+                VerticalSail = fact.VerticalSail, HorizontalSail = fact.HorizontalSail,
+                Rowing = ship.Kind == 2 ? ship.Length / 2 : 0,
+                Turn = fact.Turn, WaveResist = fact.WaveResist, Armor = fact.Armor,
+                Guns = Math.Max(2, ship.Length / (ship.Kind == 2 ? 18 : 9)),
+                Levels = (fact.Adventure, fact.Trade, fact.Battle), Real = true,
+            };
+        }
+
         double area = ship.Length * ship.Width;
         int durability = Math.Max(20, (int)(area / rules.DurabilityDivisor));
         int maxCrew = Math.Max(5, (int)(area / rules.CrewDivisor));

@@ -35,7 +35,7 @@ internal static class Win32
     public const int GWL_STYLE = -16;
     public const int SM_CXSCREEN = 0, SM_CYSCREEN = 1;
     public const uint SWP_NOZORDER = 0x0004, SWP_FRAMECHANGED = 0x0020, SWP_SHOWWINDOW = 0x0040;
-    public const int VK_F11 = 0x7A, VK_CONTROL = 0x11;
+    public const int VK_F11 = 0x7A, VK_CONTROL = 0x11, VK_F2 = 0x71;
     public const int WS_THICKFRAME = 0x00040000, WS_MINIMIZEBOX = 0x00020000, WS_SYSMENU = 0x00080000;
     /// <summary>제목 줄을 스스로 그리는 창 — 테두리로 크기는 바꿀 수 있다.</summary>
     public const int WS_OWNTITLE = WS_POPUP | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU;

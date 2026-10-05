@@ -36,6 +36,8 @@ internal sealed class GameWindow : IDisposable
     private Vector2 _walk;
     private float _walkYaw;
     private Mesh? _figure;
+    private CharacterModel? _character;
+    private string _characterLooks = "";
     private float _sight = 1, _viewPitch;
     private float _portDistance, _portPitch;
     private BerthData? _berth;
@@ -94,6 +96,7 @@ internal sealed class GameWindow : IDisposable
             SetDisplay = SetDisplay, WalkTo = WalkTo,
             Minimize = () => Win32.ShowWindow(_hwnd, Win32.SW_MINIMIZE),
             Quit = () => Win32.PostMessageW(_hwnd, Win32.WM_CLOSE, IntPtr.Zero, IntPtr.Zero),
+            PartCount = (frame, part) => CharacterModel.PartsOf(frame).TryGetValue(part, out var list) ? list.Count : 0,
         };
         // 대본으로 돌릴 때는 조용히 — 대본의 music 명령으로 켠다
         _musicOn = !_scripted;
@@ -310,6 +313,21 @@ internal sealed class GameWindow : IDisposable
             case 'I':
                 if (_voyage.Dialog == Dialog.Items) _voyage.Dialog = Dialog.None;
                 else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.Items;
+                break;
+            case 'T' when _voyage.Mode == Mode.Port && _voyage.TownView && _voyage.Dialog == Dialog.None:
+                _hud.TownMenuOpen = !_hud.TownMenuOpen;
+                break;
+            case Win32.VK_F2:
+                // 원본처럼 F2 로 스킬 사용 창을 여닫는다
+                if (_voyage.Dialog == Dialog.UseSkills) _voyage.Dialog = Dialog.None;
+                else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.UseSkills;
+                break;
+            case >= '1' and <= '8' when !_keys.Contains(Win32.VK_CONTROL) && _voyage.Dialog is Dialog.None or Dialog.UseSkills:
+                _voyage.UsePageSlot(key - '1');
+                break;
+            case 'C':
+                if (_voyage.Dialog == Dialog.Outfit) _voyage.Dialog = Dialog.None;
+                else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.Outfit;
                 break;
             case 'X':
                 // 원본처럼 X 로 스킬 창을 여닫는다
@@ -561,8 +579,18 @@ internal sealed class GameWindow : IDisposable
         var origin = Walking ? new Vector3(_walk.X, 0, _walk.Y) : _town!.Center;
         _town!.Draw(_scene, Matrix4x4.CreateTranslation(-origin.X, 0, -origin.Z));
         if (!Walking || !figure) return;
-        _figure ??= Figure();
-        _scene.Draw(_figure, Matrix4x4.CreateRotationY(_walkYaw) * Matrix4x4.CreateTranslation(0, foot, 0));
+        // 겉모습이 바뀌면 사람 모형을 다시 맞춘다. 몸 묶음을 못 읽으면 인형으로 대신한다
+        string looks = string.Join(",", _voyage.Looks);
+        if (looks != _characterLooks)
+        {
+            _character?.Dispose();
+            var l = _voyage.Looks;
+            _character = new CharacterModel(_gfx, new Looks(l[0], l[1], l[2], l[3], l[4], l[5], l[6]));
+            _characterLooks = looks;
+        }
+        var stand = Matrix4x4.CreateRotationY(_walkYaw) * Matrix4x4.CreateTranslation(0, foot, 0);
+        if (_character is { Loaded: true }) _character.Draw(_scene, stand);
+        else _scene.Draw(_figure ??= Figure(), stand);
     }
 
     /// <summary>걷는 사람 — 몸 모형(뼈대가 있어야 선다)을 못 그려서 대신 세우는 인형. 키 170, +Z 가 앞.</summary>
@@ -665,6 +693,29 @@ internal sealed class GameWindow : IDisposable
             case "order": if (_voyage.OrdersOffered().ElementAtOrDefault((int)Number()) is { } royal) _voyage.AcceptOrder(royal); break;
             case "fulfil": _voyage.CompleteOrder(); break;
             case "buyitem": if (_voyage.ItemOf((int)Number()) is { } wares) _voyage.BuyItem(wares); break;
+            case "addrecipe": if (_voyage.Data.Recipes.Find(r => r.Id == (int)Number()) is { } learned) _voyage.AddRecipe(learned); break;
+            case "produce": if (_voyage.RuleOf((int)Number()) is { } make) _voyage.Produce(make, 1); break;
+            case "itemtab": _hud.ItemTab = (int)Number(); break;
+            case "custom": _hud.OpenCustomBuild((int)Number()); break;
+            case "build":
+                var plan = argument.Split(',');
+                if (_voyage.Data.Ships.Find(s => s.Id == int.Parse(plan[0])) is { } hull) _voyage.OrderShip(hull, int.Parse(plan[1]), int.Parse(plan[2]));
+                break;
+            case "receive": _voyage.ReceiveShip(); break;
+            case "townmenu": _hud.TownMenuOpen = !_hud.TownMenuOpen; break;
+            case "useskills": _voyage.Dialog = Dialog.UseSkills; break;
+            case "slot": _voyage.UsePageSlot((int)Number() - 1); break;
+            case "quick": _hud.QuickOpen = !_hud.QuickOpen; break;
+            case "quicksetup": _voyage.Dialog = Dialog.QuickSetup; break;
+            case "setslot":
+                var put = argument.Split(',');
+                _voyage.SetQuickSlot(int.Parse(put[0]), int.Parse(put[1]));
+                break;
+            case "outfit": _voyage.Dialog = Dialog.Outfit; break;
+            case "look":
+                var look = argument.Split(',');
+                _voyage.SetLook(int.Parse(look[0]), int.Parse(look[1]));
+                break;
             case "parts": _voyage.Dialog = Dialog.ShipParts; break;
             case "buypart": if (_voyage.PartsForSale().ElementAtOrDefault((int)Number()) is { } part) _voyage.BuyPart(part); break;
             case "items": _voyage.Dialog = Dialog.Items; break;
@@ -700,6 +751,7 @@ internal sealed class GameWindow : IDisposable
         _port?.Dispose();
         _town?.Dispose();
         _figure?.Dispose();
+        _character?.Dispose();
         _ship?.Dispose();
         _terrain?.Dispose();
         _scene?.Dispose();

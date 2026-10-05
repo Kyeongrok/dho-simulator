@@ -1,0 +1,58 @@
+[
+  {
+    "Id": 1,
+    "Name": "삼나무판",
+    "Durability": 0.94,
+    "Sail": 1.04,
+    "MinRank": 0,
+    "Price": 0.9
+  },
+  {
+    "Id": 2,
+    "Name": "붉은 소나무",
+    "Durability": 0.97,
+    "Sail": 1.02,
+    "MinRank": 1,
+    "Price": 0.95
+  },
+  {
+    "Id": 3,
+    "Name": "너도밤나무",
+    "Durability": 1.0,
+    "Sail": 1.0,
+    "MinRank": 2,
+    "Price": 1.0
+  },
+  {
+    "Id": 4,
+    "Name": "엘름(느릅나무)",
+    "Durability": 1.05,
+    "Sail": 0.98,
+    "MinRank": 3,
+    "Price": 1.1
+  },
+  {
+    "Id": 6,
+    "Name": "떡갈나무",
+    "Durability": 1.25,
+    "Sail": 0.99,
+    "MinRank": 5,
+    "Price": 1.4
+  },
+  {
+    "Id": 8,
+    "Name": "동",
+    "Durability": 1.35,
+    "Sail": 0.96,
+    "MinRank": 8,
+    "Price": 1.8
+  },
+  {
+    "Id": 10,
+    "Name": "철",
+    "Durability": 1.4,
+    "Sail": 0.95,
+    "MinRank": 10,
+    "Price": 2.2
+  }
+]

@@ -61,8 +61,26 @@ internal sealed partial class Voyage
         return _cities.TryGetValue(cityId, out var city) ? city : City;
     }
 
-    public void Create(string name, int nationId, StartLineData line, bool male)
+    /// <summary>
+    /// 겉모습 — [몸 틀, 얼굴, 머리, 몸, 다리, 손, 모자(-1 없음)]. 몸 틀은 몸 묶음 번호(<c>md000N</c>)이고 나머지는 그 묶음 안 부위의 차례다.
+    /// </summary>
+    public int[] Looks { get; private set; } = [0, 0, 0, 0, 0, 0, -1];
+
+    /// <summary>고를 수 있는 몸 틀 — 남성형은 짝수 묶음, 여성형은 홀수 묶음. 0 · 1 이 옷과 머리가 다 있는 기본 체형이다.</summary>
+    public static int[] FramesOf(bool male) => male ? [0, 2, 4, 6] : [1, 5, 7];
+
+    public static readonly string[] LookNames = ["체형", "얼굴", "머리", "옷", "신발", "손", "모자"];
+
+    /// <summary>부위 하나를 바꾼다. 몸 틀을 바꾸면 나머지는 처음 것으로 돌아간다.</summary>
+    public void SetLook(int part, int value)
     {
+        if (part == 0) Looks = [value, 0, 0, 0, 0, 0, -1];
+        else if (part is > 0 and < 7) Looks = [.. Looks[..part], value, .. Looks[(part + 1)..]];
+    }
+
+    public void Create(string name, int nationId, StartLineData line, bool male, int frame = -1)
+    {
+        Looks = [frame >= 0 ? frame : FramesOf(male)[0], 0, 0, 0, 0, 0, -1];
         PlayerName = name.Trim().Length > 0 ? name.Trim() : Settings.PlayerName;
         NationId = nationId;
         JobId = line.JobId;
@@ -107,9 +125,14 @@ internal sealed partial class Voyage
             DoneQuests = _done.ToList(),
             Items = new Dictionary<int, int>(Items),
             Parts = Parts.Select(p => p.Id).ToList(),
+            Recipes = Recipes.ToList(),
+            QuickSlots = QuickSlots,
+            Looks = Looks,
+            Build = [ShipMaterialId, ShipLoad],
+            Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
             Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp }).ToList(),
-            Dock = Dock.Select(d => new double[] { d.Ship.Id, d.Durability }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
+            Dock = Dock.Select(d => new double[] { d.Ship.Id, d.Durability, d.Material, d.Load }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
             QuestId = Quest?.Id ?? 0, QuestStage = (int)QuestStage,
         });
     }
@@ -142,13 +165,27 @@ internal sealed partial class Voyage
                 Dock.Add(new DockedShip
                 {
                     Ship = stored, Durability = docked[1],
-                    Parts = docked.Skip(2).Select(id => Data.ShipParts.Find(p => p.Id == (int)id)).OfType<ShipPart>().ToList(),
+                    Material = docked.Length > 3 ? (int)docked[2] : 0, Load = docked.Length > 3 ? (int)docked[3] : 0,
+                    Parts = docked.Skip(4).Select(id => Data.ShipParts.Find(p => p.Id == (int)id)).OfType<ShipPart>().ToList(),
                 });
         foreach (var saved in save.Aides)
             if (saved.Length >= 4 && Data.Aides.Find(a => a.Id == (int)saved[0]) is { } who)
                 Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3] });
         if (save.Court.Length >= 4)
             (Title, Merit, Order, OrderProgress) = (save.Court[0], save.Court[1], Data.Orders.Orders.Find(o => o.Id == save.Court[2]), save.Court[3]);
+        foreach (int recipe in save.Recipes) Recipes.Add(recipe);
+        if (save.QuickSlots.Length > 0) Array.Copy(save.QuickSlots, QuickSlots, Math.Min(save.QuickSlots.Length, QuickSlotCount));
+        else foreach (var rule in SeaSkills()) AddQuickSlot(rule.SkillId);      // 예전 저장: 익힌 스킬을 올려 둔다
+        Looks = save.Looks.Length == 7 ? save.Looks : [FramesOf(Male)[0], 0, 0, 0, 0, 0, -1];
+        if (save.Build.Length >= 2 && (save.Build[0] != 0 || save.Build[1] != 0))
+        {
+            (ShipMaterialId, ShipLoad) = (save.Build[0], save.Build[1]);
+            Stats = StatsOf(Ship, ShipMaterialId, ShipLoad);
+            Durability = Math.Clamp(save.Durability, 1, Stats.Durability);
+            Crew = Math.Clamp(save.Crew, 1, Stats.MaxCrew);
+        }
+        if (save.Ordered.Length >= 4 && Data.Ships.Find(s => s.Id == (int)save.Ordered[0]) is { } building)
+            Ordered = new ShipOrder { Ship = building, Material = (int)save.Ordered[1], Load = (int)save.Ordered[2], DaysLeft = save.Ordered[3] };
         Parts = save.Parts.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>().ToList();
         Quest = Data.Quests.Find(q => q.Id == save.QuestId);
         QuestStage = Quest == null ? QuestStage.None : (QuestStage)save.QuestStage;

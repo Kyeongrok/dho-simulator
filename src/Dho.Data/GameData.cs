@@ -177,6 +177,7 @@ public sealed class SkillRuleData
     /// <summary>
     /// Speed 속도 · Turn 선회 · Survey 좌표와 주변 지도 · Find 발견물 찾기 · Appraise 발견물 감정 ·
     /// CrewLoss 선원 피해 줄이기 · Cure 재해 풀기 · Rest 피로 풀기 · Discount 보급 값 깎기 ·
+    /// Craft 생산 스킬(레시피가 이 이름과 랭크를 요구한다) · Shipbuilding 커스텀설정 조선.
     /// TradeKind 그 갈래 교역품의 진열량 늘리기 · Haggle 흥정과 시세 보기 · Ration 물·식량 아끼기.
     /// 바다에서 눌러 쓰는 것: Survey(위치 알기) · Procure 물 모으기 · Fish 낚시 · Repair 자재로 수리 · Rest.
     /// </summary>
@@ -288,6 +289,34 @@ public sealed class StartData
     public List<StartLineData> Lines { get; set; } = [];
 }
 
+/// <summary>레시피 이름(클라이언트 표 16).</summary>
+public sealed class RecipeData
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+}
+
+/// <summary>레시피로 만드는 것 — 재료와 생산물. 클라이언트에 없어서 지은 것이다(<c>recipes.json</c>).</summary>
+public sealed class RecipeRule
+{
+    public int RecipeId { get; set; }
+    /// <summary>개발도구에서 알아보기 위한 이름.</summary>
+    public string Name { get; set; } = "";
+    /// <summary>생산물(교역품 번호)과 한 번에 나오는 수.</summary>
+    public int Output { get; set; }
+    public int OutputCount { get; set; } = 1;
+    /// <summary>재료 — "교역품 번호:수" 를 쉼표로.</summary>
+    public string Inputs { get; set; } = "";
+    /// <summary>필요한 생산 스킬과 랭크 — "조리 3" 꼴. 비면 없다. 이용자들이 모은 자료의 값.</summary>
+    public string Skill { get; set; } = "";
+
+    public IEnumerable<(int Good, int Count)> InputList() =>
+        Inputs.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(part => part.Split(':')).Where(p => p.Length == 2 && int.TryParse(p[0], out _) && int.TryParse(p[1], out _))
+            .Select(p => (int.Parse(p[0]), int.Parse(p[1])));
+}
+
 /// <summary>소비 아이템 — 이름과 번호는 클라이언트 아이템 표(14)의 것이고, 하는 일과 값은 지은 것이다.</summary>
 public sealed class ItemData
 {
@@ -351,6 +380,16 @@ public sealed class SaveData
     public List<int> DoneQuests { get; set; } = [];
     /// <summary>소지품 — 아이템 번호 → 수.</summary>
     public Dictionary<int, int> Items { get; set; } = new();
+    /// <summary>타고 있는 배의 [재질 번호, 적재 변경 %].</summary>
+    public int[] Build { get; set; } = [0, 0];
+    /// <summary>조선소에 맡긴 배 — [배 id, 재질, 적재 변경, 남은 날]. 없으면 빈 것.</summary>
+    public double[] Ordered { get; set; } = [];
+    /// <summary>겉모습 — [몸 틀, 얼굴, 머리, 몸, 다리, 손, 모자(-1 없음)].</summary>
+    public int[] Looks { get; set; } = [];
+    /// <summary>퀵슬롯 여덟 칸 — 양수 스킬 번호, 음수 −아이템 번호, 0 빈 칸.</summary>
+    public int[] QuickSlots { get; set; } = [];
+    /// <summary>가진 레시피 번호들.</summary>
+    public List<int> Recipes { get; set; } = [];
     /// <summary>작위(0 부터) · 공적 · 받은 칙명 id · 칙명의 진행(들른 곳 수나 보고한 발견 수).</summary>
     public int[] Court { get; set; } = [0, 0, 0, 0];
     /// <summary>고용한 부관 — [후보 id, 담당, 레벨, 경험].</summary>
@@ -435,7 +474,10 @@ public sealed class GameData
     public List<SkillData> Skills { get; set; } = [];
     public List<ShipData> Ships { get; set; } = [];
     public OrderBook Orders { get; set; } = new();
+    public List<RecipeData> Recipes { get; set; } = [];
+    public List<RecipeRule> RecipeRules { get; set; } = [];
     public List<ItemData> Items { get; set; } = [];
+    public List<ShipMaterial> ShipMaterials { get; set; } = [];
     public List<ShipPart> ShipParts { get; set; } = [];
     /// <summary>부관 후보(표 131) — Group 은 표의 첫 바이트.</summary>
     public List<NamedData> Aides { get; set; } = [];
@@ -496,6 +538,8 @@ public sealed class GameData
             data.GoodKinds = Read<List<NamedData>>(Path.Combine(extracted, "good-kinds.json")) ?? [];
             data.Nations = Read<List<NamedData>>(Path.Combine(extracted, "nations.json")) ?? [];
             data.Jobs = Read<List<NamedData>>(Path.Combine(extracted, "jobs.json")) ?? [];
+        ShipStats.Facts = (Read<List<ShipFact>>(Path.Combine(extracted, "ship-facts.json")) ?? [])
+            .GroupBy(f => f.Name).ToDictionary(g => g.Key, g => g.First());
         data.Places = Read<List<NamedData>>(Path.Combine(extracted, "places.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
         data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
@@ -504,6 +548,9 @@ public sealed class GameData
 
         data.Settings = Read<SettingsData>(Path.Combine(directory, "settings.json")) ?? new SettingsData();
         data.Quests = Read<List<QuestData>>(Path.Combine(directory, "quests.json")) ?? [];
+        data.RecipeRules = Read<List<RecipeRule>>(Path.Combine(directory, "recipes.json")) ?? [];
+        data.Recipes = Read<List<RecipeData>>(Path.Combine(extracted, "recipes.json")) ?? [];
+        data.ShipMaterials = Read<List<ShipMaterial>>(Path.Combine(directory, "ship-materials.json")) ?? [];
         data.Items = Read<List<ItemData>>(Path.Combine(directory, "items.json")) ?? [];
         data.Orders = Read<OrderBook>(Path.Combine(directory, "orders.json")) ?? new OrderBook();
         data.Disasters = Read<List<DisasterData>>(Path.Combine(directory, "disasters.json")) ?? [];
@@ -529,6 +576,8 @@ public sealed class GameData
         Write(Path.Combine(Directory, "quests.json"), Quests);
         Write(Path.Combine(Directory, "orders.json"), Orders);
         Write(Path.Combine(Directory, "items.json"), Items);
+        Write(Path.Combine(Directory, "ship-materials.json"), ShipMaterials);
+        Write(Path.Combine(Directory, "recipes.json"), RecipeRules);
         Write(Path.Combine(Directory, "disasters.json"), Disasters);
         Write(Path.Combine(Directory, "supplies.json"), Supplies);
         Write(Path.Combine(Directory, "skill-rules.json"), SkillRules);
@@ -559,6 +608,7 @@ public sealed class GameData
         Write(Path.Combine(extracted, "places.json"), Places);
         Write(Path.Combine(extracted, "ship-parts.json"), ShipParts);
         Write(Path.Combine(extracted, "aides.json"), Aides);
+        Write(Path.Combine(extracted, "recipes.json"), Recipes);
         Write(Path.Combine(extracted, "duties.json"), Duties);
         File.WriteAllText(Path.Combine(extracted, ExtractVersion), "");
     }
@@ -602,6 +652,7 @@ public sealed class GameData
         Goods = tables.Goods.Select(g => new GoodData { Id = g.Id, Name = g.Name, Description = g.Description, Kind = g.Kind }).ToList();
         Nations = tables.Nations.Select(n => new NamedData { Id = n.Id, Name = n.Name }).ToList();
         Jobs = tables.Jobs.Select(j => new NamedData { Id = j.Id, Name = j.Name, Group = j.Line }).ToList();
+        Recipes = tables.Recipes.Where(r => r.Name.Length > 0 && !r.Name.StartsWith('※')).Select(r => new RecipeData { Id = r.Id, Name = r.Name, Description = r.Description }).ToList();
         Aides = tables.Aides.Select(a => new NamedData { Id = a.Id, Name = a.Name, Group = a.A }).ToList();
         Duties = tables.Duties.OrderBy(d => d.Key).Select(d => new NamedData { Id = d.Key, Name = d.Value }).ToList();
         ShipParts = tables.ShipParts.Where(p => p.Name.Length > 0 && !p.Name.StartsWith('※')).ToList();
@@ -681,7 +732,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-6";
+    private const string ExtractVersion = "extracted-7";
 
     /// <summary>
     /// 장면 줄의 배경음 번호 — 꼬리(글 셋 뒤)의 여덟째 u32. 아홉째는 소리 크기(100)다.

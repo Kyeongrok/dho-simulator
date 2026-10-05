@@ -26,7 +26,7 @@ public sealed record Job(int Id, string Name, string Description, int Line);
 public sealed class DataTables
 {
     private const int CityTable = 10, SeaTable = 8, LandingTable = 11, DiscoveryKindTable = 31, DiscoveryTable = 32;
-    private const int SkillTable = 6, GoodKindTable = 18, GoodTable = 19, ShipTable = 28, NationTable = 4, JobTable = 5, PlaceTable = 40, AideTable = 131, DutyTable = 36, ArmorTable = 23, SailTable = 25, FigureheadTable = 27;
+    private const int SkillTable = 6, GoodKindTable = 18, GoodTable = 19, ShipTable = 28, NationTable = 4, JobTable = 5, RecipeTable = 16, PlaceTable = 40, AideTable = 131, DutyTable = 36, ArmorTable = 23, SailTable = 25, FigureheadTable = 27;
 
     public IReadOnlyDictionary<int, City> Cities { get; }
     public IReadOnlyDictionary<int, SeaZone> Seas { get; }
@@ -48,6 +48,8 @@ public sealed class DataTables
     public IReadOnlyList<Job> Jobs { get; }
     /// <summary>배 부품 — 보조돛(표 25: u32 가로돛, 세로돛, ?, 내구) · 장갑(표 23: u16 장갑, u16 속도 줄임, u32 내구) · 선수상(표 27: u32 × 4, u32 내구).</summary>
     public IReadOnlyList<ShipPart> ShipParts { get; }
+    /// <summary>레시피(표 16): id, 이름, 설명 — 3,409줄. 재료와 생산물은 표에 없다.</summary>
+    public IReadOnlyList<(int Id, string Name, string Description)> Recipes { get; }
     /// <summary>부관 후보(표 131): id, 이름, u8 얼굴 번호로 짐작, u8 차례. 32명.</summary>
     public IReadOnlyList<(int Id, string Name, int A, int B)> Aides { get; }
     /// <summary>부관의 담당(표 36): 0 항해장 · 1 감시 · 2 회계사 · 3 창고당번 · 4 부함장 · 5 선의.</summary>
@@ -108,6 +110,7 @@ public sealed class DataTables
         parts.AddRange(Rows(Table(ArmorTable), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 1, r.UInt16(), r.UInt16(), 0, 0, r.Int32())));
         parts.AddRange(Rows(Table(FigureheadTable), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 2, r.Int32(), r.Int32(), r.Int32(), r.Int32(), r.Int32())));
         ShipParts = parts;
+        Recipes = Rows(Table(RecipeTable), (r, id) => (id, r.Text(id), r.Text(id)));
         Aides = Rows(Table(AideTable), (r, id) => (id, r.Text(id), r.Byte(), r.Byte()));
         Duties = Rows(Table(DutyTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(d => d.Id, d => d.Name);
         Places = Rows(Table(PlaceTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(p => p.Id, p => p.Name);

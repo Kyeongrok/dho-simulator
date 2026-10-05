@@ -21,3 +21,6 @@ __pycache__/
 
 # 이어 하기
 data/save.json
+
+# 브라우저 자동화가 남기는 화면 기록
+.playwright-mcp/

@@ -47,6 +47,7 @@ internal sealed partial class Voyage
         Money -= skill.Cost;
         Skills[skill.Id] = new SkillState();
         Say($"{skill.Name} 스킬을 익혔다. ({skill.Cost:N0} 두캇)");
+        QuickSlotLearned(skill.Id);
     }
 
     /// <summary>숙련도를 얻고, 차면 랭크가 오른다.</summary>
