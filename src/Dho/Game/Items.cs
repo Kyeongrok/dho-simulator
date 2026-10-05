@@ -92,11 +92,51 @@ internal sealed partial class Voyage
 
     public string ItemName(int item) =>
         ItemOf(item) is { } known ? known.Name :
+        Data.Papers.Find(p => p.Id == item) is { } paper ? paper.Name :
         item > MaterialItem && item < MaterialItem + 1000 && MaterialOf(item - MaterialItem) is { } wood ? wood.Name :
         item >= JobPaper && Data.Jobs.Find(j => j.Id == item - JobPaper) is { } job ? $"{job.Name} 전직증" : $"아이템 {item}";
 
+    /// <summary>선박 교환권들(아이템 표의 원본 번호 그대로).</summary>
+    public IEnumerable<PaperItem> ShipTickets() => Data.Papers.Where(p => p.Name.Contains("교환권") && p.Name.Contains("선박"));
+
+    private readonly Dictionary<int, ShipData?> _ticketShips = new();
+
+    /// <summary>
+    /// 교환권이 바꿔 주는 배 — 설명 글의 「」 안 이름(없으면 교환권 이름의 앞머리)으로 배 표에서 찾는다.
+    /// 「명품 · 개량 · 개량형 …」이 붙은 배는 배 표에 따로 없어서 그 말을 뗀 바탕 배로 준다(올려 준 성능은 못 살린다). 못 찾으면 null.
+    /// </summary>
+    public ShipData? TicketShip(PaperItem ticket)
+    {
+        if (_ticketShips.TryGetValue(ticket.Id, out var cached)) return cached;
+        string text = ticket.Description.Replace("\n", "");
+        var names = new List<string>();
+        foreach (var (open, close) in new[] { ('「', '」'), ('“', '”') })
+            if (text.IndexOf(open) is >= 0 and var from && text.IndexOf(close, from + 1) is > 0 and var to) names.Add(text[(from + 1)..to]);
+        if (ticket.Name.IndexOf("선박 교환권", StringComparison.Ordinal) is > 0 and var cut) names.Add(ticket.Name[..cut].Trim());
+        static string Tight(string name) => name.Replace(" ", "");
+        ShipData? Named(string name) => Data.Ships.Find(s => Tight(s.Name) == Tight(name));
+        ShipData? found = null;
+        foreach (string name in names) if ((found ??= Named(name)) != null) break;
+        if (found == null)
+            foreach (string name in names)
+            {
+                string bare = Tight(name);
+                for (bool cutAny = true; cutAny && found == null;)
+                {
+                    cutAny = false;
+                    foreach (string lead in (string[])["명품", "개량형", "개량", "특급", "월광", "특별판", "기념판"])
+                        if (bare.StartsWith(lead)) { bare = bare[lead.Length..]; cutAny = true; break; }
+                    if (cutAny) found = Named(bare);
+                }
+                if (found != null) break;
+            }
+        return _ticketShips[ticket.Id] = found;
+    }
+
     public string ItemNote(int item)
     {
+        if (Data.Papers.Find(p => p.Id == item) is { } paper)
+            return paper.Description.Replace("\n", " ") + (paper.Name.Contains("교환권") && paper.Name.Contains("선박") ? (TicketShip(paper) is { } gives ? $"  → {gives.Name}" : "  (바꿀 배를 못 찾았다)") : "");
         if (ItemOf(item) is { } known)
             return known.Effect switch
             {
@@ -115,6 +155,9 @@ internal sealed partial class Voyage
         string line = job.Group switch { 0 => "모험", 1 => "교역", 2 => "전투", _ => "" };
         return $"쓰면 {job.Name}(으)로 전직한다." + (line == "" ? "" : $" ({line} 계열)");
     }
+
+    /// <summary>특수조선 해체 기법서 — 아이템 표(14)의 원본 번호. 성능초기화에 한 권 든다(「특수 조선에서 강화한 성능을 초기화하는 방법이 적혀 있는 책」).</summary>
+    public const int DismantleBook = 1_510_017;
 
     /// <summary>국가공헌 훈장증서 · 전용함 건조 허가증(items.json), 허가증 한 장에 드는 훈장증서.</summary>
     public const int MedalPaper = 9_300_001, ShipPermit = 9_300_002, PermitCost = 200;
@@ -160,6 +203,15 @@ internal sealed partial class Voyage
                     Say($"{known.Name} — 지금은 쓸 데가 없다.");
                     return;
             }
+        }
+        else if (Data.Papers.Find(p => p.Id == item) is { } ticket)
+        {
+            // 선박 교환권 — 항구에서 쓰면 그 배가 부두에 들어온다
+            if (!ticket.Name.Contains("교환권") || TicketShip(ticket) is not { } given) { Say($"{ticket.Name} — 지금은 쓸 데가 없다."); return; }
+            if (Mode != Mode.Port) { Say("선박 교환권은 항구에서 쓴다."); return; }
+            if (Dock.Count >= DockSlots) { Say("부두가 가득 찼다."); return; }
+            Dock.Add(new DockedShip { Ship = given, Durability = ShipStats.Of(given, Data.Settings.Ships).Durability });
+            Say($"{ticket.Name}을(를) {given.Name}(으)로 바꿔 부두에 매어 두었다. 선박교환에서 갈아탄다.");
         }
         else if (item >= JobPaper && Data.Jobs.Find(j => j.Id == item - JobPaper) is { } job)
         {

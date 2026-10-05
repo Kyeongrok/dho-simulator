@@ -346,6 +346,14 @@ public sealed class JobFact
     public long Cost { get; set; }
 }
 
+/// <summary>아이템 표(14)의 증서 · 허가증 · 교환권 한 줄 — 번호 · 이름 · 설명.</summary>
+public sealed class PaperItem
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+}
+
 /// <summary>배 하나의 상세(ssjoy 의 배 쪽) — 강화 횟수, 강화 상한, 부품 칸 수, 붙일 수 있는 선박 스킬과 그 재료, 특수 건조의 선체.</summary>
 public sealed class ShipDetailFact
 {
@@ -357,6 +365,16 @@ public sealed class ShipDetailFact
     public List<int> Slots { get; set; } = [];
     public List<ShipDetailSkill> Skills { get; set; } = [];
     public string Hull { get; set; } = "";
+    /// <summary>특수 건조 — 어느 도시에서 어느 선체로 짓는가(조선 랭크 · 기본 재질).</summary>
+    public List<ShipSpecialBuild> Special { get; set; } = [];
+}
+
+public sealed class ShipSpecialBuild
+{
+    public string Hull { get; set; } = "";
+    public int Rank { get; set; }
+    public string Material { get; set; } = "";
+    public string City { get; set; } = "";
 }
 
 public sealed class ShipDetailSkill
@@ -598,6 +616,9 @@ public sealed class GameData
     /// <summary>배마다의 상세 — <c>data\extracted\shipdetail-facts.json</c>(ssjoy 에서 모은 것, 일부 배만 있다. 저장소에는 안 둔다).</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<ShipDetailFact> ShipDetails { get; set; } = [];
 
+    /// <summary>클라이언트 아이템 표에서 뽑은 증서 · 허가증 · 교환권 — <c>data\extracted\paper-items.json</c>(저장소에는 안 둔다).</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<PaperItem> Papers { get; set; } = [];
+
     /// <summary>이름으로 찾는 배 상세 — 모으지 못한 배는 null.</summary>
     public ShipDetailFact? ShipDetail(string name) => ShipDetails.Find(d => d.Name == name);
     private List<OptionSkill>? _optionSkills;
@@ -703,6 +724,7 @@ public sealed class GameData
         if (Read<List<ShipMaterial>>(Path.Combine(extracted, "material-facts.json")) is { Count: > 0 } materials) (data.ShipMaterials, data._materialsFromFacts) = (materials, true);
         data.ShipSkillFacts = Read<List<ShipSkillFact>>(Path.Combine(extracted, "shipskill-facts.json")) ?? [];
         data.ShipDetails = Read<List<ShipDetailFact>>(Path.Combine(extracted, "shipdetail-facts.json")) ?? [];
+        data.Papers = Read<List<PaperItem>>(Path.Combine(extracted, "paper-items.json")) ?? [];
         data.JobFacts = Read<List<JobFact>>(Path.Combine(extracted, "job-facts.json")) ?? [];
         data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];

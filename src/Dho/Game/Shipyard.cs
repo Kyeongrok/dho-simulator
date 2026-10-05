@@ -102,6 +102,51 @@ internal sealed partial class Voyage
         Say($"{ship.Name}의 건조를 맡겼다. 재질 {MaterialOf(material)?.Name}, 건조일수 {BuildDays(ship)}일.");
     }
 
+    /// <summary>특수조선 한 건 — 이 도시에서 그 선체 아이템으로 짓는 배.</summary>
+    public sealed record HullPlan(ShipData Ship, int HullItem, string Hull, int Rank, int Material, string MaterialName);
+
+    /// <summary>
+    /// 이 도시의 조선소에서 특수조선으로 지을 수 있는 배들 — 배 상세(ssjoy)의 「특수 건조 도시」에서 온다(모은 배만 있다).
+    /// 선체는 아이템 표(14)의 조선 부품(2200000 ~)이다.
+    /// </summary>
+    public List<HullPlan> HullPlans()
+    {
+        var plans = new List<HullPlan>();
+        foreach (var detail in Data.ShipDetails)
+            foreach (var special in detail.Special.Where(s => s.City == City.Name))
+            {
+                if (Data.Ships.Find(s => s.Name == detail.Name) is not { } ship) continue;
+                int hull = Data.Papers.Find(p => p.Name == special.Hull && p.Id is >= ShipItems and < ShipItems + 100_000)?.Id ?? 0;
+                var material = Data.ShipMaterials.Find(m => m.Name == special.Material) ?? Data.ShipMaterials.Find(m => m.Name == "너도밤나무") ?? Data.ShipMaterials[0];
+                plans.Add(new HullPlan(ship, hull, special.Hull, special.Rank, material.Id, material.Name));
+            }
+        return plans;
+    }
+
+    /// <summary>아이템 표의 조선 부품(조빌 아이템) 무리 — 선체 · 돛 · 망 · 선실 · 선박재료 ….</summary>
+    public const int ShipItems = 2_200_000;
+
+    public string? HullBlocker(HullPlan plan)
+    {
+        if (Ordered != null) return "이미 맡겨 둔 배가 있다";
+        if (ShipbuildingRank < plan.Rank) return $"조선 랭크 {plan.Rank} 이 있어야 한다";
+        if (plan.HullItem == 0 || Items.GetValueOrDefault(plan.HullItem) <= 0) return $"「{plan.Hull}」이(가) 있어야 한다";
+        if (Money < BuildCost(plan.Ship, plan.Material)) return "돈이 모자라다";
+        return null;
+    }
+
+    /// <summary>특수조선을 맡긴다 — 선체 하나가 든다. 날이 차면 「선박 받기」로 받는다.</summary>
+    public void OrderHull(HullPlan plan)
+    {
+        if (Mode != Mode.Port || HullBlocker(plan) != null) return;
+        Money -= BuildCost(plan.Ship, plan.Material);
+        if (--Items[plan.HullItem] <= 0) Items.Remove(plan.HullItem);
+        Ordered = new ShipOrder { Ship = plan.Ship, Material = plan.Material, Load = 0, DaysLeft = BuildDays(plan.Ship) };
+        TrainEffect("Shipbuilding", 40 + plan.Ship.SizeClass * 30);
+        Studied("Build");
+        Say($"{plan.Hull}(으)로 {plan.Ship.Name}의 특수조선을 맡겼다. 재질 {plan.MaterialName}, 건조일수 {BuildDays(plan.Ship)}일.");
+    }
+
     public string? ReceiveBlocker => Ordered == null ? "맡겨 둔 배가 없다" : Ordered.DaysLeft > 0 ? $"{Math.Ceiling(Ordered.DaysLeft):0}일 더 걸린다" : Dock.Count >= DockSlots ? "부두에 둘 자리가 없다" : null;
 
     /// <summary>다 지어진 배를 받아 부두에 둔다.</summary>

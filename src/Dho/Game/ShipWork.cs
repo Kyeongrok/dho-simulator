@@ -186,7 +186,7 @@ internal sealed partial class Voyage
     }
 
     private double OptionAmount(ShipWork work, string effect) =>
-        Data.OptionSkills.Where(s => s.Effect == effect && (work.Skills.Contains(s.SkillId) || work.Dedicated == s.SkillId)).Sum(s => s.Amount);
+        Data.OptionSkills.Where(s => s.Effect == effect && (work.Skills.Contains(s.SkillId) || work.Dedicated == s.SkillId) && OptionValid(s)).Sum(s => s.Amount);
 
     /// <summary>타고 있는 배의 옵션 스킬 효과의 합.</summary>
     public double Option(string effect) => OptionAmount(Work, effect);
@@ -197,6 +197,26 @@ internal sealed partial class Voyage
     /// </summary>
     public List<OptionSkill> DedicatedSkills() =>
         Data.OptionSkills.Where(s => Data.ShipSkillFacts.Find(f => f.Name == s.Name) is { } fact && fact.Needs.Contains("관리기술")).ToList();
+
+    /// <summary>
+    /// 선박 스킬의 유효조건 — 「관리기술 1, 병기기술 3」 같은 필요 스킬과 랭크(ssjoy 의 선박 스킬 표). 자료가 없는 스킬은 조건이 없다.
+    /// 조건에 못 미쳐도 배에 붙일 수는 있지만 효과가 듣지 않는다.
+    /// </summary>
+    public List<(string Skill, int Rank)> OptionNeeds(OptionSkill skill)
+    {
+        var needs = new List<(string, int)>();
+        foreach (string part in (Data.ShipSkillFacts.Find(f => f.Name == skill.Name)?.Needs ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            if (part.LastIndexOf(' ') is > 0 and var cut && int.TryParse(part[(cut + 1)..], out int rank)) needs.Add((part[..cut], rank));
+        return needs;
+    }
+
+    /// <summary>내 스킬이 그 선박 스킬의 유효조건을 채우는가.</summary>
+    public bool OptionValid(OptionSkill skill) =>
+        OptionNeeds(skill).All(need => Data.Skills.Find(s => s.Name == need.Skill) is not { } mine || Rank(mine.Id) >= need.Rank);
+
+    /// <summary>유효조건을 한 줄로 — 「관리기술 1 · 병기기술 3 (미달)」. 조건이 없으면 빈 글.</summary>
+    public string OptionNeedLine(OptionSkill skill) =>
+        OptionNeeds(skill) is { Count: > 0 } needs ? string.Join(" · ", needs.Select(n => $"{n.Skill} {n.Rank}")) + (OptionValid(skill) ? "" : " (미달)") : "";
 
     /// <summary>전용함 스킬의 유효조건 — 요구하는 관리기술 랭크(없으면 0).</summary>
     public int DedicatedNeed(OptionSkill skill)
@@ -229,7 +249,7 @@ internal sealed partial class Voyage
         string was = Work.Dedicated > 0 ? OptionName(Work.Dedicated) : "";
         Work.Dedicated = skill.SkillId;
         Say(was == "" ? $"{Ship.Name}에 전용함 스킬 「{skill.Name}」을(를) 붙였다. (허가증 {need}장)" : $"{Ship.Name}의 전용함 스킬을 「{was}」에서 「{skill.Name}」(으)로 바꿨다. (허가증 {need}장)");
-        if (ManagementRank < DedicatedNeed(skill)) Say($"전용함 스킬의 유효조건을 만족하지 않습니다. (관리기술 {DedicatedNeed(skill)} 필요 · 지금 {ManagementRank})");
+        if (!OptionValid(skill)) Say($"전용함 스킬의 유효조건을 만족하지 않습니다. ({OptionNeedLine(skill)})");
     }
 
     public string OptionName(int skillId) => Data.OptionSkills.Find(s => s.SkillId == skillId)?.Name ?? SkillName(skillId);
@@ -248,20 +268,47 @@ internal sealed partial class Voyage
     };
 
     /// <summary>이 부품들을 넣으면 붙을 옵션 스킬 — 조합이 맞고, 아직 없고, 칸이 남았을 때.</summary>
+    /// <summary>이 배에 붙일 수 있는 옵션 스킬인가 — 배 상세(ssjoy)를 모은 배는 거기 적힌 스킬만, 못 모은 배는 무엇이든.</summary>
+    public bool ShipAllows(OptionSkill skill) => Data.ShipDetail(Ship.Name) is not { Skills.Count: > 0 } detail || detail.Skills.Exists(s => s.Name == skill.Name);
+
     public OptionSkill? OptionFrom(IReadOnlyCollection<int> parts)
     {
         if (Work.Skills.Count >= SkillSlotsOf(Work)) return null;
-        return Data.OptionSkills.Find(s => parts.Contains(s.PartA) && parts.Contains(s.PartB) && !Work.Skills.Contains(s.SkillId));
+        return Data.OptionSkills.Find(s => parts.Contains(s.PartA) && parts.Contains(s.PartB) && !Work.Skills.Contains(s.SkillId) && ShipAllows(s));
     }
 
-    public int WorkCost(IEnumerable<int> parts) => parts.Sum(id => Data.ShipWorks.Parts.Find(p => p.Id == id)?.Price ?? 0);
+    /// <summary>강화 부품과 이름이 같은 조빌 아이템(아이템 표의 조선 부품)의 번호 — 없으면 0.</summary>
+    public int PartItem(int part) =>
+        Data.ShipWorks.Parts.Find(p => p.Id == part) is { } known ? Data.Papers.Find(p => p.Name == known.Name && p.Id is >= ShipItems and < ShipItems + 100_000)?.Id ?? 0 : 0;
 
-    public string? WorkBlocker(IReadOnlyCollection<int> parts)
+    /// <summary>그 부품을 조빌 아이템으로 가지고 있는가 — 가진 것은 값을 안 치르고 그 아이템이 든다.</summary>
+    public bool OwnsPart(int part) => PartItem(part) is > 0 and var item && Items.GetValueOrDefault(item) > 0;
+
+    public int WorkCost(IEnumerable<int> parts) => parts.Where(id => !OwnsPart(id)).Sum(id => Data.ShipWorks.Parts.Find(p => p.Id == id)?.Price ?? 0);
+
+    /// <summary>
+    /// 조빌 아이템 「○○ 선박재료」가 가리키는 재질 — 이름에서 「선박재료」를 떼고 재질 표에서 찾는다
+    /// (삼나무 → 삼나무판, 느릅나무 → 엘름, 동판 → 동, 철판 → 철, 로즈우드 → 자단). 못 찾으면 null.
+    /// </summary>
+    public ShipMaterial? WoodOf(int item)
+    {
+        if (Data.Papers.Find(p => p.Id == item) is not { } paper || !paper.Name.EndsWith("선박재료")) return null;
+        string name = paper.Name[..^4].Trim();
+        name = name switch { "삼나무" => "삼나무판", "느릅나무" => "엘름(느릅나무)", "동판" => "동", "철판" => "철", "로즈우드" => "자단", _ => name };
+        return Data.ShipMaterials.Find(m => m.Name == name);
+    }
+
+    /// <summary>가진 선박재료 아이템들 — 강화에 재료로 넣으면 배의 재질이 그것으로 바뀐다.</summary>
+    public List<(int Item, ShipMaterial Material)> WoodsOwned() =>
+        Items.Keys.Where(id => id is >= ShipItems and < ShipItems + 100_000).Select(id => (Item: id, Material: WoodOf(id))).Where(w => w.Material != null).Select(w => (w.Item, w.Material!)).ToList();
+
+    public string? WorkBlocker(IReadOnlyCollection<int> parts, int wood = 0)
     {
         if (ShipbuildingRank <= 0) return "조선 스킬이 없다";
         if (Work.Times >= Data.ShipWorks.MaxTimes) return "더는 강화할 수 없다";
-        if (parts.Count < 2) return "부품을 둘 이상 고른다";
-        if (parts.Count > 4) return "부품은 넷까지";
+        if (parts.Count + (wood > 0 ? 1 : 0) < 2) return "재료를 둘 이상 고른다";
+        if (parts.Count + (wood > 0 ? 1 : 0) > 4) return "재료는 넷까지";
+        if (wood > 0 && (WoodOf(wood) == null || Items.GetValueOrDefault(wood) <= 0)) return "그 선박재료가 없다";
         if (Money < WorkCost(parts)) return "돈이 모자라다";
         return null;
     }
@@ -270,21 +317,34 @@ internal sealed partial class Voyage
     /// <summary>성능초기화 — 타고 있는 배의 강화치를 모두 0 으로(재질은 남는다). 되돌릴 수 없다.</summary>
     public void ResetWork()
     {
-        if (Mode != Mode.Port || Work.Times == 0) return;
-        Work = new ShipWork { Dedicated = Work.Dedicated };          // 전용함 스킬은 초기화에서 빠진다(원본의 안내 글 6843)
+        if (Mode != Mode.Port || Work.Times == 0 || Items.GetValueOrDefault(DismantleBook) <= 0) return;
+        if (--Items[DismantleBook] <= 0) Items.Remove(DismantleBook);
+        // 지워지는 것은 강화치와 옵션 스킬뿐 — 재질 · 그레이드와 그 보너스 · 전용함 스킬 · 조타 숙련도는 남는다(원본의 안내 글 6843)
+        var kept = Work;
+        Work = new ShipWork { Dedicated = kept.Dedicated, Grade = kept.Grade, GradeExp = kept.GradeExp, Mastery = kept.Mastery };
+        Work.Bonuses.AddRange(kept.Bonuses);
         Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
         Durability = Math.Min(Durability, Stats.Durability);
         Crew = Math.Min(Crew, Stats.MaxCrew);
-        Say($"{Ship.Name}의 성능을 초기화했다. 강화치가 모두 0 이 되었다.");
+        Say($"특수조선 해체 기법서를 써서 {Ship.Name}의 성능을 초기화했다. 강화치와 옵션 스킬이 지워졌다(재질 · 그레이드는 그대로).");
     }
 
-    public void Strengthen(IReadOnlyCollection<int> parts)
+    public void Strengthen(IReadOnlyCollection<int> parts, int wood = 0)
     {
-        if (Mode != Mode.Port || WorkBlocker(parts) != null) return;
+        if (Mode != Mode.Port || WorkBlocker(parts, wood) != null) return;
+        var gained = new List<string>();
+        // 선박재료를 넣었으면 배의 재질이 그것으로 바뀐다(국재질 넣기)
+        if (wood > 0 && WoodOf(wood) is { } timber)
+        {
+            if (--Items[wood] <= 0) Items.Remove(wood);
+            ShipMaterialId = timber.Id;
+            gained.Add($"재질이 {timber.Name}(으)로 바뀌었다.");
+        }
         var plain = StatsOf(Ship, ShipMaterialId, ShipLoad);
         Money -= WorkCost(parts);
+        foreach (int owned in parts.Where(OwnsPart).ToList())
+            if (--Items[PartItem(owned)] <= 0) Items.Remove(PartItem(owned));
         Studied("Build");
-        var gained = new List<string>();
         foreach (int id in parts)
         {
             if (Data.ShipWorks.Parts.Find(p => p.Id == id) is not { } part) continue;
@@ -302,7 +362,7 @@ internal sealed partial class Voyage
         if (OptionFrom(parts) is { } option)
         {
             Work.Skills.Add(option.SkillId);
-            gained.Add($"옵션 스킬 「{option.Name}」이(가) 붙었다!");
+            gained.Add($"옵션 스킬 「{option.Name}」이(가) 붙었다!" + (OptionValid(option) ? "" : $" 유효조건을 만족하지 않아 효과는 듣지 않는다({OptionNeedLine(option)})."));
         }
         Work.Times++;
         double worn = Stats.Durability - Durability;

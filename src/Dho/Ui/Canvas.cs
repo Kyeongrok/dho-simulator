@@ -12,6 +12,7 @@ internal struct Pointer
     public float X, Y;
     public bool Clicked;      // 이번 프레임에 왼쪽 단추를 뗐다
     public bool Consumed;     // 어느 창이 이미 받아 갔다
+    public bool Down;         // 왼쪽 단추를 누르고 있다(스크롤바 끌기)
 }
 
 /// <summary>

@@ -658,7 +658,7 @@ internal sealed class GameWindow : IDisposable
 
         // 화면 글과 창
         _canvas.Scale = UiScale;
-        _canvas.Pointer = new Pointer { X = _mouseX / UiScale, Y = _mouseY / UiScale - Hud.TitleHeight, Clicked = _clicked };
+        _canvas.Pointer = new Pointer { X = _mouseX / UiScale, Y = _mouseY / UiScale - Hud.TitleHeight, Clicked = _clicked, Down = _leftDown };
         _canvas.Top = Hud.TitleHeight;
         _canvas.Begin();
         (_hud.TownGrid, _hud.TownSpot, _hud.TownFacing) = (Walking ? _grid : null, _walk, _walkYaw);
@@ -1195,6 +1195,9 @@ internal sealed class GameWindow : IDisposable
                 else if (_voyage.TownMap?.Marks.Find(m => m.Place == (int)Number()) is { } there) WalkTo(there);
                 break;
             case "swap": _voyage.Dialog = Dialog.ShipSwap; break;
+            case "specialbuild": _voyage.Dialog = Dialog.SpecialBuild; break;
+            case "hullbuild": _voyage.Dialog = Dialog.HullBuild; break;
+            case "yardmenu": _voyage.Dialog = Dialog.ShipyardMenu; break;
             case "board": if (_voyage.Dock.ElementAtOrDefault((int)Number()) is { } docked) _voyage.SwapShip(docked); break;
             case "skilltab": _hud.SkillTab = (int)Number(); break;
             case "shipyard": _voyage.Dialog = Dialog.Shipyard; break;
