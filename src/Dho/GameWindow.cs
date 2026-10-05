@@ -38,6 +38,11 @@ internal sealed class GameWindow : IDisposable
     private Mesh? _figure;
     private CharacterModel? _character;
     private string _characterLooks = "";
+    private float _stride;
+    private Vector2 _strideFrom;
+    private double _strideUntil;
+    private float _strideAmount;
+    private bool _sprinting, _routeRuns;
     private float _sight = 1, _viewPitch;
     private float _portDistance, _portPitch;
     private BerthData? _berth;
@@ -86,8 +91,9 @@ internal sealed class GameWindow : IDisposable
         _scene = new SceneRenderer(_gfx);
         _terrain = new Terrain(_gfx);
         var data = GameData.Load();
-        if (_newGame) data.DeleteSave();
-        _voyage = new Voyage(data, developer: _scripted && !_newGame);
+        // 대본으로 돌릴 때는 이어 하기를 지우지도 적지도 않는다(--new 와 같이 줘도 만들기 화면만 본다)
+        if (_newGame && !_scripted) data.DeleteSave();
+        _voyage = new Voyage(data, developer: _scripted && !_newGame, scratch: _scripted);
         _shipModel = _voyage.Ship.Model;
         _ship = new ShipModel(_gfx, _shipModel);
         _canvas = new Canvas(_gfx);
@@ -208,6 +214,15 @@ internal sealed class GameWindow : IDisposable
             rect.Width, rect.Height,
             IntPtr.Zero, IntPtr.Zero, Win32.GetModuleHandleW(null), IntPtr.Zero);
         if (_hwnd == IntPtr.Zero) throw new InvalidOperationException("창을 만들지 못했습니다.");
+
+        // 창 · 작업 표시줄 아이콘 — 게임 폴더의 원본 아이콘을 그 자리에서 읽어 쓴다(없으면 기본 아이콘)
+        string icon = GvoFiles.PathOf("GVOnline.ico");
+        if (File.Exists(icon))
+            foreach (var (which, size) in new[] { (1, 48), (0, 16) })
+            {
+                var handle = Win32.LoadImageW(IntPtr.Zero, icon, Win32.IMAGE_ICON, size, size, Win32.LR_LOADFROMFILE);
+                if (handle != IntPtr.Zero) Win32.SendMessageW(_hwnd, Win32.WM_SETICON, which, handle);
+            }
     }
 
     private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
@@ -242,6 +257,12 @@ internal sealed class GameWindow : IDisposable
                 if (py < Hud.TitleHeight * scale && px >= Hud.TitleMenuWidth * scale && px < frame.Width - Hud.TitleButtonsWidth * scale) return Win32.HTCAPTION;
                 return Win32.HTCLIENT;
             }
+            case 0x0020 when (Win32.LowWord(lParam) & 0xFFFF) == Win32.HTCLIENT:        // WM_SETCURSOR
+                // 원본 커서: 단추 위에서는 손, 시내의 땅 위에서는 걷기, 나머지는 화살표
+                _cursors ??= new GameCursors(UiScale);
+                int which = _overUi ? GameCursors.Hand : Walking && _voyage.Dialog == Dialog.None ? GameCursors.Walk : GameCursors.Arrow;
+                if (_cursors.Show(which)) return 1;
+                break;
             case Win32.WM_ERASEBKGND:
                 return 1;
             case Win32.WM_SIZE:
@@ -287,6 +308,7 @@ internal sealed class GameWindow : IDisposable
                 return IntPtr.Zero;
             case Win32.WM_MOUSEWHEEL:
                 int wheel = (short)((long)wParam >> 16);
+                if (_hud != null && _hud.Wheel(wheel / 120)) return IntPtr.Zero;      // 창이 떠 있으면 목록을 굴린다
                 _distance = Math.Clamp(_distance * MathF.Pow(0.88f, wheel / 120f), Walking ? 500f : 9000f, 160000f);
                 return IntPtr.Zero;
         }
@@ -295,49 +317,61 @@ internal sealed class GameWindow : IDisposable
 
     private void KeyPressed(int key)
     {
-        if (key == Win32.VK_F11)
+        // 단축키 등록 창이 글쇠를 기다리는 중이면 그 글쇠를 그 일에 맨다(Esc 는 그만두기)
+        if (_hud.KeyWaiting is { } waiting)
+        {
+            _hud.KeyWaiting = null;
+            if (key != Win32.VK_ESCAPE && key != Win32.VK_CONTROL)
+            {
+                var keys = _voyage.Data.Settings.Keys;
+                foreach (string other in Hud.KeyActions.Select(a => a.Action).Where(a => a != waiting && Hud.KeyOf(keys, a) == key).ToList())
+                    keys[other] = 0;                       // 같은 글쇠를 쓰던 일은 비운다
+                keys[waiting] = key;
+                _voyage.Data.SaveSettings();
+            }
+            return;
+        }
+        string action = Hud.KeyActions.Select(a => a.Action).FirstOrDefault(a => Hud.KeyOf(_voyage.Data.Settings.Keys, a) == key) ?? "";
+        if (action == "Fullscreen")
         {
             var settings = _voyage.Data.Settings;
             SetDisplay(settings.WindowWidth, settings.WindowHeight, !settings.Fullscreen);
             return;
         }
         if (!_voyage.Created) return;
+        void Toggle(Dialog dialog)
+        {
+            if (_voyage.Dialog == dialog) _voyage.Dialog = Dialog.None;
+            else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = dialog;
+        }
+        switch (action)
+        {
+            case "Map": _hud.TownMapOpen = !_hud.TownMapOpen; return;
+            case "Items": Toggle(Dialog.Items); return;
+            case "TownMenu" when _voyage.Mode == Mode.Port && _voyage.TownView && _voyage.Dialog == Dialog.None:
+                _hud.TownMenuOpen = !_hud.TownMenuOpen;
+                return;
+            case "UseSkills": Toggle(Dialog.UseSkills); return;
+            case "Outfit": Toggle(Dialog.Outfit); return;
+            case "Skills": Toggle(Dialog.Skills); return;
+            case "Quick": _hud.QuickOpen = !_hud.QuickOpen; return;
+        }
         switch (key)
         {
             case Win32.VK_ESCAPE:
                 if (_voyage.Dialog != Dialog.None) _voyage.Dialog = Dialog.None;
                 break;
             case '5' when _keys.Contains(Win32.VK_CONTROL):
-                _hud.TownMapOpen = !_hud.TownMapOpen;      // 원본의 지도 단축키
-                break;
-            case 'I':
-                if (_voyage.Dialog == Dialog.Items) _voyage.Dialog = Dialog.None;
-                else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.Items;
-                break;
-            case 'T' when _voyage.Mode == Mode.Port && _voyage.TownView && _voyage.Dialog == Dialog.None:
-                _hud.TownMenuOpen = !_hud.TownMenuOpen;
-                break;
-            case Win32.VK_F2:
-                // 원본처럼 F2 로 스킬 사용 창을 여닫는다
-                if (_voyage.Dialog == Dialog.UseSkills) _voyage.Dialog = Dialog.None;
-                else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.UseSkills;
+                _hud.TownMapOpen = !_hud.TownMapOpen;      // 원본의 지도 단축키도 그대로 둔다
                 break;
             case >= '1' and <= '8' when !_keys.Contains(Win32.VK_CONTROL) && _voyage.Dialog is Dialog.None or Dialog.UseSkills:
                 _voyage.UsePageSlot(key - '1');
-                break;
-            case 'C':
-                if (_voyage.Dialog == Dialog.Outfit) _voyage.Dialog = Dialog.None;
-                else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.Outfit;
-                break;
-            case 'X':
-                // 원본처럼 X 로 스킬 창을 여닫는다
-                if (_voyage.Dialog == Dialog.Skills) _voyage.Dialog = Dialog.None;
-                else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = Dialog.Skills;
                 break;
             case 'W' or Win32.VK_UP: _voyage.ChangeSail(+1); break;
             case 'S' or Win32.VK_DOWN: _voyage.ChangeSail(-1); break;
             case 'F' or Win32.VK_RETURN:
                 if (_voyage.Dialog != Dialog.None) break;
+                if (Walking) { if (KeeperNear() is { } keeper) _voyage.Visit(keeper.Mark); break; }
                 if (_voyage.SiteInReach()) _voyage.Land();
                 else _voyage.EnterPort();
                 break;
@@ -372,12 +406,15 @@ internal sealed class GameWindow : IDisposable
         if (!Walking) return;
         _route = _grid!.Path(_walk, mark.Scene);
         _bound = _route.Count > 0 ? mark : null;
-        _voyage.Say(_route.Count > 0 ? $"{_voyage.PlaceName(mark.Place)}(으)로 간다." : $"{_voyage.PlaceName(mark.Place)}까지 가는 길을 못 찾았다.");
+        _routeRuns = true;                         // 지도에서 고른 곳으로는 달려간다
+        _voyage.Say(_route.Count > 0 ? (mark.Place == Voyage.InsideMaster ? $"{_voyage.PlaceName(mark.Place)}에게 간다." : $"{_voyage.PlaceName(mark.Place)}(으)로 간다.") : $"{_voyage.PlaceName(mark.Place)}까지 가는 길을 못 찾았다.");
     }
 
     private void Walk(float dt)
     {
-        const float speed = 900f;
+        // 사람 키가 170 이니 장면 단위가 1cm 쯤이다. 걷기는 초속 3m 남짓(시내가 넓어 조금 빠르게), Shift 를 누르면 달린다
+        _sprinting = _keys.Contains(Win32.VK_SHIFT) || (_route.Count > 0 && _routeRuns);
+        float speed = _sprinting ? 620f : 310f;
         bool Down(int a, int b) => _keys.Contains(a) || _keys.Contains(b);
         bool keyed = Down('W', Win32.VK_UP) || Down('S', Win32.VK_DOWN) || Down('A', Win32.VK_LEFT) || Down('D', Win32.VK_RIGHT);
         if (keyed) (_route, _bound) = ([], null);              // 손으로 걸으면 자동 이동을 그만둔다
@@ -438,7 +475,15 @@ internal sealed class GameWindow : IDisposable
         float foot = Walking ? _grid!.HeightAt(_walk.X, _walk.Y) : 0;
         var target = Walking ? new Vector3(0, foot + 150, 0) : new Vector3(0, 3500, 0);
         Vector3 Back(float pitch) => new(MathF.Cos(pitch) * MathF.Sin(_yaw), MathF.Sin(pitch), MathF.Cos(pitch) * MathF.Cos(_yaw));
-        if (Walking)
+        if (Walking && _voyage.Interior != 0 && _town!.HasWalls)
+        {
+            // 방 안: 벽이나 천장에 닿는 데 바로 앞까지만 물러난다
+            var head = new Vector3(_walk.X, 0, _walk.Y) + target;
+            float clear = MathF.Max(0, _town.Reach(head, head + Back(_pitch) * _distance) - 60f / _distance);
+            _viewPitch = _pitch;
+            _sight = clear < _sight ? clear : _sight + (clear - _sight) * 0.08f;
+        }
+        else if (Walking)
         {
             // 집에 가리면 먼저 카메라를 들어 올려 지붕 너머로 보고, 그래도 가리면 가리는 데까지 다가선다
             var head = new Vector3(_walk.X, 0, _walk.Y) + target;
@@ -482,7 +527,8 @@ internal sealed class GameWindow : IDisposable
         // 날씨가 궂을수록 하늘이 가라앉고 멀리 안 보인다
         float overcast = _voyage.Mode != Mode.Sea ? 0 : _voyage.Weather switch { Weather.Storm => 1f, Weather.Rain => 0.7f, Weather.Cloudy => 0.35f, _ => 0f };
         _overcast += (overcast - _overcast) * 0.02f;
-        var sky = Sky.At(_voyage.SkyPhase).Overcast(_overcast);
+        // 방 안은 바깥이 밤이어도 등불 밑이다 — 늘 낮의 밝기로 그린다
+        var sky = town && _voyage.Interior != 0 ? Sky.At(0.5) : Sky.At(_voyage.SkyPhase).Overcast(_overcast);
         var heading = new Vector2(MathF.Sin((float)_voyage.Heading), -MathF.Cos((float)_voyage.Heading));
         var frame = new FrameConstants
         {
@@ -505,8 +551,12 @@ internal sealed class GameWindow : IDisposable
         };
 
         _gfx.Begin(frame);
-        _scene.DrawSky();
-        _scene.DrawOcean();
+        // 건물 안에서는 하늘과 바다를 그리지 않는다(벽은 안쪽 면뿐이라 밖에서 보면 비쳐 보인다)
+        if (!(town && _voyage.Interior != 0))
+        {
+            _scene.DrawSky();
+            _scene.DrawOcean();
+        }
         _scene.BeginMeshes();
         if (_voyage.Mode == Mode.Sea) _terrain.Draw(_scene, _voyage.ShipX, _voyage.ShipY);
         else if (town) DrawTown(foot, eyeDistance > 170f);
@@ -532,9 +582,24 @@ internal sealed class GameWindow : IDisposable
         _canvas.Top = Hud.TitleHeight;
         _canvas.Begin();
         (_hud.TownGrid, _hud.TownSpot, _hud.TownFacing) = (Walking ? _grid : null, _walk, _walkYaw);
+        // 사람들의 이름표 — 머리 위 자리를 화면 자리로 옮겨 넘긴다
+        _hud.Labels.Clear();
+        _hud.TalkTo = null;
+        if (Walking)
+        {
+            foreach (var keeper in _keepers)
+            {
+                var head = new Vector3(keeper.Spot.X - _walk.X, _grid!.HeightAt(keeper.Spot.X, keeper.Spot.Y) + 195, keeper.Spot.Y - _walk.Y);
+                var clip = Vector4.Transform(new Vector4(head, 1), _viewProjection);
+                if (clip.W <= 1 || clip.W > 6000) continue;
+                _hud.Labels.Add(((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight, keeper.Name));
+            }
+            _hud.TalkTo = KeeperNear()?.Name;
+        }
         _hud.Draw();
         _canvas.End();
 
+        _overUi = _canvas.Pointer.Consumed;
         if (_clicked && !_canvas.Pointer.Consumed) SteerToPointer();
 
         if (_shotPath != null)
@@ -563,14 +628,86 @@ internal sealed class GameWindow : IDisposable
     /// <summary>시내 장면(<c>2000 + 도시 id</c>)과 그 걷는 면을 읽는다. 들어서는 자리는 사람이 모이는 거리.</summary>
     private void LoadTown()
     {
-        if (_townCity == _voyage.City.Id && _town != null) return;
+        int scene = _voyage.WalkScene;
+        if (_townCity == scene && _town != null) return;
+        bool inside = _voyage.Interior != 0 && scene == _voyage.Interior;
+        if (inside) _outside = _walk;                       // 나올 때 문 앞으로 돌아오게 적어 둔다
         _town?.Dispose();
-        _townCity = _voyage.City.Id;
-        _grid = TownGrid.Read(_voyage.City.TownScene);
-        _town = new PortScene(_gfx, _voyage.City.TownScene, _grid);
-        if (_grid == null) return;
+        _townCity = scene;
+        _grid = TownGrid.Read(scene);
+        _town = new PortScene(_gfx, scene, _grid, inside);
+        _keepers.Clear();
+        (_route, _bound) = ([], null);
+        if (_grid == null)
+        {
+            // 걷는 면을 못 읽는 방이면 들어가지 않고 창만 연다
+            if (inside) { var opens = _voyage.InteriorDialog; _voyage.LeaveInterior(); _voyage.Dialog = opens; }
+            return;
+        }
         _walk = _grid.Entry();
+        if (inside)
+        {
+            // 방 밖으로는 못 나가게 하고, 들어서는 자리가 방 밖이면 방 가운데로 옮긴다
+            var (min, max) = _town.Bounds;
+            _grid.Bound(min + new Vector3(60, 0, 60), max - new Vector3(60, 0, 60));
+            if (_walk.X < min.X + 200 || _walk.X > max.X - 200 || _walk.Y < min.Z + 200 || _walk.Y > max.Z - 200)
+                _walk = new Vector2(_town.Center.X, _town.Center.Z);
+            _walk = _grid.Nearest(_walk);
+        }
         _grid.Seal(_walk);
+        if (inside)
+        {
+            // 방 안: 들어선 자리가 출구, 거기서 가장 먼 닿는 자리 쪽에 조합 마스터
+            var far = _walk;
+            for (int k = 0; k < 48; k++)
+            {
+                float angle = k * MathF.Tau / 48;
+                for (float reach = 200; reach < 4000; reach += 100)
+                {
+                    var p = _walk + reach * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                    if (!_grid.Walkable(p.X, p.Y)) break;
+                    if (_grid.Path(_walk, p).Count > 0 && Vector2.Distance(p, _walk) > Vector2.Distance(far, _walk)) far = p;
+                }
+            }
+            // 걷는 면을 방 테두리로 막았으니, 들어선 자리에서 가장 먼 벽 앞(계산대 · 제단 쪽으로 짐작)에 세운다
+            var master = _grid.Nearest(_walk + Vector2.Normalize(far - _walk + new Vector2(0.01f, 0)) * MathF.Max(200f, Vector2.Distance(far, _walk) - 220f));
+            if (_voyage.InteriorHost != "")
+                _keepers.Add((new TownMark(Voyage.InsideMaster, 0, 0, 0, master, 0), _voyage.InteriorHost, master, MathF.Atan2(_walk.X - master.X, _walk.Y - master.Y)));
+            _keepers.Add((new TownMark(Voyage.InsideExit, 0, 0, 0, _walk, 0), "출구", _walk, 0));
+            _walk += Vector2.Normalize(far - _walk + new Vector2(0.01f, 0)) * 300f;
+            _walk = _grid.Nearest(_walk);
+            return;
+        }
+        if (_outside is { } back && _grid.Walkable(back.X, back.Y)) _walk = back;
+        _outside = null;
+        // 시설 앞에 서 있는 사람들 — 원본 시내 지도의 표식 자리에 세운다
+        foreach (var mark in _voyage.TownMap?.Marks ?? [])
+            if (Voyage.KeeperName(mark.Place) is { } name && !_keepers.Exists(k => k.Name == name))
+            {
+                var spot = _grid.Nearest(mark.Scene);
+                // 길 쪽(들어선 자리 쪽)을 보고 선다
+                _keepers.Add((mark, name, spot, MathF.Atan2(_walk.X - spot.X, _walk.Y - spot.Y)));
+            }
+    }
+
+    private readonly List<(TownMark Mark, string Name, Vector2 Spot, float Facing)> _keepers = [];
+    // 시설의 사람들 차림 — 온전히 그려지는 옷 몇 벌을 이름에 따라 나눠 입힌다
+    private static readonly Looks[] KeeperLooks =
+    [
+        new(0, 5, 6, 4, 2, 0, -1), new(0, 2, 3, 19, 7, 0, -1), new(0, 7, 9, 10, 4, 0, -1),
+        new(0, 3, 1, 28, 10, 0, -1), new(0, 9, 4, 7, 3, 0, -1), new(0, 4, 8, 31, 11, 0, -1),
+    ];
+    private readonly CharacterModel?[] _keeperModels = new CharacterModel?[KeeperLooks.Length];
+    private GameCursors? _cursors;
+    private bool _overUi;
+    private Vector2? _outside;
+
+    /// <summary>말을 걸 만큼 가까운 사람(없으면 null).</summary>
+    private (TownMark Mark, string Name, Vector2 Spot, float Facing)? KeeperNear()
+    {
+        foreach (var keeper in _keepers)
+            if (Vector2.Distance(keeper.Spot, _walk) < 260f) return keeper;
+        return null;
     }
 
     /// <summary>시내 장면을 걷는 사람이 원점에 오게 그린다(걷는 면이 없으면 장면 가운데가 원점).</summary>
@@ -578,7 +715,21 @@ internal sealed class GameWindow : IDisposable
     {
         var origin = Walking ? new Vector3(_walk.X, 0, _walk.Y) : _town!.Center;
         _town!.Draw(_scene, Matrix4x4.CreateTranslation(-origin.X, 0, -origin.Z));
-        if (!Walking || !figure) return;
+        if (!Walking) return;
+        // 시설의 사람들 — 모두 같은 차림의 한 모형을 자리마다 그린다
+        if (_keepers.Count > 0)
+        {
+            foreach (var keeper in _keepers)
+            {
+                int wears = keeper.Name.Sum(c => c) % KeeperLooks.Length;
+                var _keeperModel = _keeperModels[wears] ??= new CharacterModel(_gfx, KeeperLooks[wears]);
+                var at = new Vector3(keeper.Spot.X - _walk.X, _grid!.HeightAt(keeper.Spot.X, keeper.Spot.Y), keeper.Spot.Y - _walk.Y);
+                if (at.LengthSquared() > 9000f * 9000f || keeper.Name == "출구") continue;
+                if (_keeperModel.Loaded) _keeperModel.Draw(_scene, Matrix4x4.CreateRotationY(keeper.Facing) * Matrix4x4.CreateTranslation(at), 0, 0, (float)_voyage.Clock);
+                else _scene.Draw(_figure ??= Figure(), Matrix4x4.CreateRotationY(keeper.Facing) * Matrix4x4.CreateTranslation(at));
+            }
+        }
+        if (!figure) return;
         // 겉모습이 바뀌면 사람 모형을 다시 맞춘다. 몸 묶음을 못 읽으면 인형으로 대신한다
         string looks = string.Join(",", _voyage.Looks);
         if (looks != _characterLooks)
@@ -589,7 +740,19 @@ internal sealed class GameWindow : IDisposable
             _characterLooks = looks;
         }
         var stand = Matrix4x4.CreateRotationY(_walkYaw) * Matrix4x4.CreateTranslation(0, foot, 0);
-        if (_character is { Loaded: true }) _character.Draw(_scene, stand);
+        // 움직인 거리만큼 걸음이 나아간다(한 걸음 주기가 장면 150쯤). 멈추면 선 자세로
+        float gone = Vector2.Distance(_walk, _strideFrom);
+        // 한 바퀴(두 걸음)에 걷기는 170, 달리기는 290 을 간다
+        if (gone > 0.5f && gone < 400f) { _stride += gone / (_sprinting ? 290f : 170f) * MathF.Tau; _strideUntil = _voyage.Clock + 0.12; }
+        _strideFrom = _walk;
+        // 걸음은 서서히 커지고 서서히 잦아든다
+        float want = _voyage.Clock < _strideUntil ? (_sprinting ? 2f : 1f) : 0f;
+        _strideAmount += (want - _strideAmount) * 0.14f;
+        if (_character is { Loaded: true })
+        {
+            // 발을 디딜 때마다(한 바퀴에 두 번) 몸이 조금 오르내린다
+            _character.Draw(_scene, stand, _stride, _strideAmount, (float)_voyage.Clock);
+        }
         else _scene.Draw(_figure ??= Figure(), stand);
     }
 
@@ -618,11 +781,33 @@ internal sealed class GameWindow : IDisposable
     /// <summary>바다를 누르면 그쪽으로 뱃머리를 돌린다.</summary>
     private void SteerToPointer()
     {
-        if (_voyage.Mode != Mode.Sea || _voyage.Dialog != Dialog.None) return;
+        if (_voyage.Dialog != Dialog.None) return;
         Matrix4x4.Invert(_viewProjection, out var inverse);
         float nx = _mouseX / (float)_gfx.Width * 2 - 1, ny = 1 - _mouseY / (float)_gfx.Height * 2;
         var far4 = Vector4.Transform(new Vector4(nx, ny, 1, 1), inverse);
         var direction = new Vector3(far4.X, far4.Y, far4.Z) / far4.W - _eye;
+        if (Walking)
+        {
+            // 시내: 누른 곳까지 걸어간다. 사람을 눌렀으면 그 사람에게 가서 말을 건다
+            var ray = Vector3.Normalize(direction);
+            var origin = new Vector3(_walk.X, 0, _walk.Y);
+            foreach (var keeper in _keepers)
+            {
+                var chest = new Vector3(keeper.Spot.X, _grid!.HeightAt(keeper.Spot.X, keeper.Spot.Y) + 100, keeper.Spot.Y) - origin - _eye;
+                float along = Vector3.Dot(chest, ray);
+                if (along > 0 && (chest - ray * along).Length() < 90f) { WalkTo(keeper.Mark); _routeRuns = false; return; }
+            }
+            for (float reach = 50; reach < 30000; reach += 25)
+            {
+                var p = _eye + ray * reach + origin;
+                if (!_grid!.Inside(p.X, p.Z) || p.Y > _grid.HeightAt(p.X, p.Z)) continue;
+                _route = _grid.Path(_walk, new Vector2(p.X, p.Z));
+                (_bound, _routeRuns) = (null, false);
+                return;
+            }
+            return;
+        }
+        if (_voyage.Mode != Mode.Sea) return;
         if (direction.Y >= -1e-4f) return;                 // 수평선 위를 눌렀다
         var hit = _eye + direction * (-_eye.Y / direction.Y);
         _voyage.SteerTo(Math.Atan2(hit.X, -hit.Z));
@@ -711,6 +896,19 @@ internal sealed class GameWindow : IDisposable
                 var put = argument.Split(',');
                 _voyage.SetQuickSlot(int.Parse(put[0]), int.Parse(put[1]));
                 break;
+            case "strengthen":
+                if (argument.Length == 0) _voyage.Dialog = Dialog.Strengthen;
+                else _voyage.Strengthen(argument.Split(',').Select(int.Parse).ToList());
+                break;
+            case "keys": _hud.OpenMenu(2); break;
+            case "wheel": _hud.Wheel((int)Number()); break;
+            case "dev": _hud.OpenMenu(3); break;
+            case "money": _voyage.AddMoney((int)Number()); break;
+            case "click":
+                var where = argument.Split(',');
+                (_mouseX, _mouseY) = (int.Parse(where[0]), int.Parse(where[1]));
+                _clicked = true;                    // 진짜 클릭처럼 화면 창을 먼저 거친다
+                break;
             case "outfit": _voyage.Dialog = Dialog.Outfit; break;
             case "look":
                 var look = argument.Split(',');
@@ -725,7 +923,8 @@ internal sealed class GameWindow : IDisposable
             case "menu": _hud.OpenMenu((int)Number()); break;
             case "music": _musicOn = !_musicOn; break;
             case "goto":
-                if (_voyage.TownMap?.Marks.Find(m => m.Place == (int)Number()) is { } there) WalkTo(there);
+                if (_keepers.Find(k => k.Mark.Place == (int)Number()) is { Name: not null } person) WalkTo(person.Mark);
+                else if (_voyage.TownMap?.Marks.Find(m => m.Place == (int)Number()) is { } there) WalkTo(there);
                 break;
             case "swap": _voyage.Dialog = Dialog.ShipSwap; break;
             case "board": if (_voyage.Dock.ElementAtOrDefault((int)Number()) is { } docked) _voyage.SwapShip(docked); break;
@@ -752,6 +951,8 @@ internal sealed class GameWindow : IDisposable
         _town?.Dispose();
         _figure?.Dispose();
         _character?.Dispose();
+        foreach (var model in _keeperModels) model?.Dispose();
+        _cursors?.Dispose();
         _ship?.Dispose();
         _terrain?.Dispose();
         _scene?.Dispose();

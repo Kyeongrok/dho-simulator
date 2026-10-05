@@ -152,6 +152,28 @@ public sealed class TownGrid
     public bool Walkable(float x, float z) =>
         Inside(x, z) && !_blocked[(int)(z / Fine) * _fineWidth + (int)(x / Fine)] && HeightAt(x, z) > Shore;
 
+    /// <summary>방의 벽 — 선 면이 무릎에서 머리 사이를 지나는 칸을 막는다(걷는 면에 벽이 안 든 방이 있다).</summary>
+    public void Wall(Vector3 a, Vector3 b, Vector3 c)
+    {
+        var normal = Vector3.Cross(b - a, c - a);
+        if (normal.LengthSquared() < 1e-3f || MathF.Abs(normal.Y) > 0.5f * normal.Length()) return;
+        Sample(a, b, c, (cell, p) =>
+        {
+            if (p.Y > _floor[cell] + 40 && p.Y < _floor[cell] + 170) _blocked[cell] = true;
+        });
+    }
+
+    /// <summary>방 메시의 테두리 밖은 못 가는 데로 친다(걷는 면은 방보다 넓게 깔려 있다).</summary>
+    public void Bound(Vector3 min, Vector3 max)
+    {
+        for (int z = 0; z < _fineHeight; z++)
+        for (int x = 0; x < _fineWidth; x++)
+        {
+            float px = (x + 0.5f) * Fine, pz = (z + 0.5f) * Fine;
+            if (px < min.X || px > max.X || pz < min.Z || pz > max.Z) _blocked[z * _fineWidth + x] = true;
+        }
+    }
+
     /// <summary>삼각형 위에 고르게 점을 찍어 가며 그 점이 든 칸과 함께 넘긴다.</summary>
     private void Sample(Vector3 a, Vector3 b, Vector3 c, Action<int, Vector3> visit)
     {

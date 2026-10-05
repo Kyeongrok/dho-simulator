@@ -12,6 +12,8 @@ internal sealed class DockedShip
     /// <summary>커스텀설정 조선으로 지은 배면 그 재질 번호와 적재 변경(%). 조선소에서 산 배는 0, 0.</summary>
     public int Material { get; init; }
     public int Load { get; init; }
+    /// <summary>그 배의 강화와 옵션 스킬.</summary>
+    public ShipWork Work { get; init; } = new();
 }
 
 /// <summary>조선소에 맡겨 둔 배.</summary>
@@ -47,7 +49,7 @@ internal sealed partial class Voyage
         return material == 0 && load == 0 ? stats : stats.Built(MaterialOf(material), load, Settings.Ships);
     }
 
-    public ShipStats StatsOf(DockedShip docked) => StatsOf(docked.Ship, docked.Material, docked.Load);
+    public ShipStats StatsOf(DockedShip docked) => Worked(StatsOf(docked.Ship, docked.Material, docked.Load), docked.Work);
 
     // ── 커스텀설정 조선 ──────────────────────────────────────────────────────
 
@@ -111,6 +113,7 @@ internal sealed partial class Voyage
     {
         Ship = Data.Ships.Find(s => s.Id == shipId) ?? Data.Ships.FirstOrDefault() ?? new ShipData { Name = "배", Length = 60, Width = 20, Height = 30, Masts = 2 };
         (ShipMaterialId, ShipLoad) = (0, 0);
+        Work = new ShipWork();
         Stats = ShipStats.Of(Ship, Settings.Ships);
     }
 
@@ -141,13 +144,14 @@ internal sealed partial class Voyage
         return null;
     }
 
-    private void Board(ShipData ship, double durability, List<ShipPart>? parts = null, int material = 0, int load = 0)
+    private void Board(ShipData ship, double durability, List<ShipPart>? parts = null, int material = 0, int load = 0, ShipWork? work = null)
     {
-        Dock.Add(new DockedShip { Ship = Ship, Durability = Durability, Parts = Parts, Material = ShipMaterialId, Load = ShipLoad });
+        Dock.Add(new DockedShip { Ship = Ship, Durability = Durability, Parts = Parts, Material = ShipMaterialId, Load = ShipLoad, Work = Work });
+        Work = work ?? new ShipWork();
         Parts = parts ?? [];
         Ship = ship;
         (ShipMaterialId, ShipLoad) = (material, load);
-        Stats = StatsOf(ship, material, load);
+        Stats = Worked(StatsOf(ship, material, load), Work);
         Durability = Math.Clamp(durability, 1, Stats.Durability);
         Crew = Math.Min(Crew, Stats.MaxCrew);
     }
@@ -162,7 +166,7 @@ internal sealed partial class Voyage
         if (Mode != Mode.Port || !Dock.Remove(docked)) return;
         if (SwapBlocker(docked) != null) { Dock.Add(docked); return; }
         Say($"{Ship.Name}에서 {docked.Ship.Name}(으)로 갈아탔다.");
-        Board(docked.Ship, docked.Durability, docked.Parts, docked.Material, docked.Load);
+        Board(docked.Ship, docked.Durability, docked.Parts, docked.Material, docked.Load, docked.Work);
     }
 
     /// <summary>부두의 배를 팔 때 받는 값 — 상한 만큼 깎인다.</summary>

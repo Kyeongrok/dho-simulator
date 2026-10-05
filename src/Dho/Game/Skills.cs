@@ -34,7 +34,7 @@ internal sealed partial class Voyage
     public bool CanSurvey => Has("Survey");
 
     /// <summary>주변 지도가 보이는 반지름(세계 좌표).</summary>
-    public double SurveyReach => 100 * (1 + Bonus("Survey"));
+    public double SurveyReach => 100 * (1 + Bonus("Survey")) * (1 + Option("Survey"));
 
     /// <summary>항구에서 배울 수 있는 스킬 — 게임에서 하는 일이 정해진 것 가운데 아직 안 익힌 것.</summary>
     public IEnumerable<SkillData> Learnable() =>

@@ -8,6 +8,9 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <RootNamespace>Dho</RootNamespace>
+        <!-- 실행 파일의 아이콘: 게임 폴더의 원본 아이콘이 있으면 그것을 쓴다(저장소에는 두지 않는다) -->
+        <GameIcon>C:\Netmarble\GV Online Kr\GVOnline.ico</GameIcon>
+        <ApplicationIcon Condition="Exists('$(GameIcon)')">$(GameIcon)</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>

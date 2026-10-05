@@ -188,6 +188,31 @@
                 </DockPanel>
             </TabItem>
 
+            <TabItem Header="조선">
+                <DockPanel Margin="8">
+                    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,4" Text="재질(위) · 강화 부품(가운데) · 옵션 스킬(아래). 배율과 조합은 원본 자료, 필요 랭크 · 값 · 효과 크기는 지은 값이다." />
+                    <DataGrid x:Name="OptionSkillGrid" DockPanel.Dock="Bottom" AutoGenerateColumns="True" CanUserAddRows="True" Height="220" />
+                    <DataGrid x:Name="ShipMaterialGrid" DockPanel.Dock="Top" AutoGenerateColumns="True" CanUserAddRows="True" Height="190" />
+                    <DataGrid x:Name="WorkPartGrid" AutoGenerateColumns="True" CanUserAddRows="True" />
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="칙명 · 아이템">
+                <DockPanel Margin="8">
+                    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,4" Text="칙명(위) · 소비 아이템(아래). 칙명의 Kind: Visit · Far · Bring(Target = 교역품 갈래) · Discover. 아이템의 Effect: Fatigue · Repair · Cure(Amount = 재해 번호) · Lifebuoy." />
+                    <DataGrid x:Name="ItemGrid" DockPanel.Dock="Bottom" AutoGenerateColumns="True" CanUserAddRows="True" Height="240" />
+                    <DataGrid x:Name="OrderGrid" AutoGenerateColumns="True" CanUserAddRows="True" MaxColumnWidth="520" />
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="레시피">
+                <DockPanel Margin="8">
+                    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,4" Text="생산 규칙(위): Output = 교역품 번호, Inputs = '교역품 번호:수' 를 쉼표로, Skill = '조리 3' 꼴. 아래는 클라이언트의 레시피 이름 표(읽기용)." />
+                    <DataGrid x:Name="RecipeNameGrid" DockPanel.Dock="Bottom" AutoGenerateColumns="True" CanUserAddRows="False" IsReadOnly="True" Height="240" MaxColumnWidth="520" />
+                    <DataGrid x:Name="RecipeRuleGrid" AutoGenerateColumns="True" CanUserAddRows="True" />
+                </DockPanel>
+            </TabItem>
+
             <TabItem Header="시작">
                 <StackPanel Margin="8" MaxWidth="760" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">

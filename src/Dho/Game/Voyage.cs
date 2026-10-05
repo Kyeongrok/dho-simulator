@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -30,7 +30,95 @@ internal sealed partial class Voyage
     public Mode Mode { get; private set; } = Mode.Port;
     public Dialog Dialog { get; set; } = Dialog.None;
     /// <summary>항구에서 시내를 내려다보고 있는가.</summary>
-    public bool TownView { get; set; }
+    private bool _townView;
+
+    /// <summary>시내에 있는가. 항구로 나오면 건물 안에서도 나온 것이 된다.</summary>
+    public bool TownView
+    {
+        get => _townView;
+        set
+        {
+            _townView = value;
+            if (!value) (Interior, InteriorName) = (0, "");
+        }
+    }
+
+    /// <summary>들어가 있는 건물 안의 장면 번호. 0 이면 바깥(시내).</summary>
+    public int Interior { get; private set; }
+    public string InteriorName { get; private set; } = "";
+
+    /// <summary>지금 걷고 있는 장면 — 건물 안이면 그 방, 아니면 시내.</summary>
+    public int WalkScene => TownView && Interior != 0 ? Interior : City.TownScene;
+
+    /// <summary>안에 있는 사람의 이름과, 말을 걸면 열리는 창(없으면 None).</summary>
+    public string InteriorHost { get; private set; } = "";
+    public Dialog InteriorDialog { get; private set; }
+
+    /// <summary>이름에 그 말이 든 건물의 방 장면 번호와 건물 이름.</summary>
+    private (string Name, int Scene)? RoomOf(params string[] words)
+    {
+        foreach (string room in City.Rooms.Split(", ", StringSplitOptions.RemoveEmptyEntries))
+        {
+            int at = room.LastIndexOf('=');
+            if (at > 0 && words.Any(room[..at].Contains) && int.TryParse(room[(at + 1)..], out int scene)) return (room[..at], scene);
+        }
+        return null;
+    }
+
+    /// <summary>시내 지도의 장소 번호에 맞는 건물 안으로 들어간다. 들어갈 방이 없으면 false.</summary>
+    public bool EnterPlace(int place)
+    {
+        (string[] Words, string Host, Dialog Opens)? kind = place switch
+        {
+            1 => (["모험가조합"], "조합 마스터", Dialog.Guild),
+            2 => (["상인조합"], "상인조합 마스터", Dialog.None),
+            3 => (["해양조합"], "해양조합 마스터", Dialog.None),
+            13 => (["주점"], "주점 주인", Dialog.Aides),
+            16 => (["서고"], "학자", Dialog.None),
+            201 => (["교회", "성당"], "신부", Dialog.None),
+            202 => (["모스크", "교회", "성당"], "이맘", Dialog.None),
+            203 => (["사원", "교회", "성당"], "승려", Dialog.None),
+            // 300번대에는 조련사 같은 것도 섞여 있다 — 이름으로 가린다
+            >= 301 and < 400 when new[] { "왕궁", "궁전", "집무실", "관저", "저택" }.Any(PlaceName(place).Contains)
+                => (["왕궁", "궁전", "집무실", "관저", "원수공저택"], "시종장", Dialog.Court),
+            >= 1001 and < 2000 when PlaceName(place).Contains("저택") => ([PlaceName(place)], PlaceName(place).Replace(" 대표 저택", " 대표").Replace(" 제독 저택", " 제독").Replace(" 공작저택", " 공작").Replace(" 저택", "").Replace("저택", ""), Dialog.None),
+            _ => null,
+        };
+        if (kind is not { } k || RoomOf(k.Words) is not { } room) return false;
+        (Interior, InteriorName, InteriorHost, InteriorDialog, _interiorPlace) = (room.Scene, room.Name, k.Host, k.Opens, place);
+        Say($"{room.Name}에 들어섰다.");
+        return true;
+    }
+
+    private int _interiorPlace;
+
+    /// <summary>창이 없는 방의 사람에게 말을 걸었을 때 — 한마디와, 교회에서는 기도.</summary>
+    private void TalkInside()
+    {
+        switch (_interiorPlace)
+        {
+            case 2: Say($"{InteriorHost}: 「교역 의뢰는 아직 들어온 것이 없네. 시세는 교역소에서 보게.」"); break;
+            case 3: Say($"{InteriorHost}: 「토벌 의뢰는 아직 들어온 것이 없다. 바다가 조용하군.」"); break;
+            case 16: Say($"{InteriorHost}: 「지도와 기록은 여기 다 있소. 찾는 곳이 있으면 모험가조합의 의뢰부터 받아 오시오.」"); break;
+            case 201 or 202 or 203:
+                if (Fatigue > 0) { Fatigue = 0; Say($"{InteriorHost}와(과) 함께 기도를 올렸다. 피로가 풀렸다."); }
+                else Say($"{InteriorHost}: 「항해가 무사하기를.」");
+                break;
+            default: Say($"{InteriorHost}: 「먼 길 오셨소. 바다 이야기나 들려주시오.」"); break;
+        }
+    }
+
+    public void EnterGuild()
+    {
+        if (!EnterPlace(1)) Dialog = Dialog.Guild;
+    }
+
+    public void LeaveInterior()
+    {
+        if (Interior == 0) return;
+        Say($"{InteriorName}에서 나왔다.");
+        (Interior, InteriorName) = (0, "");
+    }
 
     public string PlayerName { get; private set; } = "";
     public int Money { get; private set; }
@@ -65,8 +153,10 @@ internal sealed partial class Voyage
     public List<string> Log { get; } = [];
 
     /// <param name="developer">true 면 캐릭터 만들기와 이어 하기를 건너뛰고 설정의 값으로 바로 시작한다(확인용 대본).</param>
-    public Voyage(GameData data, bool developer = false)
+    /// <param name="scratch">이어 하기를 읽지도 적지도 않는다 — 확인용 대본으로 돌릴 때. 사람이 하던 것을 건드리지 않게.</param>
+    public Voyage(GameData data, bool developer = false, bool scratch = false)
     {
+        _scratch = scratch;
         Data = data;
         Map = new WorldMap();
         Zones = new SeaZones();
@@ -120,19 +210,47 @@ internal sealed partial class Voyage
     /// <summary>소지품 창을 도구점 쪽지로 열라는 표시(창이 보고 끈다).</summary>
     public bool ItemShopOpen { get; set; }
 
-    public string PlaceName(int place) => Data.Places.Find(p => p.Id == place)?.Name ?? (place > 1000 ? "저택" : $"장소 {place}");
+    /// <summary>시설 앞에 서 있는 사람의 이름(없는 시설이면 null) — 표 98 의 NPC 갈래 이름을 따른다.</summary>
+    public static string? KeeperName(int place) => place switch
+    {
+        9 or 30 => "조선소 주인",
+        10 or 32 => "교역소 주인",
+        11 or 31 => "도구점 주인",
+        13 => "주점 주인",
+        _ => null,
+    };
+
+    /// <summary>개발 메뉴: 돈을 늘리거나 줄인다.</summary>
+    public void AddMoney(int amount)
+    {
+        Money = Math.Max(0, Money + amount);
+        Say($"(개발) 소지금 {(amount >= 0 ? "+" : "")}{amount:N0} → {Money:N0} 두캇");
+    }
+
+    /// <summary>건물 안의 사람과 출구에 붙이는 가짜 장소 번호.</summary>
+    public const int InsideMaster = 9001, InsideExit = 9002;
+
+    public string PlaceName(int place) => place == InsideMaster ? InteriorHost : place == InsideExit ? "출구" : Data.Places.Find(p => p.Id == place)?.Name ?? (place > 1000 ? "저택" : $"장소 {place}");
 
     /// <summary>시내에서 그 시설에 닿았을 때 — 하는 일이 있는 곳이면 창을 연다.</summary>
     public void Visit(TownMark mark)
     {
         string name = PlaceName(mark.Place);
-        Say($"{name}에 왔다.");
+        if (mark.Place != InsideMaster) Say($"{name}에 왔다.");
+        if (mark.Place == InsideMaster)
+        {
+            if (InteriorDialog == Dialog.None) TalkInside();
+            else Dialog = InteriorDialog;
+            return;
+        }
+        if (mark.Place == InsideExit) { LeaveInterior(); return; }
         if (mark.Place is 4 or 5) TownView = false;                          // 항구 · 항구(항구 앞) → 부두로
         else if (mark.Place is 9 or 30) Dialog = Dialog.Shipyard;
         else if (mark.Place is 10 or 19 or 26 or 27 or 32) Dialog = Dialog.Trade;
-        else if (mark.Place == 1) Dialog = Dialog.Guild;
+        else if (mark.Place == 1) EnterGuild();
         else if (mark.Place is 11 or 31) { ItemShopOpen = true; Dialog = Dialog.Items; }
-        else if (mark.Place == 13) Dialog = Dialog.Aides;
+        else if (mark.Place == 13) { if (!EnterPlace(13)) Dialog = Dialog.Aides; }
+        else EnterPlace(mark.Place);
     }
 
     /// <summary>의뢰를 주는 곳의 이름 — 조합 건물이 있는 도시는 열세 곳뿐이고 나머지는 의뢰 중개인이 준다.</summary>
@@ -142,7 +260,7 @@ internal sealed partial class Voyage
 
     public void Say(string line)
     {
-        Log.Add(line);
+        Log.Add(Korean.Particles(line));
         if (Log.Count > 60) Log.RemoveAt(0);
     }
 
@@ -152,6 +270,7 @@ internal sealed partial class Voyage
     {
         City = city;
         TownView = false;
+        (Interior, InteriorName) = (0, "");
         ShipX = city.SeaX;
         ShipY = city.SeaY;
         Sail = 0;
@@ -165,6 +284,7 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Port) return;
         TownView = false;
+        (Interior, InteriorName) = (0, "");
         Mode = Mode.Sea;
         Dialog = Dialog.None;
         SecondsAtSea = 0;
@@ -285,7 +405,7 @@ internal sealed partial class Voyage
 
     public double TimeScale { get; set; } = 1;
     public void SetSkyPhase(double phase) => SkyPhase = phase;
-    public void GoTo(int cityId) { if (_cities.TryGetValue(cityId, out var city)) MoorAt(city); }
+    public void GoTo(int cityId) { if (_cities.TryGetValue(cityId, out var city)) { MoorAt(city); OrderOnArrive(); } }
     /// <summary>내구를 0 으로 — 다음 틱에 난파한다.</summary>
     public void Sink() => Durability = 0;
 
@@ -315,7 +435,7 @@ internal sealed partial class Voyage
 
         if (steer != 0) TargetHeading = Normalize(Heading + steer * 0.6);
         double turn = Normalize(TargetHeading - Heading + Math.PI) - Math.PI;
-        double turnRate = Settings.TurnRate * Stats.TurnFactor * (1 + Bonus("Turn"));
+        double turnRate = Settings.TurnRate * Stats.TurnFactor * (1 + Bonus("Turn")) * (1 + Option("Turn"));
         Heading = Normalize(Heading + Math.Clamp(turn, -turnRate * dt, turnRate * dt));
         if (Sail > 0)
         {
@@ -331,7 +451,7 @@ internal sealed partial class Voyage
         // 선원이 모자라거나 재해가 있으면 느려진다
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
         double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor()
-                        * (1 + Bonus("Speed")) * PartSpeed * AideSpeed;
+                        * (1 + Bonus("Speed")) * PartSpeed * AideSpeed * (1 + Option("Speed"));
         Knots += (target - Knots) * Math.Min(1, dt * 0.8);
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;

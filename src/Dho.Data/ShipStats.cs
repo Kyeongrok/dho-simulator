@@ -80,6 +80,42 @@ public sealed class ShipMaterial
     public double Price { get; set; } = 1;
 }
 
+/// <summary>강화에 넣는 조선 부품. 이름은 원본의 것이고 올리는 능력치 · 양 · 값은 지은 것이다.</summary>
+public sealed class WorkPart
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    /// <summary>Sail 돛 · Turn 선회 · Wave 내파 · Durability 내구 · Hold 창고.</summary>
+    public string Stat { get; set; } = "";
+    public double Amount { get; set; }
+    public int Price { get; set; }
+}
+
+/// <summary>
+/// 옵션 스킬 — 강화에 넣은 부품 둘의 조합이 맞으면 붙는다. 이름과 조합은 원본의 것(이용자 자료의 배 상세 한 건)이고 효과의 크기는 지은 것이다.
+/// SkillId 는 클라이언트 스킬 표의 번호(2000 ~).
+/// </summary>
+public sealed class OptionSkill
+{
+    public int SkillId { get; set; }
+    public string Name { get; set; } = "";
+    public int PartA { get; set; }
+    public int PartB { get; set; }
+    /// <summary>Speed 속도 · Storm 폭풍 피해 줄임 · Turn 선회 · Survey 주변 지도 넓힘 · CrewLoss 선원 피해 줄임 · Luck 재해 줄임 · Hold 창고 · Flotsam 하루마다 표류물(두캇).</summary>
+    public string Effect { get; set; } = "";
+    public double Amount { get; set; }
+}
+
+public sealed class ShipWorkBook
+{
+    /// <summary>배 한 척을 강화할 수 있는 횟수.</summary>
+    public int MaxTimes { get; set; } = 5;
+    /// <summary>옵션 스킬 칸 수.</summary>
+    public int SkillSlots { get; set; } = 2;
+    public List<WorkPart> Parts { get; set; } = [];
+    public List<OptionSkill> Skills { get; set; } = [];
+}
+
 /// <summary>배 능력치 — 실제 값이 있으면 그것, 없으면 지어 낸 값.</summary>
 public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCrew, double Knots, double TurnFactor, int Price, int SellPrice)
 {

@@ -78,6 +78,13 @@ public partial class MainWindow : Window
         SkillGrid.ItemsSource = _data.Skills;
         ShipGrid.ItemsSource = _data.Ships;
         MarketGrid.ItemsSource = _data.Markets;
+        ShipMaterialGrid.ItemsSource = _data.ShipMaterials;
+        WorkPartGrid.ItemsSource = _data.ShipWorks.Parts;
+        OptionSkillGrid.ItemsSource = _data.ShipWorks.Skills;
+        OrderGrid.ItemsSource = _data.Orders.Orders;
+        ItemGrid.ItemsSource = _data.Items;
+        RecipeRuleGrid.ItemsSource = _data.RecipeRules;
+        RecipeNameGrid.ItemsSource = _data.Recipes;
         GoodGrid.ItemsSource = _data.Goods;
         StartLineGrid.ItemsSource = _data.Start.Lines;
         StartNationGrid.ItemsSource = _data.Start.Nations;
@@ -101,7 +108,7 @@ public partial class MainWindow : Window
     {
         // 글상자에 치던 값을 마저 넣는다
         if (Keyboard.FocusedElement is TextBox box) box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-        foreach (var grid in new[] { LandingGrid, CityGrid, DiscoveryGrid, SeaGrid, BerthGrid, DisasterGrid, SupplyGrid, SkillRuleGrid, SkillGrid, ShipGrid, MarketGrid, GoodGrid, StartLineGrid, StartNationGrid }) grid.CommitEdit(DataGridEditingUnit.Row, true);
+        foreach (var grid in new[] { LandingGrid, CityGrid, DiscoveryGrid, SeaGrid, BerthGrid, DisasterGrid, SupplyGrid, SkillRuleGrid, SkillGrid, ShipGrid, MarketGrid, GoodGrid, StartLineGrid, StartNationGrid, ShipMaterialGrid, WorkPartGrid, OptionSkillGrid, OrderGrid, ItemGrid, RecipeRuleGrid }) grid.CommitEdit(DataGridEditingUnit.Row, true);
 
         _data.Quests = _quests.ToList();
         _data.FillMarkets();

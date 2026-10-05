@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Dho.Render;
 using Vortice.Direct2D1;
 using Vortice.DirectWrite;
@@ -140,6 +140,7 @@ internal sealed class Canvas : IDisposable
     public void Text(string text, float x, float y, float w, float h, float size, Color4 color,
                      int align = 0, bool bold = false, bool shadow = true)
     {
+        text = Dho.Data.Korean.Particles(text);      // 「을(를)」 따위를 앞말의 받침에 맞춘다
         var format = Format(size, bold, align);
         if (shadow)
         {

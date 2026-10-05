@@ -49,6 +49,10 @@ public sealed class CityData
     public int TownScene { get; set; }
     /// <summary>들어갈 수 있는 건물 이름들(장면 표의 건물 줄)을 쉼표로. 길드 사무소·빈집은 뺀다.</summary>
     public string Buildings { get; set; } = "";
+    /// <summary>들어갈 수 있는 건물과 그 방 장면 번호 — "이름=번호" 를 쉼표로(장면 표의 건물 줄. 길드 사무소 · 빈집은 뺀다).</summary>
+    public string Rooms { get; set; } = "";
+    /// <summary>모험가조합 건물 안의 장면 번호(장면 표의 건물 줄). 0 이면 조합 건물이 없다.</summary>
+    public int GuildScene { get; set; }
     /// <summary>배경음 번호(<c>0006\0000NN.bin</c>) — 장면 표의 시내 줄에 있다. 0 이면 없음.</summary>
     public int Music { get; set; }
 }
@@ -388,6 +392,9 @@ public sealed class SaveData
     public int[] Looks { get; set; } = [];
     /// <summary>퀵슬롯 여덟 칸 — 양수 스킬 번호, 음수 −아이템 번호, 0 빈 칸.</summary>
     public int[] QuickSlots { get; set; } = [];
+    /// <summary>타고 있는 배의 강화 — [횟수, 내구, 돛, 선회, 내파, 창고, 옵션 스킬 …]. 부두의 배는 DockWork 에 같은 차례로.</summary>
+    public double[] Work { get; set; } = [];
+    public List<double[]> DockWork { get; set; } = [];
     /// <summary>가진 레시피 번호들.</summary>
     public List<int> Recipes { get; set; } = [];
     /// <summary>작위(0 부터) · 공적 · 받은 칙명 id · 칙명의 진행(들른 곳 수나 보고한 발견 수).</summary>
@@ -433,6 +440,8 @@ public sealed class SettingsData
     public double UiScale { get; set; }
     /// <summary>배경음 크기(0 ~ 1). 0 이면 끈다.</summary>
     public double MusicVolume { get; set; } = 0.5;
+    /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
+    public Dictionary<string, int> Keys { get; set; } = new();
     public double MaxKnots { get; set; } = 14;
     /// <summary>1노트로 1초에 가는 세계 좌표.</summary>
     public double UnitsPerKnotSecond { get; set; } = 0.16;
@@ -478,6 +487,7 @@ public sealed class GameData
     public List<RecipeRule> RecipeRules { get; set; } = [];
     public List<ItemData> Items { get; set; } = [];
     public List<ShipMaterial> ShipMaterials { get; set; } = [];
+    public ShipWorkBook ShipWorks { get; set; } = new();
     public List<ShipPart> ShipParts { get; set; } = [];
     /// <summary>부관 후보(표 131) — Group 은 표의 첫 바이트.</summary>
     public List<NamedData> Aides { get; set; } = [];
@@ -550,6 +560,7 @@ public sealed class GameData
         data.Quests = Read<List<QuestData>>(Path.Combine(directory, "quests.json")) ?? [];
         data.RecipeRules = Read<List<RecipeRule>>(Path.Combine(directory, "recipes.json")) ?? [];
         data.Recipes = Read<List<RecipeData>>(Path.Combine(extracted, "recipes.json")) ?? [];
+        data.ShipWorks = Read<ShipWorkBook>(Path.Combine(directory, "ship-works.json")) ?? new ShipWorkBook();
         data.ShipMaterials = Read<List<ShipMaterial>>(Path.Combine(directory, "ship-materials.json")) ?? [];
         data.Items = Read<List<ItemData>>(Path.Combine(directory, "items.json")) ?? [];
         data.Orders = Read<OrderBook>(Path.Combine(directory, "orders.json")) ?? new OrderBook();
@@ -577,6 +588,7 @@ public sealed class GameData
         Write(Path.Combine(Directory, "orders.json"), Orders);
         Write(Path.Combine(Directory, "items.json"), Items);
         Write(Path.Combine(Directory, "ship-materials.json"), ShipMaterials);
+        Write(Path.Combine(Directory, "ship-works.json"), ShipWorks);
         Write(Path.Combine(Directory, "recipes.json"), RecipeRules);
         Write(Path.Combine(Directory, "disasters.json"), Disasters);
         Write(Path.Combine(Directory, "supplies.json"), Supplies);
@@ -632,6 +644,7 @@ public sealed class GameData
                 X = land.X, Y = land.Y, SeaX = sea.X, SeaY = sea.Y, PortScene = PortSceneNumber(scenes, c.Id),
                 TownScene = FindScene(scenes, (uint)(0x0800 + c.Id) << 16, c.Id)?.Number ?? 0, Buildings = BuildingsOf(scenes, c.Id),
                 Music = SceneMusic(scenes, (uint)(0x0800 + c.Id) << 16),
+                GuildScene = BuildingScene(scenes, c.Id, "모험가조합"), Rooms = RoomsOf(scenes, c.Id),
             };
         }).ToList();
         Seas = tables.Seas.Values.OrderBy(s => s.Id).Select(s => new NamedData { Id = s.Id, Name = s.Name, Group = s.Ocean, Music = SceneMusic(sceneRows, (uint)(0x0400 + s.Id) << 16) }).ToList();
@@ -732,7 +745,29 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-7";
+    private const string ExtractVersion = "extracted-9";
+
+    public static string RoomsOf(byte[] sceneTable, int cityId)
+    {
+        var rooms = new List<string>();
+        for (int n = 0; n < 64; n++)
+        {
+            if (FindScene(sceneTable, (uint)(0x0C00 + cityId) << 16 | (uint)n << 8, cityId) is not { } row) break;
+            if (!row.Name.Contains("길드 사무소") && row.Name != "빈집" && row.Number > 0) rooms.Add($"{row.Name}={row.Number}");
+        }
+        return string.Join(", ", rooms);
+    }
+
+    /// <summary>이름에 그 말이 든 건물 줄의 방 장면 번호. 없으면 0.</summary>
+    public static int BuildingScene(byte[] sceneTable, int cityId, string word)
+    {
+        for (int n = 0; n < 64; n++)
+        {
+            if (FindScene(sceneTable, (uint)(0x0C00 + cityId) << 16 | (uint)n << 8, cityId) is not { } row) break;
+            if (row.Name.Contains(word)) return row.Number;
+        }
+        return 0;
+    }
 
     /// <summary>
     /// 장면 줄의 배경음 번호 — 꼬리(글 셋 뒤)의 여덟째 u32. 아홉째는 소리 크기(100)다.

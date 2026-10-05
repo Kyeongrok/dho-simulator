@@ -1,0 +1,192 @@
+{
+ "MaxTimes": 5,
+ "SkillSlots": 2,
+ "Parts": [
+  {
+   "Id": 1,
+   "Name": "대 개프세일",
+   "Stat": "Sail",
+   "Amount": 8,
+   "Price": 12000
+  },
+  {
+   "Id": 2,
+   "Name": "대 마스트",
+   "Stat": "Sail",
+   "Amount": 6,
+   "Price": 10000
+  },
+  {
+   "Id": 3,
+   "Name": "기능성 돛줄",
+   "Stat": "Sail",
+   "Amount": 4,
+   "Price": 7000
+  },
+  {
+   "Id": 4,
+   "Name": "정박용망",
+   "Stat": "Turn",
+   "Amount": 1,
+   "Price": 8000
+  },
+  {
+   "Id": 5,
+   "Name": "이동망",
+   "Stat": "Turn",
+   "Amount": 1,
+   "Price": 8000
+  },
+  {
+   "Id": 6,
+   "Name": "범용 대형 수조",
+   "Stat": "Wave",
+   "Amount": 1,
+   "Price": 9000
+  },
+  {
+   "Id": 7,
+   "Name": "오물방지 도장",
+   "Stat": "Wave",
+   "Amount": 1,
+   "Price": 9000
+  },
+  {
+   "Id": 8,
+   "Name": "철재 가공",
+   "Stat": "Durability",
+   "Amount": 20,
+   "Price": 11000
+  },
+  {
+   "Id": 9,
+   "Name": "수리도구 셋트",
+   "Stat": "Durability",
+   "Amount": 12,
+   "Price": 7000
+  },
+  {
+   "Id": 10,
+   "Name": "해체도구 셋트",
+   "Stat": "Durability",
+   "Amount": 10,
+   "Price": 6000
+  },
+  {
+   "Id": 11,
+   "Name": "특수 선창",
+   "Stat": "Hold",
+   "Amount": 10,
+   "Price": 12000
+  },
+  {
+   "Id": 12,
+   "Name": "금고",
+   "Stat": "Hold",
+   "Amount": 6,
+   "Price": 9000
+  },
+  {
+   "Id": 13,
+   "Name": "사령탑",
+   "Stat": "Turn",
+   "Amount": 1,
+   "Price": 14000
+  },
+  {
+   "Id": 14,
+   "Name": "마스트 톱",
+   "Stat": "Sail",
+   "Amount": 3,
+   "Price": 6000
+  },
+  {
+   "Id": 15,
+   "Name": "진찰실",
+   "Stat": "Durability",
+   "Amount": 8,
+   "Price": 9000
+  },
+  {
+   "Id": 16,
+   "Name": "투망",
+   "Stat": "Hold",
+   "Amount": 3,
+   "Price": 5000
+  }
+ ],
+ "Skills": [
+  {
+   "SkillId": 2001,
+   "Name": "급가속",
+   "PartA": 1,
+   "PartB": 7,
+   "Effect": "Speed",
+   "Amount": 0.08
+  },
+  {
+   "SkillId": 2025,
+   "Name": "내풍마스트",
+   "PartA": 2,
+   "PartB": 9,
+   "Effect": "Storm",
+   "Amount": 0.4
+  },
+  {
+   "SkillId": 2008,
+   "Name": "강화키",
+   "PartA": 9,
+   "PartB": 13,
+   "Effect": "Turn",
+   "Amount": 0.15
+  },
+  {
+   "SkillId": 2010,
+   "Name": "고층 감시대",
+   "PartA": 3,
+   "PartB": 14,
+   "Effect": "Survey",
+   "Amount": 0.3
+  },
+  {
+   "SkillId": 2030,
+   "Name": "양호실",
+   "PartA": 15,
+   "PartB": 7,
+   "Effect": "CrewLoss",
+   "Amount": 0.3
+  },
+  {
+   "SkillId": 2027,
+   "Name": "내화벽",
+   "PartA": 8,
+   "PartB": 10,
+   "Effect": "Luck",
+   "Amount": 0.15
+  },
+  {
+   "SkillId": 2021,
+   "Name": "위장창고",
+   "PartA": 12,
+   "PartB": 11,
+   "Effect": "Hold",
+   "Amount": 0.05
+  },
+  {
+   "SkillId": 2011,
+   "Name": "예항 보조",
+   "PartA": 4,
+   "PartB": 5,
+   "Effect": "Turn",
+   "Amount": 0.08
+  },
+  {
+   "SkillId": 2009,
+   "Name": "표류물 탐색",
+   "PartA": 14,
+   "PartB": 16,
+   "Effect": "Flotsam",
+   "Amount": 300
+  }
+ ]
+}

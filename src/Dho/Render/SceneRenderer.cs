@@ -75,7 +75,7 @@ internal sealed class SceneRenderer : IDisposable
         float4 PS(VSOut i) : SV_Target
         {
             float4 base = i.color * Diffuse.Sample(Wrap, i.uv);
-            clip(base.a - 0.35);
+            if (Tint.a < 1.5) clip(base.a - (Params.y > 0.5 ? 0.02 : 0.35));
             float3 n = normalize(i.normal);
             float3 v = normalize(CameraPosition - i.world);
             if (dot(n, v) < 0) n = -n;
@@ -87,6 +87,9 @@ internal sealed class SceneRenderer : IDisposable
                 float3 over = max(x - 0.6, 0.0);
                 lit = (min(x, 0.6) + over / (1.0 + over * 2.5)) * min(1.0, Ambient.g + SunColor.g * 0.55);
             }
+            // figure: brightness only, no sky tint
+            if (Params.z > 0.5)
+                lit = base.rgb * (0.62 + 0.55 * diffuse) * min(1.0, Ambient.g + SunColor.g * 0.55);
             return float4(ApplyFog(lit, i.world), base.a);
         }
         """;
@@ -285,9 +288,9 @@ internal sealed class SceneRenderer : IDisposable
         ctx.PSSetShader(_meshPs);
     }
 
-    public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false)
+    public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false, bool soft = false, bool figure = false)
     {
-        _gfx.SetObject(world, tint ?? Vector4.One, baked);
+        _gfx.SetObject(world, tint ?? Vector4.One, baked, soft, figure);
         _gfx.Context.PSSetShaderResource(0, texture ?? _white);
         mesh.Draw(_gfx);
     }

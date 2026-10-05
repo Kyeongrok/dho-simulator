@@ -178,7 +178,8 @@ internal sealed partial class Voyage
     {
         double days = dt / Settings.SecondsPerDay;
         // 생존 스킬이 선원 피해를 줄인다
-        double loss = (1 - Math.Min(0.75, Bonus("CrewLoss"))) * AideCrewLoss;
+        double loss = (1 - Math.Min(0.75, Bonus("CrewLoss"))) * AideCrewLoss * (1 - Math.Min(0.6, Option("CrewLoss")));
+        UpdateOptions(days);
         UpdateAides(days);
         UpdateBuild(days);
         // 재해 표의 피해는 선원 80명·내구 400짜리 배가 기준이다. 배 크기에 맞춰 늘리고 줄인다.
@@ -216,7 +217,7 @@ internal sealed partial class Voyage
             _stormDays -= days;
             if (Sail > 0)
             {
-                Durability -= Rules.StormDurabilityPerDay * hullScale * days * Sail / SailSteps * PartDamage;
+                Durability -= Rules.StormDurabilityPerDay * hullScale * days * Sail / SailSteps * PartDamage * (1 - Math.Min(0.8, Option("Storm")));
                 Crew -= 6 * days * loss * crewScale;
                 TrainEffect("CrewLoss", 40 * days);
             }
@@ -250,7 +251,7 @@ internal sealed partial class Voyage
         {
             if (DaysAtSea < data.MinDays || Fatigue < data.MinFatigue || (data.NearLand && !nearLand)) continue;
             if (data.NearLand && Knots < 3) continue;        // 서 있는 배는 암초에 걸리지 않는다
-            if (Roll(data.ChancePerDay * PartLuck * AideLuck, days)) Begin(data);
+            if (Roll(data.ChancePerDay * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck"))), days)) Begin(data);
         }
 
         if ((Durability <= 0 || Crew < 1) && !UseLifebuoy()) Wreck();
