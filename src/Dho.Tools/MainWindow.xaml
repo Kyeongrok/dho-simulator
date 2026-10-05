@@ -224,7 +224,17 @@
                         <Button Content="그 밖의 스킬 소리로" Tag="Skill" Click="SoundAssign_Click" Padding="10,3" Margin="6,0,0,0" />
                         <TextBlock x:Name="SoundAssigned" Margin="16,4,0,0" />
                     </StackPanel>
-                    <DataGrid x:Name="SoundGrid" AutoGenerateColumns="True" CanUserAddRows="False" IsReadOnly="True" SelectionMode="Single" SelectionChanged="SoundGrid_SelectionChanged" />
+                    <DataGrid x:Name="SoundGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single" SelectionChanged="SoundGrid_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="번호" Binding="{Binding Key, Mode=OneWay}" IsReadOnly="True" Width="70" />
+                            <DataGridTextColumn Header="묶음" Binding="{Binding Bank, Mode=OneWay}" IsReadOnly="True" Width="50" />
+                            <DataGridTextColumn Header="차례" Binding="{Binding Index, Mode=OneWay}" IsReadOnly="True" Width="50" />
+                            <DataGridTextColumn Header="길이(초)" Binding="{Binding Seconds, Mode=OneWay, StringFormat=0.00}" IsReadOnly="True" Width="70" />
+                            <DataGridTextColumn Header="표본율" Binding="{Binding Rate, Mode=OneWay}" IsReadOnly="True" Width="70" />
+                            <DataGridTextColumn Header="채널" Binding="{Binding Channels, Mode=OneWay}" IsReadOnly="True" Width="50" />
+                            <DataGridTextColumn Header="메모 (두 번 눌러 적는다)" Binding="{Binding Memo, UpdateSourceTrigger=LostFocus}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </DockPanel>
             </TabItem>
 

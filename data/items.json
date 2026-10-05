@@ -292,5 +292,19 @@
     "Effect": "SailPaint",
     "Amount": 111,
     "Price": 30000
+  },
+  {
+    "Id": 9300001,
+    "Name": "국가공헌 훈장증서",
+    "Effect": "Paper",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 9300002,
+    "Name": "전용함 건조 허가증",
+    "Effect": "Paper",
+    "Amount": 0,
+    "Price": 0
   }
 ]

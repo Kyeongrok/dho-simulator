@@ -346,6 +346,25 @@ public sealed class JobFact
     public long Cost { get; set; }
 }
 
+/// <summary>배 하나의 상세(ssjoy 의 배 쪽) — 강화 횟수, 강화 상한, 부품 칸 수, 붙일 수 있는 선박 스킬과 그 재료, 특수 건조의 선체.</summary>
+public sealed class ShipDetailFact
+{
+    public int No { get; set; }
+    public string Name { get; set; } = "";
+    public int Times { get; set; }
+    public int Retimes { get; set; }
+    public List<int> Caps { get; set; } = [];
+    public List<int> Slots { get; set; } = [];
+    public List<ShipDetailSkill> Skills { get; set; } = [];
+    public string Hull { get; set; } = "";
+}
+
+public sealed class ShipDetailSkill
+{
+    public string Name { get; set; } = "";
+    public List<string> Parts { get; set; } = [];
+}
+
 public sealed class ShipSkillFact
 {
     public int No { get; set; }
@@ -514,7 +533,7 @@ public sealed class SettingsData
     /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
     public Dictionary<string, int> Keys { get; set; } = new();
     /// <summary>효과음 — 일 이름 → "묶음:차례"(<c>data\extracted\se-all</c> 의 파일 이름 앞 두 수). 빈 글이면 소리 없음.</summary>
-    /// <summary>효과음마다 적어 둔 메모 — "묶음:차례" → 글.</summary>
+    /// <summary>효과음마다 적어 둔 메모 — "묶음:차례" → 글. 묶음의 제목은 "묶음" → 글.</summary>
     public Dictionary<string, string> SoundMemos { get; set; } = new();
     public Dictionary<string, string> Sounds { get; set; } = new() { ["Skill"] = "5:0", ["Turn"] = "9:0" };
     public double MaxKnots { get; set; } = 14;
@@ -575,6 +594,12 @@ public sealed class GameData
     private bool _materialsFromFacts;
     /// <summary>선박 스킬 109가지의 이름 · 행동력 · 필요 스킬 — <c>data\extracted\shipskill-facts.json</c>(ssjoy 에서 모은 것, 저장소에는 안 둔다).</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<ShipSkillFact> ShipSkillFacts { get; set; } = [];
+
+    /// <summary>배마다의 상세 — <c>data\extracted\shipdetail-facts.json</c>(ssjoy 에서 모은 것, 일부 배만 있다. 저장소에는 안 둔다).</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<ShipDetailFact> ShipDetails { get; set; } = [];
+
+    /// <summary>이름으로 찾는 배 상세 — 모으지 못한 배는 null.</summary>
+    public ShipDetailFact? ShipDetail(string name) => ShipDetails.Find(d => d.Name == name);
     private List<OptionSkill>? _optionSkills;
 
     /// <summary>
@@ -677,6 +702,7 @@ public sealed class GameData
         // 기본 재질 98종(ssjoy 에서 모은 배율) — 있으면 저장소의 몇 가지 대신 쓴다
         if (Read<List<ShipMaterial>>(Path.Combine(extracted, "material-facts.json")) is { Count: > 0 } materials) (data.ShipMaterials, data._materialsFromFacts) = (materials, true);
         data.ShipSkillFacts = Read<List<ShipSkillFact>>(Path.Combine(extracted, "shipskill-facts.json")) ?? [];
+        data.ShipDetails = Read<List<ShipDetailFact>>(Path.Combine(extracted, "shipdetail-facts.json")) ?? [];
         data.JobFacts = Read<List<JobFact>>(Path.Combine(extracted, "job-facts.json")) ?? [];
         data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];

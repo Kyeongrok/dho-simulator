@@ -1166,6 +1166,7 @@ internal sealed class GameWindow : IDisposable
                 if (argument.Length == 0) _voyage.Dialog = Dialog.Strengthen;
                 else _voyage.Strengthen(argument.Split(',').Select(int.Parse).ToList());
                 break;
+            case "workmethod": _voyage.Dialog = Dialog.WorkMethod; break;
             case "keys": _hud.OpenMenu(2); break;
             case "wheel": _hud.Wheel((int)Number()); break;
             case "dev": _hud.OpenMenu(3); break;

@@ -85,7 +85,7 @@ public partial class MainWindow : Window
         ItemGrid.ItemsSource = _data.Items;
         RecipeRuleGrid.ItemsSource = _data.RecipeRules;
         RecipeNameGrid.ItemsSource = _data.Recipes;
-        SoundGrid.ItemsSource = GameSounds.All();
+        SoundGrid.ItemsSource = GameSounds.All().Select(sound => new SoundRow(sound, _data.Settings.SoundMemos)).ToList();
         ShowSoundCues();
         GoodGrid.ItemsSource = _data.Goods;
         StartLineGrid.ItemsSource = _data.Start.Lines;
@@ -382,11 +382,28 @@ public partial class MainWindow : Window
 
     // ── 효과음 ───────────────────────────────────────────────────────────────
 
+    /// <summary>효과음 목록의 한 줄 — 메모는 설정(게임의 「효과음 고르기」와 같은 자리)에 적힌다.</summary>
+    private sealed class SoundRow(GameSound sound, Dictionary<string, string> memos)
+    {
+        public GameSound Sound => sound;
+        public string Key => sound.Key;
+        public int Bank => sound.Bank;
+        public int Index => sound.Index;
+        public double Seconds => sound.Seconds;
+        public int Rate => sound.Rate;
+        public int Channels => sound.Channels;
+        public string Memo
+        {
+            get => memos.GetValueOrDefault(sound.Key) ?? "";
+            set { if (string.IsNullOrWhiteSpace(value)) memos.Remove(sound.Key); else memos[sound.Key] = value.Trim(); }
+        }
+    }
+
     private readonly System.Media.SoundPlayer _soundPlayer = new();
 
     private void PlaySelectedSound()
     {
-        if (SoundGrid.SelectedItem is not GameSound sound || GameSounds.Wave(sound.Bank, sound.Index) is not { } wave) return;
+        if (SoundGrid.SelectedItem is not SoundRow { Sound: var sound } || GameSounds.Wave(sound.Bank, sound.Index) is not { } wave) return;
         _soundPlayer.Stop();
         _soundPlayer.Stream = new System.IO.MemoryStream(wave);
         try { _soundPlayer.Play(); } catch (Exception) { }
@@ -399,7 +416,7 @@ public partial class MainWindow : Window
     /// <summary>고른 소리를 게임의 일(선회 · 돛 조종 · 스킬)에 맨다 — 저장해야 게임에 들어간다.</summary>
     private void SoundAssign_Click(object sender, RoutedEventArgs e)
     {
-        if (SoundGrid.SelectedItem is not GameSound sound || sender is not System.Windows.Controls.Button { Tag: string cue }) return;
+        if (SoundGrid.SelectedItem is not SoundRow { Sound: var sound } || sender is not System.Windows.Controls.Button { Tag: string cue }) return;
         _data.Settings.Sounds[cue] = sound.Key;
         ShowSoundCues();
     }

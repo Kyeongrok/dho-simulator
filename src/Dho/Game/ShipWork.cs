@@ -17,10 +17,13 @@ internal sealed class ShipWork
     public int GradeExp { get; set; }
     public double Mastery { get; set; }
     public List<int> Bonuses { get; } = [];
+    /// <summary>전용함 스킬(옵션 스킬 번호) — 배 한 척에 하나만. 없으면 0.</summary>
+    public int Dedicated { get; set; }
 
-    // 스킬 번호 뒤에 그레이드 쪽 값을 큰 수로 덧붙여 적는다(옛 저장과 맞게): 1e6 + 그레이드, 2e6 + 경험치, 3e6 + 숙련도, 4e6 + 보너스
+    // 스킬 번호 뒤에 그레이드 쪽 값을 큰 수로 덧붙여 적는다(옛 저장과 맞게): 1e6 + 그레이드, 2e6 + 경험치, 3e6 + 숙련도, 4e6 + 보너스, 5e6 + 전용함 스킬
     public double[] ToArray() => [Times, Durability, Sail, Turn, Wave, Hold, .. Skills.Select(s => (double)s),
-                                  1_000_000 + Grade, 2_000_000 + GradeExp, 3_000_000 + Math.Round(Mastery), .. Bonuses.Select(b => 4_000_000.0 + b)];
+                                  1_000_000 + Grade, 2_000_000 + GradeExp, 3_000_000 + Math.Round(Mastery), .. Bonuses.Select(b => 4_000_000.0 + b),
+                                  .. Dedicated > 0 ? [5_000_000.0 + Dedicated] : Array.Empty<double>()];
 
     public static ShipWork From(double[] saved)
     {
@@ -35,6 +38,7 @@ internal sealed class ShipWork
             else if (kind == 2) work.GradeExp = rest;
             else if (kind == 3) work.Mastery = rest;
             else if (kind == 4) work.Bonuses.Add(rest);
+            else if (kind == 5) work.Dedicated = rest;
         }
         return work;
     }
@@ -63,7 +67,7 @@ internal sealed partial class Voyage
     /// <summary>강화와 옵션 스킬을 입힌 능력치.</summary>
     public ShipStats Worked(ShipStats stats, ShipWork work, ShipData ship)
     {
-        if (work.Times == 0 && work.Skills.Count == 0 && work.Bonuses.Count == 0) return stats;
+        if (work.Times == 0 && work.Skills.Count == 0 && work.Bonuses.Count == 0 && work.Dedicated == 0) return stats;
         double sails = Math.Max(1, stats.VerticalSail + stats.HorizontalSail);
         double holdBonus = OptionAmount(work, "Hold");
         // 강화분은 조타 숙련도가 찬 만큼 듣는다(절반은 늘 듣는다). 그레이드 보너스의 강화는 그대로 더한다
@@ -182,10 +186,51 @@ internal sealed partial class Voyage
     }
 
     private double OptionAmount(ShipWork work, string effect) =>
-        Data.OptionSkills.Where(s => s.Effect == effect && work.Skills.Contains(s.SkillId)).Sum(s => s.Amount);
+        Data.OptionSkills.Where(s => s.Effect == effect && (work.Skills.Contains(s.SkillId) || work.Dedicated == s.SkillId)).Sum(s => s.Amount);
 
     /// <summary>타고 있는 배의 옵션 스킬 효과의 합.</summary>
     public double Option(string effect) => OptionAmount(Work, effect);
+
+    /// <summary>
+    /// 전용함 스킬로 붙일 수 있는 것들 — 선박 스킬 가운데 관리기술을 요구하는 것(자료에 「전용함 스킬」 표시가 없어 이렇게 가른다).
+    /// 배의 크기에 따른 제약은 자료가 없어 못 따진다.
+    /// </summary>
+    public List<OptionSkill> DedicatedSkills() =>
+        Data.OptionSkills.Where(s => Data.ShipSkillFacts.Find(f => f.Name == s.Name) is { } fact && fact.Needs.Contains("관리기술")).ToList();
+
+    /// <summary>전용함 스킬의 유효조건 — 요구하는 관리기술 랭크(없으면 0).</summary>
+    public int DedicatedNeed(OptionSkill skill)
+    {
+        string needs = Data.ShipSkillFacts.Find(f => f.Name == skill.Name)?.Needs ?? "";
+        foreach (string part in needs.Split(','))
+            if (part.Contains("관리기술") && int.TryParse(part.Trim().Split(' ')[^1], out int rank)) return rank;
+        return 0;
+    }
+
+    /// <summary>내 관리기술 랭크.</summary>
+    public int ManagementRank => Data.Skills.Find(s => s.Name == "관리기술") is { } skill ? Rank(skill.Id) : 0;
+
+    /// <summary>전용함 스킬 하나에 드는 전용함 건조 허가증 — 중형 2장(소형 1 · 대형 3 은 짐작).</summary>
+    public static int PermitsFor(ShipData ship) => ship.SizeClass switch { <= 1 => 1, 2 => 2, _ => 3 };
+
+    public string? DedicatedBlocker(OptionSkill skill)
+    {
+        if (Work.Dedicated == skill.SkillId) return "이미 이 전용함 스킬이 붙어 있다";
+        int have = Items.GetValueOrDefault(ShipPermit), need = PermitsFor(Ship);
+        return have < need ? $"전용함 건조 허가증 {need}장이 있어야 한다 (가진 수 {have})" : null;
+    }
+
+    /// <summary>전용함 스킬을 붙인다 — 한 척에 하나라서 이미 있으면 바꿔 단다.</summary>
+    public void GiveDedicated(OptionSkill skill)
+    {
+        if (DedicatedBlocker(skill) != null) return;
+        int need = PermitsFor(Ship);
+        if ((Items[ShipPermit] -= need) <= 0) Items.Remove(ShipPermit);
+        string was = Work.Dedicated > 0 ? OptionName(Work.Dedicated) : "";
+        Work.Dedicated = skill.SkillId;
+        Say(was == "" ? $"{Ship.Name}에 전용함 스킬 「{skill.Name}」을(를) 붙였다. (허가증 {need}장)" : $"{Ship.Name}의 전용함 스킬을 「{was}」에서 「{skill.Name}」(으)로 바꿨다. (허가증 {need}장)");
+        if (ManagementRank < DedicatedNeed(skill)) Say($"전용함 스킬의 유효조건을 만족하지 않습니다. (관리기술 {DedicatedNeed(skill)} 필요 · 지금 {ManagementRank})");
+    }
 
     public string OptionName(int skillId) => Data.OptionSkills.Find(s => s.SkillId == skillId)?.Name ?? SkillName(skillId);
 
@@ -226,7 +271,7 @@ internal sealed partial class Voyage
     public void ResetWork()
     {
         if (Mode != Mode.Port || Work.Times == 0) return;
-        Work = new ShipWork();
+        Work = new ShipWork { Dedicated = Work.Dedicated };          // 전용함 스킬은 초기화에서 빠진다(원본의 안내 글 6843)
         Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
         Durability = Math.Min(Durability, Stats.Durability);
         Crew = Math.Min(Crew, Stats.MaxCrew);

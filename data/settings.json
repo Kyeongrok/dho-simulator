@@ -54,10 +54,10 @@
   "StartSkyPhase": 0.4,
   "SecondsPerDay": 60,
   "SecondsPerSkyCycle": 600,
-  "WindowWidth": 1280,
-  "WindowHeight": 800,
+  "WindowWidth": 2560,
+  "WindowHeight": 1440,
   "Fullscreen": false,
-  "UiScale": 0,
+  "UiScale": 1.75,
   "MusicVolume": 0.5,
   "SeaMapScale": 0.9,
   "Keys": {
@@ -66,7 +66,9 @@
     "UseSkills": 69,
     "Items": 51
   },
-  "SoundMemos": {},
+  "SoundMemos": {
+    "14:15": "돛 조종 켜질 때 "
+  },
   "Sounds": {
     "Skill": "5:0",
     "Turn": "9:0"

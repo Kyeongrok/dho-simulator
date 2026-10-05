@@ -71,10 +71,11 @@ internal sealed class ShipModel : IDisposable
     }
 
     /// <summary>
-    /// 제 돛이 없는 배(선체 뒤에 돛 모형이 안 따라오는 배 — sh0001 의 배들)는 다른 배의 돛을 빌려 쓴다.
+    /// 선체 뒤에 돛 모형이 안 따라오는 배의 돛을 찾아 세운다.
     /// 배 모형 표 <c>0001\0002.bin</c>: 머리 0x18 뒤로 64바이트 줄 — u16 선체 자원, u16 모형 번호 − 1, u16 NL 자원, 6바이트, f32 크기 비, u32,
-    /// u16 × 5 텍스처 벌, u16 × 5 돛대 갈래, u16 × 5 뼈대 자원, u16 × 5 돛 자원. 자원 번호는 .tbl 을 거치는데(못 풀었다)
-    /// 앞쪽 번호(SHIP01 ~ 17 의 것)는 sh0000 의 항목 차례와 같다 — 빌려 쓰는 돛이 그 안에 있을 때만 세운다.
+    /// u16 × 5 텍스처 벌, u16 × 5 돛대 갈래, u16 × 5 뼈대 자원, u16 × 5 돛 자원. 자원 번호는 배마다 「선체, (뼈대, 돛) × 돛대, NL」 차례로
+    /// 이어진다 — 돛 자원이 어느 배의 선체 ~ NL 사이에 드는지로 임자와 몇째 돛대인지를 안다(남의 돛을 빌리는 배도 같다).
+    /// 자원 번호 → 묶음 항목은 .tbl 을 거치는데(못 풀었다), 임자 배의 선체 항목을 이름으로 찾아 그 뒤의 돛을 쓴다.
     /// </summary>
     private void BorrowSails(Gfx gfx, int model)
     {
@@ -82,22 +83,80 @@ internal sealed class ShipModel : IDisposable
         {
             var table = Dho.Data.GvoFiles.Read(@"0001\0002.bin");
             int rows = BinaryPrimitives.ReadInt32LittleEndian(table.AsSpan(0x14));
-            var first = new Pack(@"0001\sh0000.bin");
+            int U16(int at) => BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(at));
             for (int k = 0; k < rows; k++)
             {
                 int row = 0x18 + 64 * k;
-                if (BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(row + 2)) + 1 != model) continue;
+                if (U16(row + 2) + 1 != model) continue;
                 for (int mast = 0; mast < 5; mast++)
                 {
-                    int sail = BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(row + 20 + 30 + mast * 2));
-                    if (sail == 0xFFFF || sail >= 124) continue;          // 124 부터는 자원 번호와 항목 차례가 어긋난다
-                    var data = first.Entry(sail);
-                    if (data.Length >= 0x80 && data.AsSpan(0, 4).SequenceEqual("XKMD"u8)) Load(gfx, data, isHull: false);
+                    int sail = U16(row + 20 + 30 + mast * 2);
+                    if (sail == 0xFFFF) continue;
+                    for (int o = 0; o < rows; o++)
+                    {
+                        int owner = 0x18 + 64 * o, hull = U16(owner), end = U16(owner + 4);
+                        if (sail <= hull || sail >= end || (sail - hull) % 2 != 0) continue;
+                        if (SailEntry(U16(owner + 2) + 1, (sail - hull) / 2 - 1, OwnMasts(table, owner)) is { } at)
+                        {
+                            var data = new Pack(at.Pack).Entry(at.Entry);
+                            if (data.Length >= 0x80 && data.AsSpan(0, 4).SequenceEqual("XKMD"u8)) Load(gfx, data, isHull: false);
+                        }
+                        break;
+                    }
                 }
                 return;
             }
         }
         catch (Exception) { }                      // 표나 묶음을 못 읽으면 돛 없이 둔다
+    }
+
+    /// <summary>표의 한 줄에서 제 것인 돛(자원 번호가 제 선체 ~ NL 사이)의 수.</summary>
+    private static int OwnMasts(byte[] table, int row)
+    {
+        int hull = BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(row)), end = BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(row + 4)), own = 0;
+        for (int mast = 0; mast < 5; mast++)
+            if (BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(row + 50 + mast * 2)) is var sail && sail > hull && sail < end) own++;
+        return own;
+    }
+
+    /// <summary>
+    /// 배 <paramref name="model"/> 의 <paramref name="mast"/> 째 돛이 든 묶음 항목.
+    /// 보통은 선체 바로 뒤에 (뼈대, 돛) 쌍이 따라온다. 선체 뒤가 곧 NL 인 배(sh0001 의 SHIP64 ~ 66 …)는 돛이 뒤로 밀려 있다 —
+    /// 「선체, NL」 만 늘어선 줄 끝에 (뼈대, 돛) 쌍이 몰려 있고, 그 쌍들은 줄의 뒤쪽 배부터 제 돛대 수만큼 차지한다(크기로 맞춰 본 것).
+    /// </summary>
+    private static (string Pack, int Entry)? SailEntry(int model, int mast, int masts)
+    {
+        _names ??= IndexNames();
+        if (mast < 0 || !_names.TryGetValue($"SHIP{model:D2}_01", out var found)) return null;
+        var pack = new Pack(found.Pack);
+        bool Model(int entry) => entry < pack.Count && pack.Slice(entry, 0, 4).AsSpan().SequenceEqual("XKMD"u8);
+        bool Named(int entry, string start) => Model(entry) && NameOf(pack, entry).StartsWith(start, StringComparison.OrdinalIgnoreCase);
+        bool Hull(int entry) => Model(entry) && !Named(entry, "NL_") && pack.Size(entry) > 100_000;
+
+        // 선체 바로 뒤의 쌍
+        int pairs = 0;
+        while (Model(found.Entry + 1 + pairs * 2 + 1) && !Named(found.Entry + 1 + pairs * 2, "NL_") && !Named(found.Entry + 1 + pairs * 2 + 1, "NL_")) pairs++;
+        if (pairs > 0) return mast < pairs ? (found.Pack, found.Entry + 2 + mast * 2) : null;
+
+        // 뒤로 밀린 쌍 — 「선체, NL」 줄을 지나 처음 나오는 쌍들
+        int at = found.Entry, after = 0;          // after = 이 배 뒤로 줄에 선 배들이 차지할 쌍의 수
+        while (Hull(at) && Named(at + 1, "NL_")) { if (at != found.Entry) after += Math.Max(1, OwnMastsOf(NameOf(pack, at))); at += 2; }
+        if (Hull(at) && !Named(at + 1, "NL_") && pack.Size(at + 1) < 100_000) { after++; at++; }     // 줄 끝의 NL 없는 선체
+        int run = 0;
+        while (Model(at + run * 2 + 1) && !Hull(at + run * 2) && !Hull(at + run * 2 + 1) && !Named(at + run * 2, "NL_") && !Named(at + run * 2 + 1, "DECO") && !Named(at + run * 2 + 1, "NL_") && pack.Size(at + run * 2) < 8_000) run++;
+        int index = run - after - masts + mast;
+        return index >= 0 && index < run ? (found.Pack, at + index * 2 + 1) : null;
+    }
+
+    /// <summary>선체 이름(SHIPnn_01)의 배가 제 것으로 가진 돛의 수 — 표에 없으면 0.</summary>
+    private static int OwnMastsOf(string hullName)
+    {
+        if (hullName.Length < 6 || !int.TryParse(hullName.AsSpan(4, hullName.IndexOf('_') - 4), out int model)) return 0;
+        var table = Dho.Data.GvoFiles.Read(@"0001\0002.bin");
+        int rows = BinaryPrimitives.ReadInt32LittleEndian(table.AsSpan(0x14));
+        for (int k = 0; k < rows; k++)
+            if (BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(0x18 + 64 * k + 2)) + 1 == model) return OwnMasts(table, 0x18 + 64 * k);
+        return 0;
     }
 
     private static Dictionary<string, (string, int)> IndexNames()

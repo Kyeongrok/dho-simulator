@@ -105,6 +105,8 @@ internal sealed partial class Voyage
                 "Cure" => $"{Data.Disasters.Find(d => d.Id == (int)known.Amount)?.Name ?? "재해"}을(를) 가라앉힌다.",
                 "Lifebuoy" => "난파할 때 저절로 쓰여 한 번 버틴다.",
                 "SailPaint" => "쓰면 돛의 무늬와 색을 고르는 창이 뜬다. 대장간 · 도구점에서 판다.",
+                "Paper" when known.Id == MedalPaper => $"{PermitCost}장을 본거지 왕궁의 서기관에게 가져가면 전용함 건조 허가증으로 바꿔 준다.",
+                "Paper" when known.Id == ShipPermit => $"국가공헌 훈장증서 {PermitCost}장과 바꾼 증서.",
                 _ => "",
             };
         if (item > MaterialItem && item < MaterialItem + 1000 && MaterialOf(item - MaterialItem) is { } wood)
@@ -114,10 +116,22 @@ internal sealed partial class Voyage
         return $"쓰면 {job.Name}(으)로 전직한다." + (line == "" ? "" : $" ({line} 계열)");
     }
 
+    /// <summary>국가공헌 훈장증서 · 전용함 건조 허가증(items.json), 허가증 한 장에 드는 훈장증서.</summary>
+    public const int MedalPaper = 9_300_001, ShipPermit = 9_300_002, PermitCost = 200;
+
+    /// <summary>본거지 왕궁의 서기관 — 국가공헌 훈장증서 200장을 전용함 건조 허가증 한 장으로 바꾼다.</summary>
+    public void ExchangePermit()
+    {
+        if (!AtCourt || Items.GetValueOrDefault(MedalPaper) < PermitCost) return;
+        if ((Items[MedalPaper] -= PermitCost) <= 0) Items.Remove(MedalPaper);
+        Items[ShipPermit] = Items.GetValueOrDefault(ShipPermit) + 1;
+        Say($"서기관에게 국가공헌 훈장증서 {PermitCost}장을 건네고 전용함 건조 허가증을 받았다.");
+    }
+
     public void AddItem(int item, int count = 1)
     {
         Items[item] = Items.GetValueOrDefault(item) + count;
-        Say($"{ItemName(item)}을(를) 얻었다.");
+        Say(count > 1 ? $"{ItemName(item)} {count}개를 얻었다." : $"{ItemName(item)}을(를) 얻었다.");
     }
 
     public void UseItem(int item)
