@@ -78,6 +78,8 @@ public sealed class ShipMaterial
     public double Sail { get; set; } = 1;
     public int MinRank { get; set; }
     public double Price { get; set; } = 1;
+    /// <summary>이 재질로 지은 배의 선체 빛깔(0xRRGGBB) — 이름에서 지어낸 것이다(원본의 재질별 텍스처는 못 찾았다).</summary>
+    public int Color { get; set; } = 0xFFFFFF;
 }
 
 /// <summary>강화에 넣는 조선 부품. 이름은 원본의 것이고 올리는 능력치 · 양 · 값은 지은 것이다.</summary>

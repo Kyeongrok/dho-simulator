@@ -28,6 +28,7 @@ internal sealed class GameWindow : IDisposable
     private Terrain _terrain = null!;
     private ShipModel _ship = null!;
     private int _shipModel;
+    private (ShipModel? Ship, int Pattern, int Tint) _sailShown;
     private PortScene? _port;
     private PortScene? _town;
     private int _townCity;
@@ -56,6 +57,13 @@ internal sealed class GameWindow : IDisposable
     // 시점: 배를 가운데 두고 도는 카메라
     private float _yaw = 2.75f, _pitch = 0.50f, _distance = 30000f;
     private bool _orbiting, _leftDown;
+    private int _orbitMoved;
+    private (float X, float Y, float W, float H)? _previewBox;
+    private CharacterModel? _maidModel, _previewFigure;
+    private (int, int, int, int, int) _previewLooks;
+    private float _previewYaw = 2.3f, _previewPitch = 0.28f, _previewZoom = 1f;
+    private bool OverPreview => _previewBox is { } b && _mouseX >= b.X && _mouseX < b.X + b.W && _mouseY >= b.Y && _mouseY < b.Y + b.H;
+    private float? _yawGoal;
     private int _mouseX, _mouseY, _dragX, _dragY;
     private bool _clicked;
     private readonly HashSet<int> _keys = [];
@@ -100,6 +108,8 @@ internal sealed class GameWindow : IDisposable
         _hud = new Hud(_canvas, _voyage)
         {
             SetDisplay = SetDisplay, WalkTo = WalkTo, JumpTo = JumpTo,
+            PlaySound = which => (_sounds ??= new Dho.Audio.SoundEffects()).Play(which),
+            SoundCount = bank => (_sounds ??= new Dho.Audio.SoundEffects()).Count(bank),
             Minimize = () => Win32.ShowWindow(_hwnd, Win32.SW_MINIMIZE),
             Quit = () => Win32.PostMessageW(_hwnd, Win32.WM_CLOSE, IntPtr.Zero, IntPtr.Zero),
             PartCount = (frame, part) => CharacterModel.PartsOf(frame).TryGetValue(part, out var list) ? list.Count : 0,
@@ -154,6 +164,10 @@ internal sealed class GameWindow : IDisposable
         int screenWidth = Win32.GetSystemMetrics(Win32.SM_CXSCREEN), screenHeight = Win32.GetSystemMetrics(Win32.SM_CYSCREEN);
         // 화면보다 큰 창은 못 만든다(윈도가 창을 화면 크기로 막는다)
         (width, height) = (Math.Min(width, screenWidth), Math.Min(height, screenHeight));
+        // 창으로 띄울 때는 작업 표시줄을 뺀 자리 안에 들어가게 줄이고 그 가운데에 둔다 — 넘치면 아래쪽 화면 글이 가려진다
+        var work = new Win32.Rect { Left = 0, Top = 0, Right = screenWidth, Bottom = screenHeight };
+        if (!fullscreen && Win32.SystemParametersInfoW(0x0030, 0, ref work, 0))
+            (width, height) = (Math.Min(width, work.Width), Math.Min(height, work.Height));
         if (fullscreen)
         {
             Win32.SetWindowLongPtrW(_hwnd, Win32.GWL_STYLE, (IntPtr)unchecked((uint)(Win32.WS_POPUP | Win32.WS_VISIBLE)));
@@ -163,12 +177,13 @@ internal sealed class GameWindow : IDisposable
         {
             var rect = new Win32.Rect { Left = 0, Top = 0, Right = width, Bottom = height };
             Win32.SetWindowLongPtrW(_hwnd, Win32.GWL_STYLE, (IntPtr)unchecked((uint)(Win32.WS_OWNTITLE | Win32.WS_VISIBLE)));
-            Win32.SetWindowPos(_hwnd, IntPtr.Zero, Math.Max(0, (screenWidth - rect.Width) / 2), Math.Max(0, (screenHeight - rect.Height) / 2),
+            Win32.SetWindowPos(_hwnd, IntPtr.Zero, work.Left + Math.Max(0, (work.Width - rect.Width) / 2), work.Top + Math.Max(0, (work.Height - rect.Height) / 2),
                 rect.Width, rect.Height, Win32.SWP_NOZORDER | Win32.SWP_FRAMECHANGED | Win32.SWP_SHOWWINDOW);
         }
         if (!remember) return;
         var settings = _voyage.Data.Settings;
         (settings.WindowWidth, settings.WindowHeight, settings.Fullscreen) = (width, height, fullscreen);
+        settings.UiScale = 0;                       // 해상도를 바꾸면 화면 글 배율은 자동(해상도에 맞춤)으로 돌아간다
         _voyage.Data.SaveSettings();
     }
 
@@ -179,7 +194,8 @@ internal sealed class GameWindow : IDisposable
         {
             if (_scripted && !_scaleInScript) return 1;
             double set = _voyage?.Data.Settings.UiScale ?? 0;
-            return (float)Math.Clamp(set > 0 ? set : Win32.GetDpiForWindow(_hwnd) / 96.0, 0.75, 3);
+            // 자동: 창의 높이에 맞춘다 — 1080 줄에서 1 배(1440 → 1.33, 1800 → 1.67, 2160 → 2). 윈도 배율을 따르면 큰 해상도에서 화면 글이 너무 커진다
+            return (float)Math.Clamp(set > 0 ? set : Math.Max(1, (_gfx?.Height ?? 1080) / 1080.0), 0.75, 3);
         }
     }
 
@@ -281,8 +297,15 @@ internal sealed class GameWindow : IDisposable
 
             case Win32.WM_MOUSEMOVE:
                 int x = Win32.LowWord(lParam), y = Win32.HighWord(lParam);
+                if (_leftDown && OverPreview)
+                {
+                    _previewYaw += (x - _mouseX) * 0.01f;
+                    _previewPitch = Math.Clamp(_previewPitch + (y - _mouseY) * 0.006f, -0.2f, 1.2f);
+                }
                 if (_orbiting)
                 {
+                    _orbitMoved += Math.Abs(x - _mouseX) + Math.Abs(y - _mouseY);
+                    _yawGoal = null;
                     _yaw -= (x - _mouseX) * 0.006f;
                     _pitch = Math.Clamp(_pitch + (y - _mouseY) * 0.005f, 0.06f, 1.45f);
                 }
@@ -290,12 +313,14 @@ internal sealed class GameWindow : IDisposable
                 _mouseY = y;
                 return IntPtr.Zero;
             case Win32.WM_RBUTTONDOWN:
-                _orbiting = true;
+                (_orbiting, _orbitMoved) = (true, 0);
                 Win32.SetCapture(hWnd);
                 return IntPtr.Zero;
             case Win32.WM_RBUTTONUP:
                 _orbiting = false;
                 Win32.ReleaseCapture();
+                // 바다에서 끌지 않고 오른쪽 단추만 누르면 카메라가 뱃머리 쪽을 보게 배 뒤로 돈다
+                if (_orbitMoved < 6 && _voyage.Mode == Mode.Sea) _yawGoal = -(float)_voyage.Heading;
                 return IntPtr.Zero;
             case Win32.WM_LBUTTONDOWN:
                 _leftDown = true;
@@ -308,6 +333,7 @@ internal sealed class GameWindow : IDisposable
                 return IntPtr.Zero;
             case Win32.WM_MOUSEWHEEL:
                 int wheel = (short)((long)wParam >> 16);
+                if (OverPreview) { _previewZoom = Math.Clamp(_previewZoom * MathF.Pow(0.88f, wheel / 120f), 0.08f, 2.5f); return IntPtr.Zero; }
                 if (_hud != null && _hud.Wheel(wheel / 120)) return IntPtr.Zero;      // 창이 떠 있으면 목록을 굴린다
                 _distance = Math.Clamp(_distance * MathF.Pow(0.88f, wheel / 120f), Walking ? 500f : 9000f, 160000f);
                 return IntPtr.Zero;
@@ -315,8 +341,32 @@ internal sealed class GameWindow : IDisposable
         return Win32.DefWindowProcW(hWnd, msg, wParam, lParam);
     }
 
+    private Dho.Audio.SoundEffects? _sounds;
+    private double _turnSounded = -10;
+
+    /// <summary>설정에 적힌 효과음을 튼다. 대본으로 돌릴 때는 조용히.</summary>
+    private void PlayCue(string cue)
+    {
+        var sounds = _voyage.Data.Settings.Sounds;
+        // 돛 조종 소리를 따로 안 정했으면 스킬 소리를 쓴다
+        if (_scripted || !(sounds.TryGetValue(cue, out string? which) || (cue == "Sail" && sounds.TryGetValue("Skill", out which))) || string.IsNullOrEmpty(which)) return;
+        (_sounds ??= new Dho.Audio.SoundEffects()).Play(which);
+    }
+
     private void KeyPressed(int key)
     {
+        // 바다에서 키를 꺾을 때 — 잇달아 눌러도 소리는 띄엄띄엄
+        if (_voyage.Created && _voyage.Mode == Mode.Sea && _voyage.Dialog == Dialog.None && key is 'A' or 'D' or Win32.VK_LEFT or Win32.VK_RIGHT && _voyage.Clock - _turnSounded > 1.2)
+        {
+            _turnSounded = _voyage.Clock;
+            PlayCue("Turn");
+        }
+        // 찾기 칸에 글자를 치는 동안은 단축키가 듣지 않는다(위아래 글쇠와 Esc 는 빼고)
+        if (_hud.Typing && key is not (Win32.VK_UP or Win32.VK_DOWN))
+        {
+            if (key == Win32.VK_ESCAPE) _hud.StopTyping();
+            return;
+        }
         // 단축키 등록 창이 글쇠를 기다리는 중이면 그 글쇠를 그 일에 맨다(Esc 는 그만두기)
         if (_hud.KeyWaiting is { } waiting)
         {
@@ -356,6 +406,9 @@ internal sealed class GameWindow : IDisposable
             case "Outfit": Toggle(Dialog.Character); return;
             case "Skills": Toggle(Dialog.Skills); return;
             case "ShipInfo": Toggle(Dialog.ShipInfo); return;
+            case "Pause": _voyage.Paused = !_voyage.Paused; return;
+            case "Cargo": Toggle(Dialog.Cargo); return;
+            case "Fitting": Toggle(Dialog.Fitting); return;
             case "Quick": _hud.QuickOpen = !_hud.QuickOpen; return;
         }
         switch (key)
@@ -475,7 +528,14 @@ internal sealed class GameWindow : IDisposable
     private void Render()
     {
         // 배가 장면의 원점이다
+        while (_voyage.Cues.TryDequeue(out string? cue)) PlayCue(cue);
         float sway = (float)Math.Sin(_voyage.Clock * 1.1);
+        if (_yawGoal is { } yawGoal)
+        {
+            float turn = MathF.IEEERemainder(yawGoal - _yaw, MathF.Tau);
+            _yaw += turn * 0.15f;
+            if (MathF.Abs(turn) < 0.01f) _yawGoal = null;
+        }
         bool town = _voyage.Mode == Mode.Port && _voyage.TownView && _voyage.City.TownScene != 0;
         if (town) LoadTown();
         if (town != _townView)
@@ -537,7 +597,7 @@ internal sealed class GameWindow : IDisposable
         _viewProjection = view * projection;
         Matrix4x4.Invert(_viewProjection, out var inverse);
 
-        // 날씨가 궂을수록 하늘이 가라앉고 멀리 안 보인다
+        // 날씨가 궂을수록 하늘이 가라앉는다. 먼 데만 조금 더 흐려지고 내 배와 둘레 바다는 또렷해야 한다
         float overcast = _voyage.Mode != Mode.Sea ? 0 : _voyage.Weather switch { Weather.Storm => 1f, Weather.Rain => 0.7f, Weather.Cloudy => 0.35f, _ => 0f };
         _overcast += (overcast - _overcast) * 0.02f;
         // 방 안은 바깥이 밤이어도 등불 밑이다 — 늘 낮의 밝기로 그린다
@@ -552,7 +612,7 @@ internal sealed class GameWindow : IDisposable
             SunDirection = sky.LightDirection,
             Night = sky.Night,
             SunColor = sky.LightColor,
-            FogDensity = 0.0000032f * (1 + _overcast * 3),
+            FogDensity = 0.0000032f * (1 + _overcast * 0.5f),
             Ambient = sky.Ambient,
             HorizonColor = sky.Horizon,
             ZenithColor = sky.Zenith,
@@ -587,7 +647,14 @@ internal sealed class GameWindow : IDisposable
         var shipWorld = Matrix4x4.CreateRotationZ(roll)
                         * Matrix4x4.CreateRotationY(inPort ? _berth!.Yaw : MathF.PI - (float)_voyage.Heading)
                         * Matrix4x4.CreateTranslation(0, sway * 60f, 0);
-        if (!town) _ship.Draw(_scene, shipWorld);
+        if (_sailShown != (_ship, _voyage.SailPattern, _voyage.SailTint))
+        {
+            try { _ship.SetSail(_voyage.SailPattern, _voyage.SailTint); } catch (Exception) { }
+            _sailShown = (_ship, _voyage.SailPattern, _voyage.SailTint);
+        }
+        int wood = _voyage.MaterialOf(_voyage.ShipMaterialId)?.Color ?? 0xFFFFFF;
+        static Vector4 Rgb(int c) => new((c >> 16 & 255) / 255f, (c >> 8 & 255) / 255f, (c & 255) / 255f, 1);
+        if (!town) _ship.Draw(_scene, shipWorld, null, Rgb(wood));
 
         // 화면 글과 창
         _canvas.Scale = UiScale;
@@ -618,8 +685,58 @@ internal sealed class GameWindow : IDisposable
                 if (clip.W > 1) _hud.Target = ((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight);
             }
         }
+        _hud.ShipPreview = null;
+        _hud.FigurePreview = null;
+        _previewBox = null;
         _hud.Draw();
         _canvas.End();
+
+        // 부관고용 창의 오른쪽 칸: 고른 후보의 모습
+        if (_hud.FigurePreview is { } who)
+        {
+            var wanted = (who.Frame, who.Face, who.Hair, who.Body, who.Leg);
+            if (_previewFigure == null || _previewLooks != wanted)
+            {
+                _previewFigure?.Dispose();
+                (_previewFigure, _previewLooks) = (new CharacterModel(_gfx, new Looks(who.Frame, who.Face, who.Hair, who.Body, who.Leg, 0, -1)), wanted);
+            }
+            var eye = new Vector3(0, 110, 470);
+            var look = Matrix4x4.CreateLookAt(eye, new Vector3(0, 92, 0), Vector3.UnitY) * Matrix4x4.CreatePerspectiveFieldOfView(0.5f, who.W / who.H, 20f, 4000f);
+            Matrix4x4.Invert(look, out var lookInverse);
+            var noon = Sky.At(0.5);
+            _gfx.BeginInset(frame with
+            {
+                ViewProjection = look, InverseViewProjection = lookInverse, CameraPosition = eye, FogDensity = 0,
+                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
+            }, who.X * UiScale, (who.Y + Hud.TitleHeight) * UiScale, who.W * UiScale, who.H * UiScale);
+            _scene.BeginMeshes();
+            if (_previewFigure.Loaded) _previewFigure.Draw(_scene, Matrix4x4.CreateRotationY(0.35f), 0, 0, (float)_voyage.Clock);
+            _gfx.EndInset();
+        }
+
+        // 선박 정보 창의 왼쪽 칸: 타고 있는 배를 천천히 돌려 보인다
+        if (_hud.ShipPreview is { } box)
+        {
+            // 모형의 가운데를 칸 가운데에 두고 칸에 꽉 차게 — 끌면 돌고 휠로 다가선다(저절로 돌지 않는다)
+            _previewBox = (box.X * UiScale, (box.Y + Hud.TitleHeight) * UiScale, box.W * UiScale, box.H * UiScale);
+            float spin = _previewYaw;
+            var centre = _ship.Center;
+            float reach = _ship.Radius / MathF.Tan(0.31f) * 0.82f * _previewZoom;
+            var eye = centre + new Vector3(0, MathF.Sin(_previewPitch), MathF.Cos(_previewPitch)) * reach;
+            var look = Matrix4x4.CreateLookAt(eye, centre, Vector3.UnitY)
+                       * Matrix4x4.CreatePerspectiveFieldOfView(0.62f, box.W / box.H, 200f, 400000f);
+            Matrix4x4.Invert(look, out var lookInverse);
+            var noon = Sky.At(0.5);
+            _gfx.BeginInset(frame with
+            {
+                ViewProjection = look, InverseViewProjection = lookInverse, CameraPosition = eye, FogDensity = 0,
+                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
+            }, box.X * UiScale, (box.Y + Hud.TitleHeight) * UiScale, box.W * UiScale, box.H * UiScale);
+            _scene.BeginMeshes();
+            int timber = _voyage.MaterialOf(_voyage.ShipMaterialId)?.Color ?? 0xFFFFFF;
+            _ship.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(spin) * Matrix4x4.CreateTranslation(centre), null, new Vector4((timber >> 16 & 255) / 255f, (timber >> 8 & 255) / 255f, (timber & 255) / 255f, 1));
+            _gfx.EndInset();
+        }
 
         _overUi = _canvas.Pointer.Consumed;
         if (_clicked && !_canvas.Pointer.Consumed) SteerToPointer();
@@ -712,6 +829,28 @@ internal sealed class GameWindow : IDisposable
             if (_walk.X < min.X + 200 || _walk.X > max.X - 200 || _walk.Y < min.Z + 200 || _walk.Y > max.Z - 200)
                 _walk = new Vector2(_town.Center.X, _town.Center.Z);
             _walk = _grid.Nearest(_walk);
+            // 문짝을 찾았으면 문 안쪽에서 들어선다 — 닿는 자리를 거기서부터 센다(곳간 같은 막힌 칸에서 시작하지 않게)
+            if (_town.Door is { } entry)
+            {
+                var middle = Vector2.Normalize(new Vector2(_town.Center.X, _town.Center.Z) - entry + new Vector2(0.01f, 0));
+                var step = MathF.Abs(middle.X) > MathF.Abs(middle.Y) ? new Vector2(MathF.Sign(middle.X), 0) : new Vector2(0, MathF.Sign(middle.Y));
+                _walk = _grid.Nearest(entry + step * 260f);
+            }
+        }
+        if (!inside && _voyage.TownMap is { Marks.Count: > 0 } townMap)
+        {
+            // 시내: 항구 앞에서 들어선다. 집들에 둘러싸인 안뜰 같은 데서 시작하지 않게, 시설에 가장 많이 닿는 자리를 고른다
+            var starts = townMap.Marks.Where(m => m.Place is 5 or 4).Concat(townMap.Marks.Where(m => m.Place is 6 or 7 or 8)).Select(m => _grid.Nearest(m.Scene)).Append(_walk).ToList();
+            int most = -1;
+            var chosen = _walk;
+            foreach (var start in starts)
+            {
+                _grid.Seal(start);
+                int reached = townMap.Marks.Count(m => _grid.Reaches(m.Scene));
+                if (reached > most) (most, chosen) = (reached, start);
+                if (reached * 2 > townMap.Marks.Count) break;
+            }
+            _walk = chosen;
         }
         _grid.Seal(_walk);
         if (inside)
@@ -735,7 +874,10 @@ internal sealed class GameWindow : IDisposable
             if (_grid.Pocket() is { } pocket) (master, front) = (pocket.Inside, pocket.Front);
             // 방의 선분 자료 가운데 긴 것은 계산대 안쪽에서 사람이 서는 줄이다(짧은 것들은 의자) — 있으면 주인을 그 가운데에 세우고,
             // 말은 거기서 가장 가까운 닿는 자리(계산대 앞)에서 건다. 문은 계산대에서 가장 먼 벽 쪽으로 친다(문 자리는 자료에 없다)
-            var stand = _grid.Lines.Where(l => Vector3.Distance(l.A, l.B) > 150f).OrderByDescending(l => Vector3.Distance(l.A, l.B)).FirstOrDefault();
+            // 긴 선분이 여럿이면(주점의 긴 의자 여섯) 그것은 계산대 줄이 아니다 — 그런 방은 닿지 못하는 바닥(계산대 안쪽)을 쓴다
+            var longLines = _grid.Lines.Where(l => Vector3.Distance(l.A, l.B) is > 150f and < 900f).OrderByDescending(l => Vector3.Distance(l.A, l.B)).ToList();
+            var stand = longLines.Count is > 0 and <= 2 ? longLines[0] : default;
+            var along = _grid.Pocket()?.Axis ?? Vector2.UnitX;
             var door = _walk;
             if (stand != default)
             {
@@ -743,9 +885,46 @@ internal sealed class GameWindow : IDisposable
                 front = _grid.Reached(master) ?? front;
                 door = _grid.Reached(master, farthest: true) ?? door;
             }
+            // 손으로 적어 둔 자리가 있는 방은 그대로 세운다(계산대 안쪽) — 말은 계산대 건너편에서 건다
+            if ((_voyage.Data.Settings.RoomSpots.Find(r => r.Scene == scene) ?? Array.Find(SettingsData.KnownRoomSpots, r => r.Scene == scene)) is { } spot)
+            {
+                var face = new Vector2(spot.FaceX, spot.FaceZ);
+                master = new Vector2(spot.HostX, spot.HostZ);
+                front = _grid.Nearest(master + face * 420f);
+                along = (new Vector2(spot.MaidX, spot.MaidZ) - master) / 320f;
+            }
             if (_voyage.InteriorHost != "")
                 _keepers.Add((new TownMark(Voyage.InsideMaster, 0, 0, 0, front, 0), _voyage.InteriorHost, master, MathF.Atan2(front.X - master.X, front.Y - master.Y)));
+            // 문짝을 메시에서 찾았으면 출구는 그 문 앞이고, 들어설 때도 거기서 몇 걸음 안쪽에 선다
+            Vector2? inward = null;
+            if (_town.Door is { } leaf)
+            {
+                var toMiddle = Vector2.Normalize(new Vector2(_town.Center.X, _town.Center.Z) - leaf + new Vector2(0.01f, 0));
+                // 문은 벽에 붙어 있다 — 벽에 곧게 안쪽으로
+                inward = MathF.Abs(toMiddle.X) > MathF.Abs(toMiddle.Y) ? new Vector2(MathF.Sign(toMiddle.X), 0) : new Vector2(0, MathF.Sign(toMiddle.Y));
+                door = _grid.Reached(leaf + inward.Value * 140f) ?? _grid.Nearest(leaf + inward.Value * 140f);
+            }
             _keepers.Add((new TownMark(Voyage.InsideExit, 0, 0, 0, door, 0), "출구", door, 0));
+            // 주점의 여급 — 계산대 앞에서 손님 쪽을 본다
+            if (_voyage.InteriorDialog == Dialog.Tavern && _voyage.HasMaid)
+            {
+                // 주인 옆, 계산대 안쪽에 나란히 — 말은 그 앞(계산대 건너편)에서 건다
+                var maid = master + along * 320f;
+                var before = _grid.Nearest(front + along * 320f);
+                _keepers.Add((new TownMark(Voyage.InsideMaid, 0, 0, 0, before, 0), "여급", maid, MathF.Atan2(before.X - maid.X, before.Y - maid.Y)));
+            }
+            // 주점의 뱃사람 — 문 가까이에 서 있고, 말을 걸면 선원을 모집한다
+            if (_voyage.InteriorDialog == Dialog.Tavern)
+            {
+                var sailor = _grid.Reached(door + (inward ?? Vector2.Normalize(master - door + new Vector2(0.01f, 0))) * 420f + new Vector2(260, 120)) ?? door;
+                _keepers.Add((new TownMark(Voyage.InsideSailor, 0, 0, 0, sailor, 0), "뱃사람", sailor, MathF.Atan2(door.X - sailor.X, door.Y - sailor.Y)));
+            }
+            if (inward is { } into)
+            {
+                _walk = _grid.Reached(door + into * 220f) ?? door;
+                _walkYaw = MathF.Atan2(into.X, into.Y);
+                return;
+            }
             _walk = stand != default ? _grid.Nearest(door + Vector2.Normalize(master - door + new Vector2(0.01f, 0)) * 250f)
                                      : _grid.Nearest(_walk + Vector2.Normalize(far - _walk + new Vector2(0.01f, 0)) * 300f);
             return;
@@ -778,7 +957,7 @@ internal sealed class GameWindow : IDisposable
     private (TownMark Mark, string Name, Vector2 Spot, float Facing)? KeeperNear()
     {
         foreach (var keeper in _keepers)
-            if (Vector2.Distance(keeper.Spot, _walk) < 260f || (keeper.Mark.Place == Voyage.InsideMaster && Vector2.Distance(keeper.Mark.Scene, _walk) < 160f)) return keeper;
+            if (Vector2.Distance(keeper.Spot, _walk) < 220f || (keeper.Mark.Place is Voyage.InsideMaster or Voyage.InsideMaid && Vector2.Distance(keeper.Mark.Scene, _walk) < 160f)) return keeper;
         return null;
     }
 
@@ -794,7 +973,8 @@ internal sealed class GameWindow : IDisposable
             foreach (var keeper in _keepers)
             {
                 int wears = keeper.Name.Sum(c => c) % KeeperLooks.Length;
-                var _keeperModel = _keeperModels[wears] ??= new CharacterModel(_gfx, KeeperLooks[wears]);
+                var _keeperModel = keeper.Name == "여급" ? _maidModel ??= new CharacterModel(_gfx, new Looks(1, 3, 2, 25, 3, 0, -1))
+                                                        : _keeperModels[wears] ??= new CharacterModel(_gfx, KeeperLooks[wears]);
                 var at = new Vector3(keeper.Spot.X - _walk.X, _grid!.HeightAt(keeper.Spot.X, keeper.Spot.Y), keeper.Spot.Y - _walk.Y);
                 if (at.LengthSquared() > 9000f * 9000f || keeper.Name == "출구") continue;
                 if (_keeperModel.Loaded) _keeperModel.Draw(_scene, Matrix4x4.CreateRotationY(keeper.Facing) * Matrix4x4.CreateTranslation(at), 0, 0, (float)_voyage.Clock);
@@ -918,7 +1098,7 @@ internal sealed class GameWindow : IDisposable
                 string report = $"walk {_walk} foot {at.Y - 150} yaw {_yaw} pitch {_pitch} view {_viewPitch} sight {_sight} dist {_distance}";
                 for (float pitch = 0.1f; pitch < 1.5f; pitch += 0.2f)
                     report += $" | {pitch:F1}:{_grid.Sight(at, at + _distance * new Vector3(MathF.Cos(pitch) * MathF.Sin(_yaw), MathF.Sin(pitch), MathF.Cos(pitch) * MathF.Cos(_yaw))):F2}";
-                File.AppendAllText(argument, report + "\n");
+                File.AppendAllText(argument, report + $" door {_town?.Door} centre {_town?.Center}\n");
                 break;
             case "walkgrid":
                 if (_grid?.Picture() is { } picture) Png.Write(argument, picture.Width, picture.Height, picture.Rows);
@@ -935,6 +1115,7 @@ internal sealed class GameWindow : IDisposable
             case "key": KeyPressed(argument[0]); break;
             case "search": _voyage.Search(); break;
             case "yaw": _yaw = (float)Number(); break;
+            case "behind": _yawGoal = -(float)_voyage.Heading; break;
             case "pitch": _pitch = (float)Number(); break;
             case "zoom": _distance = (float)Number(); break;
             case "phase": _voyage.SetSkyPhase(Number()); break;
@@ -945,6 +1126,18 @@ internal sealed class GameWindow : IDisposable
             case "wizard": _hud.Fill(argument); break;
             case "create": _hud.Finish(); break;
             case "aides": _voyage.Dialog = Dialog.Aides; break;
+            case "day": _voyage.PassDay(); break;
+            case "mastery": _voyage.AddMastery((int)Number()); break;
+            case "jobs": _voyage.Dialog = Dialog.Jobs; break;
+            case "combine": if (_voyage.Dock.Count >= 2) _voyage.Combine(_voyage.Dock[0], _voyage.Dock[1]); break;
+            case "combinewindow": _voyage.Dialog = Dialog.Combine; break;
+            case "learnfrom": _voyage.LearnFrom((int)Number()); break;
+            case "cargo": _voyage.Dialog = Dialog.Cargo; break;
+            case "sail-look":
+                var sailLook = argument.Split(',');
+                _voyage.ShowSail(int.Parse(sailLook[0]), int.Parse(sailLook[1]));
+                break;
+            case "type": foreach (char c in argument) _hud.Type(c); break;
             case "university": _voyage.Dialog = Dialog.University; break;
             case "hire": if (_voyage.AidesToHire().ElementAtOrDefault((int)Number()) is { } who) _voyage.HireAide(who); break;
             case "court": _voyage.Dialog = Dialog.Court; break;

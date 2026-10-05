@@ -85,6 +85,8 @@ public partial class MainWindow : Window
         ItemGrid.ItemsSource = _data.Items;
         RecipeRuleGrid.ItemsSource = _data.RecipeRules;
         RecipeNameGrid.ItemsSource = _data.Recipes;
+        SoundGrid.ItemsSource = GameSounds.All();
+        ShowSoundCues();
         GoodGrid.ItemsSource = _data.Goods;
         StartLineGrid.ItemsSource = _data.Start.Lines;
         StartNationGrid.ItemsSource = _data.Start.Nations;
@@ -377,6 +379,34 @@ public partial class MainWindow : Window
         [nameof(VoyageRules.StormDurabilityPerDay)] = "폭풍에 돛을 편 채 하루에 잃는 내구",
         [nameof(VoyageRules.WreckMoneyLoss)] = "난파 때 잃는 소지금 비율",
     };
+
+    // ── 효과음 ───────────────────────────────────────────────────────────────
+
+    private readonly System.Media.SoundPlayer _soundPlayer = new();
+
+    private void PlaySelectedSound()
+    {
+        if (SoundGrid.SelectedItem is not GameSound sound || GameSounds.Wave(sound.Bank, sound.Index) is not { } wave) return;
+        _soundPlayer.Stop();
+        _soundPlayer.Stream = new System.IO.MemoryStream(wave);
+        try { _soundPlayer.Play(); } catch (Exception) { }
+    }
+
+    private void SoundGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) => PlaySelectedSound();
+    private void SoundPlay_Click(object sender, RoutedEventArgs e) => PlaySelectedSound();
+    private void SoundStop_Click(object sender, RoutedEventArgs e) => _soundPlayer.Stop();
+
+    /// <summary>고른 소리를 게임의 일(선회 · 돛 조종 · 스킬)에 맨다 — 저장해야 게임에 들어간다.</summary>
+    private void SoundAssign_Click(object sender, RoutedEventArgs e)
+    {
+        if (SoundGrid.SelectedItem is not GameSound sound || sender is not System.Windows.Controls.Button { Tag: string cue }) return;
+        _data.Settings.Sounds[cue] = sound.Key;
+        ShowSoundCues();
+    }
+
+    private void ShowSoundCues() =>
+        SoundAssigned.Text = "지금: " + string.Join("   ", new[] { ("Turn", "선회"), ("Sail", "돛 조종"), ("Skill", "스킬") }
+            .Select(c => $"{c.Item2} {(_data.Settings.Sounds.GetValueOrDefault(c.Item1) is { Length: > 0 } key ? key : "없음")}"));
 
     private void DeleteSave_Click(object sender, RoutedEventArgs e)
     {

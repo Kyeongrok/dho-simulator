@@ -11,7 +11,68 @@ internal sealed partial class Voyage
     /// <summary>수리에 쓰는 자재(보급품 「수리용 통」).</summary>
     private const int RepairSupply = 2;
 
-    private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest"];
+    private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest", "Speed", "Turn"];
+
+    /// <summary>
+    /// 켜 두는 스킬 — 돛 조종 · 조타 · 낚시 · 조달. 원본처럼 켜면 한동안 켜져 있다가 꺼지고(화면 오른쪽 가운데에 그림이 뜬다),
+    /// 켜져 있는 동안 돛 조종 · 조타는 효과가 걸리고 낚시 · 조달은 일정한 사이를 두고 저절로 된다.
+    /// 켜져 있는 시간 · 사이 · 한꺼번에 켜는 수는 지은 값이다.
+    /// </summary>
+    private static readonly string[] Sustained = ["Speed", "Turn", "Fish", "Procure", "Survey"];
+    public const int MaxSkillsOn = 3;
+    private const double OnSeconds = 180, TickSeconds = 15;
+    private readonly Dictionary<int, (double Until, double Next)> _skillOn = new();
+    private static readonly string[] Fishes = ["고등어", "정어리", "전갱이", "청어", "대구", "도미", "청상아리", "가다랑어"];
+
+    public bool SkillOn(int skillId) => _skillOn.ContainsKey(skillId);
+
+    /// <summary>켜져 있는 스킬과 남은 시간의 몫(0 ~ 1) — 켠 차례대로.</summary>
+    public List<(SkillRuleData Rule, double Left)> SkillsOn() =>
+        _skillOn.Select(on => (Rule: Data.SkillRules.Find(r => r.SkillId == on.Key), Left: Math.Clamp((on.Value.Until - Clock) / OnSeconds, 0, 1)))
+                .Where(on => on.Rule != null).Select(on => (on.Rule!, on.Left)).ToList();
+
+    /// <summary>바다에서 프레임마다 — 시간이 다 된 스킬을 끄고, 낚시 · 조달은 때가 되면 한 번 한다.</summary>
+    private void TickSkills()
+    {
+        foreach (var (id, on) in _skillOn.ToList())
+        {
+            var rule = Data.SkillRules.Find(r => r.SkillId == id);
+            if (rule == null || Clock >= on.Until)
+            {
+                _skillOn.Remove(id);
+                Say($"{SkillName(id)} 스킬의 효과가 끝났다.");
+                continue;
+            }
+            if (Clock < on.Next) continue;
+            _skillOn[id] = (on.Until, Clock + TickSeconds);
+            if (rule.Effect is "Fish" or "Procure") Gather(rule);
+        }
+    }
+
+    /// <summary>낚시 · 조달 한 번.</summary>
+    private void Gather(SkillRuleData rule)
+    {
+        int rank = Rank(rule.SkillId);
+        if (rule.Effect == "Fish")
+        {
+            // 배가 빠르면 낚싯줄을 드리우기 어렵다
+            double food = Math.Min(Rules.MaxFood - Food, Math.Round((1 + _random.NextDouble() * 2 + rank * rule.PerRank) * (Knots > 8 ? 0.5 : 1)));
+            if (food < 1) { Say("아무것도 낚지 못했다."); return; }
+            Food += food;
+            Say($"{Fishes[_random.Next(Fishes.Length)]}을(를) 낚아 올렸다. (식량 {food:0})");
+            Train(rule.SkillId, 20);
+        }
+        else
+        {
+            // 원본 설명대로 비가 올 때 제대로 모인다
+            bool rain = Weather is Weather.Rain or Weather.Storm;
+            double water = Math.Min(Rules.MaxWater - Water, (rain ? 6 : 1) + rank * rule.PerRank * (rain ? 1 : 0.3));
+            if (water <= 0) return;
+            Water += water;
+            Say(rain ? $"빗물을 받았다. (물 {water:0.#})" : $"해수를 걸러 물을 얻었다. (물 {water:0.#})");
+            Train(rule.SkillId, rain ? 25 : 8);
+        }
+    }
     private readonly Dictionary<int, double> _skillReady = new();
 
     /// <summary>익힌 스킬 가운데 바다에서 눌러 쓰는 것.</summary>
@@ -30,6 +91,8 @@ internal sealed partial class Voyage
     public string? SkillBlocker(SkillRuleData rule)
     {
         if (Mode != Mode.Sea) return "바다에서만 쓴다";
+        if (Sustained.Contains(rule.Effect))
+            return SkillOn(rule.SkillId) ? null : _skillOn.Count >= MaxSkillsOn ? $"스킬은 {MaxSkillsOn}개까지 켠다" : null;
         if (SkillWait(rule) > 0) return $"{SkillWait(rule):0}초 뒤";
         return rule.Effect switch
         {
@@ -53,7 +116,18 @@ internal sealed partial class Voyage
         if (Rank(rule.SkillId) <= 0) return;
         int rank = Rank(rule.SkillId);
         string name = SkillName(rule.SkillId);
+        if (Sustained.Contains(rule.Effect))
+        {
+            // 켜 두는 스킬: 다시 누르면 끈다
+            if (_skillOn.Remove(rule.SkillId)) { Say($"{name} 스킬을 껐다."); return; }
+            _skillOn[rule.SkillId] = (Clock + OnSeconds, Clock + TickSeconds);
+            Fatigue = Math.Min(100, Fatigue + 1);
+            Say($"{name} 스킬을 사용했다.");
+            Cues.Enqueue(rule.Effect == "Speed" ? "Sail" : "Skill");
+            return;
+        }
         _skillReady[rule.SkillId] = Clock + Pause(rule);
+        Cues.Enqueue("Skill");
         switch (rule.Effect)
         {
             case "Survey":

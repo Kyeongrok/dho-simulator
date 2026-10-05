@@ -336,6 +336,36 @@ public sealed class ResearchFact
     public int Credit { get; set; }
 }
 
+/// <summary>직업 하나 — 우대 스킬들과 전문 스킬(하나), 전직 비용.</summary>
+public sealed class JobFact
+{
+    public int No { get; set; }
+    public string Name { get; set; } = "";
+    public List<string> Skills { get; set; } = [];
+    public string Expert { get; set; } = "";
+    public long Cost { get; set; }
+}
+
+public sealed class ShipSkillFact
+{
+    public int No { get; set; }
+    public string Name { get; set; } = "";
+    public string Vigour { get; set; } = "";
+    public string Scope { get; set; } = "";
+    public string Needs { get; set; } = "";
+}
+
+public sealed class RoomSpot
+{
+    public int Scene { get; set; }
+    public float HostX { get; set; }
+    public float HostZ { get; set; }
+    public float FaceX { get; set; }
+    public float FaceZ { get; set; }
+    public float MaidX { get; set; }
+    public float MaidZ { get; set; }
+}
+
 public sealed class ResearchAction
 {
     public string Name { get; set; } = "";
@@ -346,7 +376,8 @@ public sealed class ItemData
 {
     public int Id { get; set; }
     public string Name { get; set; } = "";
-    /// <summary>Fatigue 피로를 Amount 만큼 풀기 · Repair 내구를 Amount % 고치기 · Cure 재해(Amount = 재해 번호) 풀기 · Lifebuoy 난파를 한 번 막고 내구 Amount % 로.</summary>
+    /// <summary>SailPaint 돛을 Amount(0xRRGGBB) 빛깔로 칠하기 ·
+    /// Fatigue 피로를 Amount 만큼 풀기 · Repair 내구를 Amount % 고치기 · Cure 재해(Amount = 재해 번호) 풀기 · Lifebuoy 난파를 한 번 막고 내구 Amount % 로.</summary>
     public string Effect { get; set; } = "";
     public double Amount { get; set; }
     public int Price { get; set; }
@@ -415,12 +446,18 @@ public sealed class SaveData
     /// <summary>타고 있는 배의 강화 — [횟수, 내구, 돛, 선회, 내파, 창고, 옵션 스킬 …]. 부두의 배는 DockWork 에 같은 차례로.</summary>
     public double[] Work { get; set; } = [];
     public List<double[]> DockWork { get; set; } = [];
+    /// <summary>부두의 배들의 돛 [무늬, 색] — Dock 과 같은 차례.</summary>
+    public List<int[]> DockSail { get; set; } = [];
     /// <summary>가진 레시피 번호들.</summary>
     public List<int> Recipes { get; set; } = [];
     /// <summary>작위(0 부터) · 공적 · 받은 칙명 id · 칙명의 진행(들른 곳 수나 보고한 발견 수).</summary>
     public int[] Court { get; set; } = [0, 0, 0, 0];
     /// <summary>은행에 맡긴 돈.</summary>
     public long Bank { get; set; }
+    /// <summary>돛의 빛깔(0xRRGGBB) — 돛 도료를 써서 바꾼다.</summary>
+    public int SailColor { get; set; } = 0xFFFFFF;
+    /// <summary>돛의 [무늬 0 ~ 17, 색 0 ~ 9].</summary>
+    public int[] SailLook { get; set; } = [0, 0];
     /// <summary>대학 — 전공, 하고 있는 연구 번호, 그 연구의 행동별 진행, 학점, 마친 연구 번호.</summary>
     public string Major { get; set; } = "";
     public int Research { get; set; }
@@ -433,6 +470,8 @@ public sealed class SaveData
     public List<double[]> Aides { get; set; } = [];
     /// <summary>타고 있는 배에 단 부품.</summary>
     public List<int> Parts { get; set; } = [];
+    /// <summary>가지고만 있는(배에 안 단) 선박부품의 번호들.</summary>
+    public List<int> PartStock { get; set; } = [];
     /// <summary>부두의 배들 — [배 id, 내구, 단 부품 …].</summary>
     public List<double[]> Dock { get; set; } = [];
     public int QuestId { get; set; }
@@ -470,8 +509,14 @@ public sealed class SettingsData
     public double UiScale { get; set; }
     /// <summary>배경음 크기(0 ~ 1). 0 이면 끈다.</summary>
     public double MusicVolume { get; set; } = 0.5;
+    /// <summary>바다의 둥근 지도 크기 배율(0.5 ~ 1.5).</summary>
+    public double SeaMapScale { get; set; } = 1;
     /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
     public Dictionary<string, int> Keys { get; set; } = new();
+    /// <summary>효과음 — 일 이름 → "묶음:차례"(<c>data\extracted\se-all</c> 의 파일 이름 앞 두 수). 빈 글이면 소리 없음.</summary>
+    /// <summary>효과음마다 적어 둔 메모 — "묶음:차례" → 글.</summary>
+    public Dictionary<string, string> SoundMemos { get; set; } = new();
+    public Dictionary<string, string> Sounds { get; set; } = new() { ["Skill"] = "5:0", ["Turn"] = "9:0" };
     public double MaxKnots { get; set; } = 14;
     /// <summary>1노트로 1초에 가는 세계 좌표.</summary>
     public double UnitsPerKnotSecond { get; set; } = 0.16;
@@ -484,6 +529,17 @@ public sealed class SettingsData
     public int MaxSkillRank { get; set; } = 15;
     /// <summary>랭크 r 에서 r+1 로 오르는 데 드는 숙련도 = 이 값 × r².</summary>
     public int SkillExpBase { get; set; } = 100;
+    /// <summary>
+    /// 방 안 사람이 서는 자리 — 클라이언트에 없어서(서버가 주는 값) 방 장면마다 손으로 적는다. 없는 방은 짐작으로 세운다.
+    /// 주인의 자리, 손님 쪽(말을 거는 쪽)으로의 방향, 여급의 자리(주점).
+    /// </summary>
+    public List<RoomSpot> RoomSpots { get; set; } = [];
+    /// <summary>손으로 재어 둔 자리 — 설정에 그 방이 없으면 이것을 쓴다. 3022 는 3021 과 같은 방이 z 로 300 밀린 꼴이다.</summary>
+    public static readonly RoomSpot[] KnownRoomSpots =
+    [
+        new RoomSpot { Scene = 3021, HostX = 1550, HostZ = 3750, FaceX = 1, FaceZ = 0, MaidX = 1550, MaidZ = 4150 },
+        new RoomSpot { Scene = 3022, HostX = 1550, HostZ = 4050, FaceX = 1, FaceZ = 0, MaidX = 1550, MaidZ = 4450 },
+    ];
     public List<BerthData> Berths { get; set; } = [new BerthData { Scene = 7004, X = 39500, Z = 28500, Yaw = 1.15f }];
 }
 
@@ -516,8 +572,43 @@ public sealed class GameData
     public List<RecipeData> Recipes { get; set; } = [];
     public List<RecipeRule> RecipeRules { get; set; } = [];
     public List<ItemData> Items { get; set; } = [];
+    private bool _materialsFromFacts;
+    /// <summary>선박 스킬 109가지의 이름 · 행동력 · 필요 스킬 — <c>data\extracted\shipskill-facts.json</c>(ssjoy 에서 모은 것, 저장소에는 안 둔다).</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<ShipSkillFact> ShipSkillFacts { get; set; } = [];
+    private List<OptionSkill>? _optionSkills;
+
+    /// <summary>
+    /// 붙일 수 있는 옵션 스킬 전부 — 효과를 정해 둔 것(<c>ship-works.json</c>) 뒤에, 이름만 아는 선박 스킬들이 온다.
+    /// 뒤의 것들은 효과가 없고(이름만 붙는다) 재료 조합은 겹치지 않게 차례로 지어 준 것이다.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public List<OptionSkill> OptionSkills
+    {
+        get
+        {
+            if (_optionSkills != null) return _optionSkills;
+            var all = new List<OptionSkill>(ShipWorks.Skills);
+            var used = all.Select(s => (Math.Min(s.PartA, s.PartB), Math.Max(s.PartA, s.PartB))).ToHashSet();
+            var pairs = new Queue<(int, int)>();
+            for (int gap = 1; gap < ShipWorks.Parts.Count; gap++)
+                for (int i = 0; i + gap < ShipWorks.Parts.Count; i++)
+                {
+                    var pair = (Math.Min(ShipWorks.Parts[i].Id, ShipWorks.Parts[i + gap].Id), Math.Max(ShipWorks.Parts[i].Id, ShipWorks.Parts[i + gap].Id));
+                    if (!used.Contains(pair)) pairs.Enqueue(pair);
+                }
+            foreach (var fact in ShipSkillFacts)
+            {
+                if (all.Exists(s => s.Name.Replace(" ", "") == fact.Name.Replace(" ", "")) || pairs.Count == 0) continue;
+                var (a, b) = pairs.Dequeue();
+                all.Add(new OptionSkill { SkillId = 3000 + fact.No, Name = fact.Name, PartA = a, PartB = b, Effect = "", Amount = 0 });
+            }
+            return _optionSkills = all;
+        }
+    }
     /// <summary>대학의 연구 목록 — <c>data\extracted\research-facts.json</c>(ssjoy 에서 모은 것, 저장소에는 안 둔다). 없으면 대학은 빈다.</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<ResearchFact> Research { get; set; } = [];
+    /// <summary>직업마다 우대 스킬 · 전문 스킬 · 전직 비용 — <c>data\extracted\job-facts.json</c>(ssjoy 에서 모은 것, 저장소에는 안 둔다).</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<JobFact> JobFacts { get; set; } = [];
     public List<ShipMaterial> ShipMaterials { get; set; } = [];
     public ShipWorkBook ShipWorks { get; set; } = new();
     public List<ShipPart> ShipParts { get; set; } = [];
@@ -583,6 +674,10 @@ public sealed class GameData
         ShipStats.Facts = (Read<List<ShipFact>>(Path.Combine(extracted, "ship-facts.json")) ?? [])
             .GroupBy(f => f.Name).ToDictionary(g => g.Key, g => g.First());
         data.Places = Read<List<NamedData>>(Path.Combine(extracted, "places.json")) ?? [];
+        // 기본 재질 98종(ssjoy 에서 모은 배율) — 있으면 저장소의 몇 가지 대신 쓴다
+        if (Read<List<ShipMaterial>>(Path.Combine(extracted, "material-facts.json")) is { Count: > 0 } materials) (data.ShipMaterials, data._materialsFromFacts) = (materials, true);
+        data.ShipSkillFacts = Read<List<ShipSkillFact>>(Path.Combine(extracted, "shipskill-facts.json")) ?? [];
+        data.JobFacts = Read<List<JobFact>>(Path.Combine(extracted, "job-facts.json")) ?? [];
         data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
         data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
@@ -594,7 +689,7 @@ public sealed class GameData
         data.RecipeRules = Read<List<RecipeRule>>(Path.Combine(directory, "recipes.json")) ?? [];
         data.Recipes = Read<List<RecipeData>>(Path.Combine(extracted, "recipes.json")) ?? [];
         data.ShipWorks = Read<ShipWorkBook>(Path.Combine(directory, "ship-works.json")) ?? new ShipWorkBook();
-        data.ShipMaterials = Read<List<ShipMaterial>>(Path.Combine(directory, "ship-materials.json")) ?? [];
+        if (!data._materialsFromFacts) data.ShipMaterials = Read<List<ShipMaterial>>(Path.Combine(directory, "ship-materials.json")) ?? [];
         data.Items = Read<List<ItemData>>(Path.Combine(directory, "items.json")) ?? [];
         data.Orders = Read<OrderBook>(Path.Combine(directory, "orders.json")) ?? new OrderBook();
         data.Disasters = Read<List<DisasterData>>(Path.Combine(directory, "disasters.json")) ?? [];
@@ -620,7 +715,7 @@ public sealed class GameData
         Write(Path.Combine(Directory, "quests.json"), Quests);
         Write(Path.Combine(Directory, "orders.json"), Orders);
         Write(Path.Combine(Directory, "items.json"), Items);
-        Write(Path.Combine(Directory, "ship-materials.json"), ShipMaterials);
+        if (!_materialsFromFacts) Write(Path.Combine(Directory, "ship-materials.json"), ShipMaterials);      // 모아 온 표는 저장소 쪽 파일에 적지 않는다
         Write(Path.Combine(Directory, "ship-works.json"), ShipWorks);
         Write(Path.Combine(Directory, "recipes.json"), RecipeRules);
         Write(Path.Combine(Directory, "disasters.json"), Disasters);

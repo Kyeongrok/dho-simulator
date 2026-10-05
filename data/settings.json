@@ -54,13 +54,22 @@
   "StartSkyPhase": 0.4,
   "SecondsPerDay": 60,
   "SecondsPerSkyCycle": 600,
-  "WindowWidth": 2560,
-  "WindowHeight": 1440,
+  "WindowWidth": 1280,
+  "WindowHeight": 800,
   "Fullscreen": false,
   "UiScale": 0,
   "MusicVolume": 0.5,
+  "SeaMapScale": 0.9,
   "Keys": {
-    "Map": 53
+    "Map": 53,
+    "Skills": 88,
+    "UseSkills": 69,
+    "Items": 51
+  },
+  "SoundMemos": {},
+  "Sounds": {
+    "Skill": "5:0",
+    "Turn": "9:0"
   },
   "MaxKnots": 14,
   "UnitsPerKnotSecond": 0.16,
@@ -104,6 +113,17 @@
   ],
   "MaxSkillRank": 15,
   "SkillExpBase": 100,
+  "RoomSpots": [
+    {
+      "Scene": 3021,
+      "HostX": 1550,
+      "HostZ": 3750,
+      "FaceX": 1,
+      "FaceZ": 0,
+      "MaidX": 1550,
+      "MaidZ": 4150
+    }
+  ],
   "Berths": [
     {
       "Scene": 7004,

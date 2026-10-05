@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 
@@ -83,13 +83,13 @@ internal sealed class SceneRenderer : IDisposable
             float3 lit = base.rgb * (Ambient + SunColor * diffuse);
             if (Params.x > 0.5)
             {
-                float3 x = base.rgb * 1.7;
+                float3 x = base.rgb * 1.55;
                 float3 over = max(x - 0.6, 0.0);
-                lit = (min(x, 0.6) + over / (1.0 + over * 2.5)) * clamp(Ambient.g + SunColor.g * 0.55, 0.66, 1.0);
+                lit = (min(x, 0.6) + over / (1.0 + over * 2.5)) * clamp(Ambient.g + SunColor.g * 0.55, 0.66, 0.84);
             }
             // figure: brightness only, no sky tint
             if (Params.z > 0.5)
-                lit = base.rgb * (0.62 + 0.55 * diffuse) * clamp(Ambient.g + SunColor.g * 0.55, 0.66, 1.0);
+                lit = base.rgb * (0.62 + 0.55 * diffuse) * clamp(Ambient.g + SunColor.g * 0.55, 0.66, 0.84);
             return float4(ApplyFog(lit, i.world), base.a);
         }
         """;

@@ -130,15 +130,17 @@ internal sealed partial class Voyage
             DoneQuests = _done.ToList(),
             Items = new Dictionary<int, int>(Items),
             Parts = Parts.Select(p => p.Id).ToList(),
+            PartStock = PartStock.Select(p => p.Id).ToList(),
             Recipes = Recipes.ToList(),
             QuickSlots = QuickSlots,
             Work = Work.ToArray(),
             DockWork = Dock.Select(d => d.Work.ToArray()).ToList(),
+            DockSail = Dock.Select(d => new[] { d.SailPattern, d.SailTint }).ToList(),
             Looks = Looks,
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            Bank = Savings,
+            Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
             Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp }).ToList(),
@@ -169,12 +171,19 @@ internal sealed partial class Voyage
         foreach (var (id, count) in save.Supplies) Supplies[id] = count;
         foreach (var (id, item) in save.Cargo) Cargo[id] = new CargoItem { Count = (int)item[0], Cost = item[1] };
         foreach (int id in save.DoneQuests) _done.Add(id);
-        foreach (var (id, count) in save.Items) Items[id] = count;
+        foreach (var (id, count) in save.Items)
+        {
+            // 옛 색깔별 돛 도료의 번호(9100002 ~ 8)는 이제 돛 도료 2 ~ 8 이다
+            int item = id;
+            Items[item] = Items.GetValueOrDefault(item) + count;
+        }
         foreach (var docked in save.Dock)
             if (Data.Ships.Find(s => s.Id == (int)docked[0]) is { } stored)
                 Dock.Add(new DockedShip
                 {
                     Ship = stored, Durability = docked[1],
+                    SailPattern = save.DockSail.ElementAtOrDefault(Dock.Count) is { Length: 2 } look ? look[0] : 0,
+                    SailTint = save.DockSail.ElementAtOrDefault(Dock.Count) is { Length: 2 } tint ? tint[1] : 0,
                     Material = docked.Length > 3 ? (int)docked[2] : 0, Load = docked.Length > 3 ? (int)docked[3] : 0,
                     Work = save.DockWork.ElementAtOrDefault(Dock.Count) is { } stored_work ? ShipWork.From(stored_work) : new ShipWork(),
                     Parts = docked.Skip(4).Select(id => Data.ShipParts.Find(p => p.Id == (int)id)).OfType<ShipPart>().ToList(),
@@ -183,6 +192,7 @@ internal sealed partial class Voyage
             if (saved.Length >= 4 && Data.Aides.Find(a => a.Id == (int)saved[0]) is { } who)
                 Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3] });
         Savings = Math.Max(0, save.Bank);
+        if (save.SailLook.Length == 2) (SailPattern, SailTint) = (save.SailLook[0], save.SailLook[1]);
         (Major, Credits, Studying) = (save.Major, save.Credits, Data.Research.Find(r => r.No == save.Research && save.Research != 0));
         foreach (var (action, count) in save.ResearchProgress) StudyProgress[action] = count;
         foreach (int done in save.ResearchDone) StudyDone.Add(done);
@@ -204,12 +214,13 @@ internal sealed partial class Voyage
         if (save.Work.Length >= 6)
         {
             Work = ShipWork.From(save.Work);
-            Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work);
+            Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
             Durability = Math.Clamp(save.Durability, 1, Stats.Durability);
         }
         if (save.Ordered.Length >= 4 && Data.Ships.Find(s => s.Id == (int)save.Ordered[0]) is { } building)
             Ordered = new ShipOrder { Ship = building, Material = (int)save.Ordered[1], Load = (int)save.Ordered[2], DaysLeft = save.Ordered[3] };
         Parts = save.Parts.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>().ToList();
+        PartStock.AddRange(save.PartStock.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>());
         Quest = Data.Quests.Find(q => q.Id == save.QuestId);
         QuestStage = Quest == null ? QuestStage.None : (QuestStage)save.QuestStage;
         Enter();

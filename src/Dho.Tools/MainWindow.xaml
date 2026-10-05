@@ -213,6 +213,21 @@
                 </DockPanel>
             </TabItem>
 
+            <TabItem Header="효과음">
+                <DockPanel Margin="8">
+                    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,4" TextWrapping="Wrap" Text="원본 효과음 목록(0006\001000 · 002000). 줄을 누르면 들린다. 소리에 이름표가 없어서 들어 보고 골라야 한다 — 맞는 줄을 고른 뒤 아래 단추로 게임의 일에 맨다(Ctrl+S 로 저장)." />
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
+                        <Button Content="다시 듣기" Click="SoundPlay_Click" Padding="10,3" />
+                        <Button Content="멈춤" Click="SoundStop_Click" Padding="10,3" Margin="6,0,0,0" />
+                        <Button Content="선회 소리로" Tag="Turn" Click="SoundAssign_Click" Padding="10,3" Margin="20,0,0,0" />
+                        <Button Content="돛 조종 소리로" Tag="Sail" Click="SoundAssign_Click" Padding="10,3" Margin="6,0,0,0" />
+                        <Button Content="그 밖의 스킬 소리로" Tag="Skill" Click="SoundAssign_Click" Padding="10,3" Margin="6,0,0,0" />
+                        <TextBlock x:Name="SoundAssigned" Margin="16,4,0,0" />
+                    </StackPanel>
+                    <DataGrid x:Name="SoundGrid" AutoGenerateColumns="True" CanUserAddRows="False" IsReadOnly="True" SelectionMode="Single" SelectionChanged="SoundGrid_SelectionChanged" />
+                </DockPanel>
+            </TabItem>
+
             <TabItem Header="시작">
                 <StackPanel Margin="8" MaxWidth="760" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">

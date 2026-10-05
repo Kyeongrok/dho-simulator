@@ -17,6 +17,8 @@ internal readonly record struct Sky(
         float dusk = Smooth(-0.25f, 0.05f, elevation) * (1 - Smooth(0.05f, 0.45f, elevation));
         float night = 1 - Smooth(-0.22f, 0.02f, elevation);
 
+        // 밤에도 초저녁보다 어두워지지 않는다(원본의 밤은 푸르스름할 뿐 캄캄하지 않다) — 빛깔을 고르는 값에 바닥을 둔다
+        day = MathF.Max(day, 0.28f);
         var zenith = Vector3.Lerp(new Vector3(0.03f, 0.05f, 0.16f), new Vector3(0.22f, 0.40f, 0.74f), day);
         var horizon = Vector3.Lerp(new Vector3(0.08f, 0.12f, 0.27f), new Vector3(0.60f, 0.74f, 0.90f), day);
         horizon = Vector3.Lerp(horizon, new Vector3(0.86f, 0.52f, 0.36f), dusk * 0.7f);
@@ -26,7 +28,7 @@ internal readonly record struct Sky(
         bool moon = elevation < -0.04f;
         var direction = moon ? Vector3.Normalize(new Vector3(-sun.X, MathF.Max(0.35f, -sun.Y), -sun.Z)) : Vector3.Normalize(sun with { Y = MathF.Max(sun.Y, 0.06f) });
         var light = moon
-            ? new Vector3(0.20f, 0.25f, 0.40f)
+            ? new Vector3(0.50f, 0.55f, 0.70f)
             : Vector3.Lerp(new Vector3(1.0f, 0.55f, 0.30f), new Vector3(1.0f, 0.96f, 0.88f), day) * (0.35f + 0.65f * day);
         var ambient = Vector3.Lerp(new Vector3(0.10f, 0.13f, 0.24f), new Vector3(0.38f, 0.42f, 0.50f), day);
 
@@ -44,8 +46,9 @@ internal readonly record struct Sky(
             Horizon = Vector3.Lerp(Horizon, gray, amount),
             Zenith = Vector3.Lerp(Zenith, gray * 0.55f, amount),
             Water = Vector3.Lerp(Water, gray * 0.22f, amount * 0.8f),
-            LightColor = LightColor * (1 - 0.75f * amount),
-            Ambient = Vector3.Lerp(Ambient, Ambient * 0.75f, amount),
+            // 빛은 조금만 줄인다 — 구름 밑이어도 배와 물결은 또렷이 보인다
+            LightColor = LightColor * (1 - 0.4f * amount),
+            Ambient = Vector3.Lerp(Ambient, Ambient * 0.9f, amount),
             Night = Night * (1 - amount),
         };
     }

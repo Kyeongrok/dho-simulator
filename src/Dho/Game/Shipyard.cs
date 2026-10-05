@@ -14,6 +14,9 @@ internal sealed class DockedShip
     public int Load { get; init; }
     /// <summary>그 배의 강화와 옵션 스킬.</summary>
     public ShipWork Work { get; init; } = new();
+    /// <summary>그 배의 돛 무늬와 색 — 돛 도료는 배에 칠하는 것이라 배를 따라간다.</summary>
+    public int SailPattern { get; init; }
+    public int SailTint { get; init; }
 }
 
 /// <summary>조선소에 맡겨 둔 배.</summary>
@@ -49,7 +52,7 @@ internal sealed partial class Voyage
         return material == 0 && load == 0 ? stats : stats.Built(MaterialOf(material), load, Settings.Ships);
     }
 
-    public ShipStats StatsOf(DockedShip docked) => Worked(StatsOf(docked.Ship, docked.Material, docked.Load), docked.Work);
+    public ShipStats StatsOf(DockedShip docked) => Worked(StatsOf(docked.Ship, docked.Material, docked.Load), docked.Work, docked.Ship);
 
     // ── 커스텀설정 조선 ──────────────────────────────────────────────────────
 
@@ -60,7 +63,14 @@ internal sealed partial class Voyage
     public const int LoadRank = 5;
 
     /// <summary>지금 랭크로 고를 수 있는 재질.</summary>
-    public List<ShipMaterial> MaterialsToUse() => Data.ShipMaterials.Where(m => m.MinRank <= ShipbuildingRank).ToList();
+    /// 나무 여섯 가지(1 ~ 6)는 조선 랭크로 열리고, 그 밖의 재질(나라별 · 제독 재료 · 특수 도장 …)은 **그 재질 아이템을 가지고 있어야** 고른다.
+    public List<ShipMaterial> MaterialsToUse() =>
+        Data.ShipMaterials.Where(m => IsSpecial(m.Id) ? Items.GetValueOrDefault(MaterialItem + m.Id) > 0 : m.MinRank <= ShipbuildingRank).ToList();
+
+    /// <summary>재질 아이템의 번호 — 여기에 재질 번호를 더한다. 건조를 맡길 때 하나가 든다.</summary>
+    public const int MaterialItem = 9_200_000;
+    public static bool IsSpecial(int material) => material > 6;
+    public IEnumerable<ShipMaterial> SpecialMaterials() => Data.ShipMaterials.Where(m => IsSpecial(m.Id));
 
     /// <summary>건조일수 — 화면 글에 칸만 있고 값은 없어서 크기 등급에서 짓는다.</summary>
     public static int BuildDays(ShipData ship) => 3 + ship.SizeClass * 4;
@@ -75,6 +85,7 @@ internal sealed partial class Voyage
         if (ship.SizeClass * 2 > ShipbuildingRank) return $"조선 랭크 {ship.SizeClass * 2} 이 있어야 이 크기를 짓는다";
         if (load != 0 && ShipbuildingRank < LoadRank) return $"적재 변경은 조선 랭크 {LoadRank} 부터";
         if (Money < BuildCost(ship, material)) return "돈이 모자라다";
+        if (IsSpecial(material) && Items.GetValueOrDefault(MaterialItem + material) <= 0) return "그 재질 아이템이 없다";
         return null;
     }
 
@@ -84,6 +95,7 @@ internal sealed partial class Voyage
         load = Math.Clamp(load, -25, 25);
         if (Mode != Mode.Port || BuildBlocker(ship, material, load) != null) return;
         Money -= BuildCost(ship, material);
+        if (IsSpecial(material) && --Items[MaterialItem + material] <= 0) Items.Remove(MaterialItem + material);
         Ordered = new ShipOrder { Ship = ship, Material = material, Load = load, DaysLeft = BuildDays(ship) };
         TrainEffect("Shipbuilding", 40 + ship.SizeClass * 30);
         Studied("Build");
@@ -100,6 +112,15 @@ internal sealed partial class Voyage
         Dock.Add(new DockedShip { Ship = order.Ship, Durability = stats.Durability, Material = order.Material, Load = order.Load });
         Ordered = null;
         Say($"{order.Ship.Name}을(를) 넘겨받아 부두에 매어 두었다. 선박교환에서 갈아탄다.");
+    }
+
+    /// <summary>항구에서 하루를 보낸다 — 맡긴 배의 건조가 하루 나아가고, 교역소의 재고와 시세도 하루만큼 흐른다.</summary>
+    public void PassDay()
+    {
+        if (Mode != Mode.Port) return;
+        Clock += Settings.SecondsPerDay;
+        UpdateBuild(1);
+        Say("하루가 지났다." + (Ordered is { DaysLeft: > 0 } order ? $" (건조 {Math.Ceiling(order.DaysLeft):0}일 남음)" : ""));
     }
 
     /// <summary>바다에서 보낸 날만큼 건조가 나아간다.</summary>
@@ -145,16 +166,40 @@ internal sealed partial class Voyage
         return null;
     }
 
-    private void Board(ShipData ship, double durability, List<ShipPart>? parts = null, int material = 0, int load = 0, ShipWork? work = null)
+    private void Board(ShipData ship, double durability, List<ShipPart>? parts = null, int material = 0, int load = 0, ShipWork? work = null, int sailPattern = 0, int sailTint = 0)
     {
-        Dock.Add(new DockedShip { Ship = Ship, Durability = Durability, Parts = Parts, Material = ShipMaterialId, Load = ShipLoad, Work = Work });
+        Dock.Add(new DockedShip { Ship = Ship, Durability = Durability, Parts = Parts, Material = ShipMaterialId, Load = ShipLoad, Work = Work, SailPattern = SailPattern, SailTint = SailTint });
+        ShowSail(sailPattern, sailTint);            // 새로 타는 배의 돛(새 배는 민무늬)
         Work = work ?? new ShipWork();
         Parts = parts ?? [];
         Ship = ship;
         (ShipMaterialId, ShipLoad) = (material, load);
-        Stats = Worked(StatsOf(ship, material, load), Work);
+        Stats = Worked(StatsOf(ship, material, load), Work, ship);
         Durability = Math.Clamp(durability, 1, Stats.Durability);
         Crew = Math.Min(Crew, Stats.MaxCrew);
+    }
+
+    // 원본의 커스텀설정 조선은 **타고 있는 배는 건드리지 못하고 부두의 배를 강화**한다. 강화 셈은 타고 있는 배에 걸려 있어서,
+    // 강화하는 동안만 그 배로 조용히 바꿔 탔다가(선원은 그대로) 창을 닫으면 돌아온다.
+    private DockedShip? _workHome;
+    private double _workCrew;
+    public bool Working => _workHome != null;
+
+    public void BeginWork(DockedShip docked)
+    {
+        if (Mode != Mode.Port || Working || !Dock.Remove(docked)) return;
+        _workCrew = Crew;
+        Board(docked.Ship, docked.Durability, docked.Parts, docked.Material, docked.Load, docked.Work, docked.SailPattern, docked.SailTint);
+        _workHome = Dock[^1];
+    }
+
+    public void EndWork()
+    {
+        if (_workHome is not { } home) return;
+        _workHome = null;
+        if (!Dock.Remove(home)) return;
+        Board(home.Ship, home.Durability, home.Parts, home.Material, home.Load, home.Work, home.SailPattern, home.SailTint);
+        Crew = _workCrew;
     }
 
     /// <summary>부두의 배로 갈아타지 못하는 까닭.</summary>
@@ -167,7 +212,7 @@ internal sealed partial class Voyage
         if (Mode != Mode.Port || !Dock.Remove(docked)) return;
         if (SwapBlocker(docked) != null) { Dock.Add(docked); return; }
         Say($"{Ship.Name}에서 {docked.Ship.Name}(으)로 갈아탔다.");
-        Board(docked.Ship, docked.Durability, docked.Parts, docked.Material, docked.Load, docked.Work);
+        Board(docked.Ship, docked.Durability, docked.Parts, docked.Material, docked.Load, docked.Work, docked.SailPattern, docked.SailTint);
     }
 
     /// <summary>부두의 배를 팔 때 받는 값 — 상한 만큼 깎인다.</summary>

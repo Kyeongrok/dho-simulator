@@ -17,7 +17,18 @@ internal sealed partial class Voyage
 {
     public Dictionary<int, SkillState> Skills { get; } = new();
 
-    public int Rank(int skillId) => Skills.TryGetValue(skillId, out var state) ? state.Rank : 0;
+    /// <summary>랭크 — 내 직업의 전문 스킬이면 +1 이 붙는다(익힌 것만).</summary>
+    public int Rank(int skillId) => Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) : 0;
+
+    /// <summary>우대 스킬(노란 별) — 내 직업이 우대하는 스킬. 조건 없이 배운다.</summary>
+    public bool IsFavored(int skillId) =>
+        Data.JobFacts.Find(f => f.Name == JobName) is { } job && Data.Skills.Find(s => s.Id == skillId) is { } skill && job.Skills.Contains(skill.Name);
+
+    /// <summary>전문 스킬(빨간 별) — 직업마다 하나. 랭크에 +1 이 붙는다.</summary>
+    public bool IsExpert(int skillId) =>
+        Data.JobFacts.Find(f => f.Name == JobName) is { Expert: not "" } job && Data.Skills.Find(s => s.Id == skillId)?.Name == job.Expert;
+
+    public int ExpertBoost(int skillId) => IsExpert(skillId) ? 1 : 0;
 
     public string SkillName(int skillId) =>
         Data.Skills.Find(s => s.Id == skillId)?.Name ?? Data.SkillRules.Find(r => r.SkillId == skillId)?.Name ?? $"스킬 {skillId}";
@@ -26,12 +37,12 @@ internal sealed partial class Voyage
 
     /// <summary>효과가 같은 스킬들의 (랭크 × 계수) 합.</summary>
     private double Bonus(string effect) =>
-        Data.SkillRules.Where(r => r.Effect == effect).Sum(r => Rank(r.SkillId) * r.PerRank);
+        Data.SkillRules.Where(r => r.Effect == effect && (!Sustained.Contains(effect) || SkillOn(r.SkillId))).Sum(r => Rank(r.SkillId) * r.PerRank);
 
     private bool Has(string effect) => Data.SkillRules.Any(r => r.Effect == effect && Rank(r.SkillId) > 0);
 
-    /// <summary>측량을 익혀야 좌표가 보인다.</summary>
-    public bool CanSurvey => Has("Survey");
+    /// <summary>측량을 켜 둔 동안 나침반 위에 주변 지도와 좌표가 보인다.</summary>
+    public bool CanSurvey => Data.SkillRules.Any(r => r.Effect == "Survey" && SkillOn(r.SkillId));
 
     /// <summary>주변 지도가 보이는 반지름(세계 좌표).</summary>
     public double SurveyReach => 100 * (1 + Bonus("Survey")) * (1 + Option("Survey"));
@@ -41,12 +52,25 @@ internal sealed partial class Voyage
         Data.SkillRules.Where(r => Rank(r.SkillId) == 0)
             .Select(r => Data.Skills.Find(s => s.Id == r.SkillId)).OfType<SkillData>();
 
+    /// <summary>
+    /// 조합 마스터가 가르쳐 주는 스킬 — **내 직업의 우대 스킬만** 배운다(원본의 「우대 스킬 : 습득조건면제」).
+    /// 직업의 우대 스킬 자료가 없으면(직업이 없거나 자료 파일이 없으면) 그 조합 갈래의, 하는 일이 정해진 스킬로 대신한다.
+    /// </summary>
+    public List<SkillData> SkillsTaught()
+    {
+        if (Data.JobFacts.Find(f => f.Name == JobName) is { } job)
+            return job.Skills.Select(name => Data.Skills.Find(s => s.Name == name)).OfType<SkillData>().ToList();
+        return Data.Skills.Where(s => s.Group == Teacher && Data.SkillRules.Exists(r => r.SkillId == s.Id)).ToList();
+    }
+
+    public bool CanLearn(SkillData skill) => Teacher >= 0 && SkillsTaught().Contains(skill);
+
     /// <param name="taught">가르치는 사람을 따지지 않는다(대본 · 개발용).</param>
     public void Learn(SkillData skill, bool taught = false)
     {
         if (Mode != Mode.Port || Rank(skill.Id) > 0 || Money < skill.Cost) return;
         // 스킬은 그 갈래의 조합 마스터에게 배운다 — 모험가조합 · 상인조합 · 해양조합
-        if (!taught && Teacher != skill.Group) return;
+        if (!taught && !CanLearn(skill)) return;
         Money -= skill.Cost;
         Skills[skill.Id] = new SkillState();
         Say($"{skill.Name} 스킬을 익혔다. ({skill.Cost:N0} 두캇)");
@@ -54,16 +78,40 @@ internal sealed partial class Voyage
     }
 
     /// <summary>숙련도를 얻고, 차면 랭크가 오른다.</summary>
+    private readonly Dictionary<int, double> _gained = new();
+
+    /// <summary>조선소에 띄우는 한 줄 — 조선 스킬의 랭크와 숙련도.</summary>
+    public string ShipbuildingLine
+    {
+        get
+        {
+            if (Data.SkillRules.Find(r => r.Effect == "Shipbuilding") is not { } rule) return "";
+            if (!Skills.TryGetValue(rule.SkillId, out var state)) return "조선 스킬 없음";
+            return state.Rank >= Settings.MaxSkillRank ? $"조선 Rank {state.Rank} (최대)" : $"조선 Rank {state.Rank}  {state.Exp:0}/{ExpToNext(state.Rank)}";
+        }
+    }
+
     private void Train(int skillId, double exp)
     {
         if (!Skills.TryGetValue(skillId, out var state) || state.Rank >= Settings.MaxSkillRank) return;
         state.Exp += exp;
+        // 숙련도가 오르면 기록에 알린다. 항해 중에 조금씩 오르는 것은 모아서 20 마다 한 번
+        double gained = _gained[skillId] = _gained.GetValueOrDefault(skillId) + exp;
+        bool ranked = false;
         while (state.Rank < Settings.MaxSkillRank && state.Exp >= ExpToNext(state.Rank))
         {
             state.Exp -= ExpToNext(state.Rank);
             state.Rank++;
-            Say($"{SkillName(skillId)} 스킬이 랭크 {state.Rank}(이)가 되었다!");
+            ranked = true;
         }
+        if (exp >= 5 || gained >= 20 || ranked)
+        {
+            _gained.Remove(skillId);
+            Say(state.Rank >= Settings.MaxSkillRank
+                ? $"{SkillName(skillId)} 숙련도 +{gained:0}"
+                : $"{SkillName(skillId)} 숙련도 +{gained:0} ({state.Exp:0}/{ExpToNext(state.Rank)})");
+        }
+        if (ranked) Say($"{SkillName(skillId)} 스킬이 랭크 {state.Rank}(이)가 되었다!");
     }
 
     private void TrainEffect(string effect, double exp)

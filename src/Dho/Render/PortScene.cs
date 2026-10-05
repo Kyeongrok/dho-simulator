@@ -43,6 +43,23 @@ internal sealed class PortScene : IDisposable
     // 방의 벽 · 천장(갈래 2 덩이)의 삼각형 — 카메라가 벽 밖으로 나가지 않게 막는 데 쓴다
     private readonly List<Vector3> _walls = [];
     public bool HasWalls => _walls.Count > 0;
+    /// <summary>방의 문 자리(장면 좌표 x, z) — 메시에서 문짝 꼴의 판을 찾은 것. 못 찾으면 null.</summary>
+    public Vector2? Door
+    {
+        get
+        {
+            // 문은 방의 바깥 벽에 붙어 있다 — 방 테두리에서 먼 판(계산대 뒤의 쪽문 · 벽장)은 뺀다. 가장 큰 것, 같으면 z 가 큰 쪽
+            (Vector2 At, float Area)? best = null;
+            foreach (var leaf in _leaves)
+            {
+                float edge = MathF.Min(MathF.Min(leaf.At.X - _min.X, _max.X - leaf.At.X), MathF.Min(leaf.At.Y - _min.Z, _max.Z - leaf.At.Y));
+                if (edge > 130) continue;
+                if (best is not { } b || leaf.Area > b.Area + 1 || (MathF.Abs(leaf.Area - b.Area) <= 1 && leaf.At.Y > b.At.Y)) best = leaf;
+            }
+            return best?.At;
+        }
+    }
+    private readonly List<(Vector2 At, float Area)> _leaves = [];
 
     /// <summary>from 에서 to 로 가는 길이 벽에 처음 막히는 데(0 ~ 1, 안 막히면 1).</summary>
     public float Reach(Vector3 from, Vector3 to)
@@ -226,13 +243,27 @@ internal sealed class PortScene : IDisposable
                     }
 
                 if (_solid && textureSet == OwnTextures && data[chunk + 2] == 2)
+                {
+                    Vector3 low = new(float.MaxValue), high = new(float.MinValue);
+                    Vector2 uvLow = new(float.MaxValue), uvHigh = new(float.MinValue);
                     for (int i = 0; i < triangles * 3; i++)
                     {
                         int v = U16(indices + (firstIndex + i) * 2);
                         int p = vertices + (v < vertexCount ? v : 0) * stride;
                         _walls.Add(new Vector3(F32(p), F32(p + 4), F32(p + 8)));
+                        (low, high) = (Vector3.Min(low, _walls[^1]), Vector3.Max(high, _walls[^1]));
+                        var uv = new Vector2(F32(p + stride - 8), F32(p + stride - 4));
+                        (uvLow, uvHigh) = (Vector2.Min(uvLow, uv), Vector2.Max(uvHigh, uv));
                         if (i % 3 == 2) _grid?.Wall(_walls[^3], _walls[^2], _walls[^1]);
                     }
+                    // 문짝: 벽 덩이 안에서 바닥에 닿아 서 있는 얇은 판(그림을 한 번만 입힌 것). 가장 큰 것, 같으면 z 가 큰 쪽을 문으로 친다
+                    var leaf = high - low;
+                    float wide = MathF.Max(leaf.X, leaf.Z), thin = MathF.Min(leaf.X, leaf.Z), area = wide * leaf.Y;
+                    var middle = new Vector2((low.X + high.X) / 2, (low.Z + high.Z) / 2);
+                    if (_grid != null && MathF.Abs(low.Y - _grid.HeightAt(middle.X, middle.Y)) < 40 && leaf.Y is > 180 and < 640 && wide is > 150 and < 560 && thin < 60
+                        && uvHigh.X - uvLow.X <= 1.05f && uvHigh.Y - uvLow.Y <= 1.05f)
+                        _leaves.Add((middle, area));
+                }
 
                 for (int i = 0; i < triangles * 3; i++)
                 {

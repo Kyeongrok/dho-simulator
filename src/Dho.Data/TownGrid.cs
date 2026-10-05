@@ -67,6 +67,11 @@ public sealed class TownGrid
         _top = new float[_fineWidth * _fineHeight];
         Array.Fill(_top, float.MinValue);
 
+        // 방은 바닥 격자가 한 높이다 — 거기서는 누운 삼각형이 계단이 아니라 탁자 · 계산대의 윗면이라 올라서지 못하게 막는다
+        float lowest = float.MaxValue, highest = float.MinValue;
+        foreach (float y in _floor) (lowest, highest) = (MathF.Min(lowest, y), MathF.Max(highest, y));
+        bool room = highest - lowest < 1f;
+        var raised = new float[_floor.Length];
         // 잔 충돌의 누운 삼각형은 바닥(계단·비탈)이다 — 격자 위에 얹는다
         var walls = new List<(Vector3, Vector3, Vector3)>();
         foreach (int head in new[] { 0x28, 0x38 })
@@ -78,8 +83,39 @@ public sealed class TownGrid
                 Vector3 a = Point(at + i * 36), b = Point(at + i * 36 + 12), c = Point(at + i * 36 + 24);
                 var normal = Vector3.Cross(b - a, c - a);
                 bool flat = normal.LengthSquared() > 0 && MathF.Abs(Vector3.Normalize(normal).Y) > 0.5f;
-                if (head == 0x28 && flat) Sample(a, b, c, (cell, p) => _floor[cell] = MathF.Max(_floor[cell], p.Y));
+                if (head == 0x28 && flat && room) Sample(a, b, c, (cell, p) => { if (p.Y > lowest + 20 && p.Y < lowest + 200) raised[cell] = MathF.Max(raised[cell], p.Y); });
+                else if (head == 0x28 && flat) Sample(a, b, c, (cell, p) => _floor[cell] = MathF.Max(_floor[cell], p.Y));
                 else walls.Add((a, b, c));
+            }
+        }
+        // 방의 솟은 면을 덩어리로 나눈다: 넓은 덩어리(단 · 거기 오르는 계단)는 바닥으로 올리고, 작거나 가는 것(탁자 · 의자 · 계산대)은 막는다
+        if (room)
+        {
+            var seen = new bool[raised.Length];
+            for (int start = 0; start < raised.Length; start++)
+            {
+                if (seen[start] || raised[start] <= 0) continue;
+                var cells = new List<int>();
+                var queue = new Queue<int>();
+                queue.Enqueue(start);
+                seen[start] = true;
+                int minX = int.MaxValue, maxX = 0, minZ = int.MaxValue, maxZ = 0;
+                while (queue.Count > 0)
+                {
+                    int cell = queue.Dequeue(), x = cell % _fineWidth, z = cell / _fineWidth;
+                    cells.Add(cell);
+                    (minX, maxX, minZ, maxZ) = (Math.Min(minX, x), Math.Max(maxX, x), Math.Min(minZ, z), Math.Max(maxZ, z));
+                    foreach (var (nx, nz) in new[] { (x - 1, z), (x + 1, z), (x, z - 1), (x, z + 1) })
+                    {
+                        if (nx < 0 || nz < 0 || nx >= _fineWidth || nz >= _fineHeight) continue;
+                        int next = nz * _fineWidth + nx;
+                        if (!seen[next] && raised[next] > 0) { seen[next] = true; queue.Enqueue(next); }
+                    }
+                }
+                bool platform = cells.Count >= 16 && Math.Min(maxX - minX, maxZ - minZ) >= 3;
+                foreach (int cell in cells)
+                    if (platform) _floor[cell] = MathF.Max(_floor[cell], raised[cell]);
+                    else if (raised[cell] > lowest + 35 && raised[cell] < lowest + 170) _blocked[cell] = true;
             }
         }
         // 벽은 기둥 둘 사이에 삼각형이 하나뿐이다(윗변 쪽 반만 있다) — 위에서 본 변을 따라, 높이가 사람에 걸리면 막는다
@@ -311,6 +347,13 @@ public sealed class TownGrid
 
     private bool[]? _reached;
 
+    /// <summary>그 자리(가장 가까운 설 수 있는 데)가 걸어서 닿는 곳인가. <see cref="Seal"/> 뒤에 부른다.</summary>
+    public bool Reaches(Vector2 spot)
+    {
+        var p = Nearest(spot);
+        return _reached != null && Inside(p.X, p.Y) && _reached[(int)(p.Y / Fine) * _fineWidth + (int)(p.X / Fine)];
+    }
+
     /// <summary>걸어서 닿는 칸 가운데 그 자리에서 가장 가까운(또는 가장 먼) 칸의 가운데. <see cref="Seal"/> 뒤에 부른다.</summary>
     public Vector2? Reached(Vector2 from, bool farthest = false)
     {
@@ -330,7 +373,7 @@ public sealed class TownGrid
     /// 걸어서는 못 닿지만 바닥은 있는 가장 큰 자리(계산대 안쪽 같은 곳)의 가운데와, 거기서 가장 가까운 닿는 자리.
     /// <see cref="Seal"/> 뒤에 부른다. 그런 자리가 없으면 null.
     /// </summary>
-    public (Vector2 Inside, Vector2 Front)? Pocket(int least = 6, int most = 400)
+    public (Vector2 Inside, Vector2 Front, Vector2 Axis)? Pocket(int least = 6, int most = 400)
     {
         if (_reached == null) return null;
         var seen = new bool[_blocked.Length];
@@ -361,7 +404,9 @@ public sealed class TownGrid
         float nearest = float.MaxValue;
         for (int cell = 0; cell < _reached.Length; cell++)
             if (_reached[cell] && Vector2.DistanceSquared(Middle(cell), inside) is var d && d < nearest) (front, nearest) = (cell, d);
-        return front < 0 ? null : (inside, Middle(front));
+        // 긴 쪽 — 계산대를 따라 사람을 나란히 세울 때 쓴다
+        int spanX = best.Max(c => c % _fineWidth) - best.Min(c => c % _fineWidth), spanZ = best.Max(c => c / _fineWidth) - best.Min(c => c / _fineWidth);
+        return front < 0 ? null : (inside, Middle(front), spanZ > spanX ? Vector2.UnitY : Vector2.UnitX);
     }
 
     /// <summary>

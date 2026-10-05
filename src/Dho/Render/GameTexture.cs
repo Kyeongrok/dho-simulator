@@ -41,6 +41,7 @@ internal static unsafe class GameTexture
         int height = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(record + 2));
         uint fourCc = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(record + 4));
         int mips = data[record + 9];
+        variant = Math.Min(variant, Math.Max(1, (int)data[record + 11]) - 1);
 
         var (dxgi, blockBytes) = fourCc switch
         {
@@ -63,6 +64,42 @@ internal static unsafe class GameTexture
             }
             return Create(gfx, width, height, dxgi, levels);
         }
+    }
+
+    /// <summary>MFTF 의 DXT3 그림 하나(색 벌 <paramref name="variant"/>)를 BGRA 로 편다 — 화면의 작은 그림용.</summary>
+    public static (int Width, int Height, byte[] Bgra)? Pixels(byte[] data, int variant)
+    {
+        int xftx = -1;
+        for (int i = 0; i < BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(16)); i++)
+            if (BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(20 + i * 16)) is Dxt1 or Dxt3 or Dxt5) xftx = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(24 + i * 16));
+        if (xftx < 0) return null;
+        int record = xftx + BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(xftx + 20));
+        int width = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(record)), height = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(record + 2));
+        int mips = data[record + 9];
+        // DXT1 은 블록이 8바이트(색만), DXT3 · 5 는 앞 8바이트가 알파다. 색 벌이 없는 그림(특수 돛)은 첫 벌만 있다
+        int skip = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(record + 4)) == Dxt1 ? 0 : 8;
+        variant = Math.Min(variant, Math.Max(1, (int)data[record + 11]) - 1);
+        int at = record + BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(record + 12 + variant * mips * 4));
+        var pixels = new byte[width * height * 4];
+        Span<byte> colors = stackalloc byte[12];
+        for (int by = 0; by < height / 4; by++)
+        for (int bx = 0; bx < width / 4; bx++, at += skip + 8)
+        {
+            int c0 = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(at + skip)), c1 = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(at + skip + 2));
+            uint bits = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(at + skip + 4));
+            for (int k = 0; k < 3; k++)
+            {
+                int shift = k == 0 ? 0 : k == 1 ? 5 : 11, mask = k == 1 ? 63 : 31;
+                int a = (c0 >> shift & mask) * 255 / mask, b = (c1 >> shift & mask) * 255 / mask;
+                (colors[k], colors[3 + k], colors[6 + k], colors[9 + k]) = ((byte)a, (byte)b, (byte)((2 * a + b) / 3), (byte)((a + 2 * b) / 3));
+            }
+            for (int p = 0; p < 16; p++)
+            {
+                int pick = (int)(bits >> p * 2 & 3) * 3, to = ((by * 4 + p / 4) * width + bx * 4 + p % 4) * 4;
+                (pixels[to], pixels[to + 1], pixels[to + 2], pixels[to + 3]) = (colors[pick], colors[pick + 1], colors[pick + 2], 255);
+            }
+        }
+        return (width, height, pixels);
     }
 
     /// <summary>GTEX 묶음의 텍스처 하나. <paramref name="gtex"/> 는 "GTEX" 자리.</summary>

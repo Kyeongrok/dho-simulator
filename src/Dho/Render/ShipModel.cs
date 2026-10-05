@@ -23,7 +23,26 @@ internal sealed class ShipModel : IDisposable
     private const int FvfSail = 0x316;
 
     private readonly List<(Mesh Mesh, ID3D11ShaderResourceView? Texture, Vector4 Tint)> _parts = [];
-    private readonly ID3D11ShaderResourceView _hullTexture, _sailTexture;
+    private readonly ID3D11ShaderResourceView _hullTexture;
+    private ID3D11ShaderResourceView _sailTexture;
+    private readonly Gfx _device;
+    private Vector3 _min = new(float.MaxValue), _max = new(float.MinValue);
+    /// <summary>모형의 가운데와 반지름 — 창 안에 맞춰 보여 줄 때 쓴다.</summary>
+    public Vector3 Center => (_min + _max) / 2;
+    public float Radius => Vector3.Distance(_min, _max) / 2;
+
+    /// <summary>돛 무늬 묶음(<c>0001\sa0000.bin</c>) — 무늬 열여덟 가지(TEX_BASE000 ~ 017), 무늬마다 색 벌 열 가지.</summary>
+    public const int SailPatterns = 104, SailColors = 10;      // 무늬는 sa0000 ~ sa0005 에 18장씩(TEX_BASE000 ~ 103)
+
+    /// <summary>돛의 무늬와 색을 바꾼다.</summary>
+    public void SetSail(int pattern, int color)
+    {
+        var next = GameTexture.FromMftf(_device, new Pack($@"0001\sa{Math.Clamp(pattern, 0, SailPatterns - 1) / 18:D4}.bin").Entry(Math.Clamp(pattern, 0, SailPatterns - 1) % 18), 0, Math.Clamp(color, 0, SailColors - 1));
+        for (int i = 0; i < _parts.Count; i++)
+            if (_parts[i].Texture == _sailTexture) _parts[i] = (_parts[i].Mesh, next, _parts[i].Tint);
+        _sailTexture.Dispose();
+        _sailTexture = next;
+    }
 
     private static Dictionary<string, (string Pack, int Entry)>? _names;
 
@@ -33,6 +52,7 @@ internal sealed class ShipModel : IDisposable
     /// </summary>
     public ShipModel(Gfx gfx, int model, int fallbackModel = 16)
     {
+        _device = gfx;
         _hullTexture = GameTexture.FromMftf(gfx, new Pack(@"0001\sh0004.bin").Entry(0));
         _sailTexture = GameTexture.FromMftf(gfx, new Pack(@"0001\sa0000.bin").Entry(0));
 
@@ -47,6 +67,37 @@ internal sealed class ShipModel : IDisposable
             if (data.Length < 0x80 || !data.AsSpan(0, 4).SequenceEqual("XKMD"u8)) continue;
             Load(gfx, data, isHull: entry == found.Entry);
         }
+        if (!_parts.Exists(p => p.Texture == _sailTexture)) BorrowSails(gfx, model);
+    }
+
+    /// <summary>
+    /// 제 돛이 없는 배(선체 뒤에 돛 모형이 안 따라오는 배 — sh0001 의 배들)는 다른 배의 돛을 빌려 쓴다.
+    /// 배 모형 표 <c>0001\0002.bin</c>: 머리 0x18 뒤로 64바이트 줄 — u16 선체 자원, u16 모형 번호 − 1, u16 NL 자원, 6바이트, f32 크기 비, u32,
+    /// u16 × 5 텍스처 벌, u16 × 5 돛대 갈래, u16 × 5 뼈대 자원, u16 × 5 돛 자원. 자원 번호는 .tbl 을 거치는데(못 풀었다)
+    /// 앞쪽 번호(SHIP01 ~ 17 의 것)는 sh0000 의 항목 차례와 같다 — 빌려 쓰는 돛이 그 안에 있을 때만 세운다.
+    /// </summary>
+    private void BorrowSails(Gfx gfx, int model)
+    {
+        try
+        {
+            var table = Dho.Data.GvoFiles.Read(@"0001\0002.bin");
+            int rows = BinaryPrimitives.ReadInt32LittleEndian(table.AsSpan(0x14));
+            var first = new Pack(@"0001\sh0000.bin");
+            for (int k = 0; k < rows; k++)
+            {
+                int row = 0x18 + 64 * k;
+                if (BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(row + 2)) + 1 != model) continue;
+                for (int mast = 0; mast < 5; mast++)
+                {
+                    int sail = BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(row + 20 + 30 + mast * 2));
+                    if (sail == 0xFFFF || sail >= 124) continue;          // 124 부터는 자원 번호와 항목 차례가 어긋난다
+                    var data = first.Entry(sail);
+                    if (data.Length >= 0x80 && data.AsSpan(0, 4).SequenceEqual("XKMD"u8)) Load(gfx, data, isHull: false);
+                }
+                return;
+            }
+        }
+        catch (Exception) { }                      // 표나 묶음을 못 읽으면 돛 없이 둔다
     }
 
     private static Dictionary<string, (string, int)> IndexNames()
@@ -101,6 +152,8 @@ internal sealed class ShipModel : IDisposable
             for (int v = 0; v < count; v++)
             {
                 int p = at + v * stride;
+                _min = Vector3.Min(_min, new Vector3(F32(p), F32(p + 4), F32(p + 8)));
+                _max = Vector3.Max(_max, new Vector3(F32(p), F32(p + 4), F32(p + 8)));
                 builder.Add(new Vector3(F32(p), F32(p + 4), F32(p + 8)),
                             new Vector3(F32(p + normalAt), F32(p + normalAt + 4), F32(p + normalAt + 8)),
                             Vector4.One, new Vector2(F32(p + uvAt), F32(p + uvAt + 4)));
@@ -149,9 +202,12 @@ internal sealed class ShipModel : IDisposable
         }
     }
 
-    public void Draw(SceneRenderer scene, in Matrix4x4 world)
+    /// <param name="sail">돛 천에 입히는 빛깔(돛 도료).</param>
+    /// <param name="hull">선체에 입히는 빛깔(재질).</param>
+    public void Draw(SceneRenderer scene, in Matrix4x4 world, Vector4? sail = null, Vector4? hull = null)
     {
-        foreach (var (mesh, texture, tint) in _parts) scene.Draw(mesh, world, tint, texture);
+        foreach (var (mesh, texture, tint) in _parts)
+            scene.Draw(mesh, world, texture == _sailTexture && sail is { } paint ? paint : texture == _hullTexture && hull is { } wood ? wood : tint, texture);
     }
 
     public void Dispose()

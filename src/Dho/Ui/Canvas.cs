@@ -165,6 +165,7 @@ internal sealed class Canvas : IDisposable
         if (hover && Pointer.Clicked)
         {
             Pointer.Consumed = true;
+            Pointer.Clicked = false;            // 한 번의 클릭은 단추 하나만 누른다(새로 뜬 창의 단추까지 눌리지 않게)
             return true;
         }
         return false;

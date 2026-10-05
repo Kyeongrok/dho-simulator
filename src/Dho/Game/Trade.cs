@@ -144,6 +144,13 @@ internal sealed partial class Voyage
         Studied("Buy");
     }
 
+    /// <summary>적재화물파기 — 그 교역품을 바다에 버린다.</summary>
+    public void DumpGood(GoodData good)
+    {
+        if (!Cargo.Remove(good.Id, out var item)) return;
+        Say($"{good.Name} {item.Count}개를 버렸다.");
+    }
+
     public void SellGood(GoodData good, int count)
     {
         if (Mode != Mode.Port || !Cargo.TryGetValue(good.Id, out var item)) return;

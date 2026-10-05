@@ -114,6 +114,10 @@ internal static class Win32
     [DllImport("user32.dll")]
     public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
 
+    /// <summary>작업 표시줄을 뺀 화면 자리(SPI_GETWORKAREA).</summary>
+    [DllImport("user32.dll")]
+    public static extern bool SystemParametersInfoW(uint action, uint param, ref Rect area, uint flags);
+
     public const uint WM_SETICON = 0x0080, IMAGE_ICON = 1, LR_LOADFROMFILE = 0x0010;
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]

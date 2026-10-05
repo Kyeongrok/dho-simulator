@@ -68,6 +68,7 @@ internal sealed partial class Voyage
         Fatigue = Math.Min(100, Fatigue + 0.5 * times);
         if (RecipeSkill(rule) is { } used) Train(used.SkillId, 25 * times);
         Studied("Produce", times);
+        GainMastery();
         Say($"{Good(rule.Output)?.Name ?? "물건"} {rule.OutputCount * times}개를 만들었다.");
     }
 }

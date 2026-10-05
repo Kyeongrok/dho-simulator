@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -28,6 +28,9 @@ internal sealed partial class Voyage
     private readonly Dictionary<int, string> _seas;
 
     public Mode Mode { get; private set; } = Mode.Port;
+    /// <summary>틀어야 할 효과음의 이름들 — 창이 프레임마다 꺼내 튼다.</summary>
+    public Queue<string> Cues { get; } = new();
+
     private Dialog _dialog = Dialog.None;
     /// <summary>떠 있는 창. 스킬 창을 그냥 열면 가르치는 사람이 없는 것이다(<see cref="LearnFrom"/> 로 열어야 배운다).</summary>
     public Dialog Dialog
@@ -40,7 +43,7 @@ internal sealed partial class Voyage
     public int Teacher { get; private set; } = -1;
 
     /// <summary>조합 마스터에게 스킬을 배우러 스킬 창을 연다.</summary>
-    public void LearnFrom(int group) => (_dialog, Teacher) = (Dialog.Skills, group);
+    public void LearnFrom(int group) => (_dialog, Teacher) = (Dialog.Learn, group);
 
     public static string TeacherName(int group) => group switch { 0 => "모험가조합", 1 => "상인조합", 2 => "해양조합", _ => "조합" };
     /// <summary>항구에서 시내를 내려다보고 있는가.</summary>
@@ -231,6 +234,7 @@ internal sealed partial class Voyage
     {
         9 or 30 => "조선소 주인",
         14 or 21 or 22 or 25 => "은행원",
+        12 => "대장장이",
         10 or 32 => "교역소 주인",
         11 or 31 => "도구점 주인",
         13 => "주점 주인",
@@ -245,15 +249,17 @@ internal sealed partial class Voyage
     }
 
     /// <summary>건물 안의 사람과 출구에 붙이는 가짜 장소 번호.</summary>
-    public const int InsideMaster = 9001, InsideExit = 9002;
+    public const int InsideMaster = 9001, InsideExit = 9002, InsideMaid = 9003, InsideSailor = 9004;
+    /// <summary>주점에 여급이 있는 도시 — 원본은 도시마다 다른 여급이 있고 없는 곳도 있다. 어느 도시인지 자료가 없어 본거지에만 둔다.</summary>
+    public bool HasMaid => City.Kind == 0;
 
-    public string PlaceName(int place) => place == InsideMaster ? InteriorHost : place == InsideExit ? "출구" : Data.Places.Find(p => p.Id == place)?.Name ?? (place > 1000 ? "저택" : $"장소 {place}");
+    public string PlaceName(int place) => place == InsideMaster ? InteriorHost : place == InsideMaid ? "여급" : place == InsideSailor ? "뱃사람" : place == InsideExit ? "출구" : Data.Places.Find(p => p.Id == place)?.Name ?? (place > 1000 ? "저택" : $"장소 {place}");
 
     /// <summary>시내에서 그 시설에 닿았을 때 — 하는 일이 있는 곳이면 창을 연다.</summary>
     public void Visit(TownMark mark)
     {
         string name = PlaceName(mark.Place);
-        if (mark.Place != InsideMaster) Say($"{name}에 왔다.");
+        if (mark.Place is not (InsideMaster or InsideMaid or InsideSailor)) Say($"{name}에 왔다.");
         if (mark.Place == InsideMaster)
         {
             if (InteriorDialog == Dialog.None) TalkInside();
@@ -261,12 +267,14 @@ internal sealed partial class Voyage
             return;
         }
         if (mark.Place == InsideExit) { LeaveInterior(); return; }
+        if (mark.Place == InsideSailor) { Dialog = Dialog.Recruit; return; }
+        if (mark.Place == InsideMaid) { Say("여급: 「어서 오세요! 오늘은 무엇을 드릴까요?」"); return; }
         if (mark.Place is 4 or 5) TownView = false;                          // 항구 · 항구(항구 앞) → 부두로
         else if (mark.Place is 9 or 30) Dialog = Dialog.ShipyardMenu;
         else if (mark.Place is 10 or 19 or 26 or 27 or 32) Dialog = Dialog.Trade;
         else if (mark.Place is 14 or 21 or 22 or 25) Dialog = Dialog.Bank;
         else if (mark.Place == 1) EnterGuild();
-        else if (mark.Place is 11 or 31) { ItemShopOpen = true; Dialog = Dialog.Items; }
+        else if (mark.Place is 11 or 31 or 12) { ItemShopOpen = true; Dialog = Dialog.Items; }       // 12 대장간 — 돛 도료를 판다
         else if (mark.Place == 13) { if (!EnterPlace(13)) Dialog = Dialog.Tavern; }
         else EnterPlace(mark.Place);
     }
@@ -309,6 +317,33 @@ internal sealed partial class Voyage
         Say(count > 0 ? $"{ItemName(item)} {move}개를 보관함에 맡겼다." : $"{ItemName(item)} {move}개를 보관함에서 꺼냈다.");
     }
 
+    /// <summary>모집할 수 있는 선원의 갈래와 한 사람 값 — 이름과 값은 원본 화면의 것이다. 갈래에 따른 차이(숙련도)는 이 게임에 없다.</summary>
+    public static readonly (string Name, int Price)[] Recruits = [("신참선원", 50), ("중견선원", 200), ("숙련선원", 1000)];
+
+    /// <summary>주점의 뱃사람에게서 선원을 모집한다 — 갈래마다의 수.</summary>
+    public void Recruit(int[] counts)
+    {
+        int room = (int)Math.Floor(Stats.MaxCrew - Crew), hired = 0, cost = 0;
+        for (int kind = 0; kind < Recruits.Length && kind < counts.Length; kind++)
+        {
+            int take = Math.Min(counts[kind], room - hired);
+            (hired, cost) = (hired + take, cost + take * Recruits[kind].Price);
+        }
+        if (Mode != Mode.Port || hired <= 0 || Money < cost) return;
+        Money -= cost;
+        Crew += hired;
+        Say($"선원 {hired}명을 모집했다. ({cost:N0} 두캇, 선원 {Crew:0}명)");
+    }
+
+    /// <summary>선원을 내보낸다 — 필요 선원 밑으로는 못 줄인다. 돈은 돌려받지 않는다.</summary>
+    public void DismissCrew(int count)
+    {
+        int gone = (int)Math.Min(count, Math.Floor(Crew - Stats.MinCrew));
+        if (Mode != Mode.Port || gone <= 0) return;
+        Crew -= gone;
+        Say($"선원 {gone}명을 해고했다. (선원 {Crew:0}명)");
+    }
+
     /// <summary>주점에서 한턱낸다 — 선원 수만큼 술값을 내고 피로를 푼다.</summary>
     public int TreatCost => 200 + (int)Crew * 20;
     public void Treat()
@@ -341,6 +376,7 @@ internal sealed partial class Voyage
 
     private void MoorAt(CityData city)
     {
+        _skillOn.Clear();                        // 켜 둔 스킬은 뭍에 닿으면 꺼진다
         City = city;
         TownView = false;
         (Interior, InteriorName) = (0, "");
@@ -385,6 +421,7 @@ internal sealed partial class Voyage
         MoorAt(city);
         Say($"{city.Name}에 입항했다. (항해 {days}일)");
         Studied("Voyage");
+        if (days >= 1) GainMastery();
         if (days >= 15) Studied("LongVoyage");
         RestInPort();
         OrderOnArrive();
@@ -485,9 +522,12 @@ internal sealed partial class Voyage
     /// <summary>내구를 0 으로 — 다음 틱에 난파한다.</summary>
     public void Sink() => Durability = 0;
 
+    /// <summary>일시정지 — 원본에는 없지만 혼자 하는 게임이라 넣었다. 시간 · 항해 · 재해가 모두 멎는다.</summary>
+    public bool Paused { get; set; }
+
     public void Update(double dt, double steer)
     {
-        if (!Created) return;
+        if (!Created || Paused) return;
         dt *= TimeScale;
         Clock += dt;
         SkyPhase = (SkyPhase + dt / Settings.SecondsPerSkyCycle) % 1;
@@ -497,7 +537,8 @@ internal sealed partial class Voyage
         WindKnots = 9 + Math.Sin(Clock / 63) * 4;
 
         AutoSave(dt);
-        if (Mode != Mode.Sea || Dialog != Dialog.None)
+        // 바다에서는 창을 열어도 배가 멈추지 않는다. 상륙 · 발견처럼 배를 세우고 하는 일만 멈춘다
+        if (Mode != Mode.Sea || Dialog is Dialog.Landing or Dialog.Discovery or Dialog.Wreck)
         {
             Knots += (0 - Knots) * Math.Min(1, dt * 2);
             return;
@@ -508,6 +549,7 @@ internal sealed partial class Voyage
         if (DaysAtSea != daysBefore) Say($"항해 {DaysAtSea}일째.");
         UpdateHazards(dt);
         if (Mode != Mode.Sea) return;            // 난파해서 항구로 떠밀려 갔다
+        TickSkills();
 
         if (steer != 0) TargetHeading = Normalize(Heading + steer * 0.6);
         double turn = Normalize(TargetHeading - Heading + Math.PI) - Math.PI;

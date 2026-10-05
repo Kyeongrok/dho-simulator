@@ -168,6 +168,27 @@ internal sealed unsafe class Gfx : IDisposable
         Context.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
     }
 
+    /// <summary>
+    /// 화면 글을 다 그린 뒤, 창 안의 네모에 3D 를 한 번 더 그릴 채비 — 깊이만 비우고 그 네모를 뷰포트로 잡는다.
+    /// 끝나면 <see cref="EndInset"/> 로 뷰포트를 되돌린다.
+    /// </summary>
+    public void BeginInset(in FrameConstants frame, float x, float y, float width, float height)
+    {
+        Context.OMSetRenderTargets(_backBuffer, _depth);
+        Context.RSSetViewport(x, y, width, height);
+        Context.RSSetState(_cullNone);
+        Context.ClearDepthStencilView(_depth, DepthStencilClearFlags.Depth, 1f, 0);
+        Context.UpdateSubresource(in frame, _frameBuffer);
+        Context.VSSetConstantBuffer(0, _frameBuffer);
+        Context.PSSetConstantBuffer(0, _frameBuffer);
+        Context.VSSetConstantBuffer(1, _objectBuffer);
+        Context.PSSetConstantBuffer(1, _objectBuffer);
+        Context.PSSetSampler(0, _wrapSampler);
+        Context.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
+    }
+
+    public void EndInset() => Context.RSSetViewport(0, 0, Width, Height);
+
     /// <param name="soft">알파로 섞어 그리는 면 — 거의 투명한 데만 잘라낸다.</param>
     public void SetObject(in Matrix4x4 world, Vector4 tint, bool baked = false, bool soft = false, bool figure = false)
     {

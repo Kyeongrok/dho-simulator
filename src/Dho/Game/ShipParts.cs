@@ -8,7 +8,31 @@ namespace Dho.Game;
 /// </summary>
 internal sealed partial class Voyage
 {
-    private static readonly int[] SlotCount = [2, 1, 1];
+    /// <summary>배마다 다른 칸 수 — 보조돛은 돛대 수만큼(셋까지), 장갑 하나, 선수상 하나. 원본의 배마다의 칸 수는 자료를 못 찾아 지은 것이다.</summary>
+    public int SlotsOf(int slot) => slot == 0 ? Math.Clamp(Ship.Masts, 1, 3) : 1;
+
+    /// <summary>가지고만 있는 부품(소유 선박부품) — 사면 여기 들어오고, 탈착 창(B)에서 배에 단다.</summary>
+    public List<ShipPart> PartStock { get; } = [];
+    public const int PartStockLimit = 30;
+
+    public string? FitBlocker(ShipPart part) =>
+        Mode != Mode.Port ? "항구에서만 단다" : Parts.Count(p => p.Slot == part.Slot) >= SlotsOf(part.Slot) ? $"{SlotName[part.Slot]} 칸이 찼다" : null;
+
+    /// <summary>가진 부품을 배에 단다.</summary>
+    public void Fit(ShipPart part)
+    {
+        if (FitBlocker(part) != null || !PartStock.Remove(part)) return;
+        Parts.Add(part);
+        Say($"{part.Name}을(를) 달았다.");
+    }
+
+    /// <summary>배에서 떼어 가진 부품으로 돌린다.</summary>
+    public void Unfit(ShipPart part)
+    {
+        if (Mode != Mode.Port || PartStock.Count >= PartStockLimit || !Parts.Remove(part)) return;
+        PartStock.Add(part);
+        Say($"{part.Name}을(를) 떼었다.");
+    }
     public static readonly string[] SlotName = ["보조돛", "장갑", "선수상"];
 
     /// <summary>타고 있는 배에 단 부품.</summary>
@@ -40,7 +64,7 @@ internal sealed partial class Voyage
     public string? PartBlocker(ShipPart part)
     {
         if (Money < PartPrice(part)) return "돈이 모자라다";
-        if (Parts.Count(p => p.Slot == part.Slot) >= SlotCount[part.Slot]) return $"{SlotName[part.Slot]} 자리가 찼다";
+        if (PartStock.Count >= PartStockLimit) return "부품을 더 가질 수 없다";
         return null;
     }
 
@@ -48,16 +72,16 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Port || PartBlocker(part) != null) return;
         Money -= PartPrice(part);
-        Parts.Add(part);
-        Say($"{part.Name}을(를) 달았다. ({PartPrice(part):N0} 두캇)");
+        PartStock.Add(part);
+        Say($"{part.Name}을(를) 샀다. ({PartPrice(part):N0} 두캇) — B 로 배에 단다.");
     }
 
     /// <summary>떼어서 반값에 판다.</summary>
     public void SellPart(ShipPart part)
     {
-        if (Mode != Mode.Port || !Parts.Remove(part)) return;
+        if (Mode != Mode.Port || !PartStock.Remove(part)) return;
         Money += PartPrice(part) / 2;
-        Say($"{part.Name}을(를) 떼어 팔았다. ({PartPrice(part) / 2:N0} 두캇)");
+        Say($"{part.Name}을(를) 팔았다. ({PartPrice(part) / 2:N0} 두캇)");
     }
 
     /// <summary>보조돛이 보태고 장갑이 깎는 속도 배율.</summary>
