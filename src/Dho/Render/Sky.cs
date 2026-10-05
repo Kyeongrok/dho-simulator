@@ -53,6 +53,21 @@ internal readonly record struct Sky(
         };
     }
 
+    /// <summary>
+    /// 그 바다의 빛깔로 물들인다 — 원본의 바다 빛깔 벌에서 온 하늘빛 · 물빛과, 기준 바다(지중해)의 것과의 차이를
+    /// 낮의 밝기만큼 더한다(밤에는 거의 안 보인다). 물빛은 우리 바다색이 원본보다 어두워 차이를 조금 줄여 더한다.
+    /// </summary>
+    public Sky Tinted(Vector3 sky, Vector3 water, Vector3 homeSky, Vector3 homeWater)
+    {
+        float day = Math.Clamp(Zenith.Z / 0.74f, 0, 1);
+        return this with
+        {
+            Zenith = Vector3.Clamp(Zenith + (sky - homeSky) * day, Vector3.Zero, Vector3.One),
+            Horizon = Vector3.Clamp(Horizon + (sky - homeSky) * day * 0.5f, Vector3.Zero, Vector3.One),
+            Water = Vector3.Clamp(Water + (water - homeWater) * day * 0.75f, Vector3.Zero, Vector3.One),
+        };
+    }
+
     private static float Smooth(float from, float to, float value)
     {
         float t = Math.Clamp((value - from) / (to - from), 0, 1);

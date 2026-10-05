@@ -6,7 +6,7 @@ import os
 import struct
 import zlib
 
-GAME_DIR = os.environ.get("GVO_DIR", r"C:\Netmarble\GV Online Kr")
+GAME_DIR = os.environ.get("GVO_DIR", r"C:\Program Files (x86)\Papaya Play\GV Online KR")
 
 # 언어 묶음 차례 (0000\local\dt*.bin 은 MWC 덩이 5개 = 언어 5개)
 LANG_JA, LANG_KO = 0, 1

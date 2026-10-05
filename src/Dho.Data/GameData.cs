@@ -314,6 +314,15 @@ public sealed class RecipeRule
     public string Inputs { get; set; } = "";
     /// <summary>필요한 생산 스킬과 랭크 — "조리 3" 꼴. 비면 없다. 이용자들이 모은 자료의 값.</summary>
     public string Skill { get; set; } = "";
+    /// <summary>연금술 실험의 설비 — "Furnace"(화로) · "Bench"(실험대). 비면 설비가 필요 없는 보통 생산.</summary>
+    public string Facility { get; set; } = "";
+    /// <summary>실험에 갖춰야 하는 도구(아이템 번호를 쉼표로) — 들지는 않는다.</summary>
+    public string Tools { get; set; } = "";
+    /// <summary>생산물이 교역품이 아니라 아이템일 때 그 번호(이그니스의 원액 …). 0 이면 Output 의 교역품.</summary>
+    public int OutputItem { get; set; }
+
+    public IEnumerable<int> ToolList() =>
+        Tools.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(t => int.TryParse(t, out _)).Select(int.Parse);
 
     public IEnumerable<(int Good, int Count)> InputList() =>
         Inputs.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -352,6 +361,20 @@ public sealed class PaperItem
     public int Id { get; set; }
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
+}
+
+/// <summary>
+/// 장비 표(15)의 한 줄 — 번호 · 이름 · 설명과 줄 꼬리의 수치 다섯(u16 칸 1 · 3 · 5 · 7 · 9).
+/// 칸 9 는 내구로 보인다(옷 30 · 무기 100). 칸 1 은 무기에서, 칸 3 · 5 는 옷에서 값이 있다 — 공격 · 방어 따위로 보이지만 어느 것인지는 못 밝혔다.
+/// </summary>
+public sealed class GearItem
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+    public List<int> Stats { get; set; } = [];
+    /// <summary>갈래 — 번호의 십만 자리: 0 옷 · 1 모자 · 2 신발 · 3 장갑 · 4 무기 · 5 장신구.</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public int Slot => Id / 100000;
 }
 
 /// <summary>배 하나의 상세(ssjoy 의 배 쪽) — 강화 횟수, 강화 상한, 부품 칸 수, 붙일 수 있는 선박 스킬과 그 재료, 특수 건조의 선체.</summary>
@@ -509,6 +532,8 @@ public sealed class SaveData
     public List<int> Parts { get; set; } = [];
     /// <summary>가지고만 있는(배에 안 단) 선박부품의 번호들.</summary>
     public List<int> PartStock { get; set; } = [];
+    /// <summary>입거나 찬 장비 — 갈래(0 옷 … 5 장신구)마다 아이템 번호, 없으면 0.</summary>
+    public List<int> Equipped { get; set; } = [];
     /// <summary>부두의 배들 — [배 id, 내구, 단 부품 …].</summary>
     public List<double[]> Dock { get; set; } = [];
     public int QuestId { get; set; }
@@ -548,6 +573,15 @@ public sealed class SettingsData
     public double MusicVolume { get; set; } = 0.5;
     /// <summary>바다의 둥근 지도 크기 배율(0.5 ~ 1.5).</summary>
     public double SeaMapScale { get; set; } = 1;
+    /// <summary>판매선박 목록에 걸어 둔 거르기 — 크기(0 전체 · 1 소형 · 2 중형 · 3 대형)와 용도(0 전체 · 1 모험 · 2 교역 · 3 전투). 게임을 껐다 켜도 남는다.</summary>
+    public int ShipFilterSize { get; set; }
+    public int ShipFilterUse { get; set; }
+    /// <summary>소지품 창의 격자 줄 수(다섯 칸 × 이 줄 수) — 4 ~ 8.</summary>
+    public int ItemRows { get; set; } = 5;
+    /// <summary>모드: 타고 있는 배도 커스텀설정 조선 · 특수 조선에서 강화할 수 있다(원본은 못 한다).</summary>
+    public bool ModWorkOnBoard { get; set; }
+    /// <summary>모드: 선박 조합의 성공률에 더하는 값(%) — 0 ~ 50. 0 이면 그대로.</summary>
+    public int ModCombineBonus { get; set; }
     /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
     public Dictionary<string, int> Keys { get; set; } = new();
     /// <summary>효과음 — 일 이름 → "묶음:차례"(<c>data\extracted\se-all</c> 의 파일 이름 앞 두 수). 빈 글이면 소리 없음.</summary>
@@ -604,6 +638,9 @@ public sealed class GameData
     public List<SupplyData> Supplies { get; set; } = [];
     public List<SkillRuleData> SkillRules { get; set; } = [];
     public List<SkillData> Skills { get; set; } = [];
+    /// <summary>조선소에서 팔지 않는 배의 이름 표시 — 교환권 · 특수 조선으로만 얻는 변형들.</summary>
+    public static readonly string[] ShipVariants = ["개조", "명품", "기념", "체험", "개량", "개장", "신형", "특제", "특수", "월광", "신장"];
+
     public List<ShipData> Ships { get; set; } = [];
     public OrderBook Orders { get; set; } = new();
     public List<RecipeData> Recipes { get; set; } = [];
@@ -619,9 +656,28 @@ public sealed class GameData
     /// <summary>클라이언트 아이템 표에서 뽑은 증서 · 허가증 · 교환권 — <c>data\extracted\paper-items.json</c>(저장소에는 안 둔다).</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<PaperItem> Papers { get; set; } = [];
 
+    /// <summary>
+    /// 클라이언트 장비 표(15)에서 뽑은 의상 · 장비 — <c>data\extracted\gear-items.json</c>(저장소에는 안 둔다).
+    /// 번호의 십만 자리가 갈래다: 0 옷 · 1 모자 · 2 신발 · 3 장갑 · 4 무기 · 5 장신구. 아이템 그림 묶음의 무리 번호와 같다.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<GearItem> Gear { get; set; } = [];
+
+    /// <summary>
+    /// 재질 번호 → 클라이언트의 선박재료 아이템(아이템 표 14 의 2200000 대) — <c>data\extracted\material-items.json</c>.
+    /// 재질 표(ssjoy)와 아이템 이름을 다듬어 짝지은 것이다(98 가운데 98). 재질의 그림은 이 아이템의 그림이다.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, int> MaterialItems { get; set; } = [];
+
     /// <summary>이름으로 찾는 배 상세 — 모으지 못한 배는 null.</summary>
     public ShipDetailFact? ShipDetail(string name) => ShipDetails.Find(d => d.Name == name);
     private List<OptionSkill>? _optionSkills;
+
+    /// <summary>
+    /// 옛 저장의 선박 스킬 번호(3000 + ssjoy 표의 차례)를 지금 번호로 — 배에 붙은 스킬에만 쓴다(3000 대의 진짜 스킬과 헷갈리지 않게).
+    /// </summary>
+    public int ShipSkillId(int saved) =>
+        saved is > 3000 and < 3200 && ShipSkillFacts.Find(f => f.No == saved - 3000) is { } fact
+        && OptionSkills.Find(o => o.Name == fact.Name) is { } now ? now.SkillId : saved;
 
     /// <summary>
     /// 붙일 수 있는 옵션 스킬 전부 — 효과를 정해 둔 것(<c>ship-works.json</c>) 뒤에, 이름만 아는 선박 스킬들이 온다.
@@ -642,11 +698,22 @@ public sealed class GameData
                     var pair = (Math.Min(ShipWorks.Parts[i].Id, ShipWorks.Parts[i + gap].Id), Math.Max(ShipWorks.Parts[i].Id, ShipWorks.Parts[i + gap].Id));
                     if (!used.Contains(pair)) pairs.Enqueue(pair);
                 }
+            // 번호는 클라이언트 스킬 표(6)의 진짜 번호를 쓴다(선박 스킬 2000 ~ 2162) — 그래야 스킬 그림이 맞는다.
+            // 표에서 이름을 못 찾은 것만 3000 + 차례(옛 방식, 그림은 엉뚱하다)
+            Dictionary<string, int> real = [];
+            try
+            {
+                foreach (var skill in new DataTables().Skills.Where(s => s.Id is >= 2000 and < 3000 && s.Name.Length > 0))
+                    real.TryAdd(skill.Name.Replace(" ", ""), skill.Id);
+            }
+            catch (Exception) { }
             foreach (var fact in ShipSkillFacts)
             {
                 if (all.Exists(s => s.Name.Replace(" ", "") == fact.Name.Replace(" ", "")) || pairs.Count == 0) continue;
                 var (a, b) = pairs.Dequeue();
-                all.Add(new OptionSkill { SkillId = 3000 + fact.No, Name = fact.Name, PartA = a, PartB = b, Effect = "", Amount = 0 });
+                // 개량갑판: 「항해속도가 상승하고 …」 — 속도 +5%(크기는 지은 것). 화재 · 연막 억제는 전투가 없어 뜻이 없다
+                bool deck = fact.Name == "개량갑판";
+                all.Add(new OptionSkill { SkillId = real.GetValueOrDefault(fact.Name.Replace(" ", ""), 3000 + fact.No), Name = fact.Name, PartA = a, PartB = b, Effect = deck ? "Speed" : "", Amount = deck ? 0.05 : 0 });
             }
             return _optionSkills = all;
         }
@@ -725,6 +792,8 @@ public sealed class GameData
         data.ShipSkillFacts = Read<List<ShipSkillFact>>(Path.Combine(extracted, "shipskill-facts.json")) ?? [];
         data.ShipDetails = Read<List<ShipDetailFact>>(Path.Combine(extracted, "shipdetail-facts.json")) ?? [];
         data.Papers = Read<List<PaperItem>>(Path.Combine(extracted, "paper-items.json")) ?? [];
+        data.Gear = Read<List<GearItem>>(Path.Combine(extracted, "gear-items.json")) ?? [];
+        data.MaterialItems = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-items.json")) ?? [];
         data.JobFacts = Read<List<JobFact>>(Path.Combine(extracted, "job-facts.json")) ?? [];
         data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
@@ -848,8 +917,8 @@ public sealed class GameData
         Places = tables.Places.OrderBy(p => p.Key).Select(p => new NamedData { Id = p.Key, Name = p.Value }).ToList();
         GoodKinds = tables.GoodKinds.OrderBy(k => k.Key).Select(k => new NamedData { Id = k.Key, Name = k.Value }).ToList();
         // 빈 줄(※)과 개조·명품·기념·체험 판은 뺀다
-        string[] variants = ["개조", "명품", "기념", "체험", "개량"];
-        Ships = tables.Ships.Where(s => !s.Name.StartsWith('※') && s.Length > 0 && !variants.Any(s.Name.Contains))
+        // 「명품 · 개량 · 개조 …」이 붙은 배도 실제 배다(선박 교환권으로 받는다) — 다 넣고, 조선소 판매 목록에서만 뺀다
+        Ships = tables.Ships.Where(s => !s.Name.StartsWith('※') && s.Length > 0)
             .Select(s => new ShipData
             {
                 Id = s.Id, Name = s.Name, Description = s.Description, Model = s.Model, Height = s.Height, Width = s.Width,

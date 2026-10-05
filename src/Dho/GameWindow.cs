@@ -61,6 +61,8 @@ internal sealed class GameWindow : IDisposable
     private (float X, float Y, float W, float H)? _previewBox;
     private CharacterModel? _maidModel, _previewFigure;
     private (int, int, int, int, int) _previewLooks;
+    private ShipModel? _previewShip;
+    private int _previewShipModel;
     private float _previewYaw = 2.3f, _previewPitch = 0.28f, _previewZoom = 1f;
     private bool OverPreview => _previewBox is { } b && _mouseX >= b.X && _mouseX < b.X + b.W && _mouseY >= b.Y && _mouseY < b.Y + b.H;
     private float? _yawGoal;
@@ -69,6 +71,7 @@ internal sealed class GameWindow : IDisposable
     private readonly HashSet<int> _keys = [];
 
     private float _overcast;
+    private Dho.Data.SeaColors? _seaColors;
     private Matrix4x4 _viewProjection;
     private Vector3 _eye;
 
@@ -601,7 +604,18 @@ internal sealed class GameWindow : IDisposable
         float overcast = _voyage.Mode != Mode.Sea ? 0 : _voyage.Weather switch { Weather.Storm => 1f, Weather.Rain => 0.7f, Weather.Cloudy => 0.35f, _ => 0f };
         _overcast += (overcast - _overcast) * 0.02f;
         // 방 안은 바깥이 밤이어도 등불 밑이다 — 늘 낮의 밝기로 그린다
-        var sky = town && _voyage.Interior != 0 ? Sky.At(0.5) : Sky.At(_voyage.SkyPhase).Overcast(_overcast);
+        var sky = town && _voyage.Interior != 0 ? Sky.At(0.5) : Sky.At(_voyage.SkyPhase);
+        // 바다마다 다른 하늘빛 · 물빛(원본의 바다 빛깔 벌) — 방 안에서는 안 쓴다
+        if (!(town && _voyage.Interior != 0))
+        {
+            try
+            {
+                _seaColors ??= new Dho.Data.SeaColors();
+                var (tintSky, tintWater) = _seaColors.At(_voyage.ShipX, _voyage.ShipY);
+                sky = sky.Tinted(tintSky, tintWater, _seaColors.HomeSky, _seaColors.HomeWater).Overcast(_overcast);
+            }
+            catch (Exception) { sky = sky.Overcast(_overcast); }
+        }
         var heading = new Vector2(MathF.Sin((float)_voyage.Heading), -MathF.Cos((float)_voyage.Heading));
         var frame = new FrameConstants
         {
@@ -652,7 +666,7 @@ internal sealed class GameWindow : IDisposable
             try { _ship.SetSail(_voyage.SailPattern, _voyage.SailTint); } catch (Exception) { }
             _sailShown = (_ship, _voyage.SailPattern, _voyage.SailTint);
         }
-        int wood = _voyage.MaterialOf(_voyage.ShipMaterialId)?.Color ?? 0xFFFFFF;
+        int wood = _voyage.HullColor(_voyage.ShipMaterialId);
         static Vector4 Rgb(int c) => new((c >> 16 & 255) / 255f, (c >> 8 & 255) / 255f, (c & 255) / 255f, 1);
         if (!town) _ship.Draw(_scene, shipWorld, null, Rgb(wood));
 
@@ -686,10 +700,18 @@ internal sealed class GameWindow : IDisposable
             }
         }
         _hud.ShipPreview = null;
+        _hud.PreviewShip = null;
         _hud.FigurePreview = null;
         _previewBox = null;
         _hud.Draw();
         _canvas.End();
+        // 항구 차림에서 시설을 눌렀다 — 시내가 다 올라오면 그 시설 앞으로 옮겨 간다
+        if (_hud.PendingPlace != 0 && Walking && _grid != null)
+        {
+            if (_voyage.TownMap?.Marks.Find(m => m.Place == _hud.PendingPlace) is { } bound) JumpTo(bound);
+            _hud.PendingPlace = 0;
+        }
+        else if (_hud.PendingPlace != 0 && !_voyage.TownView) _hud.PendingPlace = 0;
 
         // 부관고용 창의 오른쪽 칸: 고른 후보의 모습
         if (_hud.FigurePreview is { } who)
@@ -720,8 +742,20 @@ internal sealed class GameWindow : IDisposable
             // 모형의 가운데를 칸 가운데에 두고 칸에 꽉 차게 — 끌면 돌고 휠로 다가선다(저절로 돌지 않는다)
             _previewBox = (box.X * UiScale, (box.Y + Hud.TitleHeight) * UiScale, box.W * UiScale, box.H * UiScale);
             float spin = _previewYaw;
-            var centre = _ship.Center;
-            float reach = _ship.Radius / MathF.Tan(0.31f) * 0.82f * _previewZoom;
+            // 창이 다른 배를 보이라고 했으면(커스텀설정 조선의 지을 배) 그 모형을 따로 들고 있는다
+            var shown = _ship;
+            int timber = _voyage.HullColor(_voyage.ShipMaterialId);
+            if (_hud.PreviewShip is { } other)
+            {
+                if (_previewShip == null || _previewShipModel != other.Model)
+                {
+                    _previewShip?.Dispose();
+                    (_previewShip, _previewShipModel) = (new ShipModel(_gfx, other.Model), other.Model);
+                }
+                (shown, timber) = (_previewShip, other.Color);
+            }
+            var centre = shown.Center;
+            float reach = shown.Radius / MathF.Tan(0.31f) * 0.82f * _previewZoom;
             var eye = centre + new Vector3(0, MathF.Sin(_previewPitch), MathF.Cos(_previewPitch)) * reach;
             var look = Matrix4x4.CreateLookAt(eye, centre, Vector3.UnitY)
                        * Matrix4x4.CreatePerspectiveFieldOfView(0.62f, box.W / box.H, 200f, 400000f);
@@ -733,8 +767,7 @@ internal sealed class GameWindow : IDisposable
                 SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
             }, box.X * UiScale, (box.Y + Hud.TitleHeight) * UiScale, box.W * UiScale, box.H * UiScale);
             _scene.BeginMeshes();
-            int timber = _voyage.MaterialOf(_voyage.ShipMaterialId)?.Color ?? 0xFFFFFF;
-            _ship.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(spin) * Matrix4x4.CreateTranslation(centre), null, new Vector4((timber >> 16 & 255) / 255f, (timber >> 8 & 255) / 255f, (timber & 255) / 255f, 1));
+            shown.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(spin) * Matrix4x4.CreateTranslation(centre), null, new Vector4((timber >> 16 & 255) / 255f, (timber >> 8 & 255) / 255f, (timber & 255) / 255f, 1));
             _gfx.EndInset();
         }
 
@@ -1033,6 +1066,8 @@ internal sealed class GameWindow : IDisposable
     /// <summary>바다를 누르면 그쪽으로 뱃머리를 돌린다.</summary>
     private void SteerToPointer()
     {
+        // 조선소 주인 차림(구석의 작은 창)은 바깥을 누르면 닫히고 그 자리로 걸어간다
+        if (_voyage.Dialog == Dialog.ShipyardMenu && Walking) _voyage.Dialog = Dialog.None;
         if (_voyage.Dialog != Dialog.None) return;
         Matrix4x4.Invert(_viewProjection, out var inverse);
         float nx = _mouseX / (float)_gfx.Width * 2 - 1, ny = 1 - _mouseY / (float)_gfx.Height * 2;
@@ -1131,6 +1166,10 @@ internal sealed class GameWindow : IDisposable
             case "jobs": _voyage.Dialog = Dialog.Jobs; break;
             case "combine": if (_voyage.Dock.Count >= 2) _voyage.Combine(_voyage.Dock[0], _voyage.Dock[1]); break;
             case "combinewindow": _voyage.Dialog = Dialog.Combine; break;
+            case "combinewith":
+                var chosen = argument.Split(',');
+                if (_voyage.Dock.Count >= 2) _voyage.Combine(_voyage.Dock[0], _voyage.Dock[1], int.Parse(chosen[0]), chosen.Length > 1 ? int.Parse(chosen[1]) : 0);
+                break;
             case "learnfrom": _voyage.LearnFrom((int)Number()); break;
             case "cargo": _voyage.Dialog = Dialog.Cargo; break;
             case "sail-look":
@@ -1146,6 +1185,11 @@ internal sealed class GameWindow : IDisposable
             case "buyitem": if (_voyage.ItemOf((int)Number()) is { } wares) _voyage.BuyItem(wares); break;
             case "addrecipe": if (_voyage.Data.Recipes.Find(r => r.Id == (int)Number()) is { } learned) _voyage.AddRecipe(learned); break;
             case "produce": if (_voyage.RuleOf((int)Number()) is { } make) _voyage.Produce(make, 1); break;
+            case "addgood":
+                var given = argument.Split(',');
+                if (!_voyage.Cargo.TryGetValue(int.Parse(given[0]), out var held)) _voyage.Cargo[int.Parse(given[0])] = held = new CargoItem();
+                held.Count += int.Parse(given[1]);
+                break;
             case "itemtab": _hud.ItemTab = (int)Number(); break;
             case "custom": _hud.OpenCustomBuild((int)Number()); break;
             case "build":
@@ -1196,6 +1240,9 @@ internal sealed class GameWindow : IDisposable
                 break;
             case "swap": _voyage.Dialog = Dialog.ShipSwap; break;
             case "specialbuild": _voyage.Dialog = Dialog.SpecialBuild; break;
+            case "hull": _hud.OpenHullBuild(); break;
+            case "equip": _voyage.Dialog = Dialog.Equip; break;
+            case "bonus": _voyage.Work.Bonuses.Add((int)Number()); _voyage.Work.Grade++; _voyage.AddMastery(1, true); break;
             case "hullbuild": _voyage.Dialog = Dialog.HullBuild; break;
             case "yardmenu": _voyage.Dialog = Dialog.ShipyardMenu; break;
             case "board": if (_voyage.Dock.ElementAtOrDefault((int)Number()) is { } docked) _voyage.SwapShip(docked); break;

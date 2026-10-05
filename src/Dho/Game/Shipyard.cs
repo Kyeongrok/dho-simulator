@@ -25,6 +25,8 @@ internal sealed class ShipOrder
     public required ShipData Ship { get; init; }
     public int Material { get; init; }
     public int Load { get; init; }
+    /// <summary>특수 조선에서 재료의 조합으로 붙은 옵션 스킬 — 받을 때 배에 붙어 있다.</summary>
+    public List<int> Skills { get; init; } = [];
     /// <summary>다 지어질 때까지 남은 날(바다에서 보낸 날로 센다).</summary>
     public double DaysLeft { get; set; }
 }
@@ -44,6 +46,41 @@ internal sealed partial class Voyage
     public ShipOrder? Ordered { get; private set; }
 
     public ShipMaterial? MaterialOf(int id) => Data.ShipMaterials.Find(m => m.Id == id);
+
+    private readonly Dictionary<int, int> _hullColors = new();
+    private ImageSet? _materialIcons;
+
+    /// <summary>
+    /// 그 재질로 지은 배의 선체 빛깔(0xRRGGBB). 나라 · 의식용 재질은 그 선박재료 아이템의 그림에서 뽑는다
+    /// (불투명한 밝은 점들의 평균을 밝게 올린 것) — 그림과 배의 빛깔이 맞는다. 바탕 나무(삼나무 ~ 철)는 전처럼 이름에서 지은 옅은 빛.
+    /// </summary>
+    public int HullColor(int material)
+    {
+        if (_hullColors.TryGetValue(material, out int known)) return known;
+        int color = MaterialOf(material)?.Color ?? 0xFFFFFF;
+        try
+        {
+            if (IsSpecial(material) && Data.MaterialItems.TryGetValue(material, out int item)
+                && (_materialIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(22, item) is { } icon)
+            {
+                double r = 0, g = 0, b = 0, n = 0;
+                for (int at = 0; at + 3 < icon.Bgra.Length; at += 4)
+                {
+                    int bb = icon.Bgra[at], gg = icon.Bgra[at + 1], rr = icon.Bgra[at + 2];
+                    // 바탕(어두운 초록 칸)과 테두리는 빼고, 재료 더미의 빛깔만
+                    if (icon.Bgra[at + 3] < 200 || Math.Max(rr, Math.Max(gg, bb)) < 110) continue;
+                    (r, g, b, n) = (r + rr, g + gg, b + bb, n + 1);
+                }
+                if (n > 30)
+                {
+                    double top = Math.Max(r, Math.Max(g, b)) / n, lift = 235 / Math.Max(1, top);
+                    color = (int)Math.Min(255, r / n * lift) << 16 | (int)Math.Min(255, g / n * lift) << 8 | (int)Math.Min(255, b / n * lift);
+                }
+            }
+        }
+        catch (Exception) { }
+        return _hullColors[material] = color;
+    }
 
     /// <summary>그 배의 능력치 — 재질과 적재 변경을 입힌 것.</summary>
     public ShipStats StatsOf(ShipData ship, int material, int load)
@@ -65,7 +102,21 @@ internal sealed partial class Voyage
     /// <summary>지금 랭크로 고를 수 있는 재질.</summary>
     /// 나무 여섯 가지(1 ~ 6)는 조선 랭크로 열리고, 그 밖의 재질(나라별 · 제독 재료 · 특수 도장 …)은 **그 재질 아이템을 가지고 있어야** 고른다.
     public List<ShipMaterial> MaterialsToUse() =>
-        Data.ShipMaterials.Where(m => IsSpecial(m.Id) ? Items.GetValueOrDefault(MaterialItem + m.Id) > 0 : m.MinRank <= ShipbuildingRank).ToList();
+        Data.ShipMaterials.Where(m => IsSpecial(m.Id) ? WoodItemOwned(m.Id) > 0 : m.MinRank <= ShipbuildingRank).ToList();
+
+    /// <summary>
+    /// 그 재질을 고르는 데 드는 「장비 재료」 아이템 가운데 가진 것 — 원본의 「○○ 선박재료」(조빌 아이템, 클라이언트 글 49214 「필요 장비 재료:%s」)를
+    /// 먼저 보고, 없으면 전에 지어 넣은 재질 아이템을 본다. 없으면 0.
+    /// </summary>
+    public int WoodItemOwned(int material)
+    {
+        int real = Items.Keys.FirstOrDefault(id => id is >= ShipItems and < ShipItems + 100_000 && WoodOf(id)?.Id == material);
+        return real > 0 ? real : Items.GetValueOrDefault(MaterialItem + material) > 0 ? MaterialItem + material : 0;
+    }
+
+    /// <summary>그 재질에 드는 원본 장비 재료의 이름(「포르투갈군 공용 선박재료」) — 아이템 표에 없으면 null.</summary>
+    public string? WoodItemName(int material) =>
+        Data.Papers.Find(p => p.Id is >= ShipItems and < ShipItems + 100_000 && WoodOf(p.Id)?.Id == material)?.Name;
 
     /// <summary>재질 아이템의 번호 — 여기에 재질 번호를 더한다. 건조를 맡길 때 하나가 든다.</summary>
     public const int MaterialItem = 9_200_000;
@@ -85,7 +136,7 @@ internal sealed partial class Voyage
         if (ship.SizeClass * 2 > ShipbuildingRank) return $"조선 랭크 {ship.SizeClass * 2} 이 있어야 이 크기를 짓는다";
         if (load != 0 && ShipbuildingRank < LoadRank) return $"적재 변경은 조선 랭크 {LoadRank} 부터";
         if (Money < BuildCost(ship, material)) return "돈이 모자라다";
-        if (IsSpecial(material) && Items.GetValueOrDefault(MaterialItem + material) <= 0) return "그 재질 아이템이 없다";
+        if (IsSpecial(material) && WoodItemOwned(material) == 0) return $"필요 장비 재료: {WoodItemName(material) ?? MaterialOf(material)?.Name}";
         return null;
     }
 
@@ -95,56 +146,83 @@ internal sealed partial class Voyage
         load = Math.Clamp(load, -25, 25);
         if (Mode != Mode.Port || BuildBlocker(ship, material, load) != null) return;
         Money -= BuildCost(ship, material);
-        if (IsSpecial(material) && --Items[MaterialItem + material] <= 0) Items.Remove(MaterialItem + material);
+        if (IsSpecial(material) && WoodItemOwned(material) is > 0 and var wood && --Items[wood] <= 0) Items.Remove(wood);
         Ordered = new ShipOrder { Ship = ship, Material = material, Load = load, DaysLeft = BuildDays(ship) };
         TrainEffect("Shipbuilding", 40 + ship.SizeClass * 30);
         Studied("Build");
         Say($"{ship.Name}의 건조를 맡겼다. 재질 {MaterialOf(material)?.Name}, 건조일수 {BuildDays(ship)}일.");
     }
 
-    /// <summary>특수조선 한 건 — 이 도시에서 그 선체 아이템으로 짓는 배.</summary>
-    public sealed record HullPlan(ShipData Ship, int HullItem, string Hull, int Rank, int Material, string MaterialName);
-
-    /// <summary>
-    /// 이 도시의 조선소에서 특수조선으로 지을 수 있는 배들 — 배 상세(ssjoy)의 「특수 건조 도시」에서 온다(모은 배만 있다).
-    /// 선체는 아이템 표(14)의 조선 부품(2200000 ~)이다.
-    /// </summary>
-    public List<HullPlan> HullPlans()
-    {
-        var plans = new List<HullPlan>();
-        foreach (var detail in Data.ShipDetails)
-            foreach (var special in detail.Special.Where(s => s.City == City.Name))
-            {
-                if (Data.Ships.Find(s => s.Name == detail.Name) is not { } ship) continue;
-                int hull = Data.Papers.Find(p => p.Name == special.Hull && p.Id is >= ShipItems and < ShipItems + 100_000)?.Id ?? 0;
-                var material = Data.ShipMaterials.Find(m => m.Name == special.Material) ?? Data.ShipMaterials.Find(m => m.Name == "너도밤나무") ?? Data.ShipMaterials[0];
-                plans.Add(new HullPlan(ship, hull, special.Hull, special.Rank, material.Id, material.Name));
-            }
-        return plans;
-    }
+    /// <summary>특수 조선 한 건 — 그 선체 아이템으로 그 도시에서 짓는 배.</summary>
+    public sealed record HullPlan(ShipData Ship, int HullItem, string Hull, int Rank, int Material, string MaterialName, string City);
 
     /// <summary>아이템 표의 조선 부품(조빌 아이템) 무리 — 선체 · 돛 · 망 · 선실 · 선박재료 ….</summary>
     public const int ShipItems = 2_200_000;
 
-    public string? HullBlocker(HullPlan plan)
+    public static bool IsShipItem(int item) => item is >= ShipItems and < ShipItems + 100_000;
+    public static bool IsHullName(string name) => name.Contains("선체") || name.Contains("도선");
+    /// <summary>「주요 돛」으로 치는 조빌 아이템(개프세일 · 라틴세일 · 스퀘어세일 …)과 「포문」.</summary>
+    public static bool IsSailName(string name) => name.Contains("세일") || name.EndsWith("돛") || name.EndsWith("사각돛");
+    public static bool IsGunportName(string name) => name.Contains("포문");
+
+    /// <summary>가진 선체 아이템들.</summary>
+    public List<PaperItem> HullsOwned() =>
+        Data.Papers.Where(p => IsShipItem(p.Id) && IsHullName(p.Name) && Items.GetValueOrDefault(p.Id) > 0).ToList();
+
+    /// <summary>
+    /// 그 선체로 짓는 배들(도시마다 한 줄) — 배 상세(ssjoy)의 「특수 건조 도시」에서 온다(모은 배만 있다).
+    /// 선체는 아이템 표(14)의 조선 부품(2200000 ~)이다.
+    /// </summary>
+    public List<HullPlan> HullPlans(int hullItem)
+    {
+        var plans = new List<HullPlan>();
+        string hull = Data.Papers.Find(p => p.Id == hullItem)?.Name ?? "";
+        foreach (var detail in Data.ShipDetails)
+            foreach (var special in detail.Special.Where(s => s.Hull == hull))
+            {
+                if (Data.Ships.Find(s => s.Name == detail.Name) is not { } ship) continue;
+                var material = Data.ShipMaterials.Find(m => m.Name == special.Material) ?? Data.ShipMaterials.Find(m => m.Name == "너도밤나무") ?? Data.ShipMaterials[0];
+                plans.Add(new HullPlan(ship, hullItem, special.Hull, special.Rank, material.Id, material.Name, special.City));
+            }
+        // 배(와 재질)마다 한 줄 — 이 도시에서 지을 수 있으면 그것, 아니면 짓는 도시들을 이어 적은 줄. 지을 수 있는 것을 앞에
+        return plans.GroupBy(p => (p.Ship.Id, p.Material))
+            .Select(g => g.FirstOrDefault(p => p.City == City.Name) ?? g.First() with { City = string.Join(" · ", g.Select(p => p.City).Distinct()) })
+            .OrderBy(p => p.City == City.Name ? 0 : 1).ToList();
+    }
+
+    /// <summary>고른 재료들로 붙는 옵션 스킬 — 그 배의 스킬 가운데 재료가 모두 들어 있는 것(없으면 null).</summary>
+    public OptionSkill? HullSkill(HullPlan plan, IReadOnlyCollection<int> materials)
+    {
+        var names = materials.Select(ItemName).ToHashSet();
+        var granted = Data.ShipDetail(plan.Ship.Name)?.Skills.Find(s => s.Parts.Count > 0 && s.Parts.All(names.Contains));
+        return granted == null ? null : Data.OptionSkills.Find(o => o.Name == granted.Name);
+    }
+
+    public string? HullBlocker(HullPlan plan, IReadOnlyCollection<int> materials)
     {
         if (Ordered != null) return "이미 맡겨 둔 배가 있다";
+        if (plan.City != City.Name) return $"{plan.City}의 조선소에서만 짓는다";
         if (ShipbuildingRank < plan.Rank) return $"조선 랭크 {plan.Rank} 이 있어야 한다";
-        if (plan.HullItem == 0 || Items.GetValueOrDefault(plan.HullItem) <= 0) return $"「{plan.Hull}」이(가) 있어야 한다";
+        if (Items.GetValueOrDefault(plan.HullItem) <= 0) return $"필요 선체: {plan.Hull}";
+        if (!materials.Any(m => IsSailName(ItemName(m)))) return "「주요 돛」이 있어야 한다";
+        if (!materials.Any(m => IsGunportName(ItemName(m)))) return "「포문」이 있어야 한다";
+        if (materials.Count > 4) return "재료는 넷까지";
         if (Money < BuildCost(plan.Ship, plan.Material)) return "돈이 모자라다";
         return null;
     }
 
-    /// <summary>특수조선을 맡긴다 — 선체 하나가 든다. 날이 차면 「선박 받기」로 받는다.</summary>
-    public void OrderHull(HullPlan plan)
+    /// <summary>특수 조선의 신규건조를 맡긴다 — 선체와 고른 재료가 든다. 날이 차면 「선박 받기」로 받는다.</summary>
+    public void OrderHull(HullPlan plan, IReadOnlyCollection<int> materials)
     {
-        if (Mode != Mode.Port || HullBlocker(plan) != null) return;
+        if (Mode != Mode.Port || HullBlocker(plan, materials) != null) return;
+        var skill = HullSkill(plan, materials);
         Money -= BuildCost(plan.Ship, plan.Material);
-        if (--Items[plan.HullItem] <= 0) Items.Remove(plan.HullItem);
-        Ordered = new ShipOrder { Ship = plan.Ship, Material = plan.Material, Load = 0, DaysLeft = BuildDays(plan.Ship) };
+        foreach (int used in materials.Append(plan.HullItem))
+            if (--Items[used] <= 0) Items.Remove(used);
+        Ordered = new ShipOrder { Ship = plan.Ship, Material = plan.Material, Load = 0, DaysLeft = BuildDays(plan.Ship), Skills = skill == null ? [] : [skill.SkillId] };
         TrainEffect("Shipbuilding", 40 + plan.Ship.SizeClass * 30);
         Studied("Build");
-        Say($"{plan.Hull}(으)로 {plan.Ship.Name}의 특수조선을 맡겼다. 재질 {plan.MaterialName}, 건조일수 {BuildDays(plan.Ship)}일.");
+        Say($"{plan.Hull}(으)로 {plan.Ship.Name}의 특수 조선을 맡겼다. 재질 {plan.MaterialName}, 건조일수 {BuildDays(plan.Ship)}일." + (skill == null ? "" : $" 옵션 스킬 「{skill.Name}」이(가) 붙는다."));
     }
 
     public string? ReceiveBlocker => Ordered == null ? "맡겨 둔 배가 없다" : Ordered.DaysLeft > 0 ? $"{Math.Ceiling(Ordered.DaysLeft):0}일 더 걸린다" : Dock.Count >= DockSlots ? "부두에 둘 자리가 없다" : null;
@@ -154,7 +232,9 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Port || ReceiveBlocker != null || Ordered is not { } order) return;
         var stats = StatsOf(order.Ship, order.Material, order.Load);
-        Dock.Add(new DockedShip { Ship = order.Ship, Durability = stats.Durability, Material = order.Material, Load = order.Load });
+        var work = new ShipWork();
+        work.Skills.AddRange(order.Skills);
+        Dock.Add(new DockedShip { Ship = order.Ship, Durability = stats.Durability, Material = order.Material, Load = order.Load, Work = work });
         Ordered = null;
         Say($"{order.Ship.Name}을(를) 넘겨받아 부두에 매어 두었다. 선박교환에서 갈아탄다.");
     }
@@ -189,8 +269,9 @@ internal sealed partial class Voyage
     {
         var rules = Settings.Ships;
         int maxClass = City.Kind switch { 0 => rules.CapitalMaxClass, 1 => rules.TerritoryMaxClass, _ => rules.OtherMaxClass };
-        return Data.Ships.Where(s => s.Kind == 0 && s.SizeClass <= maxClass && s.Id != Ship.Id)
-            .GroupBy(s => s.Model).Select(g => g.First())       // 같은 모형은 하나만
+        // 이름이 같은 줄만 하나로 줄인다 — 모형이 같아도 다른 배다(대형 카락과 탐험용 대형 카락). 타고 있는 배와 같은 것도 또 살 수 있다
+        return Data.Ships.Where(s => s.Kind == 0 && s.SizeClass <= maxClass && !GameData.ShipVariants.Any(s.Name.Contains))
+            .GroupBy(s => s.Name).Select(g => g.First())
             .OrderBy(s => ShipStats.Of(s, rules).Price).ToList();
     }
 
@@ -207,7 +288,6 @@ internal sealed partial class Voyage
         var stats = ShipStats.Of(ship, Settings.Ships);
         if (Money < ShipCost(ship)) return "돈이 모자라다";
         if (Dock.Count >= DockSlots) return "부두에 둘 자리가 없다";
-        if (CargoCount > stats.Hold) return "짐이 새 배의 창고보다 많다";
         return null;
     }
 
@@ -277,8 +357,9 @@ internal sealed partial class Voyage
     public void BuyShip(ShipData ship)
     {
         if (Mode != Mode.Port || ShipBlocker(ship) != null) return;
+        // 사기만 한다 — 산 배는 부두에 매어 두고, 타는 것은 선박교환에서 한다
         Money -= ShipCost(ship);
-        Say($"{ship.Name}을(를) 샀다. 타던 {Ship.Name}은(는) 부두에 매어 두었다.");
-        Board(ship, double.MaxValue);
+        Dock.Add(new DockedShip { Ship = ship, Durability = ShipStats.Of(ship, Settings.Ships).Durability });
+        Say($"{ship.Name}을(를) 사서 부두에 매어 두었다. 선박교환에서 갈아탄다.");
     }
 }

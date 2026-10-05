@@ -60,6 +60,11 @@
   "UiScale": 2,
   "MusicVolume": 0.5,
   "SeaMapScale": 0.9,
+  "ShipFilterSize": 3,
+  "ShipFilterUse": 1,
+  "ItemRows": 5,
+  "ModWorkOnBoard": true,
+  "ModCombineBonus": 40,
   "Keys": {
     "Map": 53,
     "Skills": 88,

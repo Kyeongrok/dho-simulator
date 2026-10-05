@@ -18,11 +18,13 @@ public sealed class UiParts
     private readonly byte[] _data;
     private readonly List<(int Width, int Height, int At)> _sheets = [];
     private readonly int _count;
+    private readonly bool _shifted;
 
     public UiParts(int number)
     {
         _data = GvoFiles.MwcChunks(GvoFiles.Read($@"0010\local\gm{number:D6}.bin"))[0];
         _count = BinaryPrimitives.ReadInt32LittleEndian(_data);
+        _shifted = number == 0 && _count >= 1266;
         int sheets = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(4));
         int at = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(8));
         for (int i = 0; i < sheets; i++)
@@ -36,6 +38,9 @@ public sealed class UiParts
     /// <summary>조각 하나의 BGRA. 없는 번호면 null.</summary>
     public (int Width, int Height, byte[] Bgra)? Pixels(int index)
     {
+        // 코드의 번호는 2022-12 클라이언트(넷마블)의 것이다. 지금 클라이언트(파파야)의 gm000000 은 228 번부터 조각 여섯이 끼어들어
+        // 뒤가 여섯씩 밀렸다(세로돛 306 → 312, 선원 330 → 336 … — 그림을 나란히 놓고 맞춘 것, 228 이라는 경계는 짐작).
+        if (_shifted && index >= 228) index += 6;
         if (index < 0 || index >= _count) return null;
         int record = 12 + index * 28;
         int sheet = BinaryPrimitives.ReadInt32LittleEndian(_data.AsSpan(record));

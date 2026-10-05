@@ -36,14 +36,37 @@ internal sealed partial class Voyage
         return Data.Skills.Find(s => s.Name == name) is { } skill ? (skill.Id, rank) : null;
     }
 
+    /// <summary>
+    /// 가진 실험 설비 가운데 가장 좋은 것의 급(1 간이 · 2 보통 · 3 개량) — 없으면 0. 연금술 복합시설은 화로와 실험대를 겸한다(급 2 로 친다).
+    /// 설비는 items.json 의 Effect "Lab" 아이템이고 Amount 의 십 자리가 갈래(1 화로 · 2 실험대 · 3 복합), 일 자리가 급이다.
+    /// </summary>
+    public int LabTier(string facility)
+    {
+        int kind = facility == "Furnace" ? 1 : 2, best = 0;
+        foreach (var lab in Data.Items.Where(i => i.Effect == "Lab" && Items.GetValueOrDefault(i.Id) > 0))
+        {
+            int family = (int)lab.Amount / 10, tier = (int)lab.Amount % 10;
+            if (family == kind) best = Math.Max(best, tier);
+            else if (family == 3) best = Math.Max(best, 2);
+        }
+        return best;
+    }
+
+    public static string LabName(string facility) => facility == "Furnace" ? "실험 화로" : "실험대";
+
+    /// <summary>실험이 실패할 확률(%) — 설비의 급에 따라 20 · 10 · 3(지은 값).</summary>
+    public int LabFailChance(RecipeRule rule) => rule.Facility == "" ? 0 : LabTier(rule.Facility) switch { 1 => 20, 2 => 10, 3 => 3, _ => 100 };
+
     /// <summary>못 만드는 까닭.</summary>
     public string? ProduceBlocker(RecipeRule rule, int times)
     {
         if (!Recipes.Contains(rule.RecipeId)) return "레시피가 없다";
+        if (rule.Facility != "" && LabTier(rule.Facility) == 0) return $"{LabName(rule.Facility)}가 있어야 한다 — {(rule.Facility == "Furnace" ? "화로를 사용한 연금술" : "실험대에서 진행하는 연금술")}";
+        if (rule.ToolList().FirstOrDefault(tool => Items.GetValueOrDefault(tool) <= 0) is > 0 and var missing) return $"도구 「{ItemName(missing)}」이(가) 있어야 한다";
         if (RecipeSkill(rule) is { } need && Rank(need.SkillId) < need.Rank) return $"{SkillName(need.SkillId)} 랭크 {need.Rank} 이 있어야 한다";
         if (CanProduce(rule) < times) return "재료가 모자라다";
         int used = rule.InputList().Sum(i => i.Count) * times, made = rule.OutputCount * times;
-        if (HoldFree + used < made) return "창고가 모자라다";
+        if (rule.OutputItem == 0 && HoldFree + used < made) return "창고가 모자라다";
         return null;
     }
 
@@ -62,13 +85,26 @@ internal sealed partial class Voyage
             item.Count -= count * times;
             if (item.Count <= 0) Cargo.Remove(good);
         }
-        if (!Cargo.TryGetValue(rule.Output, out var made)) Cargo[rule.Output] = made = new CargoItem();
-        made.Count += rule.OutputCount * times;
-        made.Cost += cost;
+        // 연금술 실험은 설비의 급에 따라 한 번씩 실패할 수 있다 — 재료는 들고 나오는 것이 없다
+        int done = times;
+        if (rule.Facility != "")
+            for (int k = 0; k < times; k++)
+                if (_random.Next(100) < LabFailChance(rule)) done--;
+        if (done < times) Say(done == 0 ? "생산에 실패했습니다." : $"실험 {times}번 가운데 {times - done}번은 실패했다.");
+        if (rule.OutputItem > 0)
+        {
+            if (done > 0) Items[rule.OutputItem] = Items.GetValueOrDefault(rule.OutputItem) + rule.OutputCount * done;
+        }
+        else if (done > 0)
+        {
+            if (!Cargo.TryGetValue(rule.Output, out var made)) Cargo[rule.Output] = made = new CargoItem();
+            made.Count += rule.OutputCount * done;
+            made.Cost += cost;
+        }
         Fatigue = Math.Min(100, Fatigue + 0.5 * times);
         if (RecipeSkill(rule) is { } used) Train(used.SkillId, 25 * times);
         Studied("Produce", times);
         GainMastery();
-        Say($"{Good(rule.Output)?.Name ?? "물건"} {rule.OutputCount * times}개를 만들었다.");
+        if (done > 0) Say($"{(rule.OutputItem > 0 ? ItemName(rule.OutputItem) : Good(rule.Output)?.Name ?? "물건")} {rule.OutputCount * done}개를 만들었다.");
     }
 }

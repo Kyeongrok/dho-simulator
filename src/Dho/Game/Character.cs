@@ -131,6 +131,7 @@ internal sealed partial class Voyage
             Items = new Dictionary<int, int>(Items),
             Parts = Parts.Select(p => p.Id).ToList(),
             PartStock = PartStock.Select(p => p.Id).ToList(),
+            Equipped = Equipped.ToList(),
             Recipes = Recipes.ToList(),
             QuickSlots = QuickSlots,
             Work = Work.ToArray(),
@@ -138,7 +139,7 @@ internal sealed partial class Voyage
             DockSail = Dock.Select(d => new[] { d.SailPattern, d.SailTint }).ToList(),
             Looks = Looks,
             Build = [ShipMaterialId, ShipLoad],
-            Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft] : [],
+            Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
@@ -185,7 +186,7 @@ internal sealed partial class Voyage
                     SailPattern = save.DockSail.ElementAtOrDefault(Dock.Count) is { Length: 2 } look ? look[0] : 0,
                     SailTint = save.DockSail.ElementAtOrDefault(Dock.Count) is { Length: 2 } tint ? tint[1] : 0,
                     Material = docked.Length > 3 ? (int)docked[2] : 0, Load = docked.Length > 3 ? (int)docked[3] : 0,
-                    Work = save.DockWork.ElementAtOrDefault(Dock.Count) is { } stored_work ? ShipWork.From(stored_work) : new ShipWork(),
+                    Work = save.DockWork.ElementAtOrDefault(Dock.Count) is { } stored_work ? ShipWork.From(stored_work).Renumbered(Data.ShipSkillId) : new ShipWork(),
                     Parts = docked.Skip(4).Select(id => Data.ShipParts.Find(p => p.Id == (int)id)).OfType<ShipPart>().ToList(),
                 });
         foreach (var saved in save.Aides)
@@ -213,14 +214,15 @@ internal sealed partial class Voyage
         }
         if (save.Work.Length >= 6)
         {
-            Work = ShipWork.From(save.Work);
+            Work = ShipWork.From(save.Work).Renumbered(Data.ShipSkillId);
             Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
             Durability = Math.Clamp(save.Durability, 1, Stats.Durability);
         }
         if (save.Ordered.Length >= 4 && Data.Ships.Find(s => s.Id == (int)save.Ordered[0]) is { } building)
-            Ordered = new ShipOrder { Ship = building, Material = (int)save.Ordered[1], Load = (int)save.Ordered[2], DaysLeft = save.Ordered[3] };
+            Ordered = new ShipOrder { Ship = building, Material = (int)save.Ordered[1], Load = (int)save.Ordered[2], DaysLeft = save.Ordered[3], Skills = save.Ordered.Skip(4).Select(s => Data.ShipSkillId((int)s)).ToList() };
         Parts = save.Parts.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>().ToList();
         PartStock.AddRange(save.PartStock.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>());
+        for (int slot = 0; slot < Equipped.Length; slot++) Equipped[slot] = slot < save.Equipped.Count ? save.Equipped[slot] : 0;
         Quest = Data.Quests.Find(q => q.Id == save.QuestId);
         QuestStage = Quest == null ? QuestStage.None : (QuestStage)save.QuestStage;
         Enter();

@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -366,10 +366,14 @@ internal sealed partial class Voyage
 
     public string CityName(int id) => _cities.TryGetValue(id, out var city) ? city.Name : $"도시 {id}";
 
+    /// <summary>기록에 줄이 들어온 횟수 — 기록 창이 새 줄을 알아채는 데 쓴다(가득 찬 뒤에는 줄 수가 안 변한다).</summary>
+    public int LogSerial { get; private set; }
+
     public void Say(string line)
     {
         Log.Add(Korean.Particles(line));
-        if (Log.Count > 60) Log.RemoveAt(0);
+        if (Log.Count > 200) Log.RemoveAt(0);       // 옛 줄부터 지운다
+        LogSerial++;
     }
 
     // ── 항구 ─────────────────────────────────────────────────────────────────

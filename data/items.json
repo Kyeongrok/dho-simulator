@@ -306,5 +306,54 @@
     "Effect": "Paper",
     "Amount": 0,
     "Price": 0
+  },
+  {
+    "Id": 9400011,
+    "Name": "연금술 간이 실험 화로",
+    "Effect": "Lab",
+    "Amount": 11,
+    "Price": 0
+  },
+  {
+    "Id": 9400012,
+    "Name": "연금술 실험 화로",
+    "Effect": "Lab",
+    "Amount": 12,
+    "Price": 0
+  },
+  {
+    "Id": 9400013,
+    "Name": "연금술 개량 실험 화로",
+    "Effect": "Lab",
+    "Amount": 13,
+    "Price": 0
+  },
+  {
+    "Id": 9400021,
+    "Name": "연금술 간이 실험대",
+    "Effect": "Lab",
+    "Amount": 21,
+    "Price": 0
+  },
+  {
+    "Id": 9400022,
+    "Name": "연금술 실험대",
+    "Effect": "Lab",
+    "Amount": 22,
+    "Price": 0
+  },
+  {
+    "Id": 9400023,
+    "Name": "연금술 개량 실험대",
+    "Effect": "Lab",
+    "Amount": 23,
+    "Price": 0
+  },
+  {
+    "Id": 9400030,
+    "Name": "연금술 복합시설",
+    "Effect": "Lab",
+    "Amount": 30,
+    "Price": 0
   }
 ]
