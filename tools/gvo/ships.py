@@ -67,22 +67,54 @@ def table(tabs, number):
 
 
 # ── 배 모형 표 0001\0002.bin ──────────────────────────────────────────────────
-# u32 2, u32 1, u16 91, u16 71, u32 1, u32 1, u32 줄 수(218), 이어서 64바이트 줄:
-#   u16 선체 자원 번호, u16 모형 번호 - 1, u16 NL 자원 번호, 6바이트 0, f32 크기 비(SHIP01 = 1.0), u32,
-#   u16×5 텍스처 벌, u16×5 돛대 갈래, u16×5 뼈대 자원 번호, u16×5 돛 자원 번호, u16×2
-# 자원 번호는 묶음 안 차례가 아니다(.tbl 을 거친다 — 못 풀었다). 처음 17척만 sh0000 의 차례와 같다.
+# u32 범위 수(2), (u16 첫 모형 번호, u16 첫 줄) × 범위 수 = (1, 0) · (91, 71), u32 1, u32 1, u32 줄 수(246), 이어서 64바이트 줄:
+#   u16 선체 자원 번호, u16 일련번호(모형 번호가 아니다), u16 NL 자원 번호, 6바이트, f32 크기 비(SHIP01 = 1.0), u32,
+#   u16×5 텍스처(갈래 0x301), u16×5 돛대 갈래, u16×5 뼈대 자원 번호, u16×5 돛 자원 번호, u16×2
+# 모형 번호는 줄의 차례로 정해진다: N <= 71 이면 N - 1 째, N >= 91 이면 N - 20 째(72 ~ 90 은 없다).
+# 자원 번호 → 묶음 항목은 resource_index() — 0001\0001.tbl(57바이트 XOR 열쇠, (갈래, 자원 번호) → (묶음, 항목)).
+
+TBL_KEY = b"File Data Manager : (C) 2003 KOEI Co.,Ltd. Made in Japan."
+
+
+def resource_index(tbl=r"0001\0001.tbl"):
+    """{(갈래, 자원 번호): (묶음 파일, 항목 번호)} — 갈래 0x300 모형, 0x301 텍스처."""
+    x = bytearray(open(gvo.game_path(tbl), "rb").read())
+    for i in range(len(x)):
+        x[i] ^= TBL_KEY[i % len(TBL_KEY)]
+
+    def num(p):
+        v = x[p]
+        return (struct.unpack_from("<H", x, p + 1)[0], p + 3) if v == 0xFF else (v, p + 1)
+
+    index, o, left, path, entry = {}, 0, 0, "", 0
+    while o < len(x):
+        p, end = o + 1, o + 1 + x[o]
+        if left == 0:
+            left, p = num(p + 4)
+            path, entry = x[p + 1:p + 1 + x[p]].decode().replace("/", "\\"), 0
+        else:
+            index[struct.unpack_from("<HH", x, p + 4)] = (path, entry)
+            entry += 1
+            left -= 1
+        o = end
+    return index
+
 
 def model_table():
+    """{모형 번호: 줄} — 모형 번호는 줄의 차례에서 나온다."""
     with open(gvo.game_path(r"0001\0002.bin"), "rb") as f:
         b = f.read()
-    n = struct.unpack_from("<I", b, 0x14)[0]
+    ranges = [struct.unpack_from("<HH", b, 4 + 4 * i) for i in range(struct.unpack_from("<I", b, 0)[0])]
+    start = 4 + 4 * len(ranges) + 12
+    n = struct.unpack_from("<I", b, start - 4)[0]
     out = {}
-    for k in range(n):
-        r = struct.unpack_from("<3H6xfI5H5H5H5H2H", b, 0x18 + 64 * k)
-        out[r[1] + 1] = {"hull_res": r[0], "nl_res": r[2], "scale": round(r[3], 3), "textures": r[5:10],
-                         "mast_kinds": r[10:15], "bone_res": r[15:20], "sail_res": r[20:25]}
+    for i, (first, row0) in enumerate(ranges):
+        limit = ranges[i + 1][1] if i + 1 < len(ranges) else n
+        for k in range(row0, limit):
+            r = struct.unpack_from("<3H6xfI5H5H5H5H2H", b, start + 64 * k)
+            out[first + k - row0] = {"hull_res": r[0], "serial": r[1], "nl_res": r[2], "scale": round(r[3], 3), "textures": r[5:10],
+                                     "mast_kinds": r[10:15], "bone_res": r[15:20], "sail_res": r[20:25]}
     return out
-
 
 def model_entries():
     """{모형 번호: (묶음 파일, 선체 항목 번호)} — sh0000~sh0003 을 훑어 이름 SHIPnn_01 을 찾는다."""

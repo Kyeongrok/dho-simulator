@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -72,6 +72,7 @@ public partial class MainWindow : Window
         CityGrid.ItemsSource = _data.Cities;
         DiscoveryGrid.ItemsSource = _data.Discoveries;
         SeaGrid.ItemsSource = _data.Seas;
+        ClimateGrid.ItemsSource = _data.SeaClimates;
         BerthGrid.ItemsSource = _data.Settings.Berths;
         DisasterGrid.ItemsSource = _data.Disasters;
         SkillRuleGrid.ItemsSource = _data.SkillRules;
@@ -110,7 +111,7 @@ public partial class MainWindow : Window
     {
         // 글상자에 치던 값을 마저 넣는다
         if (Keyboard.FocusedElement is TextBox box) box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-        foreach (var grid in new[] { LandingGrid, CityGrid, DiscoveryGrid, SeaGrid, BerthGrid, DisasterGrid, SupplyGrid, SkillRuleGrid, SkillGrid, ShipGrid, MarketGrid, GoodGrid, StartLineGrid, StartNationGrid, ShipMaterialGrid, WorkPartGrid, OptionSkillGrid, OrderGrid, ItemGrid, RecipeRuleGrid }) grid.CommitEdit(DataGridEditingUnit.Row, true);
+        foreach (var grid in new[] { LandingGrid, CityGrid, DiscoveryGrid, SeaGrid, ClimateGrid, BerthGrid, DisasterGrid, SupplyGrid, SkillRuleGrid, SkillGrid, ShipGrid, MarketGrid, GoodGrid, StartLineGrid, StartNationGrid, ShipMaterialGrid, WorkPartGrid, OptionSkillGrid, OrderGrid, ItemGrid, RecipeRuleGrid }) grid.CommitEdit(DataGridEditingUnit.Row, true);
 
         _data.Quests = _quests.ToList();
         _data.FillMarkets();

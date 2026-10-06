@@ -158,7 +158,7 @@ internal sealed partial class Voyage
         Weather = Weather.Storm;
         _stormDays = Rules.StormDays;
         Say(Text(TextStorm, "폭풍이 몰아칩니다! 돛을 펴놓고 있으면 전복하고 맙니다!"));
-        Cues.Enqueue("Warn");
+        Cues.Enqueue("Storm");
     }
 
     private void Begin(DisasterData data)
@@ -166,7 +166,7 @@ internal sealed partial class Voyage
         if (Disasters.Exists(d => d.Data.Id == data.Id)) return;
         Disasters.Add(new ActiveDisaster(data));
         Say(Text((uint)data.StartText, $"{data.Name} 발생!"));
-        Cues.Enqueue("Warn");
+        Cues.Enqueue($"Disaster{data.Id}");        // 재해마다 소리를 따로 맬 수 있다(안 매면 경고 소리)
     }
 
     /// <summary>재해 때문에 속도에 곱해지는 값.</summary>
@@ -231,9 +231,12 @@ internal sealed partial class Voyage
                 Say(Text(TextStormOver, "폭풍이 지나간 것 같습니다."));
             }
         }
-        else if (Roll(Rules.StormChancePerDay, days)) StartStorm();
+        else if (Roll(Rules.StormChancePerDay * Climate.Storm, days)) StartStorm();      // 폭풍과 비의 잦기는 해역마다 다르다
         else if (Roll(0.9, days))
-            Weather = _random.NextDouble() switch { < 0.6 => Weather.Clear, < 0.88 => Weather.Cloudy, _ => Weather.Rain };
+        {
+            double rain = Math.Clamp(Climate.Rain, 0, 0.7), draw = _random.NextDouble();
+            Weather = draw < rain ? Weather.Rain : draw < rain + 0.28 ? Weather.Cloudy : Weather.Clear;
+        }
 
         // 벌어진 재해의 피해와 끝
         foreach (var disaster in Disasters.ToList())

@@ -56,7 +56,79 @@ internal sealed partial class Voyage
     /// <summary>회계 스킬이 있으면 시세가 보이고 흥정이 된다.</summary>
     public bool CanSeeMarket => Has("Haggle");
     public int MarketPercent(GoodData good) => (int)Math.Round(MarketIndex(good, City) * 100);
-    private double Haggle => Math.Min(Settings.Trade.MaxHaggle, Bonus("Haggle") + AideHaggle);
+
+    // ── 회계 — 원본 설명: 「교역소에서의 가격 흥정과 인근 도시의 시세 확인이 가능해진다」. 비율과 확률은 지은 것이다 ──
+
+    private double _haggled;
+    private int _haggleCity, _haggleDay;
+    private bool _haggleShut;
+
+    private int AccountingRank => Data.SkillRules.Find(r => r.Effect == "Haggle") is { } rule ? Rank(rule.SkillId) : 0;
+
+    /// <summary>흥정은 그 도시에서 그날 한 것만 듣는다 — 도시를 옮기거나 날이 바뀌면 처음부터.</summary>
+    private void FreshHaggle()
+    {
+        if (_haggleCity == City.Id && _haggleDay == (int)Today) return;
+        (_haggleCity, _haggleDay, _haggled, _haggleShut) = (City.Id, (int)Today, 0, false);
+    }
+
+    /// <summary>지금까지 흥정으로 얻어 낸 비율(살 때 깎고 팔 때 올려 받는다).</summary>
+    public double Haggled { get { FreshHaggle(); return _haggled; } }
+    /// <summary>회계 랭크로 얻어 낼 수 있는 가장 큰 비율 — 랭크 1 에 4.2%, 랭크마다 1.2%, 설정의 상한까지.</summary>
+    public double HaggleCap => Math.Min(Settings.Trade.MaxHaggle, 0.03 + AccountingRank * 0.012);
+    /// <summary>다음 흥정이 먹힐 확률 — 랭크가 높을수록 높고, 이미 깎은 만큼 낮아진다.</summary>
+    public double HaggleChance => Math.Clamp(0.45 + AccountingRank * 0.04 - Haggled / Math.Max(0.001, HaggleCap) * 0.35, 0.1, 0.95);
+
+    // 흥정 한 번에 드는 행동력
+    public int HaggleVigour => Data.SkillRules.Find(r => r.Effect == "Haggle") is { } rule ? VigourCost(rule) : 10;
+
+    public string? HaggleBlocker
+    {
+        get
+        {
+            FreshHaggle();
+            return Mode != Mode.Port ? "항구에서만 한다" : !Has("Haggle") ? "회계 스킬이 없다" : _haggleShut ? "주인이 더는 흥정에 응하지 않는다"
+                : _haggled >= HaggleCap - 1e-9 ? "더는 깎을 수 없다" : Vigour < HaggleVigour ? $"행동력이 모자란다 ({Vigour:0}/{HaggleVigour})" : null;
+        }
+    }
+
+    /// <summary>값을 흥정한다 — 먹히면 상한의 삼분의 일씩 얻어 내고, 안 먹히면 주인이 그날은 더 응하지 않는다(얻어 낸 것은 남는다).</summary>
+    public void TryHaggle()
+    {
+        if (HaggleBlocker != null) { Cues.Enqueue("Error"); return; }
+        SpendVigour(HaggleVigour);
+        if (_random.NextDouble() < HaggleChance)
+        {
+            _haggled = Math.Min(HaggleCap, _haggled + HaggleCap / 3);
+            Say($"흥정이 먹혔다. 살 때 {_haggled * 100:0.#}% 깎고, 팔 때 그만큼 더 받는다.");
+            TrainEffect("Haggle", 12);
+            Cues.Enqueue("Skill");
+        }
+        else
+        {
+            _haggleShut = true;
+            Say("교역소 주인: 「그 값으로는 안 되겠소. 오늘은 더 이야기하지 맙시다.」");
+            TrainEffect("Haggle", 4);
+            Cues.Enqueue("Error");
+        }
+    }
+
+    private double Haggle => Math.Min(Settings.Trade.MaxHaggle, Haggled + AideHaggle);
+
+    /// <summary>회계: 인근 도시의 시세 — 가까운 차례로 (도시, 거리, 그 품목의 시세 %, 거기서 팔 때의 값, 거기서도 파는가). 랭크가 높을수록 먼 도시까지 보인다.</summary>
+    public List<(CityData City, double Distance, int Percent, int Price, bool Sells)> NearbyMarkets(GoodData good)
+    {
+        var found = new List<(CityData, double, int, int, bool)>();
+        if (!CanSeeMarket) return found;
+        double reach = Settings.Trade.NearbyReach * (1 + AccountingRank * 0.15);
+        foreach (var city in Data.Cities)
+        {
+            if (city.Id == City.Id || (city.SeaX == 0 && city.SeaY == 0)) continue;
+            double far = Distance(City, city);
+            if (far <= reach) found.Add((city, far, (int)Math.Round(MarketIndex(good, city) * 100), SellPrice(good, city), Sells(city, good.Id)));
+        }
+        return found.OrderBy(f => f.Item2).ToList();
+    }
 
     public int BuyPrice(GoodData good) => Math.Max(1, (int)(BasePrice(good) * MarketIndex(good, City) * (1 - Haggle)));
 
@@ -110,6 +182,24 @@ internal sealed partial class Voyage
         int stock = (int)(Settings.Trade.Stock * (1 + more));
         if (_bought.TryGetValue((City.Id, good.Id), out var bought) && Today - bought.Day < Settings.Trade.RestockDays) stock -= bought.Bought;
         return Math.Max(0, stock);
+    }
+
+    // 그 교역품을 파는 도시들(산지) — 지금 있는 곳에서 가까운 차례
+    public List<CityData> SourcesOf(int goodId)
+    {
+        _sources ??= BuildSources();
+        return _sources.TryGetValue(goodId, out var cities) ? cities.OrderBy(c => Distance(City, c)).ToList() : [];
+    }
+
+    // 교역품을 값 없이 싣는다(아이템 추가 창) — 창고에 드는 만큼만. 실은 수를 돌려준다
+    public int GiveGood(GoodData good, int count)
+    {
+        count = Math.Min(count, HoldFree);
+        if (count <= 0) { Say("창고가 가득 찼다."); Cues.Enqueue("Error"); return 0; }
+        if (!Cargo.TryGetValue(good.Id, out var item)) Cargo[good.Id] = item = new CargoItem();
+        item.Count += count;
+        Say($"{good.Name} {count}개를 실었다.");
+        return count;
     }
 
     private Dictionary<int, List<CityData>> BuildSources()

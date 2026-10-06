@@ -41,6 +41,7 @@ internal sealed class ShipModel : IDisposable
         (_hullTexture, _hullBase) = (next, which);
     }
     private ID3D11ShaderResourceView _sailTexture;
+    private ID3D11ShaderResourceView? _decoTexture;
     private readonly Gfx _device;
     private Vector3 _min = new(float.MaxValue), _max = new(float.MinValue);
     /// <summary>모형의 가운데와 반지름 — 창 안에 맞춰 보여 줄 때 쓴다.</summary>
@@ -139,6 +140,13 @@ internal sealed class ShipModel : IDisposable
             var data = new Pack(found.Pack).Entry(found.Entry);
             if (data.Length >= 0x80 && data.AsSpan(0, 4).SequenceEqual("XKMD"u8)) Load(gfx, data, isHull);
         }
+        // 선체의 조각은 텍스처 번호가 둘이다: 0 = 바탕 판(SHIP_BASE_…), 1 = 그 배의 장식 판(줄의 넷째 텍스처 칸 — SHIP_DECO_001 ~ 004: 창 · 난간 · 금빛 띠)
+        try
+        {
+            if (U16(row + 26) is var deco && deco != 0xFFFF && _index.TryGetValue((0x301, deco), out var decoAt))
+                _decoTexture = GameTexture.FromMftf(gfx, new Pack(decoAt.Pack).Entry(decoAt.Entry));
+        }
+        catch (Exception) { }                      // 못 읽으면 장식도 바탕 판으로 그린다
         Part(U16(row), true);
         for (int mast = 0; mast < 5; mast++)
         {
@@ -156,6 +164,9 @@ internal sealed class ShipModel : IDisposable
         int bufferCount = U16(0x2C);
         int buffersAt = I32(0x4C), indexAt = I32(0x4C + 10 * 4), vertexAt = I32(0x4C + 11 * 4);
 
+        // 텍스처단 → 텍스처 번호(구역 6, 0x20 바이트씩, +4 가 i16 번호)
+        int stageCount = U16(0x2C + 4 * 2), stagesAt = I32(0x4C + 6 * 4);
+        var decoBuilders = new MeshBuilder?[bufferCount];
         // 정점버퍼마다 삼각형을 모은다
         var builders = new MeshBuilder?[bufferCount];
         var formats = new int[bufferCount];
@@ -169,12 +180,16 @@ internal sealed class ShipModel : IDisposable
             int normalAt = 12 + 4 * ((fvf & 0xE) switch { 0x6 => 1, 0x8 => 2, 0xA => 3, 0xC => 4, 0xE => 5, _ => 0 });
             int uvAt = normalAt + 12 + ((fvf & 0x40) != 0 ? 4 : 0);
             var builder = builders[b] = new MeshBuilder();
+            var decoBuilder = isHull && _decoTexture != null ? decoBuilders[b] = new MeshBuilder() : null;
             for (int v = 0; v < count; v++)
             {
                 int p = at + v * stride;
                 _min = Vector3.Min(_min, new Vector3(F32(p), F32(p + 4), F32(p + 8)));
                 _max = Vector3.Max(_max, new Vector3(F32(p), F32(p + 4), F32(p + 8)));
                 builder.Add(new Vector3(F32(p), F32(p + 4), F32(p + 8)),
+                            new Vector3(F32(p + normalAt), F32(p + normalAt + 4), F32(p + normalAt + 8)),
+                            Vector4.One, new Vector2(F32(p + uvAt), F32(p + uvAt + 4)));
+                decoBuilder?.Add(new Vector3(F32(p), F32(p + 4), F32(p + 8)),
                             new Vector3(F32(p + normalAt), F32(p + normalAt + 4), F32(p + normalAt + 8)),
                             Vector4.One, new Vector2(F32(p + uvAt), F32(p + uvAt + 4)));
             }
@@ -191,6 +206,9 @@ internal sealed class ShipModel : IDisposable
                 int first = I32(record + 0x38), primitives = I32(record + 0x3C);
                 var builder = buffer < bufferCount ? builders[buffer] : null;
                 if (builder == null) continue;
+                // 이 조각의 첫 텍스처단이 가리키는 번호가 1 이면 장식 판 쪽에 모은다
+                if (decoBuilders[buffer] is { } decorated && I32(record + 0x0C) > 0 && U16(record + 0x10) is var stage && stage < stageCount
+                    && BinaryPrimitives.ReadInt16LittleEndian(data.AsSpan(stagesAt + stage * 0x20 + 4)) == 1) builder = decorated;
 
                 int indices = indexAt + I32(buffersAt + buffer * 0x34 + 0x24);
                 uint Index(int i) => (uint)U16(indices + (first + i) * 2);
@@ -214,9 +232,14 @@ internal sealed class ShipModel : IDisposable
         for (int b = 0; b < bufferCount; b++)
         {
             var builder = builders[b];
-            if (builder == null || builder.Indices.Count == 0) continue;
+            if (builder == null || (builder.Indices.Count == 0 && decoBuilders[b] is not { Indices.Count: > 0 })) continue;
             // 선체는 선체 그림, 돛 천은 돛 그림. 돛 파트의 나머지(활대·줄)는 그림을 못 찾아 나무 빛으로 칠한다.
-            if (isHull) _parts.Add((builder.Build(gfx), _hullTexture, Vector4.One));
+            if (isHull)
+            {
+                _parts.Add((builder.Build(gfx), _hullTexture, Vector4.One));
+                if (decoBuilders[b] is { Indices.Count: > 0 } decorated) _parts.Add((decorated.Build(gfx), _decoTexture, Vector4.One));      // 장식은 재질 빛깔로 물들이지 않는다
+                continue;
+            }
             else if (formats[b] == FvfSail) _parts.Add((builder.Build(gfx), _sailTexture, Vector4.One));
             else _parts.Add((builder.Build(gfx), null, new Vector4(0.42f, 0.33f, 0.22f, 1)));
         }
@@ -235,5 +258,6 @@ internal sealed class ShipModel : IDisposable
         foreach (var (mesh, _, _) in _parts) mesh.Dispose();
         _hullTexture.Dispose();
         _sailTexture.Dispose();
+        _decoTexture?.Dispose();
     }
 }

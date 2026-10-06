@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 
 namespace Dho.Data;
 
@@ -28,6 +28,14 @@ public sealed class SeaZones
             int h = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(at + 20));
             _zones.Add((id, (cx + 1) * 256, (cy + 1) * 256, (cx + w - 1) * 256, (cy + h - 1) * 256));
         }
+    }
+
+    /// <summary>그 해역의 네모(세계 좌표) — x 는 16384 를 넘을 수 있다. 없으면 null.</summary>
+    public (int X0, int Y0, int X1, int Y1)? Bounds(int sea)
+    {
+        foreach (var (id, x0, y0, x1, y1) in _zones)
+            if ((id & 0xFF) == sea) return (x0, y0, x1, y1);
+        return null;
     }
 
     /// <summary>해역 표(<see cref="DataTables.Seas"/>)의 id. 없으면 0.</summary>

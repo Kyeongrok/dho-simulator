@@ -350,9 +350,10 @@ internal sealed partial class Voyage
     public int TreatCost => 200 + (int)Crew * 20;
     public void Treat()
     {
-        if (Mode != Mode.Port || Money < TreatCost || Fatigue <= 0) return;
+        if (Mode != Mode.Port || Money < TreatCost || (Fatigue <= 0 && Vigour >= MaxVigour)) return;
         Money -= TreatCost;
         Fatigue = Math.Max(0, Fatigue - 40);
+        GainVigour(MaxVigour);                      // 주점에서 먹고 마시면 행동력이 다 찬다
         Say($"선원들에게 한턱냈다. 피로가 풀렸다. ({TreatCost:N0} 두캇)");
         Cues.Enqueue("Drunk");
     }
@@ -521,7 +522,17 @@ internal sealed partial class Voyage
         Sail = Math.Clamp(Sail + delta, 0, SailSteps);
     }
 
-    public void SteerTo(double heading) => TargetHeading = Normalize(heading);
+    private double _turnCued = -10;
+
+    /// <summary>그쪽으로 뱃머리를 돌린다(바다를 눌렀을 때) — 눈에 띄게 꺾으면 선회 소리가 난다(잇달아 눌러도 띄엄띄엄).</summary>
+    public void SteerTo(double heading)
+    {
+        double before = TargetHeading;
+        TargetHeading = Normalize(heading);
+        if (Mode != Mode.Sea || Math.Abs(Normalize(TargetHeading - before + Math.PI) - Math.PI) < 0.15 || Clock - _turnCued < 1.2) return;
+        _turnCued = Clock;
+        Cues.Enqueue("Turn");
+    }
 
     // ── 확인용 대본이 쓰는 것 ────────────────────────────────────────────────
 
@@ -534,6 +545,10 @@ internal sealed partial class Voyage
     /// <summary>일시정지 — 원본에는 없지만 혼자 하는 게임이라 넣었다. 시간 · 항해 · 재해가 모두 멎는다.</summary>
     public bool Paused { get; set; }
 
+    /// <summary>도는 빠르기(라디안/초, 오른쪽이 +)와 그것이 지금 낼 수 있는 가장 빠른 빠르기의 얼마인가(−1 ~ 1) — 배가 기우는 데 쓴다.</summary>
+    public double TurnVelocity { get; private set; }
+    public double TurnShare { get; private set; }
+
     public void Update(double dt, double steer)
     {
         if (!Created || Paused) return;
@@ -541,15 +556,16 @@ internal sealed partial class Voyage
         Clock += dt;
         SkyPhase = (SkyPhase + dt / Settings.SecondsPerSkyCycle) % 1;
 
-        // 바람은 클라이언트 자료에 없다. 천천히 도는 것으로 지어 낸다.
-        WindDirection = Normalize(2.2 + Math.Sin(Clock / 97) * 1.1 + Math.Sin(Clock / 41) * 0.35);
-        WindKnots = 9 + Math.Sin(Clock / 63) * 4;
+        // 바람과 해류는 클라이언트 자료에 없다. 해역마다 지어 둔 값(sea-climates.json)을 따라 천천히 바뀐다.
+        UpdateClimate(dt);
+        RestoreVigour(dt / Settings.SecondsPerDay);
 
         AutoSave(dt);
         // 바다에서는 창을 열어도 배가 멈추지 않는다. 상륙 · 발견처럼 배를 세우고 하는 일만 멈춘다
         if (Mode != Mode.Sea || Dialog is Dialog.Landing or Dialog.Discovery or Dialog.Wreck)
         {
             Knots += (0 - Knots) * Math.Min(1, dt * 2);
+            (TurnVelocity, TurnShare) = (0, 0);
             return;
         }
 
@@ -561,9 +577,17 @@ internal sealed partial class Voyage
         TickSkills();
 
         if (steer != 0) TargetHeading = Normalize(Heading + steer * 0.6);
+        // 선회 — 키를 꺾는다고 바로 돌지 않는다. 도는 빠르기가 서서히 붙고 서서히 죽는다(큰 배일수록 굼뜨다).
+        // 가장 빠른 빠르기는 배의 선회 성능에 비례하고(선회 12 인 배가 초당 14°쯤, 반 바퀴에 13초 남짓),
+        // 배가 서 있으면 키가 잘 안 듣고, 돛을 다 펴면 덜 돈다 — 돛을 줄이면 잘 돈다. 값은 지은 것이다.
         double turn = Normalize(TargetHeading - Heading + Math.PI) - Math.PI;
-        double turnRate = Settings.TurnRate * Stats.TurnFactor * (1 + Bonus("Turn")) * (1 + Option("Turn"));
-        Heading = Normalize(Heading + Math.Clamp(turn, -turnRate * dt, turnRate * dt));
+        double turnRate = Settings.TurnRate * 0.28 * Stats.TurnFactor * (1 + Bonus("Turn")) * (1 + Option("Turn"))
+                          * (0.35 + 0.65 * Math.Min(1, Knots / 4)) * (1 - 0.25 * Sail / SailSteps);
+        double wanted = Math.Clamp(turn * 1.6, -turnRate, turnRate);            // 목표에 가까워지면 미리 늦춘다
+        double gain = turnRate / (0.9 + 0.5 / Math.Max(0.4, Stats.TurnFactor)) * dt;      // 빠르기가 다 붙기까지 1.3 ~ 2초
+        TurnVelocity += Math.Clamp(wanted - TurnVelocity, -gain, gain);
+        Heading = Normalize(Heading + TurnVelocity * dt);
+        TurnShare = turnRate > 1e-6 ? Math.Clamp(TurnVelocity / turnRate, -1, 1) : 0;
         if (Sail > 0)
         {
             double days = dt / Settings.SecondsPerDay;
@@ -577,13 +601,16 @@ internal sealed partial class Voyage
         double windFactor = 0.35 + 0.65 * Math.Clamp(0.55 + 0.6 * off - 0.15 * off * off, 0, 1);
         // 선원이 모자라거나 재해가 있으면 느려진다
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
-        double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor()
+        // 급하게 돌면 그만큼 속도가 죽는다
+        double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
                         * (1 + Bonus("Speed")) * PartSpeed * AideSpeed * (1 + Option("Speed"));
         Knots += (target - Knots) * Math.Min(1, dt * 0.8);
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;
-        double nextX = ShipX + Math.Sin(Heading) * distance;
-        double nextY = ShipY - Math.Cos(Heading) * distance;
+        // 해류가 배를 떠민다 — 닻을 내리고 있으면 안 밀린다
+        double drift = Sail > 0 ? Settings.UnitsPerKnotSecond * dt : 0;
+        double nextX = ShipX + Math.Sin(Heading) * distance + _currentX * drift;
+        double nextY = ShipY - Math.Cos(Heading) * distance - _currentY * drift;
         if (Blocked(nextX, nextY))
         {
             if (Knots > 1) Say("육지에 막혔다. 뱃머리를 돌려야 한다.");

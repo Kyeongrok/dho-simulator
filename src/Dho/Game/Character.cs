@@ -132,6 +132,7 @@ internal sealed partial class Voyage
             Parts = Parts.Select(p => p.Id).ToList(),
             PartStock = PartStock.Select(p => p.Id).ToList(),
             Equipped = Equipped.ToList(),
+            Vigour = _vigour,
             Decos = DecoOn.ToList(),
             CrewGear = CrewOn.ToList(),
             Recipes = Recipes.ToList(),
@@ -225,6 +226,7 @@ internal sealed partial class Voyage
         Parts = save.Parts.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>().ToList();
         PartStock.AddRange(save.PartStock.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>());
         for (int slot = 0; slot < Equipped.Length; slot++) Equipped[slot] = slot < save.Equipped.Count ? save.Equipped[slot] : 0;
+        _vigour = save.Vigour;
         for (int spot = 0; spot < DecoOn.Length; spot++) DecoOn[spot] = spot < save.Decos.Count ? save.Decos[spot] : 0;
         for (int kind = 0; kind < CrewOn.Length; kind++) CrewOn[kind] = kind < save.CrewGear.Count ? save.CrewGear[kind] : 0;
         Quest = Data.Quests.Find(q => q.Id == save.QuestId);

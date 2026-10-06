@@ -21,7 +21,7 @@ internal sealed class SceneRenderer : IDisposable
             float3 ZenithColor; float Pad2;
             float3 WaterColor; float Pad3;
             float2 WorldOffset; float2 ShipPosition;
-            float2 ShipDirection; float ShipSpeed; float Pad4;
+            float2 ShipDirection; float ShipSpeed; float WaveScale;
         };
         cbuffer Object : register(b1)
         {
@@ -164,7 +164,7 @@ internal sealed class SceneRenderer : IDisposable
             VSOut o;
             float3 world = float3(pos.x + CameraPosition.x, 0, pos.z + CameraPosition.z);
             float fade = saturate(1.0 - length(pos.xz) / (2500.0 * K));
-            world.y = Height((world.xz + WorldOffset) / K, Time) * fade * K * 0.4;
+            world.y = Height((world.xz + WorldOffset) / K, Time) * fade * K * 0.4 * WaveScale;
             o.world = world;
             o.pos = mul(float4(world, 1), ViewProjection);
             return o;
@@ -186,7 +186,9 @@ internal sealed class SceneRenderer : IDisposable
             float near = saturate(1.0 - dist / 420.0);
             ripple += WaveSlope(p / 11.0 + 0.11, frame * 1.7) * 0.7 * near;
             float calm = saturate(1.0 - dist / 3500.0);
-            float3 n = normalize(float3(-(slope.x * 0.6 + ripple.x) * calm, 1.0, -(slope.y * 0.6 + ripple.y) * calm));
+            // rougher seas: steeper swell and stronger ripples
+            float rough = lerp(0.75, 1.0, saturate(WaveScale)) + max(WaveScale - 1.0, 0.0) * 0.55;
+            float3 n = normalize(float3(-(slope.x * 0.6 * WaveScale + ripple.x * rough) * calm, 1.0, -(slope.y * 0.6 * WaveScale + ripple.y * rough) * calm));
 
             float3 v = normalize(CameraPosition - i.world);
             float fresnel = 0.03 + 0.97 * pow(1.0 - saturate(dot(n, v)), 5.0);
@@ -209,9 +211,24 @@ internal sealed class SceneRenderer : IDisposable
             float behind = saturate(-along / 420.0);
             float spread = 12.0 + behind * 85.0;
             float wake = saturate(1.0 - abs(across) / spread) * step(along, 20.0) * (1.0 - behind);
-            float foamNoise = Noise(p * 0.22 + Time * 0.4) * 0.6 + Noise(p * 0.7 - Time * 0.8) * 0.4;
+            // noise needs small coordinates: far from the world origin the hash loses precision and the foam smears into streaks
+            float2 q = frac(p / 512.0) * 512.0;
+            float drift = frac(Time / 640.0) * 640.0;
+            float foamNoise = Noise(q * 0.22 + drift * 0.4) * 0.6 + Noise(q * 0.7 - drift * 0.8) * 0.4;
             float foam = saturate((hull * 1.4 + wake * 1.5 * saturate(ShipSpeed * 2.0)) * (0.35 + ShipSpeed)) * smoothstep(0.18, 0.7, foamNoise + hull * 0.4);
             color = lerp(color, (Ambient + SunColor) * 0.9, saturate(foam) * 0.8);
+
+            // hull effect paint: light shimmering on the water around the ship (Pad1..3 = colour, 0 = none)
+            float3 aura = float3(Pad1, Pad2, Pad3);
+            if (dot(aura, aura) > 0.0001)
+            {
+                float ring = length(float2(across / 30.0, along / 62.0));
+                float glow = smoothstep(1.35, 0.55, ring);
+                float2 w = float2(across, along) * 0.16;
+                float wisp = Noise(w + float2(0.0, frac(Time / 400.0) * 400.0 * 1.3)) * 0.6 + Noise(w * 2.3 - float2(frac(Time / 400.0) * 400.0 * 0.9, 0.0)) * 0.4;
+                float pulse = 0.75 + 0.25 * sin(Time * 2.1 + ring * 6.0);
+                color += aura * glow * (0.25 + 1.1 * wisp * wisp) * pulse;
+            }
 
             return float4(ApplyFog(color, i.world), 1);
         }

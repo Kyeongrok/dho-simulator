@@ -368,12 +368,17 @@ internal sealed partial class Voyage
         Say($"{docked.Ship.Name}을(를) 팔았다. ({DockedPrice(docked):N0} 두캇)");
     }
 
-    public void BuyShip(ShipData ship)
+    // 그레이드를 정해서 살 때의 값 — 그레이드 하나에 본디 값의 절반씩 더 든다(원본에는 없는 기능, 값은 지은 것)
+    public int ShipCostAt(ShipData ship, int grade) => (int)Math.Min(int.MaxValue, ShipCost(ship) * (1 + 0.5 * Math.Clamp(grade, 0, MaxGrade)));
+
+    public void BuyShip(ShipData ship, int grade = 0)
     {
-        if (Mode != Mode.Port || ShipBlocker(ship) != null) return;
+        grade = Math.Clamp(grade, 0, MaxGrade);
+        if (Mode != Mode.Port || ShipBlocker(ship) != null || Money < ShipCostAt(ship, grade)) return;
         // 사기만 한다 — 산 배는 부두에 매어 두고, 타는 것은 선박교환에서 한다
-        Money -= ShipCost(ship);
-        Dock.Add(new DockedShip { Ship = ship, Durability = ShipStats.Of(ship, Settings.Ships).Durability });
-        Say($"{ship.Name}을(를) 사서 부두에 매어 두었다. 선박교환에서 갈아탄다.");
+        Money -= ShipCostAt(ship, grade);
+        var work = new ShipWork { Grade = grade };
+        Dock.Add(new DockedShip { Ship = ship, Durability = Worked(StatsOf(ship, 0, 0), work, ship).Durability, Work = work });
+        Say($"{ship.Name}" + (grade > 0 ? $"(그레이드 {grade})" : "") + "을(를) 사서 부두에 매어 두었다. 선박교환에서 갈아탄다.");
     }
 }

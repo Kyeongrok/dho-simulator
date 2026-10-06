@@ -24,7 +24,7 @@ internal struct FrameConstants
     public Vector3 ZenithColor; public float Pad2;
     public Vector3 WaterColor; public float Pad3;
     public Vector2 WorldOffset; public Vector2 ShipPosition;
-    public Vector2 ShipDirection; public float ShipSpeed; public float Pad4;
+    public Vector2 ShipDirection; public float ShipSpeed; public float WaveScale;
 }
 
 /// <summary>그리는 물체마다 올리는 값. HLSL 의 <c>cbuffer Object</c> 와 짝.</summary>

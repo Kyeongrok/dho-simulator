@@ -25,12 +25,15 @@ internal sealed class ShipWork
     public List<int> BonusSkills { get; } = [];
     /// <summary>전용함 스킬(옵션 스킬 번호) — 배 한 척에 하나만. 없으면 0.</summary>
     public int Dedicated { get; set; }
+    // 선체 특수효과 도료(1 ~ 15)로 입힌 효과 — 배 주위에 일렁이는 빛. 없으면 0
+    public int HullEffect { get; set; }
 
     // 스킬 번호 뒤에 그레이드 쪽 값을 큰 수로 덧붙여 적는다(옛 저장과 맞게): 1e6 + 그레이드, 2e6 + 경험치, 3e6 + 숙련도, 5e6 + 전용함 스킬, 6e6 + 보너스(표 90 의 번호), 7e6 + 선박 형식, 8e6 + 형식 × 100 + 스며든 횟수. 4e6 + n 은 옛 저장의 보너스(지어낸 목록의 차례)라 읽을 때 옮긴다
     public double[] ToArray() => [Times, Durability, Sail, Turn, Wave, Hold, .. Skills.Select(s => (double)s),
                                   1_000_000 + Grade, 2_000_000 + GradeExp, 3_000_000 + Math.Round(Mastery), .. Bonuses.Select(b => 6_000_000.0 + b),
                                   .. Dedicated > 0 ? [5_000_000.0 + Dedicated] : Array.Empty<double>(),
-                                  .. Form > 0 ? [7_000_000.0 + Form] : Array.Empty<double>(), .. BonusSkills.Select(s => 9_000_000.0 + s)];
+                                  .. Form > 0 ? [7_000_000.0 + Form] : Array.Empty<double>(), .. BonusSkills.Select(s => 9_000_000.0 + s),
+                                  .. HullEffect > 0 ? [10_000_000.0 + HullEffect] : Array.Empty<double>()];
 
     // 옛 저장의 보너스 차례(스킬추가 · 가속강화 · 스킬계승 · 내구력 · 세로돛 · 가로돛 · 선회 · 내파 · 장갑 · 선실 · 포실 · 창고) → 표 90 의 번호
     private static readonly int[] OldBonuses = [14, 29, 16, 1, 2, 3, 5, 6, 7, 8, 9, 10];
@@ -59,6 +62,7 @@ internal sealed class ShipWork
             else if (kind == 6) work.Bonuses.Add(rest);
             else if (kind == 7) work.Form = rest;
             else if (kind == 9) work.BonusSkills.Add(rest);
+            else if (kind == 10) work.HullEffect = rest;
             else if (kind == 8) work.FormPoints[rest / 100] = rest % 100;
             else if (kind == 5) work.Dedicated = rest;
         }

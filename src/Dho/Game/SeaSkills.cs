@@ -92,8 +92,10 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Sea) return "바다에서만 쓴다";
         if (Sustained.Contains(rule.Effect))
-            return SkillOn(rule.SkillId) ? null : _skillOn.Count >= MaxSkillsOn ? $"스킬은 {MaxSkillsOn}개까지 켠다" : null;
+            return SkillOn(rule.SkillId) ? null : _skillOn.Count >= MaxSkillsOn ? $"스킬은 {MaxSkillsOn}개까지 켠다"
+                : Vigour < VigourCost(rule) ? $"행동력이 모자란다 ({Vigour:0}/{VigourCost(rule)})" : null;
         if (SkillWait(rule) > 0) return $"{SkillWait(rule):0}초 뒤";
+        if (Vigour < VigourCost(rule)) return $"행동력이 모자란다 ({Vigour:0}/{VigourCost(rule)})";
         return rule.Effect switch
         {
             "Procure" when Water >= Rules.MaxWater => "물통이 가득하다",
@@ -121,12 +123,14 @@ internal sealed partial class Voyage
             // 켜 두는 스킬: 다시 누르면 끈다
             if (_skillOn.Remove(rule.SkillId)) { Say($"{name} 스킬을 껐다."); return; }
             _skillOn[rule.SkillId] = (Clock + OnSeconds, Clock + TickSeconds);
+            SpendVigour(VigourCost(rule));
             Fatigue = Math.Min(100, Fatigue + 1);
             Say($"{name} 스킬을 사용했다.");
             Cues.Enqueue(rule.Effect == "Speed" ? "Sail" : "Skill");
             return;
         }
         _skillReady[rule.SkillId] = Clock + Pause(rule);
+        SpendVigour(VigourCost(rule));
         Cues.Enqueue("Skill");
         switch (rule.Effect)
         {

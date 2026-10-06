@@ -61,6 +61,7 @@ internal sealed class GameWindow : IDisposable
     private (float X, float Y, float W, float H)? _previewBox;
     private CharacterModel? _maidModel, _previewFigure;
     private (int, int, int, int, int, int, int) _previewLooks;
+    private string _previewWear = "";
     private ShipModel? _previewShip;
     private int _previewShipModel;
     private float _previewYaw = 2.3f, _previewPitch = 0.28f, _previewZoom = 1f;
@@ -360,9 +361,19 @@ internal sealed class GameWindow : IDisposable
         return new Vector4(tint, 1);
     }
 
+    private float _heel, _sunk;
+    private readonly ShipModel?[] _compareShips = new ShipModel?[2];
+    private readonly int[] _compareModels = new int[2];
+
+    // 지금 입은 장비를 그 몸 틀의 모형으로
+    private List<Worn> WornNow(int frame) =>
+        _voyage.WornModels(frame).Select(w => new Worn(w.Part, w.Entry[0], w.Entry[1], w.Entry[2], w.Entry[3], w.Colors)).ToList();
+
     private void PlayCue(string cue)
     {
         var sounds = _voyage.Data.Settings.Sounds;
+        // 재해 · 폭풍의 소리를 따로 안 매어 두었으면 경고 소리로
+        if ((cue.StartsWith("Disaster") || cue == "Storm") && !(sounds.TryGetValue(cue, out string? own) && own.Length > 0)) cue = "Warn";
         // 설정 파일에 없는 소리는 원본의 것을 기본으로 쓴다 — 사용자가 효과음 고르기에서 들어 보고 메모해 준 번호(묶음 0)
         if (!sounds.ContainsKey(cue) && cue switch
             {
@@ -370,6 +381,8 @@ internal sealed class GameWindow : IDisposable
                 "SkillUp" => "0:7", "Done" => "0:8", "StudyDone" => "0:10", "Eat" => "0:11", "Bank" => "0:14", "Door" => "0:15",
                 "Part" => "0:20", "Buy" => "0:23", "Drunk" => "0:24", "University" => "0:30", "Sail" => "14:15", _ => null,
             } is { } original) sounds[cue] = original;
+        // 선회 소리의 옛 기본값(9:0)도 지은 것이었다 — 원본은 0:12(바다에서 배를 돌릴 때)
+        if (cue == "Turn" && sounds.GetValueOrDefault("Turn") is null or "9:0") sounds["Turn"] = "0:12";
         // 스킬 소리의 옛 기본값(5:0)은 지은 것이었다 — 원본은 0:6
         if (cue is "Skill" or "Sail" && sounds.GetValueOrDefault("Skill") == "5:0") sounds["Skill"] = "0:6";
         // 돛 조종 소리를 따로 안 정했으면 스킬 소리를 쓴다
@@ -420,6 +433,12 @@ internal sealed class GameWindow : IDisposable
         {
             if (_voyage.Dialog == dialog) _voyage.Dialog = Dialog.None;
             else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = dialog;
+        }
+        // 퀵슬롯을 펴 두었으면 1 ~ 8 은 퀵슬롯이 먼저다(같은 글쇠를 다른 일에 매어 두었어도)
+        if (_hud.QuickOpen && key is >= '1' and <= '8' && !_keys.Contains(Win32.VK_CONTROL) && _voyage.Dialog is Dialog.None or Dialog.UseSkills)
+        {
+            _voyage.UsePageSlot(key - '1');
+            return;
         }
         switch (action)
         {
@@ -659,6 +678,18 @@ internal sealed class GameWindow : IDisposable
             catch (Exception) { sky = sky.Overcast(_overcast); }
         }
         var heading = new Vector2(MathF.Sin((float)_voyage.Heading), -MathF.Cos((float)_voyage.Heading));
+        // 선체 특수효과 도료의 빛 — 15 번(무지개)은 빛깔이 천천히 돈다
+        var aura = Vector3.Zero;
+        if (_voyage.Created && !town && _voyage.Work.HullEffect is > 0 and <= 15)
+        {
+            int c = Voyage.HullEffects[_voyage.Work.HullEffect - 1].Color;
+            aura = new Vector3((c >> 16 & 255) / 255f, (c >> 8 & 255) / 255f, (c & 255) / 255f);
+            if (_voyage.Work.HullEffect == 15)
+            {
+                float h = (float)(_voyage.Clock * 0.25);
+                aura = new Vector3(0.5f + 0.5f * MathF.Sin(h), 0.5f + 0.5f * MathF.Sin(h + 2.09f), 0.5f + 0.5f * MathF.Sin(h + 4.19f));
+            }
+        }
         var frame = new FrameConstants
         {
             ViewProjection = _viewProjection,
@@ -677,6 +708,8 @@ internal sealed class GameWindow : IDisposable
             ShipPosition = Vector2.Zero,
             ShipDirection = heading,
             ShipSpeed = (float)Math.Clamp(_voyage.Knots / 12, 0, 1),
+            WaveScale = _voyage.Mode == Mode.Sea ? (float)Math.Clamp(_voyage.WaveScale, 0.3, 4) : 0.8f,
+            Pad1 = aura.X, Pad2 = aura.Y, Pad3 = aura.Z,
         };
 
         _gfx.Begin(frame);
@@ -699,10 +732,38 @@ internal sealed class GameWindow : IDisposable
             _shipModel = _voyage.Ship.Model;
             _ship = new ShipModel(_gfx, _shipModel);
         }
-        float roll = sway * 0.025f + (float)Math.Clamp(_voyage.Knots / 14, 0, 1) * 0.04f;
+        // 돌 때는 바깥쪽으로 기운다
+        _heel += ((float)(_voyage.TurnShare * Math.Clamp(_voyage.Knots / 10, 0, 1)) * 0.09f - _heel) * 0.05f;
+        float roll = sway * 0.025f + (float)Math.Clamp(_voyage.Knots / 14, 0, 1) * 0.04f + (inPort ? 0 : _heel);
+        // 재해에 따라 배가 움직인다: 침수면 가라앉고 한쪽으로 기울고, 암초 · 반란 · 폭풍이면 흔들린다
+        float sunk = 0;
+        if (_voyage.Mode == Mode.Sea)
+        {
+            bool Has(int id) => _voyage.Disasters.Exists(d => d.Data.Id == id);
+            float clock = (float)_voyage.Clock;
+            if (Has(2)) { sunk = 330; roll += 0.07f; }
+            if (Has(6)) roll += MathF.Sin(clock * 23) * 0.018f;
+            if (Has(9)) roll += MathF.Sin(clock * 9) * 0.03f;
+            if (_voyage.Weather == Weather.Storm) roll += MathF.Sin(clock * 1.7f) * 0.09f;
+        }
+        _sunk += (sunk - _sunk) * 0.02f;
         var shipWorld = Matrix4x4.CreateRotationZ(roll)
                         * Matrix4x4.CreateRotationY(inPort ? _berth!.Yaw : MathF.PI - (float)_voyage.Heading)
-                        * Matrix4x4.CreateTranslation(0, sway * 60f, 0);
+                        * Matrix4x4.CreateTranslation(0, sway * 60f - _sunk, 0);
+        // 재해의 모습을 그릴 자리 — 배의 가운데 · 뱃머리 쪽 · 돛대 꼭대기 쪽이 화면의 어디인가
+        _hud.ShipOnScreen = null;
+        if (_voyage.Mode == Mode.Sea && !town)
+        {
+            (float X, float Y)? Spot(Vector3 p)
+            {
+                var clip = Vector4.Transform(new Vector4(p, 1), _viewProjection);
+                return clip.W > 1 ? ((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight) : null;
+            }
+            float half = _ship.Radius * 0.75f;
+            var bow = new Vector3(MathF.Sin((float)_voyage.Heading), 0, -MathF.Cos((float)_voyage.Heading)) * half;
+            if (Spot(new Vector3(0, 500, 0)) is { } mid && Spot(new Vector3(0, 500, 0) + bow) is { } fore && Spot(new Vector3(0, 500 + half * 0.9f, 0)) is { } top)
+                _hud.ShipOnScreen = (mid.X, mid.Y, fore.X - mid.X, fore.Y - mid.Y, top.X - mid.X, top.Y - mid.Y);
+        }
         if (_sailShown != (_ship, _voyage.SailPattern, _voyage.SailTint))
         {
             try { _ship.SetSail(_voyage.SailPattern, _voyage.SailTint); } catch (Exception) { }
@@ -744,6 +805,8 @@ internal sealed class GameWindow : IDisposable
         _hud.PreviewShip = null;
         _hud.FigurePreview = null;
         _hud.FigureView = null;
+        _hud.ComparePreviews.Clear();
+        _hud.FigureMine = false;
         _previewBox = null;
         _canvas.Pressed = false;
         _hud.Draw();
@@ -763,10 +826,11 @@ internal sealed class GameWindow : IDisposable
             // 캐릭터 정보 창은 내 모습이라 손 · 모자까지 입히고, 돌리거나 얼굴로 다가선다
             var pose = _hud.FigureView ?? (0.35f, false, 0, -1);
             var wanted = (who.Frame, who.Face, who.Hair, who.Body, who.Leg, pose.Hand, pose.Cap);
-            if (_previewFigure == null || _previewLooks != wanted)
+            string wearing = _hud.FigureMine ? _voyage.WornKey : "";      // 내 모습이면 입은 장비까지
+            if (_previewFigure == null || _previewLooks != wanted || _previewWear != wearing)
             {
                 _previewFigure?.Dispose();
-                (_previewFigure, _previewLooks) = (new CharacterModel(_gfx, new Looks(who.Frame, who.Face, who.Hair, who.Body, who.Leg, pose.Hand, pose.Cap)), wanted);
+                (_previewFigure, _previewLooks, _previewWear) = (new CharacterModel(_gfx, new Looks(who.Frame, who.Face, who.Hair, who.Body, who.Leg, pose.Hand, pose.Cap) { Wear = _hud.FigureMine ? WornNow(who.Frame) : null }), wanted, wearing);
             }
             var (eye, aim) = pose.Face ? (new Vector3(0, 168, 130), new Vector3(0, 162, 0)) : (new Vector3(0, 110, 470), new Vector3(0, 92, 0));
             var look = Matrix4x4.CreateLookAt(eye, aim, Vector3.UnitY) * Matrix4x4.CreatePerspectiveFieldOfView(0.5f, who.W / who.H, 20f, 4000f);
@@ -817,6 +881,38 @@ internal sealed class GameWindow : IDisposable
             _gfx.EndInset();
         }
 
+        // 선박 비교 창의 두 배 — 같은 각도로 나란히
+        for (int k = 0; k < Math.Min(2, _hud.ComparePreviews.Count); k++)
+        {
+            var side = _hud.ComparePreviews[k];
+            if (_compareShips[k] == null || _compareModels[k] != side.Model)
+            {
+                _compareShips[k]?.Dispose();
+                _compareShips[k] = null;
+                try { (_compareShips[k], _compareModels[k]) = (new ShipModel(_gfx, side.Model), side.Model); }
+                catch (Exception) { _compareModels[k] = side.Model; }
+            }
+            if (_compareShips[k] is not { } hull) continue;
+            // 두 칸을 한 덩이로 쳐서 어디를 끌어도 함께 돈다
+            var first = _hud.ComparePreviews[0];
+            var last = _hud.ComparePreviews[^1];
+            _previewBox = (first.X * UiScale, (first.Y + Hud.TitleHeight) * UiScale, (last.X + last.W - first.X) * UiScale, first.H * UiScale);
+            var centre = hull.Center;
+            float reach = hull.Radius / MathF.Tan(0.31f) * 0.82f * _previewZoom;
+            var eye = centre + new Vector3(0, MathF.Sin(_previewPitch), MathF.Cos(_previewPitch)) * reach;
+            var look = Matrix4x4.CreateLookAt(eye, centre, Vector3.UnitY) * Matrix4x4.CreatePerspectiveFieldOfView(0.62f, side.W / side.H, 200f, 400000f);
+            Matrix4x4.Invert(look, out var lookInverse);
+            var noon = Sky.At(0.5);
+            _gfx.BeginInset(frame with
+            {
+                ViewProjection = look, InverseViewProjection = lookInverse, CameraPosition = eye, FogDensity = 0,
+                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
+            }, side.X * UiScale, (side.Y + Hud.TitleHeight) * UiScale, side.W * UiScale, side.H * UiScale);
+            _scene.BeginMeshes();
+            hull.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(_previewYaw) * Matrix4x4.CreateTranslation(centre), null, HullTint(side.Color));
+            _gfx.EndInset();
+        }
+
         _overUi = _canvas.Pointer.Consumed;
         if (_clicked && !_canvas.Pointer.Consumed) SteerToPointer();
 
@@ -838,7 +934,7 @@ internal sealed class GameWindow : IDisposable
     /// </summary>
     private void DrawCityAtSea()
     {
-        const double range = 14;                    // 세계 좌표 — 이보다 멀면 안 그린다
+        const double range = 60;                    // 세계 좌표 — 이보다 멀면 안 그린다(전에는 14 라 코앞에서야 나타났다)
         CityData? near = null;
         double best = range * range;
         foreach (var city in _voyage.Data.Cities)
@@ -1075,12 +1171,12 @@ internal sealed class GameWindow : IDisposable
         }
         if (!figure) return;
         // 겉모습이 바뀌면 사람 모형을 다시 맞춘다. 몸 묶음을 못 읽으면 인형으로 대신한다
-        string looks = string.Join(",", _voyage.Looks);
+        string looks = string.Join(",", _voyage.Looks) + "|" + _voyage.WornKey;      // 입은 장비가 바뀌어도 다시 맞춘다
         if (looks != _characterLooks)
         {
             _character?.Dispose();
             var l = _voyage.Looks;
-            _character = new CharacterModel(_gfx, new Looks(l[0], l[1], l[2], l[3], l[4], l[5], l[6]));
+            _character = new CharacterModel(_gfx, new Looks(l[0], l[1], l[2], l[3], l[4], l[5], l[6]) { Wear = WornNow(l[0]) });
             _characterLooks = looks;
         }
         var stand = Matrix4x4.CreateRotationY(_walkYaw) * Matrix4x4.CreateTranslation(0, foot, 0);
@@ -1293,6 +1389,12 @@ internal sealed class GameWindow : IDisposable
             case "useitem": _voyage.UseItem((int)Number()); break;
             case "uiscale": _scaleInScript = true; _voyage.Data.Settings.UiScale = Number(); break;
             case "iconscale": _voyage.Data.Settings.IconScale = Number(); break;
+            case "warp": _voyage.WarpToSea((int)Number()); break;
+            case "warpmenu": _hud.OpenWarp(argument == "city"); break;
+            case "sea":                             // 바다 위의 자리로 옮긴다: sea:x,y
+                var seaAt = argument.Split(',');
+                _voyage.Teleport(double.Parse(seaAt[0], CultureInfo.InvariantCulture), double.Parse(seaAt[1], CultureInfo.InvariantCulture));
+                break;
             case "hullbase": _ship.SetHullBase((int)Number()); break;
             case "menu": _hud.OpenMenu((int)Number()); break;
             case "music": _musicOn = !_musicOn; break;

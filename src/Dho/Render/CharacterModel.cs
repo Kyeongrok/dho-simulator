@@ -6,8 +6,14 @@ using Vortice.Direct3D11;
 namespace Dho.Render;
 
 /// <summary>사람의 겉모습 — 몸 틀(묶음 번호)과 부위마다 고른 차례.</summary>
+// 입은 장비 하나 — 부위와, 모형 · 텍스처가 든 묶음(md 번호)과 항목, 색 다섯 쌍(0xRRGGBB × 10)
+internal sealed record Worn(string Part, int ModelPack, int ModelEntry, int TexturePack, int TextureEntry, IReadOnlyList<int> Colors);
+
 internal sealed record Looks(int Frame, int Face, int Hair, int Body, int Leg, int Hand, int Cap)
 {
+    // 입은 장비 — 있으면 그 부위는 차례로 고른 것 대신 이것을 입힌다
+    public IReadOnlyList<Worn>? Wear { get; init; }
+
     /// <summary>부위 이름(묶음 안 텍스처 이름의 가운데 토막)과 그 차례.</summary>
     public IEnumerable<(string Part, int Index)> Parts() =>
         [("body", Body), ("leg", Leg), ("hand", Hand), ("face", Face), ("hair", Hair), ("cap", Cap)];
@@ -40,6 +46,9 @@ internal sealed class CharacterModel : IDisposable
         public required int[] Bones;
         public required float[] Weights;
         public required List<uint> Indices;
+        // 정점마다 색 칸 번호(조각 레코드 +8) — 0 은 물들이지 않는다, 1 ~ 5 는 제 색쌍, 7 · 8 은 옷의 넷째 · 다섯째(바지), 10 은 장갑
+        public required byte[] Dye;
+        public Vector4[]? Tints;
         public ID3D11ShaderResourceView? Texture;
         public Mesh? Mesh;
     }
@@ -175,8 +184,40 @@ internal sealed class CharacterModel : IDisposable
         }
         catch (Exception) { }                      // 없으면 지어낸 자세로 선다
 
+        // 입은 장비 — 색인으로 찾아 둔 모형과 텍스처를 그 부위에 입히고, 조각마다 줄의 색으로 물들인다(곱하기 — 식은 추정이다)
+        var worn = new HashSet<string>();
+        IReadOnlyList<int>? bodyDye = looks.Wear?.FirstOrDefault(w => w.Part == "body")?.Colors, handDye = looks.Wear?.FirstOrDefault(w => w.Part == "hand")?.Colors;
+        static Vector4 Rgb(int c) => new((c >> 16 & 255) / 255f, (c >> 8 & 255) / 255f, (c & 255) / 255f, 1);
+        foreach (var wear in looks.Wear ?? [])
+        {
+            try
+            {
+                var texture = GameTexture.FromMftf(gfx, new Pack($@"0001\md{wear.TexturePack:D4}.bin").Entry(wear.TextureEntry));
+                var loadedParts = Load(new Pack($@"0001\md{wear.ModelPack:D4}.bin").Entry(wear.ModelEntry)).ToList();
+                if (loadedParts.Count == 0) { texture.Dispose(); continue; }
+                _textures.Add(texture);
+                foreach (var loaded in loadedParts)
+                {
+                    loaded.Texture = texture;
+                    loaded.Tints = new Vector4[loaded.Dye.Length];
+                    for (int v = 0; v < loaded.Tints.Length; v++)
+                    {
+                        int dye = loaded.Dye[v];
+                        var from = dye is >= 1 and <= 5 ? wear.Colors : dye is 7 or 8 ? bodyDye : dye == 10 ? handDye : null;
+                        int at = dye is >= 1 and <= 5 ? (dye - 1) * 2 : dye == 7 ? 6 : dye == 8 ? 8 : 0;
+                        // 텍스처가 희끄무레한 바탕이라 색을 조금 밝혀 곱한다
+                        loaded.Tints[v] = from != null && at < from.Count && from[at] != 0xFFFFFF ? Vector4.Min(Rgb(from[at]) * 1.25f, new Vector4(1.3f)) with { W = 1 } : Vector4.One;
+                    }
+                    _parts.Add(loaded);
+                }
+                worn.Add(wear.Part);
+            }
+            catch (Exception) { }                  // 못 읽으면 그 부위는 본디 차림으로 둔다
+        }
+
         foreach (var (part, index) in looks.Parts())
         {
+            if (worn.Contains(part)) continue;
             if (index < 0 || !parts.TryGetValue(part, out var list) || list.Count == 0) continue;
             var (modelEntry, textureEntry) = list[Math.Clamp(index, 0, list.Count - 1)];
             try
@@ -252,7 +293,7 @@ internal sealed class CharacterModel : IDisposable
             var part = parts[b] = new Part
             {
                 Positions = new Vector3[count], Normals = new Vector3[count], Uvs = new Vector2[count],
-                Bones = new int[count * 4], Weights = new float[count * 4], Indices = [],
+                Bones = new int[count * 4], Weights = new float[count * 4], Indices = [], Dye = new byte[count],
             };
             Vector3 min = new(float.MaxValue), max = new(float.MinValue);
             for (int v = 0; v < count; v++)
@@ -299,6 +340,7 @@ internal sealed class CharacterModel : IDisposable
                 int first = I32(record + 0x38), primitives = I32(record + 0x3C);
                 var part = buffer < bufferCount ? parts[buffer] : null;
                 if (part == null) continue;
+                for (int v = firstVertex; v < Math.Min(firstVertex + vertexCount, part.Dye.Length); v++) part.Dye[v] = (byte)Math.Min(255, U16(record + 8));
 
                 // 행렬 번호가 20 아래인 조각은 뼈대가 아니라 그 옷에 딸린 마디(늘어진 천 · 장식)에 붙는다.
                 // 그 마디의 자리를 못 풀어서 그리지 않는다 — 그대로 그리면 발밑에 조각이 떨어져 보인다
@@ -460,7 +502,7 @@ internal sealed class CharacterModel : IDisposable
                     }
                     if (total < 0.01f) (position, normal) = (part.Positions[v], part.Normals[v]);
                     else if (total < 0.99f) (position, normal) = (position / total, normal / total);      // 못 푼 마디의 몫은 나머지에 나눠 준다
-                    builder.Add(position, normal, Vector4.One, part.Uvs[v]);
+                    builder.Add(position, normal, part.Tints != null ? part.Tints[v] : Vector4.One, part.Uvs[v]);
                 }
                 builder.Indices.AddRange(part.Indices);
                 part.Mesh?.Dispose();

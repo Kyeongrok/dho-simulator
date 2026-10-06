@@ -64,6 +64,11 @@ public sealed class ShipFact
     /// <summary>선실 — 태울 수 있는 선원 수.</summary>
     public int Cabin { get; set; }
     public int Hold { get; set; }
+    // 일본 위키(wikiwiki.jp/gvo 의 배 표)에서 채운 것 — 없으면(null) 지어낸 값을 쓴다: 기본 가격, 조력, 필요 선원, 대포 칸
+    public int? Price { get; set; }
+    public int? Rowing { get; set; }
+    public int? MinCrew { get; set; }
+    public int? Guns { get; set; }
 }
 
 /// <summary>
@@ -168,21 +173,21 @@ public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCre
         if (Facts.TryGetValue(ship.Name, out var fact) && fact.Durability > 0)
         {
             // 값은 표에 없어서 크기에서 짓는다. 속도는 돛 성능에서.
-            int cost = (int)(ship.Length * ship.Width * ship.Height * rules.PriceFactor);
+            int cost = fact.Price ?? (int)(ship.Length * ship.Width * ship.Height * rules.PriceFactor);
             return new ShipStats(
                 Durability: fact.Durability,
                 Hold: fact.Hold,
                 MaxCrew: Math.Max(2, fact.Cabin),
-                MinCrew: Math.Max(1, (int)Math.Round(fact.Cabin * 0.2)),
+                MinCrew: fact.MinCrew ?? Math.Max(1, (int)Math.Round(fact.Cabin * 0.2)),
                 Knots: rules.BaseKnots + (fact.VerticalSail + fact.HorizontalSail) / 80.0,
                 TurnFactor: Math.Max(4, fact.Turn) / 12.0,
                 Price: cost,
                 SellPrice: (int)(cost * rules.SellRate))
             {
                 VerticalSail = fact.VerticalSail, HorizontalSail = fact.HorizontalSail,
-                Rowing = ship.Kind == 2 ? ship.Length / 2 : 0,
+                Rowing = fact.Rowing ?? (ship.Kind == 2 ? ship.Length / 2 : 0),
                 Turn = fact.Turn, WaveResist = fact.WaveResist, Armor = fact.Armor,
-                Guns = Math.Max(2, ship.Length / (ship.Kind == 2 ? 18 : 9)),
+                Guns = fact.Guns ?? Math.Max(2, ship.Length / (ship.Kind == 2 ? 18 : 9)),
                 Levels = (fact.Adventure, fact.Trade, fact.Battle), Real = true,
             };
         }

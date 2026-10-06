@@ -91,8 +91,54 @@ internal sealed partial class Voyage
         return true;
     }
 
+    // 선체 특수효과 도료 1 ~ 15(아이템 표의 원본 번호). 원본의 효과 자료(ef 묶음)는 못 풀어서 빛깔은 지은 것이다 — 15 번은 무지개처럼 빛깔이 돈다
+    public const int HullEffectPaint = 1510699;
+    public static readonly (string Name, int Color)[] HullEffects =
+    [
+        ("푸른", 0x3C8CFF), ("붉은", 0xFF4030), ("초록", 0x40E060), ("금", 0xFFC830), ("보라", 0xA050FF),
+        ("흰", 0xF0F4FF), ("청록", 0x30E0D8), ("분홍", 0xFF70B8), ("주황", 0xFF8A28), ("짙은 보라", 0x6030C0),
+        ("연두", 0xA8F040), ("얼음", 0x90D8FF), ("진홍", 0xE01848), ("옥", 0x20B890), ("무지개", 0xFFFFFF),
+    ];
+
+    private Dictionary<int, GearModel>? _gearModels;
+
+    // 지금 입은 장비가 그 몸 틀에 입히는 것들 — (부위, [모형 묶음, 항목, 텍스처 묶음, 항목], 색). 그 몸 틀(성별)이 못 입는 것은 빠진다.
+    // 신발은 입은 옷에 따라 긴 것 · 짧은 것, 바지 조각이 있는 것 · 없는 것이 갈린다.
+    public List<(string Part, int[] Entry, List<int> Colors)> WornModels(int frame)
+    {
+        _gearModels ??= Data.GearModels.ToDictionary(g => g.Id);
+        var found = new List<(string, int[], List<int>)>();
+        GearModel? Of(int slot) => Equipped[slot] > 0 && Items.GetValueOrDefault(Equipped[slot]) > 0 ? _gearModels.GetValueOrDefault(Equipped[slot]) : null;
+        var body = Of(0);
+        foreach (int slot in (int[])[0, 1, 2, 3])
+        {
+            if (Of(slot) is not { } gear || !gear.Frames.TryGetValue($"{frame}", out var spots) || spots.Count == 0) continue;
+            int pick = 0;
+            if (gear.Part == "leg" && body != null)
+            {
+                bool shorter = (body.Flags & 0x80) != 0, bare = (body.Flags & 0x40) != 0;
+                pick = spots.Count >= 4 ? (shorter ? 2 : 0) + (bare ? 1 : 0) : shorter ? 1 : 0;
+            }
+            var entry = (pick < spots.Count ? spots[pick] : null) ?? spots[0];
+            if (entry is { Length: 4 }) found.Add((gear.Part, entry, gear.Colors));
+        }
+        return found;
+    }
+
+    // 입은 장비를 한 줄로 — 겉모습이 바뀌었는지 가리는 데 쓴다
+    public string WornKey => string.Join(",", Equipped.Select(e => e > 0 && Items.GetValueOrDefault(e) > 0 ? e : 0));
+
+    private Dictionary<int, PaperItem>? _foods;
+    /// <summary>행동력 음식(아이템 표의 원본) — 없으면 null.</summary>
+    public PaperItem? FoodOf(int item) => (_foods ??= Data.Foods.ToDictionary(f => f.Id)).GetValueOrDefault(item);
+
+    /// <summary>음식의 설명 글에 적힌 「행동력+n」의 n.</summary>
+    public static int FoodVigour(PaperItem food) =>
+        System.Text.RegularExpressions.Regex.Match(food.Description, @"행동력\s*[+＋]\s*(\d+)") is { Success: true } m ? int.Parse(m.Groups[1].Value) : 0;
+
     public string ItemName(int item) =>
         ItemOf(item) is { } known ? known.Name :
+        FoodOf(item) is { } food ? food.Name :
         DecoOf(item) is { } deco ? deco.Name :
         CrewGearOf(item) is { } crewGear ? crewGear.Name :
         Data.Papers.Find(p => p.Id == item) is { } paper ? paper.Name :
@@ -179,6 +225,7 @@ internal sealed partial class Voyage
 
     public string ItemNote(int item)
     {
+        if (FoodOf(item) is { } food) return food.Description.Replace("\n", " ");
         if (DecoOf(item) is { } deco) return deco.Description.Replace("\n", " ");
         if (CrewGearOf(item) is { } crewGear) return crewGear.Description.Replace("\n", " ");
         if (item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear) return gear.Description.Replace("\n", " ");
@@ -258,6 +305,15 @@ internal sealed partial class Voyage
         {
             if (!UseRefit(item)) return;
         }
+        else if (item >= HullEffectPaint && item < HullEffectPaint + HullEffects.Length)
+        {
+            // 선체 특수효과 도료 — 「배 주위에 특수 효과를 발생시키는 도료. 효과는 영속된다」. 타고 있는 배에 입힌다(다른 도료를 쓰면 바뀐다)
+            int effect = item - HullEffectPaint + 1;
+            if (Work.HullEffect == effect) { Say($"{ItemName(item)} — 이미 이 효과가 입혀져 있다."); Cues.Enqueue("Error"); return; }
+            Work.HullEffect = effect;
+            Say($"{ItemName(item)}을(를) {Ship.Name}에 칠했다. 배 주위에 {HullEffects[effect - 1].Name} 빛이 일렁인다.");
+            Cues.Enqueue("Part");
+        }
         else if (Data.Papers.Find(p => p.Id == item) is { } ticket)
         {
             // 선박 교환권 — 항구에서 쓰면 그 배가 부두에 들어온다
@@ -280,6 +336,21 @@ internal sealed partial class Voyage
             string before = JobName;
             JobId = job.Id;
             Say($"{ItemName(item)}을(를) 썼다. {before}에서 {job.Name}(으)로 전직했다!");
+        }
+        else if (FoodOf(item) is { } food)
+        {
+            // 행동력 음식 — 설명의 「행동력+n」만큼 행동력이 찬다. 「피로 회복」이 붙은 것은 선원의 피로도 풀고(n 의 절반 — 지은 값),
+            // 「괴혈병 회복」이 붙은 것은 괴혈병도 가라앉힌다.
+            int vigour = FoodVigour(food);
+            string text = food.Description.Replace(" ", "");
+            bool rests = text.Contains("피로회복");
+            var scurvy = text.Contains("괴혈병") ? Disasters.Find(d => d.Data.Name.Contains("괴혈병")) : null;
+            if (Vigour >= MaxVigour && (!rests || Fatigue <= 0) && scurvy == null) { Say($"{food.Name} — 지금은 먹을 까닭이 없다."); Cues.Enqueue("Error"); return; }
+            GainVigour(vigour);
+            if (rests) Fatigue = Math.Max(0, Fatigue - vigour * 0.5);
+            if (scurvy != null) End(scurvy);
+            Say($"{food.Name}을(를) 먹었다. 행동력 +{vigour} ({Vigour:0}/{MaxVigour})" + (rests ? " · 피로가 풀렸다" : "") + (scurvy != null ? " · 괴혈병이 가라앉았다" : "") + ".");
+            Cues.Enqueue("Eat");
         }
         else return;
         if (--Items[item] <= 0) Items.Remove(item);

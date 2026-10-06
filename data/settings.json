@@ -101,13 +101,15 @@
     "10:0": "물건 받기"
   },
   "Sounds": {
-    "Skill": "5:0",
-    "Turn": "9:0",
+    "Skill": "0:6",
+    "Turn": "0:12",
     "Click": "0:0",
     "Step": "0:1",
     "Bank": "0:14",
     "Buy": "0:23",
-    "Part": "0:20"
+    "Part": "0:20",
+    "Sail": "14:15",
+    "SkillUp": "0:7"
   },
   "MaxKnots": 14,
   "UnitsPerKnotSecond": 0.16,

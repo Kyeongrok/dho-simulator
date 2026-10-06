@@ -186,6 +186,8 @@ public sealed class SkillRuleData
     /// 바다에서 눌러 쓰는 것: Survey(위치 알기) · Procure 물 모으기 · Fish 낚시 · Repair 자재로 수리 · Rest.
     /// </summary>
     public string Effect { get; set; } = "";
+    /// <summary>한 번 쓰는 데 드는 행동력. 0 이면 갈래에 따른 기본값(돛 조종 · 조타 8, 측량 5, 조달 · 낚시 15, 수리 20, 주연 25, 회계 10).</summary>
+    public int Vigour { get; set; }
     /// <summary>랭크 하나에 붙는 효과(비율).</summary>
     public double PerRank { get; set; }
     /// <summary>Find·Appraise 면 발견물 갈래 번호들, Cure 면 재해 번호들, TradeKind 면 교역품 갈래 번호들.</summary>
@@ -353,6 +355,56 @@ public sealed class JobFact
     public List<string> Skills { get; set; } = [];
     public string Expert { get; set; } = "";
     public long Cost { get; set; }
+}
+
+/// <summary>
+/// 한 해역의 바다 — 방향은 나침반 각도(0 북 · 90 동)이고 「불어 가는 쪽 / 흘러가는 쪽」이다. 모두 지은 값.
+/// </summary>
+public sealed class SeaClimate
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    /// <summary>바람이 불어 가는 쪽(도)과 세기(노트), 좌우로 흔들리는 너비(도).</summary>
+    public double WindDirection { get; set; } = 125;
+    public double WindKnots { get; set; } = 9;
+    public double WindSwing { get; set; } = 60;
+    /// <summary>철 따라 바람이 뒤집힌다(몬순) — 한 해의 뒤 절반에 반대로 분다.</summary>
+    public bool Seasonal { get; set; }
+    /// <summary>해류가 흘러가는 쪽(도)과 세기(노트). 0 이면 해류가 없다.</summary>
+    public double CurrentDirection { get; set; }
+    public double CurrentKnots { get; set; }
+    /// <summary>폭풍이 이는 잦기의 배수(1 이 보통), 비가 올 몫(0 ~ 1), 물결 높이의 배수.</summary>
+    public double Storm { get; set; } = 1;
+    public double Rain { get; set; } = 0.12;
+    public double Wave { get; set; } = 1;
+}
+
+// 장비 아이템 하나가 몸에 입히는 것 — 겉모습 줄 표(0001\0000.bin)와 몸 틀별 자리 표(0001\0001.bin), 자원 색인(0000.tbl)을 이어 뽑아 둔 것.
+// 아이템 번호 → 겉모습 줄은 클라이언트에 표가 없어 「번호 순 = 줄 차례」로 맞춘 것이다(추정).
+public sealed class GearModel
+{
+    public int Id { get; set; }
+    // body · cap · leg · hand
+    public string Part { get; set; } = "";
+    // 줄의 플래그 — 옷의 0x80 은 신발을 짧은 것으로, 0x40 은 바지 조각 없는 것으로 바꾼다
+    public int Flags { get; set; }
+    // 색 다섯 쌍(0xRRGGBB × 10) — 모형의 조각마다 어느 쌍으로 물들일지가 정해져 있다
+    public List<int> Colors { get; set; } = [];
+    // 몸 틀(0 ~ 7) → 자리마다 [모형 묶음, 모형 항목, 텍스처 묶음, 텍스처 항목](묶음은 md 번호). 신발은 자리가 넷(긴 · 긴 맨다리 · 짧은 · 짧은 맨다리) 또는 둘
+    public Dictionary<string, List<int[]?>> Frames { get; set; } = [];
+}
+
+// 지은 값을 진짜 값으로 채워 달라는 요청 하나 — 게임에서 「지은 값」 표시를 누르면 data\wiki-requests.json 에 쌓인다.
+// 한꺼번에 긁으면 위키가 막으니, 사용자가 누른 것만 한 쪽씩 찾아다 채운다. Done 은 채운 날(비어 있으면 아직).
+public sealed class WikiRequest
+{
+    // ship(배의 능력치) …
+    public string Kind { get; set; } = "";
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Asked { get; set; } = "";
+    public string Done { get; set; } = "";
+    public string Note { get; set; } = "";
 }
 
 /// <summary>아이템 표(14)의 증서 · 허가증 · 교환권 한 줄 — 번호 · 이름 · 설명.</summary>
@@ -534,6 +586,8 @@ public sealed class SaveData
     public List<int> PartStock { get; set; } = [];
     /// <summary>입거나 찬 장비 — 갈래(0 옷 … 5 장신구)마다 아이템 번호, 없으면 0.</summary>
     public List<int> Equipped { get; set; } = [];
+    /// <summary>남은 행동력. 음수면 가득(옛 저장).</summary>
+    public double Vigour { get; set; } = -1;
     /// <summary>붙인 선박 데코(자리 다섯)와 쥐여 준 선원 장비(갈래 셋) — 아이템 번호, 없으면 0.</summary>
     public List<int> Decos { get; set; } = [];
     public List<int> CrewGear { get; set; } = [];
@@ -594,7 +648,7 @@ public sealed class SettingsData
     /// <summary>효과음 — 일 이름 → "묶음:차례"(<c>data\extracted\se-all</c> 의 파일 이름 앞 두 수). 빈 글이면 소리 없음.</summary>
     /// <summary>효과음마다 적어 둔 메모 — "묶음:차례" → 글. 묶음의 제목은 "묶음" → 글.</summary>
     public Dictionary<string, string> SoundMemos { get; set; } = new();
-    public Dictionary<string, string> Sounds { get; set; } = new() { ["Skill"] = "0:6", ["Turn"] = "9:0", ["Eat"] = "0:11", ["Door"] = "0:15" };
+    public Dictionary<string, string> Sounds { get; set; } = new() { ["Skill"] = "0:6", ["Turn"] = "0:12", ["Eat"] = "0:11", ["Door"] = "0:15" };
     public double MaxKnots { get; set; } = 14;
     /// <summary>1노트로 1초에 가는 세계 좌표.</summary>
     public double UnitsPerKnotSecond { get; set; } = 0.16;
@@ -642,6 +696,19 @@ public sealed class GameData
     public SettingsData Settings { get; set; } = new();
     public List<QuestData> Quests { get; set; } = [];
     public List<DisasterData> Disasters { get; set; } = [];
+    public List<WikiRequest> WikiRequests { get; set; } = [];
+
+    // 그 값을 채워 달라고 요청한다(이미 있으면 그대로) — 바로 파일에 적는다
+    public void RequestWiki(string kind, int id, string name)
+    {
+        if (WikiRequests.Exists(r => r.Kind == kind && r.Id == id)) return;
+        WikiRequests.Add(new WikiRequest { Kind = kind, Id = id, Name = name, Asked = DateTime.Now.ToString("yyyy-MM-dd HH:mm") });
+        try { Write(Path.Combine(Directory, "wiki-requests.json"), WikiRequests); } catch (Exception) { }
+    }
+
+    public bool WikiRequested(string kind, int id) => WikiRequests.Exists(r => r.Kind == kind && r.Id == id && r.Done == "");
+    /// <summary>해역마다의 바람 · 해류 · 날씨 — <c>sea-climates.json</c>(지은 값, <c>tools\gvo\climate.py</c> 가 기본값을 만든다).</summary>
+    public List<SeaClimate> SeaClimates { get; set; } = [];
     public List<SupplyData> Supplies { get; set; } = [];
     public List<SkillRuleData> SkillRules { get; set; } = [];
     public List<SkillData> Skills { get; set; } = [];
@@ -732,6 +799,10 @@ public sealed class GameData
     public List<ShipMaterial> ShipMaterials { get; set; } = [];
     public ShipWorkBook ShipWorks { get; set; } = new();
     public List<ShipPart> ShipParts { get; set; } = [];
+    /// <summary>장비 아이템이 입히는 모형 — <c>data\extracted\gear-models.json</c>(저장소에는 안 둔다).</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<GearModel> GearModels { get; set; } = [];
+    /// <summary>행동력 음식 — 아이템 표(14)에서 설명에 「행동력+n」이 든 것(해물 피자 · 마늘닭 통구이 …) — <c>data\extracted\food-items.json</c>(저장소에는 안 둔다).</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<PaperItem> Foods { get; set; } = [];
     /// <summary>선박 데코(표 138) · 선원 장비(표 139) — <c>data\extracted\ship-decos.json</c> · <c>crew-gear.json</c>(저장소에는 안 둔다).</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<ShipDeco> Decos { get; set; } = [];
     [System.Text.Json.Serialization.JsonIgnore] public List<CrewGear> CrewGears { get; set; } = [];
@@ -802,6 +873,8 @@ public sealed class GameData
         data.ShipSkillFacts = Read<List<ShipSkillFact>>(Path.Combine(extracted, "shipskill-facts.json")) ?? [];
         data.ShipDetails = Read<List<ShipDetailFact>>(Path.Combine(extracted, "shipdetail-facts.json")) ?? [];
         data.Papers = Read<List<PaperItem>>(Path.Combine(extracted, "paper-items.json")) ?? [];
+        data.Foods = Read<List<PaperItem>>(Path.Combine(extracted, "food-items.json")) ?? [];
+        data.GearModels = Read<List<GearModel>>(Path.Combine(extracted, "gear-models.json")) ?? [];
         data.Gear = Read<List<GearItem>>(Path.Combine(extracted, "gear-items.json")) ?? [];
         data.MaterialItems = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-items.json")) ?? [];
         data.JobFacts = Read<List<JobFact>>(Path.Combine(extracted, "job-facts.json")) ?? [];
@@ -822,6 +895,8 @@ public sealed class GameData
         data.Items = Read<List<ItemData>>(Path.Combine(directory, "items.json")) ?? [];
         data.Orders = Read<OrderBook>(Path.Combine(directory, "orders.json")) ?? new OrderBook();
         data.Disasters = Read<List<DisasterData>>(Path.Combine(directory, "disasters.json")) ?? [];
+        data.WikiRequests = Read<List<WikiRequest>>(Path.Combine(directory, "wiki-requests.json")) ?? [];
+        data.SeaClimates = Read<List<SeaClimate>>(Path.Combine(directory, "sea-climates.json")) ?? [];
         data.Supplies = Read<List<SupplyData>>(Path.Combine(directory, "supplies.json")) ?? [];
         data.SkillRules = Read<List<SkillRuleData>>(Path.Combine(directory, "skill-rules.json")) ?? [];
         data.Markets = Read<List<MarketData>>(Path.Combine(directory, "markets.json")) ?? [];
@@ -848,6 +923,7 @@ public sealed class GameData
         Write(Path.Combine(Directory, "ship-works.json"), ShipWorks);
         Write(Path.Combine(Directory, "recipes.json"), RecipeRules);
         Write(Path.Combine(Directory, "disasters.json"), Disasters);
+        Write(Path.Combine(Directory, "sea-climates.json"), SeaClimates);
         Write(Path.Combine(Directory, "supplies.json"), Supplies);
         Write(Path.Combine(Directory, "skill-rules.json"), SkillRules);
         Write(Path.Combine(Directory, "start.json"), Start);
