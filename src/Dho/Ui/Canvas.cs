@@ -146,7 +146,13 @@ internal sealed class Canvas : IDisposable
         Frame(x, y, w, h, PanelEdge);
         if (PanelId is not { } id) return;
         PanelId = null;
-        if (PanelLabel?.Invoke(id) is { Length: > 0 } label) Text(label, x, y + 1, w - 6, 12, 9, new Color4(0.75f, 0.8f, 0.95f, 0.8f), 2, false, false);
+        // 창의 테두리 바로 위 바깥에 적는다 — 안에 적으면 창의 글(조선 랭크 따위)에 가린다. 화면 맨 위에 붙은 창만 안쪽에
+        if (PanelLabel?.Invoke(id) is { Length: > 0 } label)
+        {
+            float ly = y >= 13 ? y - 13 : y + 1, lw = label.Length * 6.2f + 8;
+            Fill(x + w - lw, ly, lw, 12, new Color4(0.02f, 0.04f, 0.14f, 0.8f));
+            Text(label, x + w - lw, ly, lw - 3, 12, 9, new Color4(0.85f, 0.9f, 1f, 1), 2, false, false);
+        }
     }
 
     /// <param name="align">0 왼쪽, 1 가운데, 2 오른쪽.</param>

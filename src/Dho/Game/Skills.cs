@@ -66,6 +66,9 @@ internal sealed partial class Voyage
     public bool CanLearn(SkillData skill) => Teacher >= 0 && SkillsTaught().Contains(skill);
 
     /// <param name="taught">가르치는 사람을 따지지 않는다(대본 · 개발용).</param>
+    /// <summary>대본용: 스킬의 랭크를 바로 정한다.</summary>
+    public void SetRankForTest(int skillId, int rank) => Skills[skillId] = new SkillState { Rank = rank };
+
     public void Learn(SkillData skill, bool taught = false)
     {
         if (Mode != Mode.Port || Rank(skill.Id) > 0 || Money < skill.Cost) return;

@@ -503,6 +503,7 @@ internal sealed class GameWindow : IDisposable
                 else _voyage.EnterPort();
                 break;
             case 'G': if (_voyage.Dialog == Dialog.None && !Walking) _voyage.Attack(); break;
+            case 0x20: if (_voyage.Dialog == Dialog.None && _voyage.Battle != null) _voyage.Fire(); break;      // 스페이스: 포격
         }
     }
 
@@ -967,6 +968,7 @@ internal sealed class GameWindow : IDisposable
     }
 
     private readonly Dictionary<int, ShipModel> _seaModels = new();
+    private Mesh? _shotMesh;
 
     /// <summary>바다의 다른 배들 — 제 자리 · 제 뱃머리로 그리고, 화면에서의 자리에 이름표를 단다.</summary>
     private void DrawSeaShips(float sway)
@@ -989,6 +991,29 @@ internal sealed class GameWindow : IDisposable
             if (clip.W > 1)
                 _hud.ShipLabels.Add(((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight,
                                      $"{Voyage.SeaShipKinds[other.Kind]} {other.Name}", other.Kind == 1 ? 1 : other.NationId == _voyage.NationId ? 2 : 0));
+        }
+        if (_voyage.Battle is not { } battle) return;
+        // 해전: 날아가는 포탄(작은 쇳덩이가 포물선으로)과, 맞은 배 위로 떠오르는 피해 글
+        Vector3 At(double wx, double wy, float up) => new((float)(WorldMap.DeltaX(_voyage.ShipX, wx) * Terrain.Unit), up, (float)((wy - _voyage.ShipY) * Terrain.Unit));
+        if (_shotMesh == null)
+        {
+            var ball = new MeshBuilder();
+            ball.Box(new Vector3(-70), new Vector3(70), new Vector4(0.08f, 0.08f, 0.09f, 1));
+            _shotMesh = ball.Build(_gfx);
+        }
+        foreach (var shot in battle.Shots)
+        {
+            float t = (float)Math.Clamp(shot.Age / shot.Life, 0, 1);
+            var along = Vector3.Lerp(At(shot.FromX, shot.FromY, 500), At(shot.ToX, shot.ToY, 500), t) + new Vector3(0, MathF.Sin(t * MathF.PI) * 700, 0);
+            // 한 번의 포격을 여러 발로 — 옆으로 조금씩 벌려 그린다
+            for (int k = -2; k <= 2; k++)
+                _scene.Draw(_shotMesh, Matrix4x4.CreateTranslation(along + new Vector3(k * 260 * MathF.Cos(t * 3 + k), k * 40, k * 260 * MathF.Sin(t * 3 + k))), new Vector4(0.1f, 0.1f, 0.1f, 1));
+        }
+        foreach (var hit in battle.Hits)
+        {
+            var clip = Vector4.Transform(new Vector4(At(hit.X, hit.Y, 2600 + (float)hit.Age * 900), 1), _viewProjection);
+            if (clip.W > 1)
+                _hud.ShipLabels.Add(((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight, hit.Text, hit.OnMe ? 4 : 3));
         }
     }
 
@@ -1492,9 +1517,11 @@ internal sealed class GameWindow : IDisposable
             case "title": _voyage.ReceiveTitle(); break;
             case "landfoe": _voyage.StartLandBattle((int)Number()); break;
             case "landact": _voyage.LandAct((int)Number()); break;
+            case "rank": { var two = argument.Split(','); _voyage.SetRankForTest(int.Parse(two[0]), int.Parse(two[1])); break; }
+            case "optskill": if (_voyage.Data.OptionSkills.Find(o => o.Name == argument) is { } fitted) { _voyage.Work.Skills.Add(fitted.SkillId); _voyage.Say($"(개발) 옵션 스킬 「{fitted.Name}」 — {Voyage.OptionNote(fitted)}"); } break;
             case "foe": _voyage.SpawnForTest((int)Number()); break;
             case "attack": _voyage.Attack(); break;
-            case "battleact": _voyage.BattleAct((int)Number()); break;
+            case "battleact": if ((int)Number() == 0) _voyage.Fire(); else _voyage.Board(); break;
             case "dyedebug": ShipModel.DyeDebug = [new(1, 1, 1, 1), new(1, 0.1f, 0.1f, 1), new(0.1f, 1, 0.1f, 1), new(0.2f, 0.3f, 1, 1), new(1, 1, 0.1f, 1), new(1, 0, 1, 1), new(0, 1, 1, 1), new(0, 0, 0, 1)]; break;
             case "combinepick": { var two = argument.Split(','); _hud.PickCombine(int.Parse(two[0]), int.Parse(two[1])); break; }
             case "combineaboard": (_voyage.Data.Settings.ModCombineOnBoard, _voyage.Dialog) = (true, Dialog.Combine); break;

@@ -823,7 +823,9 @@ public sealed class GameData
                 var (a, b) = pairs.Dequeue();
                 // 개량갑판: 「항해속도가 상승하고 …」 — 속도 +5%(크기는 지은 것). 화재 · 연막 억제는 전투가 없어 뜻이 없다
                 bool deck = fact.Name == "개량갑판";
-                all.Add(new OptionSkill { SkillId = real.GetValueOrDefault(fact.Name.Replace(" ", ""), 3000 + fact.No), Name = fact.Name, PartA = a, PartB = b, Effect = deck ? "Speed" : "", Amount = deck ? 0.05 : 0 });
+                // 군함 위장: 군함처럼 보여 해적이 덤비지 않는다(원본은 NPC 에게 습격당하는 일이 줄어든다 — 크기는 지은 것)
+                bool disguise = fact.Name == "군함 위장";
+                all.Add(new OptionSkill { SkillId = real.GetValueOrDefault(fact.Name.Replace(" ", ""), 3000 + fact.No), Name = fact.Name, PartA = a, PartB = b, Effect = deck ? "Speed" : disguise ? "Disguise" : "", Amount = deck ? 0.05 : disguise ? 0.8 : 0 });
             }
             return _optionSkills = all;
         }

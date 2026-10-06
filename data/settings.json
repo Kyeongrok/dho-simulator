@@ -61,7 +61,7 @@
   "MusicVolume": 0.6,
   "IconScale": 1,
   "SeaMapScale": 0.8,
-  "ShipFilterSize": 3,
+  "ShipFilterSize": 2,
   "ShipFilterUse": 0,
   "ItemRows": 5,
   "ModWorkOnBoard": true,

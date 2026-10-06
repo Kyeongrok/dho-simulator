@@ -530,6 +530,7 @@ internal sealed partial class Voyage
         "Luck" => $"재해 −{skill.Amount * 100:0}%",
         "Hold" => $"창고 +{skill.Amount * 100:0}%",
         "Flotsam" => $"하루에 한 번쯤 표류물({skill.Amount:0} 두캇 안팎)",
+        "Disguise" => $"해적의 습격 −{skill.Amount * 100:0}%",
         _ => "",
     };
 
