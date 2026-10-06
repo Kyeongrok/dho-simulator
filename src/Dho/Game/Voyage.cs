@@ -105,6 +105,7 @@ internal sealed partial class Voyage
         if (kind is not { } k || RoomOf(k.Words) is not { } room) return false;
         (Interior, InteriorName, InteriorHost, InteriorDialog, _interiorPlace) = (room.Scene, room.Name, k.Host, k.Opens, place);
         Say($"{room.Name}에 들어섰다.");
+        if (place == 29) Cues.Enqueue("University");      // 대학으로 옮겨 가는 소리
         return true;
     }
 
@@ -291,6 +292,7 @@ internal sealed partial class Voyage
             if (put <= 0) return;
             (Money, Savings) = (Money - put, Savings + put);
             Say($"은행에 {put:N0} 두캇을 맡겼다. (예금 {Savings:N0})");
+            Cues.Enqueue("Bank");
         }
         else
         {
@@ -352,6 +354,7 @@ internal sealed partial class Voyage
         Money -= TreatCost;
         Fatigue = Math.Max(0, Fatigue - 40);
         Say($"선원들에게 한턱냈다. 피로가 풀렸다. ({TreatCost:N0} 두캇)");
+        Cues.Enqueue("Drunk");
     }
 
     /// <summary>경험치로 셈한 레벨과, 다음 레벨까지 남은 경험치. 원본의 레벨 표를 몰라 지은 것이다(레벨 n 까지 50 × n²).</summary>
@@ -445,6 +448,7 @@ internal sealed partial class Voyage
         if (Quest != null || Offered == null || Offered.CityId != City.Id) return;
         Quest = Offered;
         Offered = null;
+        Cues.Enqueue("Quest");
         QuestStage = QuestStage.Accepted;
         Money += Quest.Advance;
         Dialog = Dialog.None;
@@ -481,7 +485,7 @@ internal sealed partial class Voyage
         Dialog = Dialog.Discovery;
         if (QuestDiscovery is { } found)
         {
-            AdventureExp += found.Exp;
+            AdventureExp += found.Exp * GainFactor;
             AdventureFame += found.Fame;
             Say($"{found.Name}을(를) 발견했다!");
             Say($"모험 경험 {found.Exp}, 모험 명성 {found.Fame}을(를) 얻었다.");
@@ -498,6 +502,7 @@ internal sealed partial class Voyage
         if (!CanReportHere) return;
         Reported = Quest;
         ReportedDiscovery = QuestDiscovery;
+        Cues.Enqueue("Done");
         Money += Quest!.Reward;
         _done.Add(Quest.Id);
         OrderOnReport();

@@ -23,6 +23,7 @@ internal sealed partial class Voyage
     {
         if (FitBlocker(part) != null || !PartStock.Remove(part)) return;
         Parts.Add(part);
+        Cues.Enqueue("Part");
         Say($"{part.Name}을(를) 달았다.");
     }
 
@@ -31,6 +32,7 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Port || PartStock.Count >= PartStockLimit || !Parts.Remove(part)) return;
         PartStock.Add(part);
+        Cues.Enqueue("Part");
         Say($"{part.Name}을(를) 떼었다.");
     }
     public static readonly string[] SlotName = ["보조돛", "장갑", "선수상"];
@@ -72,6 +74,7 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Port || PartBlocker(part) != null) return;
         Money -= PartPrice(part);
+        Cues.Enqueue("Buy");
         PartStock.Add(part);
         Say($"{part.Name}을(를) 샀다. ({PartPrice(part):N0} 두캇) — B 로 배에 단다.");
     }

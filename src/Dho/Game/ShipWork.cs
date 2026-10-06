@@ -86,6 +86,20 @@ internal sealed partial class Voyage
         _ => 0,
     };
 
+    /// <summary>
+    /// 그 배의 강화 상한 열 — 내구력 · 세로돛 · 가로돛 · 조력 · 선회 · 내파 · 장갑 · 선실 · 포실 · 창고(선박 정보의 초록 막대가 이것에 대한 비율이다).
+    /// 배 상세(ssjoy 의 「강화 상한」)가 있는 배는 그 값, 없는 배는 게임의 강화 규칙에서 나온 값과 어림(조력 · 장갑 · 선실 · 포실).
+    /// </summary>
+    public int[] StrengthCaps(ShipData ship, ShipStats plain)
+    {
+        if (Data.ShipDetail(ship.Name) is { Caps.Count: >= 10 } detail) return [.. detail.Caps.Take(10)];
+        return
+        [
+            (int)WorkCap("Durability", plain), (int)WorkCap("Sail", plain), (int)WorkCap("Sail", plain), plain.Rowing > 0 ? 30 : 0, (int)WorkCap("Turn", plain), (int)WorkCap("Wave", plain),
+            10, Math.Max(4, plain.MaxCrew / 5), Math.Max(2, plain.Guns / 5), (int)WorkCap("Hold", plain),
+        ];
+    }
+
     /// <summary>강화와 옵션 스킬을 입힌 능력치.</summary>
     public ShipStats Worked(ShipStats stats, ShipWork work, ShipData ship)
     {
@@ -240,7 +254,7 @@ internal sealed partial class Voyage
     private void GainMastery()
     {
         if (Work.Mastery >= 100 && (_masteryHalf = !_masteryHalf)) return;
-        AddMastery(1, quiet: true);
+        AddMastery(GainFactor, quiet: true);
     }
 
     /// <summary>조타 숙련도를 올린다(도시 메뉴의 단추도 이것을 쓴다).</summary>
@@ -250,7 +264,7 @@ internal sealed partial class Voyage
         if (Work.Mastery >= cap) { if (!quiet) Say("조타 숙련도가 이미 가득 찼다."); return; }
         Work.Mastery = Math.Min(cap, Work.Mastery + amount);
         Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
-        if (Work.Mastery >= cap) Say($"{Ship.Name}의 조타 숙련도가 가득 찼다. 강화가 모두 듣는다.");
+        if (Work.Mastery >= cap) { Say($"{Ship.Name}의 조타 숙련도가 가득 찼다. 강화가 모두 듣는다."); Cues.Enqueue("Mastery"); }
         else if (!quiet) Say($"조타 숙련도 +{amount} ({Work.Mastery:0}/{cap})");
     }
 

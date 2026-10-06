@@ -112,6 +112,10 @@ internal sealed class SceneRenderer : IDisposable
 
             float sun = saturate(dot(dir, SunDirection));
             color += SunColor * (pow(sun, 400.0) * 2.0 + pow(sun, 12.0) * 0.12);
+            // low red sun: a faint flare ring around it
+            float low = saturate((SunColor.r - SunColor.b) * 2.5) * (1.0 - Night);
+            float ring = smoothstep(0.035, 0.0, abs(acos(min(sun, 0.9999)) - 0.24));
+            color += float3(1.0, 0.35, 0.30) * ring * low * 0.30;
 
             float2 sphere = float2(atan2(dir.z, dir.x), asin(clamp(dir.y, -1, 1))) * 110.0;
             float2 cell = floor(sphere);
@@ -173,10 +177,11 @@ internal sealed class SceneRenderer : IDisposable
             float hz = Height(p + float2(0, e), Time);
             float2 slope = float2(hx - h0, hz - h0) / e;
             float frame = Time / 5.0;
-            float2 ripple = WaveSlope(p / 46.0, frame) * 2.2;
-            ripple += WaveSlope(float2(p.y, -p.x) / 131.0 + 0.37, frame * 0.61 + 0.5) * 2.6;
+            // layers are turned off the grid so the 64 x 64 tile does not line up in rows
+            float2 ripple = WaveSlope(float2(p.x * 0.94 - p.y * 0.34, p.x * 0.34 + p.y * 0.94) / 30.0, frame) * 1.0;
+            ripple += WaveSlope(float2(p.x * 0.6 + p.y * 0.8, p.y * 0.6 - p.x * 0.8) / 97.0 + 0.37, frame * 0.61 + 0.5) * 1.1;
             float near = saturate(1.0 - dist / 420.0);
-            ripple += WaveSlope(p / 13.0 + 0.11, frame * 1.7) * 1.1 * near;
+            ripple += WaveSlope(p / 11.0 + 0.11, frame * 1.7) * 0.7 * near;
             float calm = saturate(1.0 - dist / 3500.0);
             float3 n = normalize(float3(-(slope.x * 0.6 + ripple.x) * calm, 1.0, -(slope.y * 0.6 + ripple.y) * calm));
 
@@ -185,21 +190,24 @@ internal sealed class SceneRenderer : IDisposable
             float3 reflected = SkyColor(reflect(-v, n));
             float facing = saturate(dot(n, SunDirection));
             float crest = saturate((ripple.x + ripple.y) * 0.9 + 0.1) * calm;
-            float3 body = WaterColor * (0.62 + 0.38 * facing) + (WaterColor * 0.9 + HorizonColor * 0.12) * crest * 0.55;
-            float3 color = lerp(body, reflected, fresnel * 0.7);
+            float3 body = WaterColor * (0.78 + 0.22 * facing) + (WaterColor * 0.9 + HorizonColor * 0.10) * crest * 0.22;
+            float3 color = lerp(body, reflected, fresnel * 0.55);
+            // far water melts into the haze of the horizon
+            float haze = pow(1.0 - saturate(v.y), 7.0);
+            color = lerp(color, HorizonColor, haze * 0.8);
 
             float3 halfway = normalize(v + SunDirection);
-            color += SunColor * pow(saturate(dot(n, halfway)), 90.0) * 0.22;
+            color += SunColor * pow(saturate(dot(n, halfway)), 140.0) * 0.10;
 
             float2 rel = (i.world.xz - ShipPosition) / K;
             float along = dot(rel, ShipDirection);
             float across = dot(rel, float2(-ShipDirection.y, ShipDirection.x));
             float hull = saturate(1.0 - length(float2(across / 16.0, along / 44.0)));
-            float behind = saturate(-along / 260.0);
-            float spread = 9.0 + behind * 60.0;
+            float behind = saturate(-along / 420.0);
+            float spread = 12.0 + behind * 85.0;
             float wake = saturate(1.0 - abs(across) / spread) * step(along, 20.0) * (1.0 - behind);
             float foamNoise = Noise(p * 0.22 + Time * 0.4) * 0.6 + Noise(p * 0.7 - Time * 0.8) * 0.4;
-            float foam = saturate((hull * 1.4 + wake * 0.9) * (0.35 + ShipSpeed)) * smoothstep(0.25, 0.75, foamNoise + hull * 0.4);
+            float foam = saturate((hull * 1.4 + wake * 1.5 * saturate(ShipSpeed * 2.0)) * (0.35 + ShipSpeed)) * smoothstep(0.18, 0.7, foamNoise + hull * 0.4);
             color = lerp(color, (Ambient + SunColor) * 0.9, saturate(foam) * 0.8);
 
             return float4(ApplyFog(color, i.world), 1);

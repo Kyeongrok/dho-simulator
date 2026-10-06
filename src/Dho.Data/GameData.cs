@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -571,6 +571,8 @@ public sealed class SettingsData
     public double UiScale { get; set; }
     /// <summary>배경음 크기(0 ~ 1). 0 이면 끈다.</summary>
     public double MusicVolume { get; set; } = 0.5;
+    /// <summary>그림 단추(오른쪽 위 단추 줄 · 항구 단추 · 가장자리 둥근 단추)의 배율(0.5 ~ 2.5) — 글과 창의 배율과 따로 논다.</summary>
+    public double IconScale { get; set; } = 1;
     /// <summary>바다의 둥근 지도 크기 배율(0.5 ~ 1.5).</summary>
     public double SeaMapScale { get; set; } = 1;
     /// <summary>판매선박 목록에 걸어 둔 거르기 — 크기(0 전체 · 1 소형 · 2 중형 · 3 대형)와 용도(0 전체 · 1 모험 · 2 교역 · 3 전투). 게임을 껐다 켜도 남는다.</summary>
@@ -582,12 +584,14 @@ public sealed class SettingsData
     public bool ModWorkOnBoard { get; set; }
     /// <summary>모드: 선박 조합의 성공률에 더하는 값(%) — 0 ~ 50. 0 이면 그대로.</summary>
     public int ModCombineBonus { get; set; }
+    /// <summary>모드: 경험치(모험 · 교역 · 부관)와 숙련도(스킬 · 조타)가 세 배로 오른다.</summary>
+    public bool ModTripleGain { get; set; }
     /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
     public Dictionary<string, int> Keys { get; set; } = new();
     /// <summary>효과음 — 일 이름 → "묶음:차례"(<c>data\extracted\se-all</c> 의 파일 이름 앞 두 수). 빈 글이면 소리 없음.</summary>
     /// <summary>효과음마다 적어 둔 메모 — "묶음:차례" → 글. 묶음의 제목은 "묶음" → 글.</summary>
     public Dictionary<string, string> SoundMemos { get; set; } = new();
-    public Dictionary<string, string> Sounds { get; set; } = new() { ["Skill"] = "5:0", ["Turn"] = "9:0" };
+    public Dictionary<string, string> Sounds { get; set; } = new() { ["Skill"] = "0:6", ["Turn"] = "9:0", ["Eat"] = "0:11", ["Door"] = "0:15" };
     public double MaxKnots { get; set; } = 14;
     /// <summary>1노트로 1초에 가는 세계 좌표.</summary>
     public double UnitsPerKnotSecond { get; set; } = 0.16;

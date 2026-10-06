@@ -1,4 +1,4 @@
-﻿using Dho.Data;
+using Dho.Data;
 
 namespace Dho.Game;
 
@@ -165,7 +165,7 @@ internal sealed partial class Voyage
         if (item.Count == 0) Cargo.Remove(good.Id);
         if (profit > 0)
         {
-            TradeExp += (int)(profit / 100);
+            TradeExp += (int)(profit / 100) * GainFactor;
             TrainEffect("Haggle", Math.Min(60, profit / 50.0));
             Studied("Profit");
             if (profit >= 50_000) Studied("BigProfit");

@@ -68,6 +68,7 @@ internal sealed partial class Voyage
         StudyDone.Add(research.No);
         Credits += research.Credit;
         Say($"연구 「{research.Name}」을(를) 마쳤다! 학점 {research.Credit:N0}, 대학 스킬 「{research.Skill}」.");
+        Cues.Enqueue("StudyDone");
         Studying = null;
         StudyProgress.Clear();
     }

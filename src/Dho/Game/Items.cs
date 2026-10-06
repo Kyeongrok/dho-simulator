@@ -74,6 +74,7 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Port || Money < item.Price) return;
         Money -= item.Price;
+        Cues.Enqueue("Buy");
         Items[item.Id] = Items.GetValueOrDefault(item.Id) + 1;
         Say($"{item.Name}을(를) 샀다. ({item.Price:N0} 두캇)");
     }
@@ -226,6 +227,7 @@ internal sealed partial class Voyage
                 case "Fatigue" when Fatigue > 0:
                     Fatigue = Math.Max(0, Fatigue - known.Amount);
                     Say($"{known.Name}을(를) 썼다. 선원들이 기운을 차렸다.");
+                    Cues.Enqueue("Eat");               // 음식을 먹는 소리
                     break;
                 case "Repair" when Durability < Stats.Durability:
                     Durability = Math.Min(Stats.Durability, Durability + Stats.Durability * known.Amount / 100);
@@ -240,6 +242,7 @@ internal sealed partial class Voyage
                     break;
                 default:
                     Say($"{known.Name} — 지금은 쓸 데가 없다.");
+                    Cues.Enqueue("Error");
                     return;
             }
         }

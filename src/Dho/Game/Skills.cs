@@ -1,4 +1,4 @@
-﻿using Dho.Data;
+using Dho.Data;
 
 namespace Dho.Game;
 
@@ -91,9 +91,13 @@ internal sealed partial class Voyage
         }
     }
 
+    /// <summary>경험치 · 숙련도에 곱하는 값 — 모드 「경험치 · 숙련도 3배」를 켜면 3.</summary>
+    private int GainFactor => Data.Settings.ModTripleGain ? 3 : 1;
+
     private void Train(int skillId, double exp)
     {
         if (!Skills.TryGetValue(skillId, out var state) || state.Rank >= Settings.MaxSkillRank) return;
+        exp *= GainFactor;
         state.Exp += exp;
         // 숙련도가 오르면 기록에 알린다. 항해 중에 조금씩 오르는 것은 모아서 20 마다 한 번
         double gained = _gained[skillId] = _gained.GetValueOrDefault(skillId) + exp;
@@ -111,7 +115,7 @@ internal sealed partial class Voyage
                 ? $"{SkillName(skillId)} 숙련도 +{gained:0}"
                 : $"{SkillName(skillId)} 숙련도 +{gained:0} ({state.Exp:0}/{ExpToNext(state.Rank)})");
         }
-        if (ranked) Say($"{SkillName(skillId)} 스킬이 랭크 {state.Rank}(이)가 되었다!");
+        if (ranked) { Say($"{SkillName(skillId)} 스킬이 랭크 {state.Rank}(이)가 되었다!"); Cues.Enqueue("SkillUp"); }
     }
 
     private void TrainEffect(string effect, double exp)
@@ -166,6 +170,7 @@ internal sealed partial class Voyage
     {
         if (RestSkill is not { } rule || Mode != Mode.Sea || Food < 5 || Fatigue <= 0) return;
         Food -= 5;
+        Cues.Enqueue("Drunk");
         Fatigue = Math.Max(0, Fatigue - (10 + Rank(rule.SkillId) * rule.PerRank));
         Train(rule.SkillId, 20);
         Say(Text(3111, "선원들과 파티를 열었습니다."));

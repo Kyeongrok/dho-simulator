@@ -1,4 +1,4 @@
-﻿using Dho.Data;
+using Dho.Data;
 
 namespace Dho.Game;
 
@@ -158,6 +158,7 @@ internal sealed partial class Voyage
         Weather = Weather.Storm;
         _stormDays = Rules.StormDays;
         Say(Text(TextStorm, "폭풍이 몰아칩니다! 돛을 펴놓고 있으면 전복하고 맙니다!"));
+        Cues.Enqueue("Warn");
     }
 
     private void Begin(DisasterData data)
@@ -165,6 +166,7 @@ internal sealed partial class Voyage
         if (Disasters.Exists(d => d.Data.Id == data.Id)) return;
         Disasters.Add(new ActiveDisaster(data));
         Say(Text((uint)data.StartText, $"{data.Name} 발생!"));
+        Cues.Enqueue("Warn");
     }
 
     /// <summary>재해 때문에 속도에 곱해지는 값.</summary>

@@ -60,7 +60,7 @@ internal sealed class GameWindow : IDisposable
     private int _orbitMoved;
     private (float X, float Y, float W, float H)? _previewBox;
     private CharacterModel? _maidModel, _previewFigure;
-    private (int, int, int, int, int) _previewLooks;
+    private (int, int, int, int, int, int, int) _previewLooks;
     private ShipModel? _previewShip;
     private int _previewShipModel;
     private float _previewYaw = 2.3f, _previewPitch = 0.28f, _previewZoom = 1f;
@@ -348,9 +348,19 @@ internal sealed class GameWindow : IDisposable
     private double _turnSounded = -10;
 
     /// <summary>설정에 적힌 효과음을 튼다. 대본으로 돌릴 때는 조용히.</summary>
+
     private void PlayCue(string cue)
     {
         var sounds = _voyage.Data.Settings.Sounds;
+        // 설정 파일에 없는 소리는 원본의 것을 기본으로 쓴다 — 사용자가 효과음 고르기에서 들어 보고 메모해 준 번호(묶음 0)
+        if (!sounds.ContainsKey(cue) && cue switch
+            {
+                "Click" => "0:0", "Quest" => "0:2", "Error" => "0:3", "Mastery" => "0:4", "Warn" => "0:5",
+                "SkillUp" => "0:7", "Done" => "0:8", "StudyDone" => "0:10", "Eat" => "0:11", "Bank" => "0:14", "Door" => "0:15",
+                "Part" => "0:20", "Buy" => "0:23", "Drunk" => "0:24", "University" => "0:30", "Sail" => "14:15", _ => null,
+            } is { } original) sounds[cue] = original;
+        // 스킬 소리의 옛 기본값(5:0)은 지은 것이었다 — 원본은 0:6
+        if (cue is "Skill" or "Sail" && sounds.GetValueOrDefault("Skill") == "5:0") sounds["Skill"] = "0:6";
         // 돛 조종 소리를 따로 안 정했으면 스킬 소리를 쓴다
         if (_scripted || !(sounds.TryGetValue(cue, out string? which) || (cue == "Sail" && sounds.TryGetValue("Skill", out which))) || string.IsNullOrEmpty(which)) return;
         (_sounds ??= new Dho.Audio.SoundEffects()).Play(which);
@@ -473,10 +483,29 @@ internal sealed class GameWindow : IDisposable
     private void WalkTo(TownMark mark)
     {
         if (!Walking) return;
-        _route = _grid!.Path(_walk, mark.Scene);
+        // 사람이 서 있는 시설이면 그 사람 자리가 아니라 한 걸음 앞(내가 오는 쪽)에 가서 선다 — 자리까지 가면 둘이 겹친다
+        var goal = mark.Scene;
+        if (_keepers.Find(k => k.Mark.Place == mark.Place) is { Name: not null } keeper)
+        {
+            var toward = _walk - keeper.Spot;
+            float apart = toward.Length();
+            if (apart is > 110f and < 230f) { (_route, _bound) = ([], null); FaceKeeper(mark); _voyage.Visit(mark); return; }      // 이미 앞에 서 있다
+            var front = new Vector2(MathF.Sin(keeper.Facing), MathF.Cos(keeper.Facing));
+            goal = _grid!.Nearest(keeper.Spot + (apart > 1f ? toward / apart : front) * 160f);
+            if (Vector2.Distance(goal, keeper.Spot) < 90f) goal = _grid.Nearest(keeper.Spot + front * 160f);      // 그쪽이 막혔으면 그 사람이 보는 쪽에
+        }
+        _route = _grid!.Path(_walk, goal);
         _bound = _route.Count > 0 ? mark : null;
+        if (_route.Count > 0 && goal == mark.Scene) PlayCue("Door");      // 사람이 아니라 건물 입구를 골랐다
         _routeRuns = true;                         // 지도에서 고른 곳으로는 달려간다
         _voyage.Say(_route.Count > 0 ? (mark.Place == Voyage.InsideMaster ? $"{_voyage.PlaceName(mark.Place)}에게 간다." : $"{_voyage.PlaceName(mark.Place)}(으)로 간다.") : $"{_voyage.PlaceName(mark.Place)}까지 가는 길을 못 찾았다.");
+    }
+
+    /// <summary>그 시설에 선 사람 쪽으로 돌아선다.</summary>
+    private void FaceKeeper(TownMark mark)
+    {
+        if (_keepers.Find(k => k.Mark.Place == mark.Place) is { Name: not null } keeper && Vector2.Distance(keeper.Spot, _walk) > 1f)
+            _walkYaw = MathF.Atan2(keeper.Spot.X - _walk.X, keeper.Spot.Y - _walk.Y);
     }
 
     private void Walk(float dt)
@@ -495,7 +524,7 @@ internal sealed class GameWindow : IDisposable
             {
                 _walk = _route[0];
                 _route.RemoveAt(0);
-                if (_route.Count == 0 && _bound is { } reached) { _bound = null; _voyage.Visit(reached); }
+                if (_route.Count == 0 && _bound is { } reached) { _bound = null; FaceKeeper(reached); _voyage.Visit(reached); }
             }
             else
             {
@@ -682,7 +711,7 @@ internal sealed class GameWindow : IDisposable
         _hud.TalkTo = null;
         if (Walking)
         {
-            foreach (var keeper in _keepers)
+            foreach (var keeper in _keepers.Concat(_bystanders))
             {
                 var head = new Vector3(keeper.Spot.X - _walk.X, _grid!.HeightAt(keeper.Spot.X, keeper.Spot.Y) + 195, keeper.Spot.Y - _walk.Y);
                 var clip = Vector4.Transform(new Vector4(head, 1), _viewProjection);
@@ -702,9 +731,12 @@ internal sealed class GameWindow : IDisposable
         _hud.ShipPreview = null;
         _hud.PreviewShip = null;
         _hud.FigurePreview = null;
+        _hud.FigureView = null;
         _previewBox = null;
+        _canvas.Pressed = false;
         _hud.Draw();
         _canvas.End();
+        if (_canvas.Pressed) PlayCue("Click");
         // 항구 차림에서 시설을 눌렀다 — 시내가 다 올라오면 그 시설 앞으로 옮겨 간다
         if (_hud.PendingPlace != 0 && Walking && _grid != null)
         {
@@ -716,14 +748,16 @@ internal sealed class GameWindow : IDisposable
         // 부관고용 창의 오른쪽 칸: 고른 후보의 모습
         if (_hud.FigurePreview is { } who)
         {
-            var wanted = (who.Frame, who.Face, who.Hair, who.Body, who.Leg);
+            // 캐릭터 정보 창은 내 모습이라 손 · 모자까지 입히고, 돌리거나 얼굴로 다가선다
+            var pose = _hud.FigureView ?? (0.35f, false, 0, -1);
+            var wanted = (who.Frame, who.Face, who.Hair, who.Body, who.Leg, pose.Hand, pose.Cap);
             if (_previewFigure == null || _previewLooks != wanted)
             {
                 _previewFigure?.Dispose();
-                (_previewFigure, _previewLooks) = (new CharacterModel(_gfx, new Looks(who.Frame, who.Face, who.Hair, who.Body, who.Leg, 0, -1)), wanted);
+                (_previewFigure, _previewLooks) = (new CharacterModel(_gfx, new Looks(who.Frame, who.Face, who.Hair, who.Body, who.Leg, pose.Hand, pose.Cap)), wanted);
             }
-            var eye = new Vector3(0, 110, 470);
-            var look = Matrix4x4.CreateLookAt(eye, new Vector3(0, 92, 0), Vector3.UnitY) * Matrix4x4.CreatePerspectiveFieldOfView(0.5f, who.W / who.H, 20f, 4000f);
+            var (eye, aim) = pose.Face ? (new Vector3(0, 168, 130), new Vector3(0, 162, 0)) : (new Vector3(0, 110, 470), new Vector3(0, 92, 0));
+            var look = Matrix4x4.CreateLookAt(eye, aim, Vector3.UnitY) * Matrix4x4.CreatePerspectiveFieldOfView(0.5f, who.W / who.H, 20f, 4000f);
             Matrix4x4.Invert(look, out var lookInverse);
             var noon = Sky.At(0.5);
             _gfx.BeginInset(frame with
@@ -732,7 +766,7 @@ internal sealed class GameWindow : IDisposable
                 SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
             }, who.X * UiScale, (who.Y + Hud.TitleHeight) * UiScale, who.W * UiScale, who.H * UiScale);
             _scene.BeginMeshes();
-            if (_previewFigure.Loaded) _previewFigure.Draw(_scene, Matrix4x4.CreateRotationY(0.35f), 0, 0, (float)_voyage.Clock);
+            if (_previewFigure.Loaded) _previewFigure.Draw(_scene, Matrix4x4.CreateRotationY(pose.Yaw), 0, 0, (float)_voyage.Clock);
             _gfx.EndInset();
         }
 
@@ -846,6 +880,7 @@ internal sealed class GameWindow : IDisposable
         _grid = TownGrid.Read(scene);
         _town = new PortScene(_gfx, scene, _grid, inside);
         _keepers.Clear();
+        _bystanders.Clear();
         (_route, _bound) = ([], null);
         if (_grid == null)
         {
@@ -972,9 +1007,21 @@ internal sealed class GameWindow : IDisposable
                 // 길 쪽(들어선 자리 쪽)을 보고 선다
                 _keepers.Add((mark, name, spot, MathF.Atan2(_walk.X - spot.X, _walk.Y - spot.Y)));
             }
+        // 조선소 주인 곁의 사람들 — 원본(세비야)처럼 한 줄로 나란히 선다. 말은 못 건다(서 있기만 한다)
+        if (_keepers.Find(k => k.Mark.Place == 9) is { Name: not null } owner)
+        {
+            var side = new Vector2(MathF.Cos(owner.Facing), -MathF.Sin(owner.Facing));
+            (string Name, int Step)[] row = [("조선공", -1), ("돛 제작자", 1), ("무기 장인", 2), ("제재소장인", 3)];
+            foreach (var (name, step) in row)
+            {
+                var wanted = owner.Spot + side * (step * 125f);
+                var spot = _grid.Nearest(wanted);
+                if (Vector2.Distance(spot, wanted) < 70f) _bystanders.Add((owner.Mark, name, spot, owner.Facing));      // 설 자리가 없으면 뺀다
+            }
+        }
     }
 
-    private readonly List<(TownMark Mark, string Name, Vector2 Spot, float Facing)> _keepers = [];
+    private readonly List<(TownMark Mark, string Name, Vector2 Spot, float Facing)> _keepers = [], _bystanders = [];
     // 시설의 사람들 차림 — 온전히 그려지는 옷 몇 벌을 이름에 따라 나눠 입힌다
     private static readonly Looks[] KeeperLooks =
     [
@@ -1003,7 +1050,7 @@ internal sealed class GameWindow : IDisposable
         // 시설의 사람들 — 모두 같은 차림의 한 모형을 자리마다 그린다
         if (_keepers.Count > 0)
         {
-            foreach (var keeper in _keepers)
+            foreach (var keeper in _keepers.Concat(_bystanders))
             {
                 int wears = keeper.Name.Sum(c => c) % KeeperLooks.Length;
                 var _keeperModel = keeper.Name == "여급" ? _maidModel ??= new CharacterModel(_gfx, new Looks(1, 3, 2, 25, 3, 0, -1))
@@ -1222,6 +1269,7 @@ internal sealed class GameWindow : IDisposable
                 break;
             case "outfit": _voyage.Dialog = Dialog.Outfit; break;
             case "character": _voyage.Dialog = Dialog.Character; break;
+            case "topmenu": _hud.OpenTopMenu((int)Number()); break;
             case "look":
                 var look = argument.Split(',');
                 _voyage.SetLook(int.Parse(look[0]), int.Parse(look[1]));
@@ -1232,6 +1280,7 @@ internal sealed class GameWindow : IDisposable
             case "additem": _voyage.AddItem((int)Number()); break;
             case "useitem": _voyage.UseItem((int)Number()); break;
             case "uiscale": _scaleInScript = true; _voyage.Data.Settings.UiScale = Number(); break;
+            case "iconscale": _voyage.Data.Settings.IconScale = Number(); break;
             case "menu": _hud.OpenMenu((int)Number()); break;
             case "music": _musicOn = !_musicOn; break;
             case "goto":

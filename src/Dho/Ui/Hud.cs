@@ -42,7 +42,85 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         }
         if (voyage.Mode == Mode.Port) QuickBar();
         Dialogs();
+        TopBar();
         Tip();
+    }
+
+    private int _topMenu = -1;
+    /// <summary>대본용: 오른쪽 위 단추의 차림을 연다(0 캐릭터, 1 선박, 2 시스템).</summary>
+    public void OpenTopMenu(int which) => _topMenu = which;
+
+    /// <summary>
+    /// 오른쪽 위 단추 줄 — 원본의 「캐릭터」 · 「선박」(명령 단추 묶음의 7 · 10 부터 세 장씩, 50 × 24) · 「시스템」(19 부터, 40 × 24). 누르면 원본처럼 차림이 내려온다.
+    /// 아직 없는 것(테크닉 · 부관 선박 정보 · 함대에 참가 · 게임 등급 · 캐릭터 변경)은 꺼 두었고, 부관정보와 부관 담당 변경은 둘 다 부관 창으로 간다. 로그아웃은 끝내기다.
+    /// </summary>
+    private void TopBar()
+    {
+        const float y = 4, mw = 200, line = 28;
+        float scale = 1.1f * IconScale, h = 24 * scale;      // 항구 단추와 같은 크기
+        (int Icon, float Width, string Label, (string Label, bool Enabled, Action Run)[] Menu)[] buttons =
+        [
+            (7, 50, "캐릭터",
+            [
+                ("캐릭터정보", true, () => voyage.Dialog = Dialog.Character),
+                ("스킬", true, () => voyage.Dialog = Dialog.Skills),
+                ("테크닉", false, () => { }),
+                ("장비물품", true, () => (voyage.Dialog, _equipTop) = (Dialog.Equip, 0)),
+                ("소유물품 목록", true, () => voyage.Dialog = Dialog.Items),
+                ("부관정보", true, () => voyage.Dialog = Dialog.Aides),
+                ("부관 담당 변경", true, () => voyage.Dialog = Dialog.Aides),
+            ]),
+            (10, 50, "선박",
+            [
+                ("선박정보", true, () => voyage.Dialog = Dialog.ShipInfo),
+                ("선박부품", true, () => voyage.Dialog = Dialog.Fitting),
+                ("적재화물", true, () => voyage.Dialog = Dialog.Cargo),
+                ("부관 선박 정보", false, () => { }),
+                ("대원 모집", voyage.Mode == Mode.Port && voyage.HasTavern, () => voyage.Dialog = Dialog.Recruit),
+                ("함대에 참가", false, () => { }),
+            ]),
+            (19, 40, "시스템",
+            [
+                ("환경설정", true, () => { voyage.Dialog = Dialog.None; _displayOpen = true; }),
+                ("퀵슬롯 등록", true, () => voyage.Dialog = Dialog.QuickSetup),
+                ("단축키 등록", true, () => _keysOpen = true),
+                ("게임 등급", false, () => { }),
+                ("캐릭터 변경", false, () => { }),
+                ("로그아웃", true, () => Quit?.Invoke()),
+            ]),
+        ];
+        bool overAny = false;
+        float x = canvas.Width - 4;
+        foreach (var button in buttons) x -= button.Width * scale + 4;
+        for (int k = 0; k < buttons.Length; x += buttons[k].Width * scale + 4, k++)
+        {
+            float w = buttons[k].Width * scale;
+            bool over = canvas.Hover(x, y, w, h);
+            overAny |= over;
+            if (Command(buttons[k].Icon, x, y, true, buttons[k].Label, scale, buttons[k].Width)) _topMenu = _topMenu == k ? -1 : k;
+            if (over) { canvas.Pointer.Consumed = true; _tip = _topMenu == k ? null : (buttons[k].Label, x + w / 2, y + h + 34); }
+            if (_topMenu != k) continue;
+
+            var menu = buttons[k].Menu;
+            float mx = Math.Min(x, canvas.Width - mw - 8), my = y + h + 4, mh = menu.Length * line + 12;
+            canvas.Fill(mx, my, mw, mh, new Color4(0.06f, 0.09f, 0.26f, 0.96f));
+            canvas.Frame(mx, my, mw, mh, new Color4(0.35f, 0.45f, 0.75f, 1), 1.2f);
+            for (int i = 0; i < menu.Length; i++)
+            {
+                float row = my + 6 + i * line;
+                bool hover = menu[i].Enabled && canvas.Hover(mx + 6, row, mw - 12, line);
+                if (hover) canvas.Fill(mx + 6, row, mw - 12, line - 2, new Color4(0.12f, 0.55f, 0.52f, 0.95f));
+                canvas.Text(menu[i].Label, mx + 14, row + 2, mw - 24, 24, 17, menu[i].Enabled ? Canvas.White : Canvas.Dim);
+                if (!hover || !canvas.Pointer.Clicked) continue;
+                (canvas.Pointer.Consumed, canvas.Pointer.Clicked, canvas.Pressed, _topMenu) = (true, false, true, -1);
+                menu[i].Run();
+                return;
+            }
+            overAny |= canvas.Hover(mx, my, mw, mh);
+            canvas.Block(mx, my, mw, mh);
+        }
+        // 차림 밖을 누르면 닫힌다
+        if (canvas.Pointer.Clicked && !overAny) _topMenu = -1;
     }
 
     // ── 화면(해상도) ─────────────────────────────────────────────────────────
@@ -67,7 +145,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     /// <summary>모드 — 원본과 다르게 굴리는 것들을 켜고 끈다. 설정에 남는다.</summary>
     private void ModWindow()
     {
-        const float w = 520, h = 206;
+        const float w = 520, h = 258;
         float x = (canvas.Width - w) / 2, y = 34;
         var settings = voyage.Data.Settings;
         canvas.Panel(x, y, w, h);
@@ -101,6 +179,11 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             int next = Math.Clamp(settings.ModCombineBonus + steps[i].Step, 0, 50);
             if (canvas.Button(steps[i].Label, x + w - 216 + i * 50, y + 102, 46, 28, next != settings.ModCombineBonus, 13)) { settings.ModCombineBonus = next; voyage.Data.SaveSettings(); }
         }
+        if (Toggle("경험치 · 숙련도 3배", "모험 · 교역 · 부관 경험치와 스킬 숙련도 · 조타 숙련도가 세 배로 오른다. 명성은 그대로.", y + 152, settings.ModTripleGain))
+        {
+            settings.ModTripleGain = !settings.ModTripleGain;
+            voyage.Data.SaveSettings();
+        }
         if (canvas.Button("닫기", x + w - 116, y + h - 40, 100, 30)) _modOpen = false;
     }
 
@@ -128,16 +211,23 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         foreach (var (lx, ly, text) in Labels)
             canvas.Text(text, lx - 100, ly - 20, 200, 20, 14, new Color4(0.55f, 1f, 0.6f, 1), 1);
         // 눌러 가는 곳의 표식
+        // 원본 커서와 같은 금빛의 화살촉(화면 부품 묶음 0 의 맨 끝 장, 24 × 40)이 그 자리를 내려 찍는다 — 살짝 오르내린다.
+        // 이 조각이 원본에서 바로 이 쓰임인지는 짐작이다(원본 화면 구석에 같은 빛깔의 촉이 보였다).
         if (Target is { } target)
         {
-            canvas.Circle(target.X, target.Y, 9, new Color4(0.1f, 0.1f, 0.1f, 0.55f));
-            canvas.Circle(target.X, target.Y, 7, Canvas.Gold);
-            canvas.Circle(target.X, target.Y, 3.5f, Canvas.White);
+            float bob = MathF.Abs(MathF.Sin((float)voyage.Clock * 4)) * 6;
+            if (!canvas.Image("gm0:1258", () => (_markParts ??= new UiParts(0)).Pixels(1258), target.X - 9, target.Y - 30 - bob, 18, 30, MathF.PI))
+            {
+                canvas.Circle(target.X, target.Y, 9, new Color4(0.1f, 0.1f, 0.1f, 0.55f));
+                canvas.Circle(target.X, target.Y, 7, Canvas.Gold);
+            }
         }
         if (TalkTo != null && voyage.Dialog == Dialog.None)
         {
-            const float w = 360;
-            float x = (canvas.Width - w) / 2, y = canvas.Height - 216;
+            // 화면 가운데를 가리지 않게 맨 아래, 기록 창(너비 620)의 오른쪽에 둔다. 자리가 좁으면 전처럼 기록 창 바로 위
+            float free = canvas.Width - 632 - 8, w = Math.Min(360, free);
+            float x = 632 + (free - w) / 2, y = canvas.Height - 78;
+            if (free < 280) (w, x, y) = (360, (canvas.Width - 360) / 2, canvas.Height - 216);
             canvas.Panel(x, y, w, 40);
             canvas.Text(TalkTo == "출구" ? "F : 밖으로 나간다" : $"F : {TalkTo}에게 말을 건다", x, y + 8, w, 26, 17, Canvas.Gold, 1);
         }
@@ -221,11 +311,9 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             (string Label, Action Run)[] menu =
             [
                 ("환경설정 (해상도 · 소리)", () => { if (voyage.Created) voyage.Dialog = Dialog.None; _displayOpen = true; }),
-                ("퀵슬롯 등록", () => { if (voyage.Created) voyage.Dialog = Dialog.QuickSetup; }),
                 ("단축키 등록", () => _keysOpen = true),
                 ("모드", () => { if (voyage.Created) voyage.Dialog = Dialog.None; _modOpen = true; }),
                 ("개발 메뉴", () => { if (voyage.Created) _devOpen = true; }),
-                ("스킬 (X)", () => { if (voyage.Created) voyage.Dialog = Dialog.Skills; }),
                 ("소지품 (I)", () => { if (voyage.Created) voyage.Dialog = Dialog.Items; }),
                 ("캐릭터 정보 (C)", () => { if (voyage.Created) voyage.Dialog = Dialog.Character; }),
                 ("직업 일람", () => { if (voyage.Created) voyage.Dialog = Dialog.Jobs; }),
@@ -250,7 +338,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         if (_soundOpen) { SoundWindow(); return; }
 
         const float w = 300;
-        float h = 74 + (Sizes.Length + 3) * 30 + 62 + 68 + 34;
+        float h = 74 + (Sizes.Length + 3) * 30 + 62 + 68 + 68;
         float x = (canvas.Width - w) / 2, y = 34;
         canvas.Panel(x, y, w, h);
         canvas.Block(x, y, w, h);
@@ -273,6 +361,12 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         if (canvas.Button("−", x + 150, row, 36, 26, canvas.Scale > 0.75f, 16)) { settings.UiScale = Math.Max(0.75, Math.Round(canvas.Scale * 4 - 1) / 4); voyage.Data.SaveSettings(); }
         if (canvas.Button("+", x + 190, row, 36, 26, canvas.Scale < 3, 16)) { settings.UiScale = Math.Min(3, Math.Round(canvas.Scale * 4 + 1) / 4); voyage.Data.SaveSettings(); }
         if (canvas.Button("자동", x + 230, row, 54, 26, settings.UiScale > 0, 13)) { settings.UiScale = 0; voyage.Data.SaveSettings(); }
+        // 그림 단추의 배율 — 글과 창의 배율과 따로
+        row += 34;
+        canvas.Text($"아이콘 배율 {settings.IconScale * 100:0}%", x + 16, row + 3, 130, 22, 14, Canvas.White);
+        if (canvas.Button("−", x + 150, row, 36, 26, settings.IconScale > 0.5, 16)) { settings.IconScale = Math.Max(0.5, Math.Round(settings.IconScale * 10 - 1) / 10); voyage.Data.SaveSettings(); }
+        if (canvas.Button("+", x + 190, row, 36, 26, settings.IconScale < 2.5, 16)) { settings.IconScale = Math.Min(2.5, Math.Round(settings.IconScale * 10 + 1) / 10); voyage.Data.SaveSettings(); }
+        if (canvas.Button("100%", x + 230, row, 54, 26, settings.IconScale != 1, 13)) { settings.IconScale = 1; voyage.Data.SaveSettings(); }
         // 배경음 크기
         row += 34;
         canvas.Text($"배경음 {settings.MusicVolume * 100:0}%", x + 16, row + 3, 120, 22, 14, Canvas.White);
@@ -348,7 +442,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             if (chosen) canvas.Fill(lx, ry, lw, 25, new Color4(0.12f, 0.62f, 0.55f, 0.95f));
             else if (hover) canvas.Fill(lx, ry, lw, 25, new Color4(0.2f, 0.3f, 0.6f, 0.6f));
             canvas.Text(key, lx + 6, ry + 3, 60, 20, 13, Canvas.White);
-            string uses = string.Join(" ", new[] { ("Turn", "선회"), ("Sail", "돛"), ("Skill", "스킬") }.Where(c => settings.Sounds.GetValueOrDefault(c.Item1) == key).Select(c => $"[{c.Item2}]"));
+            string uses = string.Join(" ", new[] { ("Turn", "선회"), ("Sail", "돛"), ("Skill", "스킬"), ("Eat", "음식"), ("Door", "입구"), ("Click", "누름"), ("Quest", "퀘스트"), ("Error", "오류"), ("Mastery", "숙련도"), ("Warn", "경고"), ("SkillUp", "레벨업"), ("Done", "완료"), ("StudyDone", "연구 완료"), ("Bank", "저금"), ("Part", "부품"), ("Buy", "구매"), ("Drunk", "술"), ("University", "대학") }.Where(c => settings.Sounds.GetValueOrDefault(c.Item1) == key).Select(c => $"[{c.Item2}]"));
             canvas.Text(uses, lx + 60, ry + 3, 110, 20, 12, Canvas.Gold);
             canvas.Text(settings.SoundMemos.GetValueOrDefault(key) ?? "", lx + 170, ry + 3, lw - 176, 20, 13, Canvas.White);
             if (hover && canvas.Pointer.Clicked)
@@ -563,21 +657,24 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private ImageSet? _commandIcons;
 
     /// <summary>
-    /// 원본 명령 단추 — <c>0010\0001\sg</c>(64 × 28). 세 장이 한 벌이다: 꺼짐(잿빛) · 켜짐 · 가리킴.
-    /// <paramref name="icon"/> 은 꺼짐 장의 id.
+    /// 원본 명령 단추 — <c>0010\0001\sg</c>(40 × 24, 오른쪽 위 줄의 캐릭터 · 선박만 50 × 24). 세 장이 한 벌이다: 평소(잿빛 유리) · 가리킴(청록) · 눌림.
+    /// <paramref name="icon"/> 은 평소 장의 id. 못 누르는 단추는 평소 장을 흐리게 그린다.
     /// </summary>
-    private bool Command(int icon, float x, float y, bool enabled, string label, float scale = 1)
+    private bool Command(int icon, float x, float y, bool enabled, string label, float scale = 1, float width = 40)
     {
-        float w = 64 * scale, h = 28 * scale;
+        float w = width * scale, h = 24 * scale;
         bool hover = enabled && canvas.Hover(x, y, w, h);
-        int id = icon + (hover ? 2 : enabled ? 1 : 0);
-        if (!canvas.Image($"sg{id}", () => (_commandIcons ??= new ImageSet(@"0010\0001\sg")).Pixels(0, id), x, y, w, h))
+        int id = icon + (hover ? 1 : 0);
+        if (!canvas.Image($"sg{id}", () => (_commandIcons ??= new ImageSet(@"0010\0001\sg")).Pixels(0, id), x, y, w, h, 0, false, enabled ? 1 : 0.4f))
             return canvas.Button(label, x, y, w, h, enabled, 11);
         if (canvas.Hover(x, y, w, h)) _tip = (label, x + w / 2, y);
         if (!hover || !canvas.Pointer.Clicked) return false;
-        canvas.Pointer.Consumed = true;
+        (canvas.Pointer.Consumed, canvas.Pressed) = (true, true);
         return true;
     }
+
+    /// <summary>그림 단추의 배율 — 환경설정의 「아이콘 배율」.</summary>
+    private float IconScale => (float)Math.Clamp(voyage.Data.Settings.IconScale, 0.5, 2.5);
 
     private (string Text, float X, float Y)? _tip;
 
@@ -613,8 +710,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             (43, "주점 (부관)", true, () => voyage.Dialog = voyage.HasTavern ? Dialog.Tavern : Dialog.Aides),
             (208, "왕궁 (칙명)", voyage.AtCourt || voyage.Order != null, () => voyage.Dialog = Dialog.Court),
         ];
-        const float w = 212;                       // 그림 단추를 0.7 배로 — 창이 30% 작다
-        float h = 30 + (buttons.Length + 3) / 4 * 24 + 22;
+        float icon = 1.1f * IconScale;             // 그림 단추는 본디 비율(40 × 24)대로
+        float w = Math.Max(212, 18 + 4 * 46 * icon), h = 30 + (buttons.Length + 3) / 4 * 28 * icon + 24;
         float x = canvas.Width - w - 6, y = canvas.Height - h - 6;
         canvas.Panel(x, y, w, h);
         canvas.Block(x, y, w, h);
@@ -623,7 +720,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         if (voyage.Dialog != Dialog.None) return;
 
         for (int i = 0; i < buttons.Length; i++)
-            if (Command(buttons[i].Icon, x + 8 + i % 4 * 49, y + 27 + i / 4 * 24, buttons[i].Enabled, buttons[i].Label, 0.7f))
+            if (Command(buttons[i].Icon, x + 9 + i % 4 * (w - 18) / 4, y + 28 + i / 4 * 28 * icon, buttons[i].Enabled, buttons[i].Label, icon))
                 buttons[i].Run();
     }
 
@@ -738,7 +835,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         {
             // 걷는 면 그림 위에 선 자리
             float mapWidth = 250, mapHeight = mapWidth * grid.Height / grid.Width;
-            float gx = canvas.Width - mapWidth - 10, gy = 10;
+            float gx = canvas.Width - mapWidth - 10, gy = 44;      // 오른쪽 위 단추 줄 아래
             canvas.Fill(gx - 3, gy - 3, mapWidth + 6, mapHeight + 6, Canvas.PanelFill);
             canvas.Image($"town{city.Id}", () =>
             {
@@ -761,7 +858,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
 
         float scale = TownMapOpen ? 2.5f : 1f;
         float w = TownMap.Width * scale, h = map.Height * scale;
-        float mx = canvas.Width - w - (QuickOpen ? 136 : 48), my = TownMapOpen ? 34 : 8;
+        float mx = canvas.Width - w - (QuickOpen ? 136 : 48), my = 44;      // 오른쪽 위 단추 줄 아래
         canvas.Image($"tm{city.Id}", () => (TownMap.Width, map.Height, (byte[])map.Bgra.Clone()), mx, my, w, h, 0, false, TownMapOpen ? 0.92f : 0.85f);
         canvas.Frame(mx, my, w, h, Canvas.PanelEdge, 1.2f);
         canvas.Block(mx, my, w, h);
@@ -836,7 +933,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         return canvas.Image($"sc2:{picture}", () => (_goodIcons ??= new ImageSet(@"0010\0001\sc")).Pixels(2, picture), x, y, size, size);
     }
     private readonly Dictionary<int, (int Width, int Height, byte[] Bgra)?> _partPixels = new();
-    private readonly byte[] _seaMapPixels = new byte[MapPixels * MapPixels * 4];
+    private readonly byte[] _seaMapPixels = new byte[MapPixels * MapPixels * 4], _surveyPixels = new byte[MapPixels * MapPixels * 4];
     private const int MapPixels = 128;
 
     /// <summary>화면 부품(<c>gm000002</c>)의 조각 — 한 번 꺼내 두고 다시 쓴다.</summary>
@@ -858,72 +955,91 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private void SeaMap()
     {
         float size = 208 * (float)Math.Clamp(voyage.Data.Settings.SeaMapScale, 0.5, 1.5), radius = size / 2;
-        const int seaTile = 154, cloud = 158, mask = 159, ship = 163;
-        double reach = voyage.SurveyReach;            // 세계 좌표 반지름 — 측량 랭크만큼 넓어진다
+        const int seaTile = 154, cloud = 158, mask = 159, softMask = 160, needle = 162, ship = 163;
+        const double roundReach = 180;                // 둥근 지도가 보이는 반지름(세계 좌표) — 측량과 상관없이 늘 뜬다
         float cx = canvas.Width - radius - 26, cy = canvas.Height - radius - 50;
 
-        // 측량을 켜 두었을 때만 지도가 나온다 — 꺼져 있으면 속도만
-        if (voyage.CanSurvey)
+        // 그림 한 장으로 짓는다: 가림판의 알파 안쪽에 바다·뭍(둥근 지도에는 흐르는 바다 무늬와 구름까지)
+        void Paint(byte[] pixels, (int Width, int Height, byte[] Bgra)? shape, double reach, bool lively)
         {
-        // 그림 한 장으로 짓는다: 가림판의 알파 안쪽에 바다 무늬·뭍·구름
-        var round = Part(mask);
-        var waves = Part(seaTile + (int)(voyage.Clock * 2.5) % 4);
-        var clouds = Part(cloud);
-        double step = reach * 2 / MapPixels;
-        int drift = (int)(voyage.Clock * 3), slideX = (int)(voyage.ShipX / step), slideY = (int)(voyage.ShipY / step);
-        for (int j = 0; j < MapPixels; j++)
-        for (int i = 0; i < MapPixels; i++)
-        {
-            int at = (j * MapPixels + i) * 4;
-            float dx = (i + 0.5f - MapPixels / 2f) / (MapPixels / 2f), dy = (j + 0.5f - MapPixels / 2f) / (MapPixels / 2f);
-            byte alpha = round is { } m ? m.Bgra[(j * m.Height / MapPixels * m.Width + i * m.Width / MapPixels) * 4 + 3]
-                       : (byte)(dx * dx + dy * dy <= 1 ? 255 : 0);
-            if (alpha == 0) { _seaMapPixels[at + 3] = 0; continue; }
+            var waves = lively ? Part(seaTile + (int)(voyage.Clock * 2.5) % 4) : null;
+            var clouds = lively ? Part(cloud) : null;
+            double step = reach * 2 / MapPixels;
+            int drift = (int)(voyage.Clock * 3), slideX = (int)(voyage.ShipX / step), slideY = (int)(voyage.ShipY / step);
+            for (int j = 0; j < MapPixels; j++)
+            for (int i = 0; i < MapPixels; i++)
+            {
+                int at = (j * MapPixels + i) * 4;
+                float dx = (i + 0.5f - MapPixels / 2f) / (MapPixels / 2f), dy = (j + 0.5f - MapPixels / 2f) / (MapPixels / 2f);
+                byte alpha = shape is { } m ? m.Bgra[(j * m.Height / MapPixels * m.Width + i * m.Width / MapPixels) * 4 + 3]
+                           : (byte)(dx * dx + dy * dy <= 1 ? 255 : 0);
+                if (alpha == 0) { pixels[at + 3] = 0; continue; }
 
-            double wx = voyage.ShipX - reach + (i + 0.5) * step, wy = voyage.ShipY - reach + (j + 0.5) * step;
-            float b, g, r;
-            if (voyage.Map.IsLand(wx, wy))
-            {
-                // 바다와 맞닿은 칸은 모래빛 해안선
-                bool shore = !voyage.Map.IsLand(wx + step, wy) || !voyage.Map.IsLand(wx - step, wy) || !voyage.Map.IsLand(wx, wy + step) || !voyage.Map.IsLand(wx, wy - step);
-                (b, g, r) = shore ? (120f, 190f, 205f) : (78f, 128f, 112f);
+                double wx = voyage.ShipX - reach + (i + 0.5) * step, wy = voyage.ShipY - reach + (j + 0.5) * step;
+                float b, g, r;
+                if (voyage.Map.IsLand(wx, wy))
+                {
+                    // 바다와 맞닿은 칸은 모래빛 해안선
+                    bool shore = !voyage.Map.IsLand(wx + step, wy) || !voyage.Map.IsLand(wx - step, wy) || !voyage.Map.IsLand(wx, wy + step) || !voyage.Map.IsLand(wx, wy - step);
+                    (b, g, r) = shore ? (120f, 190f, 205f) : (78f, 128f, 112f);
+                }
+                else if (waves is { } w)
+                {
+                    int p = (((j + slideY) % w.Height + w.Height) % w.Height * w.Width + ((i + slideX) % w.Width + w.Width) % w.Width) * 4;
+                    (b, g, r) = (w.Bgra[p], w.Bgra[p + 1], w.Bgra[p + 2]);
+                }
+                else (b, g, r) = lively ? (150f, 90f, 40f) : (118f, 86f, 52f);      // 측량 지도의 바다는 무늬 없는 잿빛 파랑
+                if (clouds is { } c)
+                {
+                    // 구름은 날씨가 궂을수록 짙다
+                    float cover = voyage.Weather switch { Weather.Clear => 0.25f, Weather.Cloudy => 0.6f, _ => 0.85f };
+                    float veil = c.Bgra[(((j + slideY + drift / 2) % c.Height + c.Height) % c.Height * c.Width + ((i + slideX + drift) % c.Width + c.Width) % c.Width) * 4 + 3] / 255f * cover;
+                    (b, g, r) = (b + (235 - b) * veil, g + (235 - g) * veil, r + (235 - r) * veil);
+                }
+                (pixels[at], pixels[at + 1], pixels[at + 2], pixels[at + 3]) = ((byte)b, (byte)g, (byte)r, alpha);
             }
-            else if (waves is { } w)
-            {
-                int p = (((j + slideY) % w.Height + w.Height) % w.Height * w.Width + ((i + slideX) % w.Width + w.Width) % w.Width) * 4;
-                (b, g, r) = (w.Bgra[p], w.Bgra[p + 1], w.Bgra[p + 2]);
-            }
-            else (b, g, r) = (150f, 90f, 40f);
-            if (clouds is { } c)
-            {
-                // 구름은 날씨가 궂을수록 짙다
-                float cover = voyage.Weather switch { Weather.Clear => 0.25f, Weather.Cloudy => 0.6f, _ => 0.85f };
-                float veil = c.Bgra[(((j + slideY + drift / 2) % c.Height + c.Height) % c.Height * c.Width + ((i + slideX + drift) % c.Width + c.Width) % c.Width) * 4 + 3] / 255f * cover;
-                (b, g, r) = (b + (235 - b) * veil, g + (235 - g) * veil, r + (235 - r) * veil);
-            }
-            (_seaMapPixels[at], _seaMapPixels[at + 1], _seaMapPixels[at + 2], _seaMapPixels[at + 3]) = ((byte)b, (byte)g, (byte)r, alpha);
         }
+        // 도시(빨강)와 의뢰의 상륙지(금빛) 점, 그리고 내 배 — 초록 세모가 뱃머리 쪽을 가리킨다(조각은 위를 본다)
+        void Marks(float mx, float my, float half, double reach, bool round)
+        {
+            void Mark(double wx, double wy, Color4 color, float dot)
+            {
+                double dx = WorldMap.DeltaX(voyage.ShipX, wx) / reach, dy = (wy - voyage.ShipY) / reach;
+                if (round ? dx * dx + dy * dy > 0.94 : Math.Max(Math.Abs(dx), Math.Abs(dy)) > 0.9) return;
+                canvas.Circle(mx + (float)dx * half, my + (float)dy * half, dot + 1, new Color4(0, 0, 0, 0.7f));
+                canvas.Circle(mx + (float)dx * half, my + (float)dy * half, dot, color);
+            }
+            foreach (var city in voyage.Data.Cities) Mark(city.SeaX, city.SeaY, round ? new Color4(1f, 0.35f, 0.3f, 1) : Canvas.White, round ? 3 : 2);
+            if (voyage.QuestStage == QuestStage.Accepted && voyage.QuestLanding is { X: not 0 } site)
+                Mark(site.X, site.Y, Canvas.Gold, 4);
+            float heading = (float)voyage.Heading;
+            if (Part(ship) != null) PartImage(ship, mx - 8, my - 8, 16, 16, heading);
+            else canvas.Line(mx, my, mx + MathF.Sin(heading) * 12, my - MathF.Cos(heading) * 12, Canvas.White, 2);
+        }
+
+        // 둥근 지도 — 늘 뜬다
+        Paint(_seaMapPixels, Part(mask), roundReach, true);
         canvas.Circle(cx, cy, radius + 5, new Color4(0.04f, 0.06f, 0.18f, 0.9f));
         canvas.Image("seamap", () => (MapPixels, MapPixels, (byte[])_seaMapPixels.Clone()), cx - radius, cy - radius, size, size, 0, true);
         canvas.Circle(cx, cy, radius + 1, Canvas.PanelEdge, false, 2.5f);
         canvas.Circle(cx, cy, radius + 5, new Color4(0.45f, 0.38f, 0.2f, 1), false, 1);
+        Marks(cx, cy, radius, roundReach, true);
 
-        void Mark(double wx, double wy, Color4 color, float dot)
+        // 돛을 펴고 달리는 동안은 「Auto Sailing !!」 — 원본의 자동 돛 조정 표시(화면 부품 묶음 2 의 303, 128 × 24). 우리는 돛 방향을 손으로 맞추지 않으니 늘 자동이다
+        if (voyage.Sail > 0 && Part(303) != null) PartImage(303, cx + radius - 150, cy - radius - 36, 154, 29);
+
+        // 측량 지도 — 측량을 켜 두면 둥근 지도 위에 따로 뜬다(원본): 가장자리가 흐린 네모, 왼쪽 위에 나침반 바늘, 오른쪽 위에 좌표
+        if (voyage.CanSurvey)
         {
-            double dx = WorldMap.DeltaX(voyage.ShipX, wx) / reach, dy = (wy - voyage.ShipY) / reach;
-            if (dx * dx + dy * dy > 0.94) return;
-            canvas.Circle(cx + (float)dx * radius, cy + (float)dy * radius, dot + 1, new Color4(0, 0, 0, 0.7f));
-            canvas.Circle(cx + (float)dx * radius, cy + (float)dy * radius, dot, color);
-        }
-
-        foreach (var city in voyage.Data.Cities) Mark(city.SeaX, city.SeaY, new Color4(1f, 0.35f, 0.3f, 1), 3);
-        if (voyage.QuestStage == QuestStage.Accepted && voyage.QuestLanding is { X: not 0 } site)
-            Mark(site.X, site.Y, Canvas.Gold, 4);
-
-        // 내 배: 초록 세모가 뱃머리 쪽을 가리킨다(조각은 위를 본다)
-        float heading = (float)voyage.Heading;
-        if (Part(ship) != null) PartImage(ship, cx - 8, cy - 8, 16, 16, heading);
-        else canvas.Line(cx, cy, cx + MathF.Sin(heading) * 12, cy - MathF.Cos(heading) * 12, Canvas.White, 2);
+            float side = size * 0.92f, half = side / 2, sx = canvas.Width - side - 22, sy = cy - radius - 44 - side;
+            Paint(_surveyPixels, Part(softMask), voyage.SurveyReach, false);
+            canvas.Image("surveymap", () => (MapPixels, MapPixels, (byte[])_surveyPixels.Clone()), sx, sy, side, side, 0, true);
+            Marks(sx + half, sy + half, half, voyage.SurveyReach, false);
+            if (Part(needle) != null) PartImage(needle, sx + 6, sy + 8, 32, 32);
+            string spot = $"{voyage.ShipX:0},{voyage.ShipY:0}";
+            canvas.Fill(sx + side - spot.Length * 8.2f - 14, sy + 12, spot.Length * 8.2f + 6, 18, new Color4(0, 0, 0, 0.45f));
+            canvas.Text(spot, sx, sy + 11, side - 10, 20, 13, Canvas.White, 2);
+            canvas.Block(sx, sy, side, side);
         }
 
         // 지도 밑: 속도와 돛
@@ -932,7 +1048,6 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         // 선원이 필요 선원보다 적으면 그만큼 느려진다 — 까닭을 알려 준다
         if (voyage.Crew < voyage.Stats.MinCrew)
             canvas.Text($"선원 부족 {voyage.Crew:0}/{voyage.Stats.MinCrew} — 속도 {Math.Clamp(voyage.Crew / voyage.Stats.MinCrew, 0.3, 1) * 100:0}%", cx - radius - 60, cy + radius + 32, size + 60, 20, 13, new Color4(1f, 0.5f, 0.45f, 1), 2);
-        if (voyage.CanSurvey) canvas.Text($"{voyage.ShipX:0}, {voyage.ShipY:0}", cx - 10, cy - radius - 28, radius + 10, 20, 13, Canvas.Dim, 2);
         canvas.Block(cx - radius - 6, cy - radius - 6, size + 12, size + 12);
     }
 
@@ -980,7 +1095,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private void ActiveSkills()
     {
         var on = voyage.SkillsOn();
-        float y = canvas.Height * 0.62f;
+        float y = canvas.Height * 0.38f;             // 원본의 자리 — 아래의 측량 지도와 겹치지 않는다
         for (int i = 0; i < on.Count; i++)
         {
             float x = canvas.Width - 56 - (on.Count - 1 - i) * 40;
@@ -999,21 +1114,21 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private void QuickBar()
     {
         const float cell = 36, gap = 3;             // 글자 없는 칸이라 작게 — 아이콘 본디 크기(24 × 28)에 가깝게
-        float edge = canvas.Width - 40, top = 44;
+        float round = 32 * IconScale, edge = canvas.Width - round - 8, top = 10 + 24 * 1.1f * IconScale;      // 오른쪽 위 단추 줄 밑
         // 가장자리 단추 — 화면 부품(gm000002)의 둥근 단추 15(노란 화살) · 18(하늘 화살)
         bool Edge(int part, string label, float y)
         {
-            bool hover = canvas.Hover(edge, y, 32, 32);
-            if (Part(part) != null) PartImage(part, edge, y, 32, 32, 0, hover ? 1 : 0.85f);
-            else canvas.Button(label[..1], edge, y, 32, 32, true, 13);
-            canvas.Block(edge, y, 32, 32);
+            bool hover = canvas.Hover(edge, y, round, round);
+            if (Part(part) != null) PartImage(part, edge, y, round, round, 0, hover ? 1 : 0.85f);
+            else canvas.Button(label[..1], edge, y, round, round, true, 13);
+            canvas.Block(edge, y, round, round);
             if (hover) _tip = (label, edge - 30, y + 30);
             if (!hover || !canvas.Pointer.Clicked) return false;
             canvas.Pointer.Consumed = true;
             return true;
         }
         if (Edge(15, "퀵슬롯", top)) QuickOpen = !QuickOpen;
-        if (Edge(18, "스킬 (F2)", top + 38) && voyage.Dialog is Dialog.None or Dialog.UseSkills)
+        if (Edge(18, "스킬 (F2)", top + round + 6) && voyage.Dialog is Dialog.None or Dialog.UseSkills)
             voyage.Dialog = voyage.Dialog == Dialog.UseSkills ? Dialog.None : Dialog.UseSkills;
         if (!QuickOpen) return;
 
@@ -2821,33 +2936,47 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
 
     /// <summary>
     /// 선박부품 탈착(B) — 원본의 짜임: 왼쪽 「소유 선박부품」 격자, 오른쪽에 그 배의 칸들(보조돛 · 장갑 · 선수상).
-    /// 왼쪽을 누르면 빈 칸에 달리고, 오른쪽의 단 것을 누르면 떼어진다. 배가 보이게 창을 왼쪽에 둔다. 대포 칸은 없다(전투가 없다).
+    /// 왼쪽을 누르면 빈 칸에 달리고, 단 것(초록 E)을 누르면 떼어진다. 오른쪽 끝에 내 배가 돈다(원본은 칸 뒤에 비친다). 대포 칸은 없다(전투가 없다).
+    /// 위의 탭은 원본의 셋 — 선박 데코 · 선원 장비는 아직 없어 꺼 두었다.
     /// </summary>
     private void FittingWindow()
     {
-        const float w = 640, h = 380, tile = 52;
-        float x = 30, y = (canvas.Height - h) / 2 - 30;
+        const float w = 900, h = 432, tile = 52;
+        float x = (canvas.Width - w) / 2, y = (canvas.Height - h) / 2 - 10;
+        string[] tabs = ["선박부품", "선박 데코", "선원 장비"];
+        for (int k = 0; k < tabs.Length; k++)
+        {
+            canvas.Fill(x + 4 + k * 132, y - 28, 128, 28, k == 0 ? new Color4(0.25f, 0.72f, 0.85f, 0.95f) : new Color4(0.16f, 0.30f, 0.48f, 0.9f));
+            canvas.Text(tabs[k], x + 4 + k * 132, y - 25, 128, 22, 15, k == 0 ? new Color4(0.03f, 0.06f, 0.18f, 1) : Canvas.Dim, 1, k == 0, false);
+        }
         canvas.Panel(x, y, w, h);
-        canvas.Block(x, y, w, h);
+        canvas.Block(x, y - 28, w, h + 28);
+        ShipPreview = (x + 636, y + 14, w - 652, h - 110);
         canvas.Fill(x + 16, y + 14, 290, 24, new Color4(0.72f, 0.76f, 0.84f, 0.92f));
         canvas.Text("소유 선박부품", x + 16, y + 15, 290, 22, 15, new Color4(0.05f, 0.08f, 0.2f, 1), 1, true, false);
         ShipPart? pointed = null;
+        // 원본처럼 단 것도 이 칸에 함께 보인다 — 초록 E 가 붙는다
+        var owned = voyage.Parts.Select(p => (Part: p, On: true)).Concat(voyage.PartStock.Select(p => (Part: p, On: false))).ToList();
         for (int k = 0; k < 25; k++)
         {
             float tx = x + 16 + k % 5 * (tile + 6), ty = y + 46 + k / 5 * (tile + 6);
             canvas.Fill(tx, ty, tile, tile, new Color4(0.03f, 0.10f, 0.08f, 0.9f));
-            if (k >= voyage.PartStock.Count) continue;
-            var part = voyage.PartStock[k];
+            if (k >= owned.Count) continue;
+            var (part, on) = owned[k];
             PartIcon(part, tx + 3, ty + 3, tile - 6);
+            if (on) canvas.Text("E", tx + 3, ty, 16, 20, 15, new Color4(0.3f, 1f, 0.75f, 1), 0, true);
             if (!canvas.Hover(tx, ty, tile, tile)) continue;
             pointed = part;
-            canvas.Frame(tx, ty, tile, tile, voyage.FitBlocker(part) == null ? Canvas.Gold : new Color4(1f, 0.5f, 0.45f, 1), 2);
-            if (canvas.Pointer.Clicked) { canvas.Pointer.Consumed = true; voyage.Fit(part); }
+            canvas.Frame(tx, ty, tile, tile, on || voyage.FitBlocker(part) == null ? Canvas.Gold : new Color4(1f, 0.5f, 0.45f, 1), 2);
+            if (!canvas.Pointer.Clicked) continue;
+            canvas.Pointer.Consumed = true;
+            if (on) voyage.Unfit(part); else voyage.Fit(part);
+            break;
         }
         canvas.Line(x + 320, y + 14, x + 320, y + h - 60, new Color4(0.5f, 0.55f, 0.75f, 0.8f), 1);
         canvas.Text("⇄", x + 308, y + 150, 24, 30, 20, Canvas.Gold, 1);
         float rx = x + 340;
-        canvas.Text(voyage.Ship.Name, rx, y + 14, w - 356, 24, 16, Canvas.White, 0, true);
+        canvas.Text(voyage.Ship.Name, rx, y + 14, 280, 24, 16, Canvas.White, 0, true);
         int[] icons = [306, 333, 245];
         for (int slot = 0; slot < 3; slot++)
         {
@@ -2870,7 +2999,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             }
         }
         canvas.Text(pointed != null ? $"[{Voyage.SlotName[pointed.Slot]}] {pointed.Name} — {voyage.PartNote(pointed)}" + (voyage.PartStock.Contains(pointed) && voyage.FitBlocker(pointed) is { } why ? $"   ({why})" : "")
-                                    : "왼쪽의 부품을 누르면 빈 칸에 달리고, 오른쪽의 단 부품을 누르면 떼어진다.", x + 16, y + h - 82, w - 32, 20, 13, pointed != null ? Canvas.White : Canvas.Dim);
+                                    : "왼쪽의 부품을 누르면 빈 칸에 달리고, 단 부품(E)을 누르면 떼어진다.", x + 16, y + h - 82, w - 32, 20, 13, pointed != null ? Canvas.White : Canvas.Dim);
         canvas.Text($"속도 ×{voyage.PartSpeed:0.00} · 내구 피해 ×{voyage.PartDamage:0.00} · 재해 ×{voyage.PartLuck:0.00}     소지금 {voyage.Money:N0} Ð", x + 16, y + h - 44, w - 150, 20, 13, Canvas.Dim);
         if (canvas.Button("이전", x + w - 118, y + h - 46, 98, 32)) voyage.Dialog = Dialog.None;
     }
@@ -3180,22 +3309,28 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             canvas.Fill(x + 4, y + 96, w - 12, h - 150, new Color4(0.03f, 0.06f, 0.20f, 0.98f));
             Header("기본성능", x + 20, y + 100, 200);
             Header("선실 강화", x + 250, y + 100, 200);
-            void Line(int icon, string label, int now, int was, float lx, float ly)
+            // 원본의 짜임: 줄마다 「값( +붙은 몫)」, 그 밑에 초록 막대 — 붙은 몫이 그 배의 강화 상한에 얼마나 찼는가
+            var caps = voyage.StrengthCaps(ship, plain);
+            void Line(int icon, string label, int now, int was, float lx, float ly, int cap)
             {
                 canvas.Image($"gm0:{icon}", () => (_markParts ??= new UiParts(0)).Pixels(icon), lx, ly + 1, 18, 18);
                 canvas.Text(label, lx + 22, ly, 90, 20, 13, Canvas.White);
                 canvas.Text($"{now}( {(now - was >= 0 ? "+" : "")}{now - was})", lx, ly, 196, 20, 13, now > was ? new Color4(0.55f, 1f, 0.6f, 1) : Canvas.White, 2);
+                float part = cap > 0 ? Math.Clamp((now - was) / (float)cap, 0, 1) : 0;
+                canvas.Fill(lx, ly + 20, 196, 3, new Color4(0.30f, 0.32f, 0.40f, 0.9f));
+                if (part > 0) canvas.Fill(lx, ly + 20, 196 * part, 3, new Color4(0.55f, 0.85f, 0.35f, 1));
+                if (canvas.Hover(lx, ly, 196, 23)) _tip = (cap > 0 ? $"{label} 강화 {Math.Max(0, now - was)} / 상한 {cap} ({part * 100:0}%)" : $"{label} — 강화할 수 없다", lx + 98, ly - 2);
             }
-            Line(310, "내구력", s.Durability, plain.Durability, x + 22, y + 130);
-            Line(306, "세로돛성능", s.VerticalSail, plain.VerticalSail, x + 22, y + 154);
-            Line(307, "가로돛성능", s.HorizontalSail, plain.HorizontalSail, x + 22, y + 178);
-            Line(314, "조력", s.Rowing, plain.Rowing, x + 22, y + 202);
-            Line(308, "선회 성능", s.Turn, plain.Turn, x + 22, y + 226);
-            Line(309, "내파성", s.WaveResist, plain.WaveResist, x + 22, y + 250);
-            Line(333, "장갑치", s.Armor, plain.Armor, x + 22, y + 274);
-            Line(330, "선실적재량", s.MaxCrew, plain.MaxCrew, x + 252, y + 130);
-            Line(305, "포실적재량", s.Guns, plain.Guns, x + 252, y + 154);
-            Line(323, "창고 용량", s.Hold, plain.Hold, x + 252, y + 178);
+            Line(310, "내구력", s.Durability, plain.Durability, x + 22, y + 130, caps[0]);
+            Line(306, "세로돛성능", s.VerticalSail, plain.VerticalSail, x + 22, y + 154, caps[1]);
+            Line(307, "가로돛성능", s.HorizontalSail, plain.HorizontalSail, x + 22, y + 178, caps[2]);
+            Line(314, "조력", s.Rowing, plain.Rowing, x + 22, y + 202, caps[3]);
+            Line(308, "선회 성능", s.Turn, plain.Turn, x + 22, y + 226, caps[4]);
+            Line(309, "내파성", s.WaveResist, plain.WaveResist, x + 22, y + 250, caps[5]);
+            Line(333, "장갑치", s.Armor, plain.Armor, x + 22, y + 274, caps[6]);
+            Line(330, "선실적재량", s.MaxCrew, plain.MaxCrew, x + 252, y + 130, caps[7]);
+            Line(305, "포실적재량", s.Guns, plain.Guns, x + 252, y + 154, caps[8]);
+            Line(323, "창고 용량", s.Hold, plain.Hold, x + 252, y + 178, caps[9]);
             Header("특수 강화", x + 250, y + 212, 200);
             // 원본의 짜임: 재질(그림과 이름), 그 밑에 그레이드 보너스의 그림들을 테두리로 묶고 「그레이드 보너스」
             if (voyage.MaterialOf(voyage.ShipMaterialId) is { } timber)
@@ -3235,7 +3370,9 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         canvas.Panel(x, y, w, h);
         canvas.Block(x, y, w, h);
         canvas.Text("조선소주인", x + 12, y + 6, 200, 24, 17, Canvas.White);
-        if (voyage.Ordered == null) canvas.Text(voyage.ShipbuildingLine, x + 130, y + 9, w - 142, 20, 13, Canvas.Gold, 2);
+        // 맡긴 배의 건조일수를 기다리지 않고 넘긴다(도시 메뉴의 「날짜 +1」과 같은 일)
+        if (canvas.Button("날짜 +1", x + 104, y + 6, 66, 26, true, 12)) voyage.PassDay();
+        if (voyage.Ordered == null) canvas.Text(voyage.ShipbuildingLine, x + 176, y + 9, w - 188, 20, 13, Canvas.Gold, 2);
         string? receive = voyage.ReceiveBlocker;
         (string Label, bool Enabled, Action Run)[] buttons =
         [
@@ -3256,7 +3393,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             var (bx, by, bw) = i < 4 ? (x + 10 + i * 95, y + 38, 91f) : i < 8 ? (x + 10 + (i - 4) % 2 * 142, y + 78 + (i - 4) / 2 * 40, 138f) : (x + 300, i == 8 ? y + 118 : y + 78, 86f);
             if (canvas.Button(buttons[i].Label, bx, by, bw, 36, buttons[i].Enabled, 13)) { buttons[i].Run(); break; }
         }
-        if (voyage.Ordered != null) canvas.Text(receive == null ? "맡긴 배가 다 됐다" : $"맡긴 배: {receive}", x + 130, y + 9, w - 142, 20, 12, Canvas.Gold, 2);
+        if (voyage.Ordered != null) canvas.Text(receive == null ? "맡긴 배가 다 됐다" : $"맡긴 배: {receive}", x + 176, y + 9, w - 188, 20, 12, Canvas.Gold, 2);
     }
 
     private int _specialChosen, _hullChosen;
@@ -3992,13 +4129,29 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         if (canvas.Button("이전", x + w - 130, y + h - 46, 110, 32)) voyage.Dialog = Dialog.None;
     }
 
-    /// <summary>캐릭터 정보(C) — 원본의 짜임: 이름 · 직업 · 작위, 상태(모험 · 교역 · 전투 레벨과 다음 레벨까지, 명성), 피로, 자산.</summary>
+    /// <summary>캐릭터 정보 창이 내 모습을 어떻게 보일지 — 도는 각, 얼굴 확대, 그리고 미리보기 줄에 없는 손 · 모자. 창이 프레임마다 넣는다.</summary>
+    public (float Yaw, bool Face, int Hand, int Cap)? FigureView;
+    private float _figureYaw = 0.35f;
+    private bool _figureFace;
+
+    /// <summary>
+    /// 캐릭터 정보(C) — 원본의 짜임: 왼쪽에 내 모습(얼굴 확대 · 회전), 오른쪽에 이름 · 직업 · 작위,
+    /// 상태(모험 · 교역 · 전투 레벨과 다음 레벨까지, 명성), 피로, 자산.
+    /// </summary>
     private void CharacterWindow()
     {
-        const float w = 480, h = 430;
-        float x = canvas.Width - w - 40, y = (canvas.Height - h) / 2 - 20;
-        canvas.Panel(x, y, w, h);
-        canvas.Block(x, y, w, h);
+        const float w = 480, h = 430, side = 300;
+        float x = (canvas.Width - w - side) / 2 + side, y = (canvas.Height - h) / 2 - 20;
+        canvas.Panel(x - side, y, w + side, h);
+        canvas.Block(x - side, y, w + side, h);
+        canvas.Line(x, y + 16, x, y + h - 16, new Color4(0.5f, 0.55f, 0.75f, 0.8f), 1);
+        // 왼쪽 칸: 내 모습. 단추는 원본처럼 모습의 오른쪽 위에 둔다
+        var looks = voyage.Looks;
+        FigurePreview = (x - side + 10, y + 14, 180, h - 74, looks[0], looks[1], looks[2], looks[3], looks[4]);
+        FigureView = (_figureYaw, _figureFace, looks[5], looks[6]);
+        if (canvas.Button((_figureFace ? "☑" : "☐") + " 얼굴 확대", x - 104, y + 16, 94, 28, true, 13)) _figureFace = !_figureFace;
+        if (canvas.Button("회전 ▶", x - 104, y + 50, 94, 28, true, 13)) _figureYaw += MathF.PI / 4;
+        if (canvas.Button("의상 · 외관", x - side + 20, y + h - 46, 130, 32, true, 14)) voyage.Dialog = Dialog.Outfit;
         void Header(string text, float hy)
         {
             canvas.Fill(x + 20, hy, 110, 24, new Color4(0.72f, 0.76f, 0.84f, 0.92f));
@@ -4037,10 +4190,9 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         Cell(301, "", $"배 {voyage.Dock.Count + 1}척", x + 276, y + 320, 184);
         Cell(323, "", $"보관함 {voyage.Vault.Count}", x + 276, y + 350, 184);
 
-        if (canvas.Button("의상 · 외관", x + 20, y + h - 46, 130, 32, true, 14)) voyage.Dialog = Dialog.Outfit;
-        if (canvas.Button("장비 물품", x + 156, y + h - 46, 110, 32, true, 14)) (voyage.Dialog, _equipTop) = (Dialog.Equip, 0);
-        if (canvas.Button("스킬", x + 156, y + h - 46, 90, 32, true, 14)) voyage.Dialog = Dialog.Skills;
-        if (canvas.Button("직업 일람", x + 252, y + h - 46, 96, 32, true, 14)) voyage.Dialog = Dialog.Jobs;
+        if (canvas.Button("장비 물품", x + 20, y + h - 46, 110, 32, true, 14)) (voyage.Dialog, _equipTop) = (Dialog.Equip, 0);
+        if (canvas.Button("스킬", x + 136, y + h - 46, 80, 32, true, 14)) voyage.Dialog = Dialog.Skills;
+        if (canvas.Button("직업 일람", x + 222, y + h - 46, 96, 32, true, 14)) voyage.Dialog = Dialog.Jobs;
         if (canvas.Button("이전", x + w - 130, y + h - 46, 110, 32)) voyage.Dialog = Dialog.None;
     }
 

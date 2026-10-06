@@ -1,4 +1,4 @@
-﻿using Dho.Data;
+using Dho.Data;
 
 namespace Dho.Game;
 
@@ -231,6 +231,7 @@ internal sealed partial class Voyage
     public void ReceiveShip()
     {
         if (Mode != Mode.Port || ReceiveBlocker != null || Ordered is not { } order) return;
+        Cues.Enqueue("Bank");                 // 맡긴 배를 받을 때도 은행 저금과 같은 소리(0:14)
         var stats = StatsOf(order.Ship, order.Material, order.Load);
         var work = new ShipWork();
         work.Skills.AddRange(order.Skills);

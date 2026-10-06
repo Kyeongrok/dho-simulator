@@ -110,7 +110,7 @@ internal sealed partial class Voyage
     {
         if (SkillBlocker(rule) is { } blocker)
         {
-            if (Rank(rule.SkillId) > 0) Say($"{SkillName(rule.SkillId)} — {blocker}.");
+            if (Rank(rule.SkillId) > 0) { Say($"{SkillName(rule.SkillId)} — {blocker}."); Cues.Enqueue("Error"); }
             return;
         }
         if (Rank(rule.SkillId) <= 0) return;

@@ -19,10 +19,14 @@ internal readonly record struct Sky(
 
         // 밤에도 초저녁보다 어두워지지 않는다(원본의 밤은 푸르스름할 뿐 캄캄하지 않다) — 빛깔을 고르는 값에 바닥을 둔다
         day = MathF.Max(day, 0.28f);
-        var zenith = Vector3.Lerp(new Vector3(0.03f, 0.05f, 0.16f), new Vector3(0.22f, 0.40f, 0.74f), day);
-        var horizon = Vector3.Lerp(new Vector3(0.08f, 0.12f, 0.27f), new Vector3(0.60f, 0.74f, 0.90f), day);
-        horizon = Vector3.Lerp(horizon, new Vector3(0.86f, 0.52f, 0.36f), dusk * 0.7f);
-        var water = Vector3.Lerp(new Vector3(0.012f, 0.03f, 0.13f), new Vector3(0.03f, 0.13f, 0.36f), day);
+        var zenith = Vector3.Lerp(new Vector3(0.03f, 0.05f, 0.16f), new Vector3(0.24f, 0.38f, 0.82f), day);
+        var horizon = Vector3.Lerp(new Vector3(0.08f, 0.12f, 0.27f), new Vector3(0.62f, 0.73f, 0.94f), day);
+        var water = Vector3.Lerp(new Vector3(0.012f, 0.03f, 0.13f), new Vector3(0.06f, 0.16f, 0.46f), day);
+        // 원본 화면에서 본 빛깔: 동틀녘은 보랏빛 하늘에 분홍 수평선, 해 질 녘은 잿빛 보라 하늘에 주황 수평선, 바다는 둘 다 짙은 남보라
+        bool rising = MathF.Cos(angle) > 0;
+        horizon = Vector3.Lerp(horizon, rising ? new Vector3(0.62f, 0.42f, 0.56f) : new Vector3(0.95f, 0.62f, 0.34f), dusk * 0.8f);
+        zenith = Vector3.Lerp(zenith, rising ? new Vector3(0.30f, 0.27f, 0.60f) : new Vector3(0.48f, 0.43f, 0.62f), dusk * 0.75f);
+        water = Vector3.Lerp(water, rising ? new Vector3(0.09f, 0.09f, 0.33f) : new Vector3(0.11f, 0.12f, 0.28f), dusk * 0.7f);
 
         // 해가 지면 달빛(해의 맞은편)으로 비춘다
         bool moon = elevation < -0.04f;
@@ -45,7 +49,8 @@ internal readonly record struct Sky(
         {
             Horizon = Vector3.Lerp(Horizon, gray, amount),
             Zenith = Vector3.Lerp(Zenith, gray * 0.55f, amount),
-            Water = Vector3.Lerp(Water, gray * 0.22f, amount * 0.8f),
+            // 궂은 날의 바다는 원본에서 청록빛이다(비 오는 세비야 근처 화면)
+            Water = Vector3.Lerp(Water, new Vector3(0.05f, 0.30f, 0.36f) * (0.25f + brightness), amount * 0.8f),
             // 빛은 조금만 줄인다 — 구름 밑이어도 배와 물결은 또렷이 보인다
             LightColor = LightColor * (1 - 0.4f * amount),
             Ambient = Vector3.Lerp(Ambient, Ambient * 0.9f, amount),

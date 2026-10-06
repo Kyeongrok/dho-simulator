@@ -95,7 +95,7 @@ internal sealed partial class Voyage
         {
             _aidePay += AidePay(aide) * days;
             if (aide.Level >= AideMaxLevel) continue;
-            aide.Exp += days * 10;
+            aide.Exp += days * 10 * GainFactor;
             while (aide.Level < AideMaxLevel && aide.Exp >= aide.Level * 40)
             {
                 aide.Exp -= aide.Level * 40;

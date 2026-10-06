@@ -155,6 +155,9 @@ internal sealed class Canvas : IDisposable
     public bool Hover(float x, float y, float w, float h) =>
         Pointer.X >= x && Pointer.X < x + w && Pointer.Y >= y && Pointer.Y < y + h;
 
+    /// <summary>이번 프레임에 단추가 눌렸는가 — 창이 누르는 소리를 낸다.</summary>
+    public bool Pressed;
+
     /// <summary>단추 하나. 이번 프레임에 눌렸으면 true.</summary>
     public bool Button(string label, float x, float y, float w, float h, bool enabled = true, float size = 15f)
     {
@@ -167,6 +170,7 @@ internal sealed class Canvas : IDisposable
         {
             Pointer.Consumed = true;
             Pointer.Clicked = false;            // 한 번의 클릭은 단추 하나만 누른다(새로 뜬 창의 단추까지 눌리지 않게)
+            Pressed = true;
             return true;
         }
         return false;
