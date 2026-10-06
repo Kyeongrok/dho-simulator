@@ -96,11 +96,6 @@ internal sealed partial class Voyage
         Merit += order.Merit;
         Say($"칙명 「{order.Title}」을(를) 완수했다. 하사금 {order.Reward:N0} 두캇, 공적 {order.Merit}.");
         Order = null;
-        while (Title < Data.Orders.Titles.Count - 1 && Merit >= MeritToNext)
-        {
-            Merit -= MeritToNext;
-            Title++;
-            Say($"작위가 올랐다 — {TitleName}!");
-        }
+        if (TitleDue) Say("공적이 찼다 — 「작위를 받는다」로 작위를 받자.");
     }
 }

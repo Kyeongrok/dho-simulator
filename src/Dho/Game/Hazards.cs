@@ -121,6 +121,7 @@ internal sealed partial class Voyage
 
     private void RestInPort()
     {
+        Life = MaxLife;
         if (Fatigue > 0) Say(Text(TextFatigueCured, "선원들의 피로가 회복되었습니다."));
         Fatigue = 0;
         foreach (var disaster in Disasters) Say(Text((uint)disaster.Data.EndText, $"{disaster.Data.Name} — 풀렸다."));
@@ -145,7 +146,6 @@ internal sealed partial class Voyage
         Disasters.Remove(disaster);
         Studied("Cure");
         Say(Text((uint)disaster.Data.EndText, $"{disaster.Data.Name} — 풀렸다."));
-        GainExp(2, 30, 2);                      // 전투가 없어 재해를 이겨 낸 것을 전투 경험으로 친다(지은 값)
     }
 
     /// <summary>대본·개발 확인용: 재해를 바로 일으킨다.</summary>
@@ -287,14 +287,16 @@ internal sealed partial class Voyage
     }
 
     /// <summary>배가 못 쓰게 되거나 선원이 다 떠났다 — 가장 가까운 도시로 떠밀려 간다.</summary>
-    private void Wreck()
+    private void Wreck(string? beatenBy = null)
     {
         var nearest = Data.Cities.Where(c => c.SeaX != 0 || c.SeaY != 0)
             .MinBy(c => Math.Pow(WorldMap.DeltaX(ShipX, c.SeaX), 2) + Math.Pow(c.SeaY - ShipY, 2)) ?? City;
-        int lost = (int)(Money * Rules.WreckMoneyLoss);
+        // 해전에서 지면 가진 돈의 5%(5만 두캇까지)를 털린다 — 난파보다 가볍다(지은 값)
+        int lost = beatenBy != null ? (int)Math.Min(Money * 0.05, 50_000) : (int)(Money * Rules.WreckMoneyLoss);
         Money -= lost;
         WreckText = (Durability <= 0 ? Text(3038, "선박이 항해불능상태가 되었습니다!") : Text(3037, "선원이 전멸했습니다!")) +
-                    $"\n\n난파하여 {nearest.Name}(으)로 떠밀려 왔다.\n수습하는 데 {lost:N0} 두캇이 들었다.";
+                    (beatenBy != null ? $"\n\n{beatenBy}에게 져서 {nearest.Name}(으)로 끌려 왔다.\n{lost:N0} 두캇을 빼앗겼다."
+                                      : $"\n\n난파하여 {nearest.Name}(으)로 떠밀려 왔다.\n수습하는 데 {lost:N0} 두캇이 들었다.");
 
         Durability = Math.Max(Durability, Stats.Durability * 0.3);
         Crew = Math.Max(Crew, Stats.MinCrew);
@@ -302,7 +304,7 @@ internal sealed partial class Voyage
         Food = Math.Max(Food, 10);
         MoorAt(nearest);
         RestInPort();
-        Say($"난파하여 {nearest.Name}에 떠밀려 왔다.");
+        Say(beatenBy != null ? $"{beatenBy}에게 져서 {nearest.Name}에 끌려 왔다." : $"난파하여 {nearest.Name}에 떠밀려 왔다.");
         Dialog = Dialog.Wreck;
     }
 }

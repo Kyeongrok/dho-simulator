@@ -414,17 +414,78 @@ public partial class MainWindow : Window
     private void SoundPlay_Click(object sender, RoutedEventArgs e) => PlaySelectedSound();
     private void SoundStop_Click(object sender, RoutedEventArgs e) => _soundPlayer.Stop();
 
-    /// <summary>고른 소리를 게임의 일(선회 · 돛 조종 · 스킬)에 맨다 — 저장해야 게임에 들어간다.</summary>
-    private void SoundAssign_Click(object sender, RoutedEventArgs e)
+    /// <summary>기능별 소리 표의 한 줄 — 게임의 일 하나와 지금 매인 소리(비면 기본값이 난다, "-" 는 끔).</summary>
+    private sealed class CueRow(SoundCue cue, Dictionary<string, string> sounds)
     {
-        if (SoundGrid.SelectedItem is not SoundRow { Sound: var sound } || sender is not System.Windows.Controls.Button { Tag: string cue }) return;
-        _data.Settings.Sounds[cue] = sound.Key;
+        public string Cue => cue.Cue;
+        public string Label => cue.Label;
+        public string Default => cue.Default;
+        public string Where => cue.Where;
+        /// <summary>설정에 적힌 것 — 안 적혔으면 기본값을 보인다. 빈 글로 적혀 있으면 끈 것이다("-").</summary>
+        public string Sound
+        {
+            get => sounds.TryGetValue(cue.Cue, out string? key) ? (key == "" ? "-" : key) : cue.Default;
+            set
+            {
+                string text = (value ?? "").Trim();
+                if (text is "-" or "끔") sounds[cue.Cue] = "";
+                else if (text == "" || text == cue.Default) sounds.Remove(cue.Cue);
+                else if (System.Text.RegularExpressions.Regex.IsMatch(text, @"^\d+:\d+$")) sounds[cue.Cue] = text;
+            }
+        }
+    }
+
+    /// <summary>기능별 소리 표를 다시 채운다 — 정해 둔 기능들과, 재해마다의 소리.</summary>
+    private void ShowSoundCues()
+    {
+        string? chosen = (CueGrid.SelectedItem as CueRow)?.Cue;
+        var rows = GameSounds.Cues.Concat(_data.Disasters.Select(d => new SoundCue($"Disaster{d.Id}", $"재해: {d.Name}", "", "그 재해가 벌어질 때(비우면 경고 소리)")))
+            .Select(cue => new CueRow(cue, _data.Settings.Sounds)).ToList();
+        CueGrid.ItemsSource = rows;
+        CueGrid.SelectedItem = rows.Find(r => r.Cue == chosen);
+        SoundAssigned.Text = CueGrid.SelectedItem is CueRow row ? $"고른 기능: {row.Label} = {row.Sound}" : "왼쪽에서 기능을 고른다";
+    }
+
+    private void PlayKey(string key)
+    {
+        var parts = key.Split(':');
+        if (parts.Length != 2 || !int.TryParse(parts[0], out int bank) || !int.TryParse(parts[1], out int index) || GameSounds.Wave(bank, index) is not { } wave) return;
+        _soundPlayer.Stop();
+        _soundPlayer.Stream = new System.IO.MemoryStream(wave);
+        try { _soundPlayer.Play(); } catch (Exception) { }
+    }
+
+    private void CueGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (CueGrid.SelectedItem is not CueRow row) return;
+        SoundAssigned.Text = $"고른 기능: {row.Label} = {row.Sound}";
+        PlayKey(row.Sound);
+    }
+
+    private void CuePlay_Click(object sender, RoutedEventArgs e) { if (CueGrid.SelectedItem is CueRow row) PlayKey(row.Sound); }
+
+    /// <summary>오른쪽에서 고른 소리를 왼쪽에서 고른 기능에 맨다 — 저장해야 게임에 들어간다.</summary>
+    private void CueAssign_Click(object sender, RoutedEventArgs e)
+    {
+        if (CueGrid.SelectedItem is not CueRow row || SoundGrid.SelectedItem is not SoundRow { Sound: var sound }) { Status("왼쪽에서 기능을, 오른쪽에서 소리를 고른 뒤 누릅니다."); return; }
+        _data.Settings.Sounds[row.Cue] = sound.Key;
+        ShowSoundCues();
+        Status($"「{row.Label}」에 {sound.Key} 을(를) 맸습니다. Ctrl+S 로 저장합니다.");
+    }
+
+    private void CueDefault_Click(object sender, RoutedEventArgs e)
+    {
+        if (CueGrid.SelectedItem is not CueRow row) return;
+        _data.Settings.Sounds.Remove(row.Cue);
         ShowSoundCues();
     }
 
-    private void ShowSoundCues() =>
-        SoundAssigned.Text = "지금: " + string.Join("   ", new[] { ("Turn", "선회"), ("Sail", "돛 조종"), ("Skill", "스킬") }
-            .Select(c => $"{c.Item2} {(_data.Settings.Sounds.GetValueOrDefault(c.Item1) is { Length: > 0 } key ? key : "없음")}"));
+    private void CueOff_Click(object sender, RoutedEventArgs e)
+    {
+        if (CueGrid.SelectedItem is not CueRow row) return;
+        _data.Settings.Sounds[row.Cue] = "";
+        ShowSoundCues();
+    }
 
     private void DeleteSave_Click(object sender, RoutedEventArgs e)
     {

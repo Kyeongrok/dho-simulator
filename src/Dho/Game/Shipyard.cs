@@ -316,6 +316,15 @@ internal sealed partial class Voyage
     /// <summary>부두에 둘 수 있는 배의 수(타고 있는 배는 빼고).</summary>
     public const int DockSlots = 40;
 
+    /// <summary>배를 값 없이 부두에 받는다(소지품 창의 「선박 추가」).</summary>
+    public void GiveShip(ShipData ship)
+    {
+        if (Dock.Count >= DockSlots) { Say("부두에 둘 자리가 없다."); return; }
+        var work = new ShipWork();
+        Dock.Add(new DockedShip { Ship = ship, Durability = Worked(StatsOf(ship, 0, 0), work, ship).Durability, Work = work });
+        Say($"{ship.Name}을(를) 받아 부두에 매어 두었다. 선박교환에서 갈아탄다.");
+    }
+
     /// <summary>타고 있지 않은 내 배들. 어느 항구에서나 불러낸다(원본은 맡긴 항구에 있다 — 줄였다).</summary>
     public List<DockedShip> Dock { get; } = [];
 

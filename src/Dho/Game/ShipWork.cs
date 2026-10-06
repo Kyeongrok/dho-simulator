@@ -689,7 +689,8 @@ internal sealed partial class Voyage
                 }
             }
         if (OptionFrom(parts) is { } option) after.Skills.Add(option.SkillId);
-        return Worked(plain, after, Ship);
+        // 지금 값(Stats)에는 단 부품(보조돛 · 장갑)이 들어 있다 — 미리 보기에도 얹어야 돛이 떨어져 보이지 않는다
+        return WithParts(Worked(plain, after, Ship), Parts);
     }
 
     public void Strengthen(IReadOnlyCollection<int> parts, int wood = 0, bool skillOnly = false)

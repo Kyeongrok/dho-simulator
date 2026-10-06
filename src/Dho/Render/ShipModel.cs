@@ -605,13 +605,16 @@ internal sealed class ShipModel : IDisposable
         // 가로돛(배의 길이 쪽을 바라보는 돛)만 — 삼각돛 · 세로돛에는 안 그린다. 가로돛이 하나도 없는 배(라틴 돛)는 가리지 않는다
         bool Square(Sail s) => (alongX ? s.Facing.X : s.Facing.Z) > 0.6f;
         bool anySquare = _sails.Exists(Square);
+        float At(Sail s) => alongX ? s.Centre.X : s.Centre.Z;
         foreach (var sail in _sails.OrderByDescending(s => s.Area))
         {
-            float at = alongX ? sail.Centre.X : sail.Centre.Z;
+            float at = At(sail);
             if (anySquare && !Square(sail)) continue;
             if (sail.Area < widest * 0.45f || picked.Exists(p => MathF.Abs(p - at) < apart)) continue;
-            (sail.Emblem, _) = (true, 0);
             picked.Add(at);
+            // 그 돛대의 돛들(아래에서 위로) 가운데 것에 — 맨 아래 큰 돛이 아니라 가운데 돛에 문장이 달린다(사용자 기억)
+            var mast = _sails.FindAll(s => MathF.Abs(At(s) - at) < apart && (!anySquare || Square(s)) && s.Area >= sail.Area * 0.3f);
+            mast[mast.Count / 2].Emblem = true;
         }
     }
 

@@ -62,10 +62,12 @@
   "IconScale": 1,
   "SeaMapScale": 0.8,
   "ShipFilterSize": 3,
-  "ShipFilterUse": 1,
+  "ShipFilterUse": 0,
   "ItemRows": 5,
   "ModWorkOnBoard": true,
-  "ModCombineOnBoard": false,
+  "ModCombineOnBoard": true,
+  "ModNoPirates": false,
+  "ModWindowIds": 0,
   "ModCombineBonus": 50,
   "ModTripleGain": true,
   "Keys": {
@@ -121,7 +123,8 @@
     "3": "발소리 ",
     "7:17": "승리",
     "7:20": "승리",
-    "8:0": "돈 계산"
+    "8:0": "돈 계산",
+    "0:22": "초대"
   },
   "Sounds": {
     "Skill": "0:6",
@@ -157,6 +160,7 @@
     "StormChancePerDay": 0.06,
     "StormDays": 0.6,
     "StormDurabilityPerDay": 260,
+    "StormWaveResist": 15,
     "WreckMoneyLoss": 0.1
   },
   "StartSkills": [

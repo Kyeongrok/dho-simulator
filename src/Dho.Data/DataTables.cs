@@ -123,6 +123,17 @@ public sealed class DataTables
         parts.AddRange(Rows(Table(FigureheadTable), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 2, r.Int32(), r.Int32(), r.Int32(), r.Int32(), r.Int32())));
         // 문장(표 26): id(1100001 ~), 이름, 설명뿐 — 수치가 없다
         parts.AddRange(Rows(Table(26), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 3, 0, 0, 0, 0, 0)));
+        // 대포(표 22): id(700100 ~), 이름, 설명, i32 × 10 — 문 수, 관통력, 다는 자리(0 선측 · 1 선수 · 2 선미), 사정거리, 탄속, ?, ?, 1, 내구, 탄 갈래.
+        // 자리와 탄 갈래는 설명 글(「선측에 8문」 · 「선수에 4문」 · 「사슬탄」)과 맞춰 본 것이고, 여섯째 · 일곱째(1 ~ 10)는 폭발 범위 · 장전 속도로 보이나 못 가렸다
+        parts.AddRange(Rows(Table(22), (r, id) =>
+        {
+            string name = r.Text(id), description = r.Text(id);
+            int count = r.Int32(), pierce = r.Int32(), spot = r.Int32(), range = r.Int32();
+            r.Skip(16);
+            int durability = r.Int32();
+            r.Int32();
+            return new ShipPart(id, name, description, 4, count, pierce, range, spot, durability);
+        }));
         ShipParts = parts;
         Recipes = Rows(Table(RecipeTable), (r, id) => (id, r.Text(id), r.Text(id)));
         Aides = Rows(Table(AideTable), (r, id) => (id, r.Text(id), r.Byte(), r.Byte()));

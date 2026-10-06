@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -360,10 +360,12 @@ internal sealed partial class Voyage
     }
 
     /// <summary>경험치로 셈한 레벨과, 다음 레벨까지 남은 경험치. 원본의 레벨 표를 몰라 지은 것이다(레벨 n 까지 50 × n²).</summary>
+    public const int LevelCap = 90;
     public static (int Level, int Next) LevelOf(int exp)
     {
-        int level = (int)Math.Sqrt(Math.Max(0, exp) / 50.0);
-        return (level, 50 * (level + 1) * (level + 1) - Math.Max(0, exp));
+        // 레벨은 1 에서 시작하고 상한이 있다 — 상한의 수(90)는 지은 것이다
+        int level = Math.Min(LevelCap, 1 + (int)Math.Sqrt(Math.Max(0, exp) / 50.0));
+        return (level, level >= LevelCap ? 0 : 50 * level * level - Math.Max(0, exp));
     }
 
     /// <summary>의뢰를 주는 곳의 이름 — 조합 건물이 있는 도시는 열세 곳뿐이고 나머지는 의뢰 중개인이 준다.</summary>
@@ -469,6 +471,7 @@ internal sealed partial class Voyage
     public void Land()
     {
         if (!SiteInReach()) return;
+        _siteCleared = false;
         Sail = 0;
         Knots = 0;
         Dialog = Dialog.Landing;
@@ -483,6 +486,7 @@ internal sealed partial class Voyage
             Say($"아무것도 찾지 못했다. ({lacking} 필요)");
             return;
         }
+        if (LandFoeAppears()) return;            // 도적 · 맹수가 막아섰다 — 물리친 뒤에 다시 탐색한다
         QuestStage = QuestStage.Discovered;
         Dialog = Dialog.Discovery;
         if (QuestDiscovery is { } found)
@@ -563,7 +567,9 @@ internal sealed partial class Voyage
 
         AutoSave(dt);
         // 바다에서는 창을 열어도 배가 멈추지 않는다. 상륙 · 발견처럼 배를 세우고 하는 일만 멈춘다
-        if (Mode != Mode.Sea || Dialog is Dialog.Landing or Dialog.Discovery or Dialog.Wreck)
+        if (Mode != Mode.Sea) SeaShips.Clear();
+        // 해전은 차례를 주고받는다 — 그동안 바다의 시간은 멎는다
+        if (Mode != Mode.Sea || Dialog is Dialog.Landing or Dialog.Discovery or Dialog.Wreck or Dialog.Battle or Dialog.LandBattle)
         {
             Knots += (0 - Knots) * Math.Min(1, dt * 2);
             (TurnVelocity, TurnShare) = (0, 0);
@@ -623,6 +629,7 @@ internal sealed partial class Voyage
             ShipX = WorldMap.WrapX(nextX);
             ShipY = nextY;
         }
+        UpdateSeaShips(dt);
     }
 
     private bool Blocked(double x, double y)

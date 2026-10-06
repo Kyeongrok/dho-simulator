@@ -131,10 +131,22 @@ internal sealed class Canvas : IDisposable
     }
 
     /// <summary>창 바탕 — 짙은 남색에 금빛 테두리.</summary>
+    /// <summary>다음에 그리는 창의 이름(「Wnd…」) — 창의 오른쪽 위에 작은 글씨로 한 번 적고 비운다. 사용자가 창을 가리켜 말할 때 쓴다.</summary>
+    public string? PanelId;
+    /// <summary>창 이름을 화면에 적을 글로 바꾼다 — 안 보이려면 null(모드의 「창 ID」: 없음 · 아이디 · 보조 아이디).</summary>
+    public Func<string, string?>? PanelLabel;
+
+    /// <summary>마지막으로 그린 창 바탕의 자리.</summary>
+    public (float X, float Y, float W, float H) LastPanel;
+
     public void Panel(float x, float y, float w, float h)
     {
+        LastPanel = (x, y, w, h);
         Fill(x, y, w, h, PanelFill);
         Frame(x, y, w, h, PanelEdge);
+        if (PanelId is not { } id) return;
+        PanelId = null;
+        if (PanelLabel?.Invoke(id) is { Length: > 0 } label) Text(label, x, y + 1, w - 6, 12, 9, new Color4(0.75f, 0.8f, 0.95f, 0.8f), 2, false, false);
     }
 
     /// <param name="align">0 왼쪽, 1 가운데, 2 오른쪽.</param>

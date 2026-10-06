@@ -220,15 +220,25 @@
 
             <TabItem Header="효과음">
                 <DockPanel Margin="8">
-                    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,4" TextWrapping="Wrap" Text="원본 효과음 목록(0006\001000 · 002000). 줄을 누르면 들린다. 소리에 이름표가 없어서 들어 보고 골라야 한다 — 맞는 줄을 고른 뒤 아래 단추로 게임의 일에 맨다(Ctrl+S 로 저장)." />
+                    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,4" TextWrapping="Wrap" Text="왼쪽: 게임의 기능마다 매여 있는 소리. 오른쪽: 원본 효과음 목록(0006\001000 · 002000) — 줄을 누르면 들린다. 왼쪽에서 기능을, 오른쪽에서 소리를 고른 뒤 아래 단추로 맨다(Ctrl+S 로 저장, 게임을 다시 켜면 듣는다)." />
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
-                        <Button Content="다시 듣기" Click="SoundPlay_Click" Padding="10,3" />
+                        <Button Content="◀ 고른 소리를 고른 기능에 맨다" Click="CueAssign_Click" Padding="10,3" />
+                        <Button Content="기능의 소리 듣기" Click="CuePlay_Click" Padding="10,3" Margin="6,0,0,0" />
+                        <Button Content="기본값으로" Click="CueDefault_Click" Padding="10,3" Margin="6,0,0,0" />
+                        <Button Content="끔" Click="CueOff_Click" Padding="10,3" Margin="6,0,0,0" />
+                        <Button Content="다시 듣기" Click="SoundPlay_Click" Padding="10,3" Margin="24,0,0,0" />
                         <Button Content="멈춤" Click="SoundStop_Click" Padding="10,3" Margin="6,0,0,0" />
-                        <Button Content="선회 소리로" Tag="Turn" Click="SoundAssign_Click" Padding="10,3" Margin="20,0,0,0" />
-                        <Button Content="돛 조종 소리로" Tag="Sail" Click="SoundAssign_Click" Padding="10,3" Margin="6,0,0,0" />
-                        <Button Content="그 밖의 스킬 소리로" Tag="Skill" Click="SoundAssign_Click" Padding="10,3" Margin="6,0,0,0" />
                         <TextBlock x:Name="SoundAssigned" Margin="16,4,0,0" />
                     </StackPanel>
+                    <!-- 기능별 소리: 게임의 일마다 지금 매여 있는 소리. 줄을 고르고 오른쪽 목록에서 소리를 골라 아래 단추로 맨다. 「소리」 칸에 번호를 바로 적어도 된다 -->
+                    <DataGrid x:Name="CueGrid" DockPanel.Dock="Left" Width="520" Margin="0,0,8,0" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single" SelectionChanged="CueGrid_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="기능" Binding="{Binding Label, Mode=OneWay}" IsReadOnly="True" Width="90" />
+                            <DataGridTextColumn Header="소리" Binding="{Binding Sound, UpdateSourceTrigger=LostFocus}" Width="60" />
+                            <DataGridTextColumn Header="기본" Binding="{Binding Default, Mode=OneWay}" IsReadOnly="True" Width="50" />
+                            <DataGridTextColumn Header="나는 곳" Binding="{Binding Where, Mode=OneWay}" IsReadOnly="True" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
                     <DataGrid x:Name="SoundGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single" SelectionChanged="SoundGrid_SelectionChanged">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="번호" Binding="{Binding Key, Mode=OneWay}" IsReadOnly="True" Width="70" />

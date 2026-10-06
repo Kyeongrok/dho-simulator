@@ -407,12 +407,7 @@ internal sealed class GameWindow : IDisposable
         // 재해 · 폭풍의 소리를 따로 안 매어 두었으면 경고 소리로
         if ((cue.StartsWith("Disaster") || cue == "Storm") && !(sounds.TryGetValue(cue, out string? own) && own.Length > 0)) cue = "Warn";
         // 설정 파일에 없는 소리는 원본의 것을 기본으로 쓴다 — 사용자가 효과음 고르기에서 들어 보고 메모해 준 번호(묶음 0)
-        if (!sounds.ContainsKey(cue) && cue switch
-            {
-                "Click" => "0:0", "Quest" => "0:2", "Error" => "0:3", "Mastery" => "0:4", "Warn" => "0:5",
-                "SkillUp" => "0:7", "Done" => "0:8", "StudyDone" => "0:10", "Eat" => "0:11", "Bank" => "0:14", "Door" => "0:15", "Open" => "24:5",
-                "Part" => "0:20", "Buy" => "0:23", "Drunk" => "0:24", "University" => "0:30", "Sail" => "14:15", _ => null,
-            } is { } original) sounds[cue] = original;
+        if (!sounds.ContainsKey(cue) && cue is not ("Turn" or "Skill") && Array.Find(Dho.Data.GameSounds.Cues, c => c.Cue == cue) is { Default.Length: > 0 } known) sounds[cue] = known.Default;
         // 선회 소리의 옛 기본값(9:0)도 지은 것이었다 — 원본은 0:12(바다에서 배를 돌릴 때)
         if (cue == "Turn" && sounds.GetValueOrDefault("Turn") is null or "9:0") sounds["Turn"] = "0:12";
         // 스킬 소리의 옛 기본값(5:0)은 지은 것이었다 — 원본은 0:6
@@ -507,6 +502,7 @@ internal sealed class GameWindow : IDisposable
                 if (_voyage.SiteInReach()) _voyage.Land();
                 else _voyage.EnterPort();
                 break;
+            case 'G': if (_voyage.Dialog == Dialog.None && !Walking) _voyage.Attack(); break;
         }
     }
 
@@ -816,6 +812,7 @@ internal sealed class GameWindow : IDisposable
         int wood = _voyage.HullColorOf(_voyage.Ship, _voyage.ShipMaterialId);
         _ship.Furl = _voyage.Mode == Mode.Sea ? _voyage.Sail / (float)Voyage.SailSteps : 1;      // 바다에서는 돛을 편 만큼만 보인다
         if (!town) _ship.Draw(_scene, shipWorld, null, Hull(_ship, wood));
+        DrawSeaShips(sway);
 
         // 화면 글과 창
         _canvas.Scale = UiScale;
@@ -969,6 +966,32 @@ internal sealed class GameWindow : IDisposable
         _gfx.Present();
     }
 
+    private readonly Dictionary<int, ShipModel> _seaModels = new();
+
+    /// <summary>바다의 다른 배들 — 제 자리 · 제 뱃머리로 그리고, 화면에서의 자리에 이름표를 단다.</summary>
+    private void DrawSeaShips(float sway)
+    {
+        _hud.ShipLabels.Clear();
+        if (_voyage.Mode != Mode.Sea) return;
+        foreach (var other in _voyage.SeaShips)
+        {
+            if (!_seaModels.TryGetValue(other.Ship.Model, out var model))
+            {
+                if (_seaModels.Count >= 8) continue;         // 모형을 너무 많이 올리지 않는다
+                try { model = new ShipModel(_gfx, other.Ship.Model); } catch (Exception) { continue; }
+                _seaModels[other.Ship.Model] = model;
+            }
+            float x = (float)(WorldMap.DeltaX(_voyage.ShipX, other.X) * Terrain.Unit), z = (float)((other.Y - _voyage.ShipY) * Terrain.Unit);
+            model.Furl = 1;
+            model.SetFlag(other.NationId);
+            model.Draw(_scene, Matrix4x4.CreateRotationY(MathF.PI - (float)other.Heading) * Matrix4x4.CreateTranslation(x, sway * 40f, z));
+            var clip = Vector4.Transform(new Vector4(x, model.Radius * 1.3f, z, 1), _viewProjection);
+            if (clip.W > 1)
+                _hud.ShipLabels.Add(((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight,
+                                     $"{Voyage.SeaShipKinds[other.Kind]} {other.Name}", other.Kind == 1 ? 1 : other.NationId == _voyage.NationId ? 2 : 0));
+        }
+    }
+
     private PortScene? _seaCity;
     private int _seaCityId;
     private Vector3 _seaCityAnchor;
@@ -995,7 +1018,7 @@ internal sealed class GameWindow : IDisposable
             (_seaCityId, _seaCity) = (near.Id, null);
             try
             {
-                _seaCity = new PortScene(_gfx, near.PortScene);
+                _seaCity = new PortScene(_gfx, near.PortScene, fadeGround: true);
                 var berth = _voyage.Data.Settings.Berths.Find(b => b.Scene == near.PortScene);
                 _seaCityAnchor = berth != null ? new Vector3(berth.X, 0, berth.Z) : new Vector3(_seaCity.Center.X, 0, _seaCity.Center.Z);
             }
@@ -1462,6 +1485,16 @@ internal sealed class GameWindow : IDisposable
             case "shipinfo": _voyage.Dialog = Dialog.ShipInfo; break;
             case "dialog": if (Enum.TryParse<Dialog>(argument, out var opened)) _voyage.Dialog = opened; break;      // 창을 이름으로 연다(확인용)
             case "exp": { var two = argument.Split(','); _voyage.GainExp(int.Parse(two[0]), int.Parse(two[1])); break; }
+            case "farm": _voyage.BuyFarm(); break;
+            case "farmbuild": { var plotArgs = argument.Split(','); _voyage.BuildFarm(int.Parse(plotArgs[0]), int.Parse(plotArgs[1]), int.Parse(plotArgs[2])); break; }
+            case "harvest": _voyage.Harvest(); break;
+            case "invest": _voyage.Invest((int)Number()); break;
+            case "title": _voyage.ReceiveTitle(); break;
+            case "landfoe": _voyage.StartLandBattle((int)Number()); break;
+            case "landact": _voyage.LandAct((int)Number()); break;
+            case "foe": _voyage.SpawnForTest((int)Number()); break;
+            case "attack": _voyage.Attack(); break;
+            case "battleact": _voyage.BattleAct((int)Number()); break;
             case "dyedebug": ShipModel.DyeDebug = [new(1, 1, 1, 1), new(1, 0.1f, 0.1f, 1), new(0.1f, 1, 0.1f, 1), new(0.2f, 0.3f, 1, 1), new(1, 1, 0.1f, 1), new(1, 0, 1, 1), new(0, 1, 1, 1), new(0, 0, 0, 1)]; break;
             case "combinepick": { var two = argument.Split(','); _hud.PickCombine(int.Parse(two[0]), int.Parse(two[1])); break; }
             case "combineaboard": (_voyage.Data.Settings.ModCombineOnBoard, _voyage.Dialog) = (true, Dialog.Combine); break;

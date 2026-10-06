@@ -10,9 +10,20 @@ internal sealed partial class Voyage
 {
     /// <summary>배마다 다른 칸 수 — 보조돛은 돛대 수만큼(셋까지), 장갑 하나, 선수상 하나. 원본의 배마다의 칸 수는 자료를 못 찾아 지은 것이다.</summary>
     public int SlotsOf(int slot) =>
-        ShipStats.Facts.TryGetValue(Ship.Name, out var fact) && fact.Slots is { Length: >= 3 } real
+        slot == 4 ? CannonSlots(0) + CannonSlots(1) + CannonSlots(2)
+        : ShipStats.Facts.TryGetValue(Ship.Name, out var fact) && fact.Slots is { Length: >= 3 } real
             ? slot switch { 0 => Math.Clamp(real[0], 0, 5), 1 => Math.Clamp(real[2], 0, 5), _ => 1 }      // 배 자료의 칸 수(보조돛 · 추가장갑)
             : slot == 0 ? Math.Clamp(Ship.Masts, 1, 3) : 1;
+
+    public static readonly string[] CannonSpots = ["선측포", "선수포", "선미포"];
+
+    /// <summary>대포 칸 수 — 자리(0 선측 · 1 선수 · 2 선미)마다. 배 자료(위키의 側 · 首 · 尾)에 없으면 선측 둘(지은 값).</summary>
+    public int CannonSlots(int spot) =>
+        ShipStats.Facts.TryGetValue(Ship.Name, out var fact) && fact.Slots is { Length: >= 6 } real ? Math.Clamp(real[3 + spot], 0, 5) : spot == 0 ? 2 : 0;
+
+    /// <summary>단 대포의 문 수(배의 포문 수를 넘지 못한다)와 평균 관통력.</summary>
+    public int GunsFitted => Math.Min(Stats.Guns, Parts.Where(p => p.Slot == 4).Sum(p => p.A));
+    public double GunPierce => Parts.Where(p => p.Slot == 4).Sum(p => p.A) is > 0 and var guns ? Parts.Where(p => p.Slot == 4).Sum(p => p.A * p.B) / (double)guns : 0;
 
     /// <summary>부품을 값 없이 받는다(아이템 추가 창) — 가진 부품 칸이 차 있으면 못 받는다.</summary>
     public void GivePart(ShipPart part)
@@ -27,7 +38,9 @@ internal sealed partial class Voyage
     public const int PartStockLimit = 30;
 
     public string? FitBlocker(ShipPart part) =>
-        Mode != Mode.Port ? "항구에서만 단다" : Parts.Count(p => p.Slot == part.Slot) >= SlotsOf(part.Slot) ? $"{SlotName[part.Slot]} 칸이 찼다" : null;
+        Mode != Mode.Port ? "항구에서만 단다"
+        : part.Slot == 4 ? (Parts.Count(p => p.Slot == 4 && p.D == part.D) >= CannonSlots(part.D) ? $"{CannonSpots[Math.Clamp(part.D, 0, 2)]} 칸이 {(CannonSlots(part.D) == 0 ? "없다" : "찼다")}" : null)
+        : Parts.Count(p => p.Slot == part.Slot) >= SlotsOf(part.Slot) ? $"{SlotName[part.Slot]} 칸이 찼다" : null;
 
     /// <summary>가진 부품을 배에 단다.</summary>
     public void Fit(ShipPart part)
@@ -46,7 +59,7 @@ internal sealed partial class Voyage
         Cues.Enqueue("Part");
         Say($"{part.Name}을(를) 떼었다.");
     }
-    public static readonly string[] SlotName = ["보조돛", "장갑", "선수상", "문장"];
+    public static readonly string[] SlotName = ["보조돛", "장갑", "선수상", "문장", "대포"];
 
     /// <summary>타고 있는 배에 단 부품.</summary>
     public List<ShipPart> Parts { get; private set; } = [];
@@ -56,6 +69,7 @@ internal sealed partial class Voyage
         0 => 1500 + (part.A + part.B) * 400,
         1 => 2000 + part.A * 1500,
         3 => 5000,
+        4 => 1000 + part.A * part.B * 30,
         _ => 3000 + (part.A + part.B + part.C + part.D) * 1200,
     };
 
@@ -64,6 +78,7 @@ internal sealed partial class Voyage
         0 => $"가로돛 +{part.A} · 세로돛 +{part.B}",
         1 => $"장갑 {part.A} · 속도 −{part.B}%",
         3 => "돛에 그리는 문장(모양뿐이다)",
+        4 => $"{CannonSpots[Math.Clamp(part.D, 0, 2)]} {part.A}문 · 관통 {part.B} · 사정 {part.C}",
         _ => $"효과 {part.A}/{part.B}/{part.C}/{part.D}",
     };
 

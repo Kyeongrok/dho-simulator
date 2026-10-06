@@ -297,6 +297,16 @@ public sealed class StartData
     public List<StartLineData> Lines { get; set; } = [];
 }
 
+/// <summary>NPC 의 이름들 — 배 이름, 이름난 선장, 꾸밈말 + 이름씨(이어서 이름을 짓는다), 육상전 테크닉.</summary>
+public sealed class NpcNames
+{
+    public List<string> ShipNames { get; set; } = [];
+    public List<string> Captains { get; set; } = [];
+    public List<string> Adjectives { get; set; } = [];
+    public List<string> Nouns { get; set; } = [];
+    public List<string> Techniques { get; set; } = [];
+}
+
 /// <summary>레시피 이름(클라이언트 표 16).</summary>
 public sealed class RecipeData
 {
@@ -573,6 +583,11 @@ public sealed class SaveData
     public List<int> Recipes { get; set; } = [];
     /// <summary>작위(0 부터) · 공적 · 받은 칙명 id · 칙명의 진행(들른 곳 수나 보고한 발견 수).</summary>
     public int[] Court { get; set; } = [0, 0, 0, 0];
+    // 도시마다 투자한 돈과, 투자하기 전부터 제 나라 것이던 도시
+    public Dictionary<int, long> Invested { get; set; } = [];
+    public List<int> InvestedHome { get; set; } = [];
+    // 개인농장: 가졌는가, 칸마다 (갈래, 기르는 것, 랭크, 거둔 때)
+    public double[] Farm { get; set; } = [];
     /// <summary>은행에 맡긴 돈.</summary>
     public long Bank { get; set; }
     /// <summary>돛의 빛깔(0xRRGGBB) — 돛 도료를 써서 바꾼다.</summary>
@@ -652,6 +667,10 @@ public sealed class SettingsData
     public bool ModWorkOnBoard { get; set; }
     // 모드: 타고 있는 배도 선박 조합의 강화 선박으로 고를 수 있다(재료로는 못 쓴다)
     public bool ModCombineOnBoard { get; set; }
+    // 모드: 해적선이 쫓아와 싸움을 걸지 않는다
+    public bool ModNoPirates { get; set; }
+    // 모드: 창마다 오른쪽 위에 적는 창 이름 — 0 없음 · 1 아이디(WndShipSwap) · 2 보조 아이디(Wnd012)
+    public int ModWindowIds { get; set; }
     /// <summary>모드: 선박 조합의 성공률에 더하는 값(%) — 0 ~ 50. 0 이면 그대로.</summary>
     public int ModCombineBonus { get; set; }
     /// <summary>모드: 경험치(모험 · 교역 · 부관)와 숙련도(스킬 · 조타)가 세 배로 오른다.</summary>
@@ -732,6 +751,10 @@ public sealed class GameData
     public OrderBook Orders { get; set; } = new();
     public List<RecipeData> Recipes { get; set; } = [];
     public List<RecipeRule> RecipeRules { get; set; } = [];
+    /// <summary>NPC 의 이름 표(클라이언트 표 41 · 72 · 95 · 96 · 51) — tools\gvo\npcs.py 가 뽑는다.</summary>
+    public NpcNames Npcs { get; set; } = new();
+    /// <summary>레시피 번호 → (필요 스킬, 만드는 것) — 재료를 모르는 레시피의 쪽지에 쓴다.</summary>
+    public Dictionary<int, (string Skill, string Makes)> RecipeNotes { get; } = [];
     public List<ItemData> Items { get; set; } = [];
     private bool _materialsFromFacts;
     /// <summary>선박 스킬 109가지의 이름 · 행동력 · 필요 스킬 — <c>data\extracted\shipskill-facts.json</c>(ssjoy 에서 모은 것, 저장소에는 안 둔다).</summary>
@@ -872,6 +895,8 @@ public sealed class GameData
         {
             data.ExtractFromClient();
             data.SaveExtracted();
+            // 뽑은 것을 적었으니 처음부터 다시 읽는다 — 그대로 가면 아래 갈래의 자료(배 성능 · 장비 …)를 안 읽은 채로 돈다
+            if (File.Exists(Path.Combine(extracted, ExtractVersion)) && File.Exists(Path.Combine(extracted, "cities.json"))) return Load(directory);
         }
         else
         {
@@ -899,6 +924,8 @@ public sealed class GameData
         data.MaterialTrims = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-trims.json")) ?? [];
         data.Boosters = Read<List<PaperItem>>(Path.Combine(extracted, "booster-items.json")) ?? [];
         data.GearBoosts = Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts.json")) ?? [];
+        // 손으로 적어 넣은 것(위키에서 못 뽑은 장비 — 사용자의 기억 따위)이 뽑은 것을 덮는다. 도구가 extracted 의 파일을 새로 써도 남는다
+        foreach (var (gearId, boosts) in Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(directory, "gear-boosts.json")) ?? []) data.GearBoosts[gearId] = boosts;
         data.GearModels = Read<List<GearModel>>(Path.Combine(extracted, "gear-models.json")) ?? [];
         data.Gear = Read<List<GearItem>>(Path.Combine(extracted, "gear-items.json")) ?? [];
         data.MaterialItems = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-items.json")) ?? [];
@@ -915,6 +942,11 @@ public sealed class GameData
         data.Quests = Read<List<QuestData>>(Path.Combine(directory, "quests.json")) ?? [];
         data.RecipeRules = Read<List<RecipeRule>>(Path.Combine(directory, "recipes.json")) ?? [];
         data.Recipes = Read<List<RecipeData>>(Path.Combine(extracted, "recipes.json")) ?? [];
+        data.Npcs = Read<NpcNames>(Path.Combine(extracted, "npc-names.json")) ?? new NpcNames();
+        // 이용자들이 모은 레시피 자료(번호, 이름, …, 필요 스킬, 만드는 것) — 재료는 없다
+        foreach (var row in Read<List<List<System.Text.Json.JsonElement>>>(Path.Combine(extracted, "recipe-facts.json")) ?? [])
+            if (row.Count >= 5 && row[0].ValueKind == System.Text.Json.JsonValueKind.Number)
+                data.RecipeNotes[row[0].GetInt32()] = (row[3].ToString(), row[4].ToString().Replace(", …", " 외"));
         data.ShipWorks = Read<ShipWorkBook>(Path.Combine(directory, "ship-works.json")) ?? new ShipWorkBook();
         if (!data._materialsFromFacts) data.ShipMaterials = Read<List<ShipMaterial>>(Path.Combine(directory, "ship-materials.json")) ?? [];
         data.Items = Read<List<ItemData>>(Path.Combine(directory, "items.json")) ?? [];
@@ -1107,7 +1139,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-9";
+    private const string ExtractVersion = "extracted-10";
 
     public static string RoomsOf(byte[] sceneTable, int cityId)
     {

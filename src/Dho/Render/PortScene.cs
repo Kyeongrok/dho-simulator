@@ -86,11 +86,15 @@ internal sealed class PortScene : IDisposable
 
     /// <param name="grid">시내의 걷는 면. 주면 장면 메시를 읽으면서 지붕 높이를 적는다.</param>
     private readonly bool _solid;
+    // 바다에서 멀리 보는 도시 — 네모난 땅바닥의 가장자리를 투명하게 풀어 바다 · 뭍에 스미게 한다
+    private readonly bool _fadeGround;
+    private readonly HashSet<MeshBuilder> _ground = [];
 
     /// <param name="solid">정점색의 알파를 무시한다 — 방 장면은 벽의 알파가 0 이라 그대로면 벽이 안 그려진다.</param>
-    public PortScene(Gfx gfx, int sceneNumber, TownGrid? grid = null, bool solid = false)
+    public PortScene(Gfx gfx, int sceneNumber, TownGrid? grid = null, bool solid = false, bool fadeGround = false)
     {
         _gfx = gfx;
+        _fadeGround = fadeGround;
         _solid = solid;
         _grid = grid;
         var grm = GvoFiles.Read($@"0002\{0x20000 + sceneNumber:D8}.bin");
@@ -134,6 +138,16 @@ internal sealed class PortScene : IDisposable
         foreach (var ((set, texture, soft), builder) in _builders)
         {
             if (builder.Indices.Count == 0) continue;      // 레코드를 다 건너뛴 묶음
+            if (_ground.Contains(builder))
+            {
+                float margin = MathF.Min(_max.X - _min.X, _max.Z - _min.Z) * 0.22f;
+                foreach (ref var vertex in System.Runtime.InteropServices.CollectionsMarshal.AsSpan(builder.Vertices))
+                {
+                    float edge = MathF.Min(MathF.Min(vertex.Position.X - _min.X, _max.X - vertex.Position.X),
+                                           MathF.Min(vertex.Position.Z - _min.Z, _max.Z - vertex.Position.Z));
+                    vertex.Color.W *= Math.Clamp(edge / margin, 0, 1);
+                }
+            }
             ID3D11ShaderResourceView? view = null;
             if (set == OwnTextures && texture < GameTexture.GtexCount(grm, gtex))
                 view = GameTexture.FromGtex(gfx, grm, gtex, texture);
@@ -220,9 +234,11 @@ internal sealed class PortScene : IDisposable
                 int colorAt = 12 + ((fvf & 0xE) == 0x6 ? 4 : 0) + ((fvf & 0x10) != 0 ? 12 : 0);
 
                 // 레코드 첫 값의 둘째 비트가 선 면은 알파로 섞어 그리는 면이다(바닥의 그림자 · 불빛)
-                bool soft = (U16(record) & 2) != 0;
+                bool ground = _fadeGround && data[record + 9] == 0xFF;
+                bool soft = (U16(record) & 2) != 0 || ground;
                 if (!_builders.TryGetValue((textureSet, texture, soft), out var builder))
                     _builders[(textureSet, texture, soft)] = builder = new MeshBuilder();
+                if (ground) _ground.Add(builder);
 
                 // 방 장면에는 색인이 버퍼를 넘어가는 레코드가 있다(짜임이 다른 것으로 보인다) — 건너뛴다
                 if (indices < 0 || (long)indices + (firstIndex + triangles * 3) * 2L > data.Length
