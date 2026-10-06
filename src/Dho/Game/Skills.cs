@@ -18,7 +18,7 @@ internal sealed partial class Voyage
     public Dictionary<int, SkillState> Skills { get; } = new();
 
     /// <summary>랭크 — 내 직업의 전문 스킬이면 +1 이 붙는다(익힌 것만).</summary>
-    public int Rank(int skillId) => Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) : 0;
+    public int Rank(int skillId) => Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) + BoostRank(skillId, state.Rank) : 0;
 
     /// <summary>우대 스킬(노란 별) — 내 직업이 우대하는 스킬. 조건 없이 배운다.</summary>
     public bool IsFavored(int skillId) =>

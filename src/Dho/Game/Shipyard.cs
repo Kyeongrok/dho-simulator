@@ -38,7 +38,27 @@ internal sealed class ShipOrder
 internal sealed partial class Voyage
 {
     public ShipData Ship { get; private set; } = new();
-    public ShipStats Stats { get; private set; } = null!;
+    // 타고 있는 배의 능력치 — 단 부품(보조돛의 세로돛 · 가로돛, 장갑)까지 얹은 것
+    private ShipStats _bareStats = null!, _fitStats = null!;
+    private (ShipStats?, int) _fitKey;
+    public ShipStats Stats
+    {
+        get
+        {
+            var key = (_bareStats, Parts.Sum(p => p.Id * 31 + 7));
+            if (_fitKey != key) (_fitStats, _fitKey) = (WithParts(_bareStats, Parts), key);
+            return _fitStats;
+        }
+        private set => _bareStats = value;
+    }
+
+    // 부품을 얹는다: 보조돛은 가로돛(A) · 세로돛(B)에 그대로 더해지고 속도도 돛 성능만큼(80 에 1노트 — 배의 속도 식과 같다), 장갑은 장갑(A)에
+    public static ShipStats WithParts(ShipStats stats, IReadOnlyCollection<ShipPart>? parts)
+    {
+        if (stats == null || parts == null || parts.Count == 0) return stats!;
+        int square = parts.Where(p => p.Slot == 0).Sum(p => p.A), foreAft = parts.Where(p => p.Slot == 0).Sum(p => p.B), armor = parts.Where(p => p.Slot == 1).Sum(p => p.A);
+        return stats with { VerticalSail = stats.VerticalSail + foreAft, HorizontalSail = stats.HorizontalSail + square, Armor = stats.Armor + armor, Knots = stats.Knots + (square + foreAft) / 80.0 };
+    }
     /// <summary>타고 있는 배의 재질 번호와 적재 변경(%).</summary>
     public int ShipMaterialId { get; private set; }
     public int ShipLoad { get; private set; }
@@ -69,6 +89,8 @@ internal sealed partial class Voyage
     public int HullColor(int material)
     {
         if (_hullColors.TryGetValue(material, out int known)) return known;
+        // 클라이언트의 재질 줄에서 뽑은 실제 빛깔이 있으면 그것
+        if (Data.MaterialColors.TryGetValue(material, out int real)) return _hullColors[material] = real;
         int color = MaterialOf(material)?.Color ?? 0xFFFFFF;
         bool dark = Math.Max(color >> 16 & 255, Math.Max(color >> 8 & 255, color & 255)) < 128;
         try
@@ -102,7 +124,7 @@ internal sealed partial class Voyage
         return material == 0 && load == 0 ? stats : stats.Built(MaterialOf(material), load, Settings.Ships);
     }
 
-    public ShipStats StatsOf(DockedShip docked) => Worked(StatsOf(docked.Ship, docked.Material, docked.Load), docked.Work, docked.Ship);
+    public ShipStats StatsOf(DockedShip docked) => WithParts(Worked(StatsOf(docked.Ship, docked.Material, docked.Load), docked.Work, docked.Ship), docked.Parts);
 
     // ── 커스텀설정 조선 ──────────────────────────────────────────────────────
 

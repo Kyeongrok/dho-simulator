@@ -84,6 +84,11 @@ internal sealed partial class Voyage
     /// <summary>확인용: 바다 위의 자리로 옮긴다.</summary>
     public void Teleport(double x, double y) => (ShipX, ShipY) = (WorldMap.WrapX(x), y);
 
+    // 확인용: 타고 있는 배의 재질을 바꾼다
+    public void SetMaterialForTest(int material) => ShipMaterialId = material;
+
+    public void SetNationForTest(int nation) => NationId = nation;
+
     public string WindName => $"{Compass(WindDirection + Math.PI)}풍 {WindKnots:0}";
     public string CurrentName => CurrentKnots < 0.15 ? "" : $"해류 {Compass(CurrentDirection)}쪽 {CurrentKnots:0.0}";
 }

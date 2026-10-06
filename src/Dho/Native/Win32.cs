@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 namespace Dho.Native;
 
@@ -46,6 +46,11 @@ internal static class Win32
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool GetWindowRect(IntPtr hWnd, out Rect rect);
+
+    // 창에 입력기(IME)를 붙였다 뗀다 — flags 0 이면 hIMC 를 붙이고(0 = 뗀다), IACE_DEFAULT(0x10)면 기본 입력기를 되돌린다
+    [DllImport("imm32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool ImmAssociateContextEx(IntPtr hWnd, IntPtr hIMC, uint flags);
 
     [DllImport("user32.dll")]
     public static extern uint GetDpiForWindow(IntPtr hWnd);

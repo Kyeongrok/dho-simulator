@@ -486,10 +486,9 @@ internal sealed partial class Voyage
         Dialog = Dialog.Discovery;
         if (QuestDiscovery is { } found)
         {
-            AdventureExp += found.Exp * GainFactor;
-            AdventureFame += found.Fame;
             Say($"{found.Name}을(를) 발견했다!");
             Say($"모험 경험 {found.Exp}, 모험 명성 {found.Fame}을(를) 얻었다.");
+            GainExp(0, found.Exp, found.Fame);
             TrainDiscovery(found);
         }
     }
@@ -559,6 +558,7 @@ internal sealed partial class Voyage
         // 바람과 해류는 클라이언트 자료에 없다. 해역마다 지어 둔 값(sea-climates.json)을 따라 천천히 바뀐다.
         UpdateClimate(dt);
         RestoreVigour(dt / Settings.SecondsPerDay);
+        ExpireBoosts();
 
         AutoSave(dt);
         // 바다에서는 창을 열어도 배가 멈추지 않는다. 상륙 · 발견처럼 배를 세우고 하는 일만 멈춘다
@@ -603,7 +603,7 @@ internal sealed partial class Voyage
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
         // 급하게 돌면 그만큼 속도가 죽는다
         double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
-                        * (1 + Bonus("Speed")) * PartSpeed * AideSpeed * (1 + Option("Speed"));
+                        * (1 + Bonus("Speed")) * PartSpeed * AideSpeed * (1 + Option("Speed")) * (1 + BoostSpeed);
         Knots += (target - Knots) * Math.Min(1, dt * 0.8);
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;

@@ -31,6 +31,10 @@ internal sealed partial class Voyage
     /// <summary>쓸 수 있는 소비 아이템(가진 것).</summary>
     public List<ItemData> UsableItems() => Data.Items.Where(i => i.Effect != "Lifebuoy" && Items.GetValueOrDefault(i.Id) > 0).ToList();
 
+    // 퀵슬롯에 올릴 수 있는 가진 아이템의 번호 — 도구점의 소비 아이템에 더해 음식(행동력) · 부스트 아이템
+    public List<int> UsableItemIds() =>
+        Items.Where(i => i.Value > 0 && (ItemOf(i.Key) is { Effect: not "Lifebuoy" } || FoodOf(i.Key) != null || BoosterOf(i.Key) != null)).Select(i => i.Key).ToList();
+
     public bool InQuickSlot(int value) => Array.IndexOf(QuickSlots, value) >= 0;
 
     /// <summary>첫 빈 칸에 올린다. 이미 있거나 빈 칸이 없으면 그대로.</summary>

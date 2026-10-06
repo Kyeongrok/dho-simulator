@@ -123,7 +123,7 @@ internal sealed partial class Voyage
             Name = PlayerName, Male = Male, NationId = NationId, JobId = JobId, Money = Money,
             CityId = City.Id, ShipId = Ship.Id, Durability = Durability, Crew = Crew, Water = Water, Food = Food,
             Clock = Clock, SkyPhase = SkyPhase,
-            AdventureExp = AdventureExp, AdventureFame = AdventureFame, TradeExp = TradeExp,
+            AdventureExp = AdventureExp, AdventureFame = AdventureFame, TradeExp = TradeExp, BattleExp = BattleExp, TradeFame = TradeFame, BattleFame = BattleFame,
             Skills = Skills.ToDictionary(s => s.Key, s => new[] { s.Value.Rank, s.Value.Exp }),
             Supplies = new Dictionary<int, int>(Supplies),
             Cargo = Cargo.ToDictionary(c => c.Key, c => new[] { c.Value.Count, c.Value.Cost }),
@@ -133,6 +133,7 @@ internal sealed partial class Voyage
             PartStock = PartStock.Select(p => p.Id).ToList(),
             Equipped = Equipped.ToList(),
             Vigour = _vigour,
+            Boosts = Boosts.Select(b => new[] { b.Kind == "Speed" ? 0.0 : b.Kind == "Skill" ? 1 : 2, b.Amount, b.Group, b.SkillId, b.Cap, Math.Max(0, b.Until - Clock), Data.Boosters.Find(i => i.Name == b.Name)?.Id ?? 0 }).ToList(),
             Decos = DecoOn.ToList(),
             CrewGear = CrewOn.ToList(),
             Recipes = Recipes.ToList(),
@@ -171,6 +172,7 @@ internal sealed partial class Voyage
         AdventureExp = save.AdventureExp;
         AdventureFame = save.AdventureFame;
         TradeExp = save.TradeExp;
+        (BattleExp, TradeFame, BattleFame) = (save.BattleExp, save.TradeFame, save.BattleFame);
         foreach (var (id, state) in save.Skills) Skills[id] = new SkillState { Rank = (int)state[0], Exp = state[1] };
         foreach (var (id, count) in save.Supplies) Supplies[id] = count;
         foreach (var (id, item) in save.Cargo) Cargo[id] = new CargoItem { Count = (int)item[0], Cost = item[1] };
@@ -227,6 +229,9 @@ internal sealed partial class Voyage
         PartStock.AddRange(save.PartStock.Select(id => Data.ShipParts.Find(p => p.Id == id)).OfType<ShipPart>());
         for (int slot = 0; slot < Equipped.Length; slot++) Equipped[slot] = slot < save.Equipped.Count ? save.Equipped[slot] : 0;
         _vigour = save.Vigour;
+        Boosts.Clear();
+        foreach (var b in save.Boosts.Where(b => b.Length >= 7 && b[5] > 0))
+            Boosts.Add(new Boost { Kind = b[0] == 0 ? "Speed" : b[0] == 1 ? "Skill" : "Extend", Amount = b[1], Group = (int)b[2], SkillId = (int)b[3], Cap = (int)b[4], Until = Clock + b[5], Name = BoosterOf((int)b[6])?.Name ?? "부스트" });
         for (int spot = 0; spot < DecoOn.Length; spot++) DecoOn[spot] = spot < save.Decos.Count ? save.Decos[spot] : 0;
         for (int kind = 0; kind < CrewOn.Length; kind++) CrewOn[kind] = kind < save.CrewGear.Count ? save.CrewGear[kind] : 0;
         Quest = Data.Quests.Find(q => q.Id == save.QuestId);

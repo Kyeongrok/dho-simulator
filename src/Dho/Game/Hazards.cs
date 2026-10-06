@@ -145,6 +145,7 @@ internal sealed partial class Voyage
         Disasters.Remove(disaster);
         Studied("Cure");
         Say(Text((uint)disaster.Data.EndText, $"{disaster.Data.Name} — 풀렸다."));
+        GainExp(2, 30, 2);                      // 전투가 없어 재해를 이겨 낸 것을 전투 경험으로 친다(지은 값)
     }
 
     /// <summary>대본·개발 확인용: 재해를 바로 일으킨다.</summary>
@@ -153,11 +154,16 @@ internal sealed partial class Voyage
         if (Data.Disasters.Find(d => d.Id == id) is { } data) Begin(data);
     }
 
+    // 폭풍 속에서도 돛을 편 채 갈 수 있는 배인가 — 내파가 문턱 이상
+    public bool StormProof => Stats.WaveResist >= Rules.StormWaveResist;
+
     public void StartStorm()
     {
         Weather = Weather.Storm;
         _stormDays = Rules.StormDays;
         Say(Text(TextStorm, "폭풍이 몰아칩니다! 돛을 펴놓고 있으면 전복하고 맙니다!"));
+        Say(StormProof ? $"이 배의 내파({Stats.WaveResist})라면 폭풍 속에서도 항해할 수 있다. (내파 {Rules.StormWaveResist} 이상)"
+                       : $"내파 {Stats.WaveResist} — {Rules.StormWaveResist} 이상이어야 폭풍 속을 항해할 수 있다.");
         Cues.Enqueue("Storm");
     }
 
@@ -219,10 +225,12 @@ internal sealed partial class Voyage
         if (Weather == Weather.Storm)
         {
             _stormDays -= days;
-            if (Sail > 0)
+            if (Sail > 0 && !StormProof)
             {
-                Durability -= Rules.StormDurabilityPerDay * hullScale * days * Sail / SailSteps * PartDamage * (1 - Math.Min(0.8, Option("Storm")));
-                Crew -= 6 * days * loss * crewScale;
+                // 내파가 문턱에 가까울수록 덜 다친다(절반까지)
+                double rough = 1 - 0.5 * Math.Clamp(Stats.WaveResist / (double)Math.Max(1, Rules.StormWaveResist), 0, 1);
+                Durability -= Rules.StormDurabilityPerDay * hullScale * days * Sail / SailSteps * PartDamage * (1 - Math.Min(0.8, Option("Storm"))) * rough;
+                Crew -= 6 * days * loss * crewScale * rough;
                 TrainEffect("CrewLoss", 40 * days);
             }
             if (_stormDays <= 0)

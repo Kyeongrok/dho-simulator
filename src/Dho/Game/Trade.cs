@@ -255,7 +255,7 @@ internal sealed partial class Voyage
         if (item.Count == 0) Cargo.Remove(good.Id);
         if (profit > 0)
         {
-            TradeExp += (int)(profit / 100) * GainFactor;
+            GainExp(1, (int)Math.Min(100_000, profit / 100), (int)Math.Min(1000, profit / 2000));      // 교역 명성은 이익 2000 에 1(지은 값)
             TrainEffect("Haggle", Math.Min(60, profit / 50.0));
             Studied("Profit");
             if (profit >= 50_000) Studied("BigProfit");

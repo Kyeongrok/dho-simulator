@@ -99,7 +99,7 @@ internal sealed partial class Voyage
 
     /// <summary>보조돛이 보태고 장갑이 깎는 속도 배율.</summary>
     public double PartSpeed =>
-        (1 + Parts.Where(p => p.Slot == 0).Sum(p => p.A + p.B) / 400.0) * (1 - Parts.Where(p => p.Slot == 1).Sum(p => p.B) / 100.0);
+        1 - Parts.Where(p => p.Slot == 1).Sum(p => p.B) / 100.0;       // 보조돛의 몫은 이제 돛 성능과 속도에 바로 얹힌다(Stats)
 
     /// <summary>장갑이 줄여 주는 내구 피해 배율.</summary>
     public double PartDamage => 1 - Math.Min(0.6, Parts.Where(p => p.Slot == 1).Sum(p => p.A) * 0.02);

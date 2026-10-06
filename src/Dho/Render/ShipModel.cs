@@ -32,16 +32,209 @@ internal sealed class ShipModel : IDisposable
     /// </summary>
     public void SetHullBase(int which)
     {
-        which = Math.Clamp(which, 0, 2);
+        // 0 SHIP_BASE_001(잿빛 나무 — 옛 방식), 1 101(제 빛의 나무), 2 201(칠을 받는 잿빛 널), 3 401 · 4 002 · 5 202(비늘 따위 재질의 덧판 — 재질 줄의 텍스처 칸 308 · 419 · 420)
+        which = Math.Clamp(which, 0, 5);
         if (which == _hullBase) return;
-        var next = GameTexture.FromMftf(_device, new Pack(@"0001\sh0004.bin").Entry(which));
+        int resource = which switch { 3 => 308, 4 => 419, 5 => 420, _ => which };
+        if (_index == null || !_index.TryGetValue((0x301, resource), out var at)) return;
+        ID3D11ShaderResourceView next;
+        try { next = GameTexture.FromMftf(_device, new Pack(at.Pack).Entry(at.Entry)); } catch (Exception) { return; }
         for (int i = 0; i < _parts.Count; i++)
             if (_parts[i].Texture == _hullTexture) _parts[i] = (_parts[i].Mesh, next, _parts[i].Tint);
         _hullTexture.Dispose();
         (_hullTexture, _hullBase) = (next, which);
     }
     private ID3D11ShaderResourceView _sailTexture;
-    private ID3D11ShaderResourceView? _decoTexture;
+    private ID3D11ShaderResourceView? _decoTexture, _yardTexture;
+    // 돛 위의 문장 — 돛 천의 둘째 UV 벌(0 ~ 1 의 네모가 문장 자리)로 만든 면들과, 단 문장의 그림
+    private readonly List<Mesh> _emblemParts = [];
+    private ID3D11ShaderResourceView? _emblemTexture;
+    private int _emblem;
+    private static Dictionary<int, (string Pack, int Entry)>? _symbols;
+
+    // ── 선박 데코 ──
+    // 배마다 「붙임 자리」 덩이가 하나 있다(색인 갈래 0x303, 자원 번호 = 모형 표의 줄 차례): u32 크기, u32 × 15 무리마다의 수, u32 × 15 무리의 첫 차례, 0x80 부터 4 × 4 행렬.
+    // 무리(자리를 보고 읽은 것 — 짐작): 0 뱃머리 · 1 고물 · 2 · 3 좌우 현의 포문 · 4 · 7 앞뒤의 흩어진 자리 · 5 · 9 앞쪽 좌우 현 · 6 · 8 뒤쪽 좌우 현 · 10 가운데 · 11 갑판 · 12 · 13 앞뒤 물가.
+    // 데코는 앞쪽 현(5 · 9)과 뒤쪽 현(6 · 8)의 첫째 · 둘째 자리에 좌우로 단다. 모형은 이름이 DECOnnn 인 것(nnn = 데코 표의 모형 번호 — 맞는지는 화면으로 본 것), 그림은 이름에 같은 번호가 든 것.
+    private Matrix4x4[][] _spots = [];
+    private readonly List<(Mesh Mesh, ID3D11ShaderResourceView? Texture, Matrix4x4 At, Vector4 Tint)> _decoParts = [];
+    public static bool DecoTint = true;
+    private readonly List<ID3D11ShaderResourceView> _decoTextures = [];
+    private string _decoKey = "";
+
+    // XKMD 항목의 이름 — 머리 +0x5C 가 이름 구역 자리, 그 +4 부터 32바이트
+    private static string NameOf(Pack pack, int entry)
+    {
+        var head = pack.Slice(entry, 0, 0x80);
+        if (head.Length < 0x80 || !head.AsSpan(0, 4).SequenceEqual("XKMD"u8)) return "";
+        int at = BinaryPrimitives.ReadInt32LittleEndian(head.AsSpan(0x4C + 4 * 4));
+        if (at == 0) return "";
+        var name = pack.Slice(entry, at + 4, 32);
+        int end = Array.IndexOf(name, (byte)0);
+        return System.Text.Encoding.ASCII.GetString(name, 0, end < 0 ? name.Length : end);
+    }
+    private void ReadSpots(int rowIndex)
+    {
+        try
+        {
+            if (_index == null || !_index.TryGetValue((0x303, rowIndex), out var at)) return;
+            var data = new Pack(at.Pack).Entry(at.Entry);
+            _spots = new Matrix4x4[15][];
+            for (int g = 0; g < 15; g++)
+            {
+                int count = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(4 + g * 4)), first = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(64 + g * 4));
+                _spots[g] = new Matrix4x4[count];
+                for (int k = 0; k < count; k++)
+                {
+                    int p = 0x80 + (first + k) * 64;
+                    float F(int i) => BinaryPrimitives.ReadSingleLittleEndian(data.AsSpan(p + i * 4));
+                    _spots[g][k] = new Matrix4x4(F(0), F(1), F(2), F(3), F(4), F(5), F(6), F(7), F(8), F(9), F(10), F(11), F(12), F(13), F(14), F(15));
+                }
+            }
+        }
+        catch (Exception) { _spots = []; }
+    }
+
+    /// <summary>단 데코를 바꾼다 — 자리 넷(앞쪽 현 첫째 · 둘째, 뒤쪽 현 첫째 · 둘째)마다 데코 표의 모형 번호(0 이면 없음).</summary>
+    public void SetDecos(int[] models)
+    {
+        string key = string.Join(",", models);
+        if (key == _decoKey) return;
+        _decoKey = key;
+        foreach (var part in _decoParts) part.Mesh.Dispose();
+        foreach (var texture in _decoTextures) texture.Dispose();
+        _decoParts.Clear();
+        _decoTextures.Clear();
+        if (_spots.Length < 15) return;
+        try
+        {
+            // 데코의 모형 표 — 배 모형 표(0001\0002.bin)의 맨 끝: u32 줄 수(306), 10바이트 줄 = u16 모형 자원(갈래 0x300) · u16 그림 자원(0x301) · u16 둘째 그림 · u16 0 · u8 × 2 빛깔 번호.
+            // 줄의 차례가 데코 표(138)의 모형 번호다(돛단배 8 · 9 · 10 이 같은 모형에 빛깔만 다르다). 그 앞에 u32 30 과 빛깔 30쌍(u32 ARGB × 2).
+            var table = _modelTable!;
+            int rows = 0, start = 0;
+            for (int n = 1; table.Length - 4 - n * 10 > 0; n++)
+                if (BinaryPrimitives.ReadInt32LittleEndian(table.AsSpan(table.Length - 4 - n * 10)) == n) (rows, start) = (n, table.Length - n * 10);
+            for (int slot = 0; slot < Math.Min(4, models.Length); slot++)
+            {
+                if (models[slot] <= 0 || models[slot] >= rows) continue;
+                int row = start + models[slot] * 10;
+                int U16(int at) => BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(at));
+                if (!_index!.TryGetValue((0x300, U16(row)), out var model)) continue;
+                ID3D11ShaderResourceView? picture = null;
+                if (_index.TryGetValue((0x301, U16(row + 2)), out var pictureAt)) _decoTextures.Add(picture = GameTexture.FromMftf(_device, new Pack(pictureAt.Pack).Entry(pictureAt.Entry)));
+                // 빛깔: 첫째 빛깔 번호(1 ~ 30)의 쌍 가운데 밝은 쪽으로 물들인다(두 빛깔을 조각마다 나눠 칠하는 법은 못 밝혔다 — 짐작)
+                var tint = Vector4.One;
+                int colour = table[row + 8], colours = start - 4 - 240;
+                if (DecoTint && colour is >= 1 and <= 30)
+                {
+                    uint argb = BinaryPrimitives.ReadUInt32LittleEndian(table.AsSpan(colours + (colour - 1) * 8));
+                    tint = new Vector4((argb >> 16 & 255) / 255f, (argb >> 8 & 255) / 255f, (argb & 255) / 255f, 1);
+                }
+                var data = new Pack(model.Pack).Entry(model.Entry);
+                foreach (int group in slot < 2 ? (int[])[5, 9] : [6, 8])
+                {
+                    if (_spots[group].Length <= slot % 2) continue;
+                    int before = _parts.Count;
+                    var (min, max) = (_min, _max);
+                    Load(_device, data, isHull: false);
+                    (_min, _max) = (min, max);                      // 데코는 배의 크기에 안 넣는다
+                    for (int i = before; i < _parts.Count; i++) _decoParts.Add((_parts[i].Mesh, picture ?? _parts[i].Texture, _spots[group][slot % 2], tint));
+                    _parts.RemoveRange(before, _parts.Count - before);
+                }
+            }
+        }
+        catch (Exception) { }                      // 못 읽는 데코는 안 단다
+    }
+
+    // 깃발 — 돛대 뼈대의 마디 가운데 이름이 FLAG… 인 자리(돛대 꼭대기 따위)에 나라 깃발을 단다.
+    // 깃발 모형은 못 찾아서(FLAG05 부터만 이름 붙은 모형이 있다) 뒤로 나부끼는 띠를 지어 세운다. 그림은 sh0005 의 TEX_FLAG01 ~ 08:
+    // 01 흰 깃발, 02 ~ 08 = 나라 1 ~ 7(에스파니아 · 포르투갈 · 베네치아 · 프랑스 · 네덜란드 · 잉글랜드 · 오스만 — 그림을 보고 맞춤).
+    private readonly List<Vector3> _flagSpots = [];
+    private Mesh? _flagMesh;
+    private ID3D11ShaderResourceView? _flagTexture;
+    private int _flagNation = -1;
+
+    private void FlagSpots(byte[] data)
+    {
+        int nodes = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(0x2C + 4)), nodesAt = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(0x4C + 3 * 4)), namesAt = BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(0x4C + 4 * 4));
+        if (nodes == 0 || nodes > 200 || nodesAt == 0 || namesAt == 0 || nodesAt + nodes * 0x2C > data.Length) return;
+        float F32(int at) => BinaryPrimitives.ReadSingleLittleEndian(data.AsSpan(at));
+        var world = new Matrix4x4[nodes];
+        for (int i = 0; i < nodes; i++)
+        {
+            int at = nodesAt + i * 0x2C, parent = BinaryPrimitives.ReadInt16LittleEndian(data.AsSpan(at + 2));
+            var local = Matrix4x4.CreateFromQuaternion(new Quaternion(F32(at + 16), F32(at + 20), F32(at + 24), F32(at + 28))) * Matrix4x4.CreateTranslation(F32(at + 32), F32(at + 36), F32(at + 40));
+            world[i] = parent >= 0 && parent < i ? local * world[parent] : local;
+            int nameAt = namesAt + BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(namesAt + i * 4));
+            if (nameAt + 4 > data.Length || !data.AsSpan(nameAt, 4).SequenceEqual("FLAG"u8)) continue;
+            var spot = world[i].Translation;
+            if (!_flagSpots.Exists(s => Vector3.DistanceSquared(s, spot) < 100 * 100)) _flagSpots.Add(spot);
+        }
+    }
+
+    /// <summary>깃발의 나라를 정한다(0 이면 흰 깃발).</summary>
+    public void SetFlag(int nation)
+    {
+        if (nation == _flagNation) return;
+        _flagNation = nation;
+        _flagTexture?.Dispose();
+        _flagTexture = null;
+        try { _flagTexture = GameTexture.FromMftf(_device, new Pack(@"0001\sh0005.bin").Entry(nation is >= 1 and <= 7 ? nation : 0)); } catch (Exception) { }
+        if (_flagMesh != null || _flagSpots.Count == 0) return;
+        // 띠 하나: 깃대에서 뒤(−z)로, 조금 물결치게 여섯 마디
+        var builder = new MeshBuilder();
+        float length = Math.Clamp(Radius * 0.11f, 260, 900), height = length * 0.3f;
+        foreach (var spot in _flagSpots)
+        {
+            uint first = (uint)builder.Vertices.Count;
+            const int segments = 6;
+            for (int k = 0; k <= segments; k++)
+            {
+                float t = k / (float)segments, sway = MathF.Sin(t * 5.5f) * length * 0.07f * t;
+                builder.Add(spot + new Vector3(sway, 0, -t * length), Vector3.UnitX, Vector4.One, new Vector2(t, 0));
+                builder.Add(spot + new Vector3(sway, -height, -t * length), Vector3.UnitX, Vector4.One, new Vector2(t, 1));
+            }
+            for (uint k = 0; k < segments; k++)
+            {
+                uint a = first + k * 2;
+                builder.Triangle(a, a + 2, a + 1); builder.Triangle(a + 1, a + 2, a + 3);
+                builder.Triangle(a, a + 1, a + 2); builder.Triangle(a + 1, a + 3, a + 2);
+            }
+        }
+        _flagMesh = builder.Build(_device);
+    }
+
+    /// <summary>
+    /// 돛에 그릴 문장을 바꾼다 — 문장 그림 묶음 <c>0001\em0000 ~ 3.bin</c> 의 <c>tex_symbolNNN</c>, NNN = 문장 아이템 번호 − 1100000(그림을 나란히 놓고 맞춰 본 것). 0 이면 지운다.
+    /// </summary>
+    public void SetEmblem(int symbol)
+    {
+        if (symbol == _emblem) return;
+        _emblem = symbol;
+        _emblemTexture?.Dispose();
+        _emblemTexture = null;
+        if (symbol <= 0) return;
+        try
+        {
+            if (_symbols == null)
+            {
+                _symbols = new Dictionary<int, (string, int)>();
+                for (int k = 0; k < 4; k++)
+                {
+                    string file = $@"0001\em{k:D4}.bin";
+                    var pack = new Pack(file);
+                    for (int entry = 0; entry < pack.Count; entry++)
+                    {
+                        string head = System.Text.Encoding.ASCII.GetString(pack.Slice(entry, 0, Math.Min(700, pack.Size(entry))));
+                        int at = head.IndexOf("tex_symbol", StringComparison.Ordinal);
+                        if (at >= 0 && int.TryParse(new string(head.Skip(at + 10).TakeWhile(char.IsDigit).ToArray()), out int number)) _symbols.TryAdd(number, (file, entry));
+                    }
+                }
+            }
+            if (_symbols.TryGetValue(symbol, out var found)) _emblemTexture = GameTexture.FromMftf(_device, new Pack(found.Pack).Entry(found.Entry));
+        }
+        catch (Exception) { }                      // 그림을 못 읽으면 문장 없이
+    }
     private readonly Gfx _device;
     private Vector3 _min = new(float.MaxValue), _max = new(float.MinValue);
     /// <summary>모형의 가운데와 반지름 — 창 안에 맞춰 보여 줄 때 쓴다.</summary>
@@ -129,16 +322,20 @@ internal sealed class ShipModel : IDisposable
         _hullTexture = GameTexture.FromMftf(gfx, new Pack(@"0001\sh0004.bin").Entry(0));
         _sailTexture = GameTexture.FromMftf(gfx, new Pack(@"0001\sa0000.bin").Entry(0));
 
+        try { _yardTexture = GameTexture.FromMftf(gfx, new Pack(@"0001\sh0005.bin").Entry(8), 0); } catch (Exception) { }
         _index ??= ReadIndex();
         var table = _modelTable ??= Dho.Data.GvoFiles.Read(@"0001\0002.bin");
         int row = RowOf(table, model);
         if (row < 0) row = RowOf(table, fallbackModel);
         int U16(int at) => BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(at));
+        ReadSpots((row - (4 + BinaryPrimitives.ReadInt32LittleEndian(table) * 4 + 12)) / 64);
         void Part(int resource, bool isHull)
         {
             if (resource == 0xFFFF || !_index.TryGetValue((0x300, resource), out var found)) return;
             var data = new Pack(found.Pack).Entry(found.Entry);
-            if (data.Length >= 0x80 && data.AsSpan(0, 4).SequenceEqual("XKMD"u8)) Load(gfx, data, isHull);
+            if (data.Length < 0x80 || !data.AsSpan(0, 4).SequenceEqual("XKMD"u8)) return;
+            Load(gfx, data, isHull);
+            FlagSpots(data);
         }
         // 선체의 조각은 텍스처 번호가 둘이다: 0 = 바탕 판(SHIP_BASE_…), 1 = 그 배의 장식 판(줄의 넷째 텍스처 칸 — SHIP_DECO_001 ~ 004: 창 · 난간 · 금빛 띠)
         try
@@ -157,6 +354,7 @@ internal sealed class ShipModel : IDisposable
 
     private void Load(Gfx gfx, byte[] data, bool isHull)
     {
+        if (!isHull) _mast++;
         int U16(int at) => BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(at));
         int I32(int at) => BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(at));
         float F32(int at) => BinaryPrimitives.ReadSingleLittleEndian(data.AsSpan(at));
@@ -169,6 +367,10 @@ internal sealed class ShipModel : IDisposable
         var decoBuilders = new MeshBuilder?[bufferCount];
         // 정점버퍼마다 삼각형을 모은다
         var builders = new MeshBuilder?[bufferCount];
+        var fills = new Func<MeshBuilder>?[bufferCount];
+        var sailPositions = new Vector3[]?[bufferCount];
+        var sailTriangles = new List<(uint A, uint B, uint C)>?[bufferCount];
+        var dyed = new Dictionary<(int Buffer, int Dye), MeshBuilder>();
         var formats = new int[bufferCount];
         for (int b = 0; b < bufferCount; b++)
         {
@@ -180,7 +382,34 @@ internal sealed class ShipModel : IDisposable
             int normalAt = 12 + 4 * ((fvf & 0xE) switch { 0x6 => 1, 0x8 => 2, 0xA => 3, 0xC => 4, 0xE => 5, _ => 0 });
             int uvAt = normalAt + 12 + ((fvf & 0x40) != 0 ? 4 : 0);
             var builder = builders[b] = new MeshBuilder();
+            int bufferAt = at, bufferStride = stride, bufferCount2 = count;
+            // 선체의 조각에는 빛깔 번호(조각 기록 +8, 0 ~ 4)가 있다 — 번호마다 따로 모아 재질의 빛깔을 달리 입힌다
+            if (isHull) fills[b] = () =>
+            {
+                var filled = new MeshBuilder();
+                for (int v = 0; v < bufferCount2; v++)
+                {
+                    int p = bufferAt + v * bufferStride;
+                    filled.Add(new Vector3(F32(p), F32(p + 4), F32(p + 8)), new Vector3(F32(p + normalAt), F32(p + normalAt + 4), F32(p + normalAt + 8)), Vector4.One, new Vector2(F32(p + uvAt), F32(p + uvAt + 4)));
+                }
+                return filled;
+            };
             var decoBuilder = isHull && _decoTexture != null ? decoBuilders[b] = new MeshBuilder() : null;
+            // 돛 천: 둘째 UV 벌로 문장 면을 따로 만든다 — 천의 앞뒤로 조금 띄워 두 겹(정점 2v 가 앞, 2v + 1 이 뒤)
+            if (!isHull && fvf == FvfSail)
+            {
+                var emblem = decoBuilders[b] = new MeshBuilder();
+                (sailPositions[b], sailTriangles[b]) = (new Vector3[count], []);
+                for (int v = 0; v < count; v++)
+                {
+                    int p = at + v * stride;
+                    var position = sailPositions[b]![v] = new Vector3(F32(p), F32(p + 4), F32(p + 8));
+                    var normal = new Vector3(F32(p + normalAt), F32(p + normalAt + 4), F32(p + normalAt + 8));
+                    var uv = new Vector2(F32(p + uvAt + 8), F32(p + uvAt + 12));
+                    emblem.Add(position + normal * 14, normal, Vector4.One, uv);
+                    emblem.Add(position - normal * 14, -normal, Vector4.One, uv);
+                }
+            }
             for (int v = 0; v < count; v++)
             {
                 int p = at + v * stride;
@@ -207,19 +436,27 @@ internal sealed class ShipModel : IDisposable
                 var builder = buffer < bufferCount ? builders[buffer] : null;
                 if (builder == null) continue;
                 // 이 조각의 첫 텍스처단이 가리키는 번호가 1 이면 장식 판 쪽에 모은다
-                if (decoBuilders[buffer] is { } decorated && I32(record + 0x0C) > 0 && U16(record + 0x10) is var stage && stage < stageCount
+                if (isHull && decoBuilders[buffer] is { } decorated && I32(record + 0x0C) > 0 && U16(record + 0x10) is var stage && stage < stageCount
                     && BinaryPrimitives.ReadInt16LittleEndian(data.AsSpan(stagesAt + stage * 0x20 + 4)) == 1) builder = decorated;
+                else if (isHull && U16(record + 8) is > 0 and < 8 and var dye && fills[buffer] is { } fill)
+                {
+                    if (!dyed.TryGetValue((buffer, dye), out var own)) dyed[(buffer, dye)] = own = fill();
+                    builder = own;
+                }
 
                 int indices = indexAt + I32(buffersAt + buffer * 0x34 + 0x24);
                 uint Index(int i) => (uint)U16(indices + (first + i) * 2);
                 if (primitive == 5)
                 {
+                    var both = !isHull && formats[buffer] == FvfSail ? decoBuilders[buffer] : null;
                     for (int i = 0; i < primitives; i++)
                     {
                         uint a = Index(i), b = Index(i + 1), c = Index(i + 2);
                         if (a == b || b == c || a == c) continue;
                         if ((i & 1) == 0) builder.Triangle(a, b, c);
                         else builder.Triangle(b, a, c);
+                        if (both == null) continue;
+                        sailTriangles[buffer]!.Add((a, b, c));
                     }
                 }
                 else
@@ -229,28 +466,103 @@ internal sealed class ShipModel : IDisposable
             }
         }
 
+        // 문장은 돛대마다 하나 — 이 돛 모형(돛대 하나의 돛들)에서 가장 넓은 돛 한 장에만 그린다. 이어진 삼각형 무리가 돛 한 장이다
+        {
+            static int Find(int[] parent, int x) { while (parent[x] != x) x = parent[x] = parent[parent[x]]; return x; }
+            (float Area, int Buffer, int Root) best = (0, -1, 0);
+            var parents = new int[]?[bufferCount];
+            for (int b = 0; b < bufferCount; b++)
+            {
+                if (sailTriangles[b] is not { Count: > 0 } triangles || sailPositions[b] is not { } spots) continue;
+                var parent = parents[b] = new int[spots.Length];
+                var seen = new Dictionary<(int, int, int), int>();
+                for (int v = 0; v < spots.Length; v++)
+                {
+                    parent[v] = v;
+                    var key = ((int)MathF.Round(spots[v].X), (int)MathF.Round(spots[v].Y), (int)MathF.Round(spots[v].Z));
+                    if (seen.TryGetValue(key, out int first)) parent[v] = first; else seen[key] = v;
+                }
+                foreach (var (a, b2, c) in triangles) { parent[Find(parent, (int)b2)] = Find(parent, (int)a); parent[Find(parent, (int)c)] = Find(parent, (int)a); }
+                var areas = new Dictionary<int, float>();
+                foreach (var (a, b2, c) in triangles)
+                {
+                    int root = Find(parent, (int)a);
+                    areas[root] = areas.GetValueOrDefault(root) + Vector3.Cross(spots[b2] - spots[a], spots[c] - spots[a]).Length();
+                }
+                foreach (var (root, area) in areas) if (area > best.Area) best = (area, b, root);
+            }
+            if (best.Buffer >= 0 && decoBuilders[best.Buffer] is { } cloth)
+                foreach (var (a, b2, c) in sailTriangles[best.Buffer]!)
+                {
+                    if (Find(parents[best.Buffer]!, (int)a) != best.Root) continue;
+                    cloth.Triangle(a * 2, b2 * 2, c * 2);
+                    cloth.Triangle(b2 * 2 + 1, a * 2 + 1, c * 2 + 1);
+                }
+        }
+
         for (int b = 0; b < bufferCount; b++)
         {
             var builder = builders[b];
+            if (isHull)
+                foreach (var ((buffer, dye), own) in dyed)
+                    if (buffer == b && own.Indices.Count > 0) _parts.Add((own.Build(gfx), _hullTexture, new Vector4(1, 1, 1, 10 + dye)));
             if (builder == null || (builder.Indices.Count == 0 && decoBuilders[b] is not { Indices.Count: > 0 })) continue;
             // 선체는 선체 그림, 돛 천은 돛 그림. 돛 파트의 나머지(활대·줄)는 그림을 못 찾아 나무 빛으로 칠한다.
             if (isHull)
             {
-                _parts.Add((builder.Build(gfx), _hullTexture, Vector4.One));
+                if (builder.Indices.Count > 0) _parts.Add((builder.Build(gfx), _hullTexture, Vector4.One));
                 if (decoBuilders[b] is { Indices.Count: > 0 } decorated) _parts.Add((decorated.Build(gfx), _decoTexture, Vector4.One));      // 장식은 재질 빛깔로 물들이지 않는다
                 continue;
             }
-            else if (formats[b] == FvfSail) _parts.Add((builder.Build(gfx), _sailTexture, Vector4.One));
+            else if (formats[b] == FvfSail)
+            {
+                _parts.Add((builder.Build(gfx), _sailTexture, new Vector4(1, 1, 1, 100 + _mast)));
+                if (decoBuilders[b] is { Indices.Count: > 0 } emblem) { _emblemParts.Add(emblem.Build(gfx)); _emblemMasts.Add(_mast); }
+            }
+            // 활대 · 밧줄: 돛 모형의 텍스처 번호 3 = 돛 부속 그림 묶음(sh0005 의 8번)의 첫 장 TEX_YARD(4 부터는 주름). 못 읽으면 나무 빛으로 칠한다
+            else if (_yardTexture != null) _parts.Add((builder.Build(gfx), _yardTexture, Vector4.One));
             else _parts.Add((builder.Build(gfx), null, new Vector4(0.42f, 0.33f, 0.22f, 1)));
         }
     }
 
     /// <param name="sail">돛 천에 입히는 빛깔(돛 도료).</param>
     /// <param name="hull">선체에 입히는 빛깔(재질).</param>
+    public static Vector4[]? DyeDebug;
+    // 돛을 편 만큼(0 ~ 1) — 돛대의 차례대로 그만큼의 돛대에만 돛 천을 그린다. 0 이면 돛을 다 접은 것(활대 · 밧줄만 남는다)
+    public float Furl { get; set; } = 1;
+    private int _mast;                 // 지금 읽는 돛 모형의 차례(돛대) — 돛 천과 문장이 어느 돛대의 것인지 적어 둔다
+    private readonly List<int> _emblemMasts = [];
+    private ID3D11ShaderResourceView? _woodTexture;
+    private bool _woodTried;
+    // 제 빛의 나무 판(SHIP_BASE_101) — 칠한 배의 돛대 · 갑판 · 밧줄에 쓴다
+    private ID3D11ShaderResourceView? Wood()
+    {
+        if (_woodTried) return _woodTexture;
+        _woodTried = true;
+        try { if (_index != null && _index.TryGetValue((0x301, 1), out var at)) _woodTexture = GameTexture.FromMftf(_device, new Pack(at.Pack).Entry(at.Entry)); } catch (Exception) { }
+        return _woodTexture;
+    }
     public void Draw(SceneRenderer scene, in Matrix4x4 world, Vector4? sail = null, Vector4? hull = null)
     {
+        // 편 돛대의 수 — 돛 천이 있는 돛대들 가운데 앞에서부터
+        var masts = _parts.Where(p => p.Texture == _sailTexture && p.Tint.W >= 100).Select(p => (int)p.Tint.W - 100).Distinct().OrderBy(m => m).ToList();
+        var set = masts.Take((int)MathF.Ceiling(masts.Count * Math.Clamp(Furl, 0, 1) - 0.001f)).ToHashSet();
         foreach (var (mesh, texture, tint) in _parts)
-            scene.Draw(mesh, world, texture == _sailTexture && sail is { } paint ? paint : texture == _hullTexture && hull is { } wood ? wood : tint, texture, cloth: texture == _sailTexture);
+        {
+            if (texture == _sailTexture && tint.W >= 100 && !set.Contains((int)tint.W - 100)) continue;
+            Vector4 colour = texture == _sailTexture && sail is { } paint ? paint : texture == _hullTexture && hull is { } wood ? wood : tint with { W = 1 };
+            int dye = tint.W >= 10 ? (int)tint.W - 10 : 0;
+            if (texture == _hullTexture && DyeDebug != null) colour = DyeDebug[dye];
+            // 선체 조각의 빛깔 번호: 3 = 선체 널, 1 · 2 = 띠, 0 = 돛대 · 갑판, 4 = 밧줄(색을 입혀 보고 읽은 것). 칠한 재질(바탕 판 2 ~)에서는 0 · 4 를 칠하지 않고 나무 판으로 그린다
+            var plate = texture;
+            if (texture == _hullTexture && DyeDebug == null && _hullBase >= 2 && dye is 0 or 4 && Wood() is { } timber) (plate, colour) = (timber, Vector4.One);
+            scene.Draw(mesh, world, colour, plate, cloth: texture == _sailTexture);
+        }
+        if (_flagMesh != null && _flagTexture != null) scene.Draw(_flagMesh, world, null, _flagTexture, cloth: true);
+        foreach (var (mesh, texture, at, tint) in _decoParts) scene.Draw(mesh, at * world, texture == null ? new Vector4(0.6f, 0.5f, 0.35f, 1) : tint, texture);
+        if (_emblemTexture != null)
+            for (int i = 0; i < _emblemParts.Count; i++)
+                if (i >= _emblemMasts.Count || set.Contains(_emblemMasts[i])) scene.Draw(_emblemParts[i], world, null, _emblemTexture, cloth: true, emblem: true);
     }
 
     public void Dispose()
@@ -259,5 +571,12 @@ internal sealed class ShipModel : IDisposable
         _hullTexture.Dispose();
         _sailTexture.Dispose();
         _decoTexture?.Dispose();
+        _yardTexture?.Dispose();
+        _flagTexture?.Dispose();
+        _flagMesh?.Dispose();
+        foreach (var part in _decoParts) part.Mesh.Dispose();
+        foreach (var texture in _decoTextures) texture.Dispose();
+        _emblemTexture?.Dispose();
+        foreach (var mesh in _emblemParts) mesh.Dispose();
     }
 }

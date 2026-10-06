@@ -85,7 +85,7 @@ internal sealed partial class Voyage
     /// <summary>다시 쓸 때까지의 시간 가운데 남은 몫(0 ~ 1) — 단추를 덮는 데 쓴다.</summary>
     public double SkillWaitShare(SkillRuleData rule) => SkillWait(rule) / Pause(rule);
 
-    private static double Pause(SkillRuleData rule) => rule.Effect switch { "Survey" => 5, "Repair" => 30, "Rest" => 10, _ => 20 };
+    private static double Pause(SkillRuleData rule) => rule.Effect switch { "Survey" => 5, "Repair" => 1, "Rest" => 10, _ => 20 };      // 수리는 기다림이 없다(사용자 확인, 2026-10-07) — 나눗셈 때문에 1초만 둔다
 
     /// <summary>지금 못 쓰는 까닭. 쓸 수 있으면 null.</summary>
     public string? SkillBlocker(SkillRuleData rule)
@@ -122,7 +122,7 @@ internal sealed partial class Voyage
         {
             // 켜 두는 스킬: 다시 누르면 끈다
             if (_skillOn.Remove(rule.SkillId)) { Say($"{name} 스킬을 껐다."); return; }
-            _skillOn[rule.SkillId] = (Clock + OnSeconds, Clock + TickSeconds);
+            _skillOn[rule.SkillId] = (Clock + OnSeconds * BoostExtend, Clock + TickSeconds);
             SpendVigour(VigourCost(rule));
             Fatigue = Math.Min(100, Fatigue + 1);
             Say($"{name} 스킬을 사용했다.");

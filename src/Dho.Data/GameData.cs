@@ -155,6 +155,8 @@ public sealed class VoyageRules
     public double StormDays { get; set; } = 0.6;
     /// <summary>폭풍 속에서 돛을 편 채로 하루에 잃는 내구.</summary>
     public double StormDurabilityPerDay { get; set; } = 260;
+    // 배의 내파가 이 값 이상이면 폭풍 속에서도 돛을 편 채 항해할 수 있다(피해가 없다). 원본에 이런 문턱이 있다는 것은 사용자의 기억이고 15 라는 수는 지은 것이다
+    public int StormWaveResist { get; set; } = 15;
     /// <summary>난파했을 때 잃는 소지금 비율.</summary>
     public double WreckMoneyLoss { get; set; } = 0.1;
 }
@@ -439,6 +441,8 @@ public sealed class ShipDetailFact
     public List<int> Caps { get; set; } = [];
     public List<int> Slots { get; set; } = [];
     public List<ShipDetailSkill> Skills { get; set; } = [];
+    // 제 자료가 없어 다른 배의 것을 빌려 왔으면 그 배의 이름(화면에 「지은 값」 딱지가 남는다)
+    public string Borrowed { get; set; } = "";
     public string Hull { get; set; } = "";
     /// <summary>특수 건조 — 어느 도시에서 어느 선체로 짓는가(조선 랭크 · 기본 재질).</summary>
     public List<ShipSpecialBuild> Special { get; set; } = [];
@@ -541,6 +545,9 @@ public sealed class SaveData
     public int AdventureExp { get; set; }
     public int AdventureFame { get; set; }
     public int TradeExp { get; set; }
+    public int BattleExp { get; set; }
+    public int TradeFame { get; set; }
+    public int BattleFame { get; set; }
     public Dictionary<int, double[]> Skills { get; set; } = new();     // id → [랭크, 숙련도]
     public Dictionary<int, int> Supplies { get; set; } = new();
     public Dictionary<int, long[]> Cargo { get; set; } = new();       // id → [수, 산 값의 합]
@@ -588,6 +595,8 @@ public sealed class SaveData
     public List<int> Equipped { get; set; } = [];
     /// <summary>남은 행동력. 음수면 가득(옛 저장).</summary>
     public double Vigour { get; set; } = -1;
+    // 걸려 있는 부스트 — [갈래(0 속도 · 1 스킬 · 2 연장), 값, 스킬 갈래, 스킬 번호, 상한, 남은 초, 아이템 번호]
+    public List<double[]> Boosts { get; set; } = [];
     /// <summary>붙인 선박 데코(자리 다섯)와 쥐여 준 선원 장비(갈래 셋) — 아이템 번호, 없으면 0.</summary>
     public List<int> Decos { get; set; } = [];
     public List<int> CrewGear { get; set; } = [];
@@ -639,6 +648,8 @@ public sealed class SettingsData
     public int ItemRows { get; set; } = 5;
     /// <summary>모드: 타고 있는 배도 커스텀설정 조선 · 특수 조선에서 강화할 수 있다(원본은 못 한다).</summary>
     public bool ModWorkOnBoard { get; set; }
+    // 모드: 타고 있는 배도 선박 조합의 강화 선박으로 고를 수 있다(재료로는 못 쓴다)
+    public bool ModCombineOnBoard { get; set; }
     /// <summary>모드: 선박 조합의 성공률에 더하는 값(%) — 0 ~ 50. 0 이면 그대로.</summary>
     public int ModCombineBonus { get; set; }
     /// <summary>모드: 경험치(모험 · 교역 · 부관)와 숙련도(스킬 · 조타)가 세 배로 오른다.</summary>
@@ -801,6 +812,10 @@ public sealed class GameData
     public List<ShipPart> ShipParts { get; set; } = [];
     /// <summary>장비 아이템이 입히는 모형 — <c>data\extracted\gear-models.json</c>(저장소에는 안 둔다).</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<GearModel> GearModels { get; set; } = [];
+    // 부스트 아이템 — 아이템 표(14)에서 설명에 「속도가 n% 상승」 · 「스킬이 +n」 · 「스킬 효과가 연장」이 든 것 — data\extracted\booster-items.json(저장소에는 안 둔다)
+    [System.Text.Json.Serialization.JsonIgnore] public List<PaperItem> Boosters { get; set; } = [];
+    // 재질의 실제 빛깔(0xRRGGBB) — 배 모형 표(0001\0002.bin) 뒤의 재질 줄(40바이트 × 99, 줄 k = 재질 번호 k + 1)에서 뽑은 것: 칠한 재질은 칠 빛깔, 나무는 나무 빛깔
+    [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, int> MaterialColors { get; set; } = [];
     /// <summary>행동력 음식 — 아이템 표(14)에서 설명에 「행동력+n」이 든 것(해물 피자 · 마늘닭 통구이 …) — <c>data\extracted\food-items.json</c>(저장소에는 안 둔다).</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<PaperItem> Foods { get; set; } = [];
     /// <summary>선박 데코(표 138) · 선원 장비(표 139) — <c>data\extracted\ship-decos.json</c> · <c>crew-gear.json</c>(저장소에는 안 둔다).</summary>
@@ -874,6 +889,8 @@ public sealed class GameData
         data.ShipDetails = Read<List<ShipDetailFact>>(Path.Combine(extracted, "shipdetail-facts.json")) ?? [];
         data.Papers = Read<List<PaperItem>>(Path.Combine(extracted, "paper-items.json")) ?? [];
         data.Foods = Read<List<PaperItem>>(Path.Combine(extracted, "food-items.json")) ?? [];
+        data.MaterialColors = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-colors.json")) ?? [];
+        data.Boosters = Read<List<PaperItem>>(Path.Combine(extracted, "booster-items.json")) ?? [];
         data.GearModels = Read<List<GearModel>>(Path.Combine(extracted, "gear-models.json")) ?? [];
         data.Gear = Read<List<GearItem>>(Path.Combine(extracted, "gear-items.json")) ?? [];
         data.MaterialItems = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-items.json")) ?? [];

@@ -328,7 +328,7 @@ internal sealed partial class Voyage
 
     public void Redesign(DockedShip ship)
     {
-        if (Mode != Mode.Port || !Dock.Contains(ship) || RedesignBlocker(ship) != null) return;
+        if (Mode != Mode.Port || !Held(ship) || RedesignBlocker(ship) != null) return;
         if (--Items[RedesignBook] <= 0) Items.Remove(RedesignBook);
         var work = ship.Work;
         var reset = Redesigned(ship);
@@ -341,17 +341,41 @@ internal sealed partial class Voyage
         work.Form = 0;
         work.Mastery = reset.Mastery;
         ship.Durability = Math.Min(ship.Durability, StatsOf(ship).Durability);
+        if (work == Work) Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
         Say($"함선 재설계 기술서를 써서 {ship.Ship.Name}의 개조를 모두 되돌렸다. (그레이드 0)");
     }
 
+    // 타고 있는 배를 부두의 배처럼 다루는 껍데기(모드: 타고 있는 배도 조합) — 강화 기록은 타고 있는 배의 것을 그대로 가리킨다
+    private DockedShip? _aboard;
+    public DockedShip Aboard => _aboard is { } a && a.Ship == Ship && a.Work == Work && a.Material == ShipMaterialId && a.Load == ShipLoad && a.Parts.Count == Parts.Count ? a
+        : _aboard = new DockedShip { Ship = Ship, Material = ShipMaterialId, Load = ShipLoad, Work = Work, Durability = Stats.Durability, Parts = [.. Parts] };
+    private bool Held(DockedShip ship) => Dock.Contains(ship) || Data.Settings.ModCombineOnBoard && ship == _aboard && ship.Work == Work;
+
     public int CombineChance(DockedShip main, DockedShip material) =>
         Math.Clamp(Math.Clamp(38 - 9 * main.Work.Grade + 10 * material.Work.Grade + (main.Ship.Id == material.Ship.Id ? 10 : 0) + main.Work.GradeExp / 4, 3, 100) + Math.Clamp(Data.Settings.ModCombineBonus, 0, 50) + (RefitBook?.Bonus ?? 0), 0, 100);
+
+    // 조합에 성공한 뒤의 강화 상태 — 배는 건드리지 않는다(조합 창의 미리 보기). Combine 의 성공 쪽과 같은 차례다
+    public ShipWork Combined(DockedShip main, DockedShip material, int bonus, int inherit)
+    {
+        var after = ShipWork.From(main.Work.ToArray());
+        after.Mastery = main.Work.Mastery;
+        (after.Grade, after.GradeExp) = (main.Work.Grade + 1, 0);
+        (after.Times, after.Durability, after.Sail, after.Turn, after.Wave, after.Hold) = (0, 0, 0, 0, 0, 0);
+        int had = FormOf(main.Ship, main.Work), turned = FormAfter(had, FormOf(material.Ship, material.Work));
+        if (turned != had) after.Form = turned;
+        if (!GivesBonus(main) || bonus == 0) return after;
+        after.Bonuses.Add(bonus);
+        if (bonus == 16 && inherit > 0) after.Skills.Add(inherit);
+        else if (RefitSkill(bonus) is > 0 and var refit && !after.Skills.Contains(refit)) after.Skills.Add(refit);
+        return after;
+    }
 
     public int CombineCost(DockedShip main) => 50_000 * (main.Work.Grade + 1) * Math.Max(1, main.Ship.SizeClass);
 
     public string? CombineBlocker(DockedShip main, DockedShip material)
     {
         if (main == material) return "같은 배다";
+        if (!Dock.Contains(material)) return "타고 있는 배는 재료가 못 된다";
         if (main.Work.Grade >= MaxGrade) return "그레이드가 최대치다";
         // 크기가 같은 배만 재료가 된다 — 소형끼리 · 중형끼리 · 대형끼리. 대형1 과 대형2 는 그냥 대형이고 서로 먹일 수 있다(사용자 확인, 2026-10-06)
         if (SizeGroup(main.Ship) != SizeGroup(material.Ship)) return "크기가 같은 배만 재료가 된다 (소형 · 중형 · 대형)";
@@ -364,7 +388,14 @@ internal sealed partial class Voyage
     /// <param name="inherit">스킬 계승을 골랐을 때 옮길 옵션 스킬.</param>
     public void Combine(DockedShip main, DockedShip material, int bonus = 0, int inherit = 0)
     {
-        if (Mode != Mode.Port || !Dock.Contains(main) || !Dock.Contains(material) || CombineBlocker(main, material) != null) return;
+        CombineInto(main, material, bonus, inherit);
+        // 타고 있는 배를 조합했으면 능력치를 다시 셈한다
+        if (main.Work == Work) Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
+    }
+
+    private void CombineInto(DockedShip main, DockedShip material, int bonus, int inherit)
+    {
+        if (Mode != Mode.Port || !Held(main) || !Dock.Contains(material) || CombineBlocker(main, material) != null) return;
         int chance = CombineChance(main, material);
         bool guarded = RefitGuard;
         (RefitBook, RefitGuard) = (null, false);       // 책과 지시서는 조합 한 번에 듣고 사라진다
@@ -568,10 +599,19 @@ internal sealed partial class Voyage
     }
 
     /// <summary>강화한다 — 부품마다 정해진 능력치가 오르고(상한까지), 조합이 맞으면 옵션 스킬이 붙는다.</summary>
+    // 성능초기화를 못 하는 까닭(되면 null). 그레이드가 올라 강화 횟수가 0 이 된 배도 조선으로 붙인 옵션 스킬이 남아 있으면 지울 것이 있다
+    public string? ResetBlocker(ShipWork work)
+    {
+        bool skills = work.Skills.Exists(s => !work.BonusSkills.Contains(s) && s is not (>= 2900 and <= 2904));
+        if (work.Times == 0 && !skills)
+            return work.Skills.Count > 0 ? "지울 것이 없다 — 붙은 스킬은 그레이드 보너스(스킬 계승 · 개조)라 선박 조합의 「그레이드 초기화」로 지운다" : "지울 강화가 없다";
+        return Items.GetValueOrDefault(DismantleBook) <= 0 ? "특수조선 해체 기법서가 없다" : null;
+    }
+
     /// <summary>성능초기화 — 타고 있는 배의 강화치를 모두 0 으로(재질은 남는다). 되돌릴 수 없다.</summary>
     public void ResetWork()
     {
-        if (Mode != Mode.Port || Work.Times == 0 || Items.GetValueOrDefault(DismantleBook) <= 0) return;
+        if (Mode != Mode.Port || ResetBlocker(Work) != null) return;
         if (--Items[DismantleBook] <= 0) Items.Remove(DismantleBook);
         // 지워지는 것은 강화치와 (조선으로 붙인) 옵션 스킬뿐 — 재질 · 그레이드와 그 보너스 · 선박 형식 · 전용함 스킬 · 조타 숙련도는 남는다(원본의 안내 글 6843).
         // 그레이드 보너스로 들어온 스킬(스킬 계승 · 개조)도 보너스의 일부라 남는다

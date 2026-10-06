@@ -18,6 +18,17 @@ internal sealed class GameWindow : IDisposable
     private const string ClassName = "DhoWindow";
 
     private IntPtr _hwnd;
+    private bool? _imeOn;
+    private bool _musicAtSea;
+
+    // 입력기(한글)는 글자를 받는 칸에 입력할 때만 붙인다 — 그 밖에는 한/영 글쇠를 눌러도 입력기 표시가 뜨지 않고 단축키가 그대로 듣는다
+    private void SyncIme()
+    {
+        bool want = _hud != null && (_hud.Typing || !_voyage.Created);
+        if (_imeOn == want || _hwnd == IntPtr.Zero) return;
+        _imeOn = want;
+        Win32.ImmAssociateContextEx(_hwnd, IntPtr.Zero, want ? 0x10u : 0u);
+    }
     private static readonly Win32.WndProc StaticWndProcDelegate = StaticWndProcTrampoline;
     private static GameWindow? _active;
     private static ushort _classAtom;
@@ -290,6 +301,7 @@ internal sealed class GameWindow : IDisposable
                 return IntPtr.Zero;
 
             case Win32.WM_KEYDOWN:
+                if ((int)wParam == 0xE5) return IntPtr.Zero;        // 입력기가 먹은 글쇠(VK_PROCESSKEY) — 단축키로 치지 않는다
                 if (_keys.Add((int)wParam)) KeyPressed((int)wParam);
                 return IntPtr.Zero;
             case Win32.WM_CHAR:
@@ -356,9 +368,20 @@ internal sealed class GameWindow : IDisposable
     /// </summary>
     private static Vector4 HullTint(int color)
     {
+        int kind = color >> 24 & 255;             // 위 바이트: 바탕 판(0 이면 옛 방식 — 잿빛 나무에 곱한다)
+        color &= 0xFFFFFF;
         var tint = new Vector3((color >> 16 & 255) / 255f, (color >> 8 & 255) / 255f, (color & 255) / 255f);
+        if (kind == 1) return new Vector4(tint * 1.15f, 1);                 // 제 빛의 나무 판 — 나무 빛은 옅게 물들일 뿐
+        if (kind >= 2) return new Vector4(tint * (MathF.Min(tint.X, MathF.Min(tint.Y, tint.Z)) > 0.8f ? 1.9f : 1.35f), 1);      // 잿빛 널에 칠 — 판이 어두워 밝혀 곱한다
         if (color != 0xFFFFFF && MathF.Min(tint.X, MathF.Min(tint.Y, tint.Z)) > 0.82f) tint *= 2.2f;
         return new Vector4(tint, 1);
+    }
+
+    // 선체의 바탕 판을 그 빛깔에 딸린 것으로 맞추고 빛깔을 낸다
+    private static Vector4 Hull(ShipModel ship, int color)
+    {
+        ship.SetHullBase(color >> 24 & 255);
+        return HullTint(color);
     }
 
     private float _heel, _sunk;
@@ -378,7 +401,7 @@ internal sealed class GameWindow : IDisposable
         if (!sounds.ContainsKey(cue) && cue switch
             {
                 "Click" => "0:0", "Quest" => "0:2", "Error" => "0:3", "Mastery" => "0:4", "Warn" => "0:5",
-                "SkillUp" => "0:7", "Done" => "0:8", "StudyDone" => "0:10", "Eat" => "0:11", "Bank" => "0:14", "Door" => "0:15",
+                "SkillUp" => "0:7", "Done" => "0:8", "StudyDone" => "0:10", "Eat" => "0:11", "Bank" => "0:14", "Door" => "0:15", "Open" => "24:5",
                 "Part" => "0:20", "Buy" => "0:23", "Drunk" => "0:24", "University" => "0:30", "Sail" => "14:15", _ => null,
             } is { } original) sounds[cue] = original;
         // 선회 소리의 옛 기본값(9:0)도 지은 것이었다 — 원본은 0:12(바다에서 배를 돌릴 때)
@@ -489,7 +512,10 @@ internal sealed class GameWindow : IDisposable
         if (_music != null)
         {
             _music.Volume = (float)_voyage.Data.Settings.MusicVolume;
-            _music.Play(_musicOn && _voyage.Created && _voyage.Data.Settings.MusicVolume > 0 ? _voyage.MusicNumber : 0);
+            // 바다에서 해역이 바뀌어 곡이 달라질 때는 듣던 곡을 끝까지 틀고 바꾼다. 입항 · 출항 때는 바로 바꾼다
+        bool atSea = _voyage.Mode == Mode.Sea;
+        _music.Play(_musicOn && _voyage.Created && _voyage.Data.Settings.MusicVolume > 0 ? _voyage.MusicNumber : 0, atSea && _musicAtSea);
+        _musicAtSea = atSea;
         }
         if (Walking && _voyage.Dialog == Dialog.None) Walk((float)dt);
     }
@@ -499,6 +525,7 @@ internal sealed class GameWindow : IDisposable
     /// <summary>시내 걷기 — W·S 는 보는 쪽으로 앞뒤, A·D 는 옆. 벽에 걸리면 벽을 따라 미끄러진다.</summary>
     private List<Vector2> _route = [];
     private TownMark? _bound;
+    private bool _boundDoor;                   // 가는 곳이 사람이 아니라 건물 입구다 — 닿으면 문 여는 소리
 
     /// <summary>도시 메뉴에서 고른 시설 앞으로 바로 옮겨 가서 그 시설의 일을 연다.</summary>
     private void JumpTo(TownMark mark)
@@ -528,7 +555,8 @@ internal sealed class GameWindow : IDisposable
         }
         _route = _grid!.Path(_walk, goal);
         _bound = _route.Count > 0 ? mark : null;
-        if (_route.Count > 0 && goal == mark.Scene) PlayCue("Door");      // 사람이 아니라 건물 입구를 골랐다
+        _boundDoor = _route.Count > 0 && goal == mark.Scene;
+        if (_boundDoor) PlayCue("Door");      // 사람이 아니라 건물 입구를 골랐다
         _routeRuns = true;                         // 지도에서 고른 곳으로는 달려간다
         _voyage.Say(_route.Count > 0 ? (mark.Place == Voyage.InsideMaster ? $"{_voyage.PlaceName(mark.Place)}에게 간다." : $"{_voyage.PlaceName(mark.Place)}(으)로 간다.") : $"{_voyage.PlaceName(mark.Place)}까지 가는 길을 못 찾았다.");
     }
@@ -556,7 +584,7 @@ internal sealed class GameWindow : IDisposable
             {
                 _walk = _route[0];
                 _route.RemoveAt(0);
-                if (_route.Count == 0 && _bound is { } reached) { _bound = null; FaceKeeper(reached); _voyage.Visit(reached); }
+                if (_route.Count == 0 && _bound is { } reached) { _bound = null; if (_boundDoor) PlayCue("Open"); FaceKeeper(reached); _voyage.Visit(reached); }
             }
             else
             {
@@ -591,6 +619,7 @@ internal sealed class GameWindow : IDisposable
 
     private void Render()
     {
+        SyncIme();
         // 배가 장면의 원점이다
         while (_voyage.Cues.TryDequeue(out string? cue)) PlayCue(cue);
         float sway = (float)Math.Sin(_voyage.Clock * 1.1);
@@ -764,13 +793,20 @@ internal sealed class GameWindow : IDisposable
             if (Spot(new Vector3(0, 500, 0)) is { } mid && Spot(new Vector3(0, 500, 0) + bow) is { } fore && Spot(new Vector3(0, 500 + half * 0.9f, 0)) is { } top)
                 _hud.ShipOnScreen = (mid.X, mid.Y, fore.X - mid.X, fore.Y - mid.Y, top.X - mid.X, top.Y - mid.Y);
         }
+        // 마스트 톱에 깃발 데코를 달았으면 그 깃발(표의 나라 차례), 아니면 제 나라의 깃발. 현의 데코 넷은 모형으로 단다
+        var mastTop = _voyage.DecoOf(_voyage.DecoOn[0]);
+        _ship.SetFlag(mastTop is { Kind: 0, Model: 4 } ? mastTop.Extra : _voyage.NationId);
+        _ship.SetDecos([.. Enumerable.Range(1, 4).Select(k => _voyage.DecoOf(_voyage.DecoOn[k])?.Model ?? 0)]);
+        // 단 문장을 돛에 그린다
+        _ship.SetEmblem(_voyage.Parts.Find(p => p.Slot == 3) is { } crest ? crest.Id - 1_100_000 : 0);
         if (_sailShown != (_ship, _voyage.SailPattern, _voyage.SailTint))
         {
             try { _ship.SetSail(_voyage.SailPattern, _voyage.SailTint); } catch (Exception) { }
             _sailShown = (_ship, _voyage.SailPattern, _voyage.SailTint);
         }
         int wood = _voyage.HullColorOf(_voyage.Ship, _voyage.ShipMaterialId);
-        if (!town) _ship.Draw(_scene, shipWorld, null, HullTint(wood));
+        _ship.Furl = _voyage.Mode == Mode.Sea ? _voyage.Sail / (float)Voyage.SailSteps : 1;      // 바다에서는 돛을 편 만큼만 보인다
+        if (!town) _ship.Draw(_scene, shipWorld, null, Hull(_ship, wood));
 
         // 화면 글과 창
         _canvas.Scale = UiScale;
@@ -877,7 +913,7 @@ internal sealed class GameWindow : IDisposable
                 SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
             }, box.X * UiScale, (box.Y + Hud.TitleHeight) * UiScale, box.W * UiScale, box.H * UiScale);
             _scene.BeginMeshes();
-            shown.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(spin) * Matrix4x4.CreateTranslation(centre), null, HullTint(timber));
+            shown.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(spin) * Matrix4x4.CreateTranslation(centre), null, Hull(shown, timber));
             _gfx.EndInset();
         }
 
@@ -909,7 +945,7 @@ internal sealed class GameWindow : IDisposable
                 SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
             }, side.X * UiScale, (side.Y + Hud.TitleHeight) * UiScale, side.W * UiScale, side.H * UiScale);
             _scene.BeginMeshes();
-            hull.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(_previewYaw) * Matrix4x4.CreateTranslation(centre), null, HullTint(side.Color));
+            hull.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(_previewYaw) * Matrix4x4.CreateTranslation(centre), null, Hull(hull, side.Color));
             _gfx.EndInset();
         }
 
@@ -1389,6 +1425,10 @@ internal sealed class GameWindow : IDisposable
             case "useitem": _voyage.UseItem((int)Number()); break;
             case "uiscale": _scaleInScript = true; _voyage.Data.Settings.UiScale = Number(); break;
             case "iconscale": _voyage.Data.Settings.IconScale = Number(); break;
+            case "givepart": if (_voyage.Data.ShipParts.Find(p => p.Id == (int)Number()) is { } handed) { _voyage.GivePart(handed); _voyage.Fit(handed); } break;
+            case "deco": _voyage.AddItem((int)Number()); _voyage.FitDeco((int)Number()); break;
+            case "nation": _voyage.SetNationForTest((int)Number()); break;
+            case "hullmat": _voyage.SetMaterialForTest((int)Number()); break;
             case "warp": _voyage.WarpToSea((int)Number()); break;
             case "warpmenu": _hud.OpenWarp(argument == "city"); break;
             case "sea":                             // 바다 위의 자리로 옮긴다: sea:x,y
@@ -1409,6 +1449,11 @@ internal sealed class GameWindow : IDisposable
             case "bonus": _voyage.Work.Bonuses.Add((int)Number()); _voyage.Work.Grade++; _voyage.AddMastery(1, true); break;
             case "hullbuild": _voyage.Dialog = Dialog.HullBuild; break;
             case "yardmenu": _voyage.Dialog = Dialog.ShipyardMenu; break;
+            case "shipinfo": _voyage.Dialog = Dialog.ShipInfo; break;
+            case "exp": { var two = argument.Split(','); _voyage.GainExp(int.Parse(two[0]), int.Parse(two[1])); break; }
+            case "dyedebug": ShipModel.DyeDebug = [new(1, 1, 1, 1), new(1, 0.1f, 0.1f, 1), new(0.1f, 1, 0.1f, 1), new(0.2f, 0.3f, 1, 1), new(1, 1, 0.1f, 1), new(1, 0, 1, 1), new(0, 1, 1, 1), new(0, 0, 0, 1)]; break;
+            case "combinepick": { var two = argument.Split(','); _hud.PickCombine(int.Parse(two[0]), int.Parse(two[1])); break; }
+            case "combineaboard": (_voyage.Data.Settings.ModCombineOnBoard, _voyage.Dialog) = (true, Dialog.Combine); break;
             case "board": if (_voyage.Dock.ElementAtOrDefault((int)Number()) is { } docked) _voyage.SwapShip(docked); break;
             case "skilltab": _hud.SkillTab = (int)Number(); break;
             case "shipyard": _voyage.Dialog = Dialog.Shipyard; break;

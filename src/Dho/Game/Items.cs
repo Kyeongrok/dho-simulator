@@ -139,6 +139,7 @@ internal sealed partial class Voyage
     public string ItemName(int item) =>
         ItemOf(item) is { } known ? known.Name :
         FoodOf(item) is { } food ? food.Name :
+        BoosterOf(item) is { } booster ? booster.Name :
         DecoOf(item) is { } deco ? deco.Name :
         CrewGearOf(item) is { } crewGear ? crewGear.Name :
         Data.Papers.Find(p => p.Id == item) is { } paper ? paper.Name :
@@ -226,6 +227,7 @@ internal sealed partial class Voyage
     public string ItemNote(int item)
     {
         if (FoodOf(item) is { } food) return food.Description.Replace("\n", " ");
+        if (BoosterOf(item) is { } booster) return booster.Description.Replace("\n", " ");
         if (DecoOf(item) is { } deco) return deco.Description.Replace("\n", " ");
         if (CrewGearOf(item) is { } crewGear) return crewGear.Description.Replace("\n", " ");
         if (item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear) return gear.Description.Replace("\n", " ");
@@ -265,8 +267,12 @@ internal sealed partial class Voyage
         Say($"서기관에게 국가공헌 훈장증서 {PermitCost}장을 건네고 전용함 건조 허가증을 받았다.");
     }
 
+    // 소지품은 백 가지까지(가짓수 — 같은 것은 겹쳐 든다)
+    public const int ItemKinds = 100;
+
     public void AddItem(int item, int count = 1)
     {
+        if (!Items.ContainsKey(item) && Items.Count >= ItemKinds) { Say($"소지품이 가득 찼다({ItemKinds}가지). {ItemName(item)}을(를) 받지 못했다."); Cues.Enqueue("Error"); return; }
         Items[item] = Items.GetValueOrDefault(item) + count;
         Say(count > 1 ? $"{ItemName(item)} {count}개를 얻었다." : $"{ItemName(item)}을(를) 얻었다.");
     }
@@ -336,6 +342,10 @@ internal sealed partial class Voyage
             string before = JobName;
             JobId = job.Id;
             Say($"{ItemName(item)}을(를) 썼다. {before}에서 {job.Name}(으)로 전직했다!");
+        }
+        else if (BoosterOf(item) is { } booster)
+        {
+            if (!UseBooster(booster)) { Say($"{booster.Name} — 지금은 쓸 데가 없다."); return; }
         }
         else if (FoodOf(item) is { } food)
         {

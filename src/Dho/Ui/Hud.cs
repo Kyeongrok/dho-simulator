@@ -43,7 +43,25 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             Prompt();
         }
         if (voyage.Mode == Mode.Port) QuickBar();
+        // 걸려 있는 부스트 — 위쪽 가운데에 한 줄씩(이름 · 효과 · 남은 시간)
+        for (int i = 0; i < voyage.Boosts.Count; i++)
+        {
+            string line = $"▲ {voyage.Boosts[i].Name} — {voyage.BoostNote(voyage.Boosts[i])}";
+            float bw = line.Length * 11.5f + 16, bx = (canvas.Width - bw) / 2;
+            canvas.Fill(bx, 4 + i * 22, bw, 20, new Color4(0.03f, 0.10f, 0.20f, 0.75f));
+            canvas.Text(line, bx, 5 + i * 22, bw, 18, 12, new Color4(0.6f, 1f, 0.85f, 1), 1);
+        }
         Dialogs();
+        // 레벨업 알림 — 화면 위쪽 가운데에 잠깐
+        if (voyage.LevelNotice.Count != _levelSeen) (_levelSeen, _levelShown) = (voyage.LevelNotice.Count, Environment.TickCount64);
+        if (voyage.LevelNotice.Text is { Length: > 0 } levelUp && Environment.TickCount64 - _levelShown < 4000)
+        {
+            float nw = 360, nx = (canvas.Width - nw) / 2, ny = canvas.Height * 0.22f;
+            canvas.Fill(nx, ny, nw, 64, new Color4(0.03f, 0.06f, 0.20f, 0.85f));
+            canvas.Frame(nx, ny, nw, 64, Canvas.Gold, 2);
+            canvas.Text("LEVEL UP", nx, ny + 4, nw, 24, 16, Canvas.Gold, 1, true);
+            canvas.Text(levelUp, nx, ny + 28, nw, 30, 22, Canvas.White, 1, true);
+        }
         TopBar();
         Tip();
     }
@@ -147,7 +165,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     /// <summary>모드 — 원본과 다르게 굴리는 것들을 켜고 끈다. 설정에 남는다.</summary>
     private void ModWindow()
     {
-        const float w = 520, h = 258;
+        const float w = 520, h = 304;
         float x = (canvas.Width - w) / 2, y = 34;
         var settings = voyage.Data.Settings;
         canvas.Panel(x, y, w, h);
@@ -180,6 +198,11 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         {
             int next = Math.Clamp(settings.ModCombineBonus + steps[i].Step, 0, 50);
             if (canvas.Button(steps[i].Label, x + w - 216 + i * 50, y + 102, 46, 28, next != settings.ModCombineBonus, 13)) { settings.ModCombineBonus = next; voyage.Data.SaveSettings(); }
+        }
+        if (Toggle("타고 있는 배도 선박 조합", "켜면 타고 있는 배를 강화 선박으로 고를 수 있다. 재료(제물)로는 못 쓴다.", y + 198, settings.ModCombineOnBoard))
+        {
+            settings.ModCombineOnBoard = !settings.ModCombineOnBoard;
+            voyage.Data.SaveSettings();
         }
         if (Toggle("경험치 · 숙련도 3배", "모험 · 교역 · 부관 경험치와 스킬 숙련도 · 조타 숙련도가 세 배로 오른다. 명성은 그대로.", y + 152, settings.ModTripleGain))
         {
@@ -494,7 +517,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             if (chosen) canvas.Fill(lx, ry, lw, 25, new Color4(0.12f, 0.62f, 0.55f, 0.95f));
             else if (hover) canvas.Fill(lx, ry, lw, 25, new Color4(0.2f, 0.3f, 0.6f, 0.6f));
             canvas.Text(key, lx + 6, ry + 3, 60, 20, 13, Canvas.White);
-            string uses = string.Join(" ", new[] { ("Turn", "선회"), ("Sail", "돛"), ("Skill", "스킬"), ("Eat", "음식"), ("Door", "입구"), ("Click", "누름"), ("Quest", "퀘스트"), ("Error", "오류"), ("Mastery", "숙련도"), ("Warn", "경고"), ("SkillUp", "레벨업"), ("Done", "완료"), ("StudyDone", "연구 완료"), ("Bank", "저금"), ("Part", "부품"), ("Buy", "구매"), ("Drunk", "술"), ("University", "대학") }.Where(c => settings.Sounds.GetValueOrDefault(c.Item1) == key).Select(c => $"[{c.Item2}]"));
+            string uses = string.Join(" ", new[] { ("Turn", "선회"), ("Sail", "돛"), ("Skill", "스킬"), ("Eat", "음식"), ("Door", "입구"), ("Open", "문"), ("Click", "누름"), ("Quest", "퀘스트"), ("Error", "오류"), ("Mastery", "숙련도"), ("Warn", "경고"), ("SkillUp", "레벨업"), ("Done", "완료"), ("StudyDone", "연구 완료"), ("Bank", "저금"), ("Part", "부품"), ("Buy", "구매"), ("Drunk", "술"), ("University", "대학") }.Where(c => settings.Sounds.GetValueOrDefault(c.Item1) == key).Select(c => $"[{c.Item2}]"));
             canvas.Text(uses, lx + 60, ry + 3, 110, 20, 12, Canvas.Gold);
             canvas.Text(settings.SoundMemos.GetValueOrDefault(key) ?? "", lx + 170, ry + 3, lw - 176, 20, 13, Canvas.White);
             if (hover && canvas.Pointer.Clicked)
@@ -521,7 +544,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         // 넷째 줄은 ◀ ▶ 로 고르는 그 밖의 소리 — 재해마다의 소리도 여기서 맨다(안 매면 재해는 경고 소리로 난다)
         var disasterCues = voyage.Data.Disasters.Select(d => ($"Disaster{d.Id}", d.Name));
         (string Cue, string Label)[] more = [.. disasterCues, ("Storm", "폭풍"), ("Warn", "경고"), ("Click", "누름"), ("Quest", "퀘스트"), ("Error", "오류"), ("Done", "완료"), ("SkillUp", "레벨업"), ("Mastery", "숙련도"),
-            ("Eat", "음식"), ("Door", "입구"), ("Buy", "구매"), ("Bank", "저금"), ("Part", "부품"), ("Drunk", "술"), ("StudyDone", "연구 완료"), ("University", "대학")];
+            ("Eat", "음식"), ("Door", "입구"), ("Open", "문 열기"), ("Buy", "구매"), ("Bank", "저금"), ("Part", "부품"), ("Drunk", "술"), ("StudyDone", "연구 완료"), ("University", "대학")];
         _moreCue = (_moreCue % more.Length + more.Length) % more.Length;
         (string Cue, string Label)[] cues = [("Turn", "선회"), ("Sail", "돛 조종"), ("Skill", "그 밖의 스킬"), more[_moreCue]];
         if (canvas.Button("◀", lx - 2, my + 36 + 3 * 30, 22, 25, true, 11)) _moreCue--;
@@ -750,8 +773,18 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private (string Text, float X, float Y)? _tip;
 
     /// <summary>가리킨 단추의 이름 — 다 그린 뒤 맨 위에 띄운다.</summary>
+    private (string Title, string Note, float X, float Y, float W, float H)? _itemTip;
+
     private void Tip()
     {
+        if (_itemTip is { } card)
+        {
+            _itemTip = null;
+            canvas.Fill(card.X, card.Y, card.W, card.H, new Color4(0.02f, 0.04f, 0.14f, 0.96f));
+            canvas.Frame(card.X, card.Y, card.W, card.H, Canvas.Gold, 1.2f);
+            canvas.Text(card.Title, card.X + 10, card.Y + 6, card.W - 20, 22, 15, Canvas.Gold, 0, true);
+            canvas.Text(card.Note, card.X + 10, card.Y + 32, card.W - 20, card.H - 36, 13, Canvas.White);
+        }
         if (_tip is not { } tip) return;
         _tip = null;
         float w = tip.Text.Length * 15 + 20, x = Math.Clamp(tip.X - w / 2, 4, canvas.Width - w - 4);
@@ -1161,7 +1194,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             // 아이템 그림 — 0010\0001\sb 의 무리 15, id 가 아이템 번호(48 × 48). 없으면 이름 두 자
             int item = -value;
             float side = size * 0.8f;
-            if (!canvas.Image($"sb{item}", () => (_itemIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(15, item), x + (size - side) / 2, y + (size - side) / 2, side, side))
+            if (!canvas.Image($"sb{item}", () => (_itemIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(15, item), x + (size - side) / 2, y + (size - side) / 2, side, side)
+                && !canvas.Image($"sb{item / 100000}:{item}", () => (_itemIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(item / 100000, item), x + (size - side) / 2, y + (size - side) / 2, side, side))
             {
                 string name = voyage.ItemName(item);
                 canvas.Text(name[..Math.Min(2, name.Length)], x, y + size * 0.22f, size, 24, size * 0.3f, Canvas.White, 1, true);
@@ -1253,7 +1287,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         canvas.Fill(x + 20, y + 14, 370, 26, new Color4(0.72f, 0.76f, 0.84f, 0.92f));
         canvas.Text("스킬-아이템", x + 20, y + 16, 370, 22, 15, new Color4(0.05f, 0.08f, 0.2f, 1), 1, true, false);
 
-        var choices = voyage.UsableSkills().Select(r => r.SkillId).Concat(voyage.UsableItems().Select(i => -i.Id)).ToList();
+        var choices = voyage.UsableSkills().Select(r => r.SkillId).Concat(voyage.UsableItemIds().Select(i => -i)).ToList();
         for (int i = 0; i < Math.Min(choices.Count, 25); i++)
         {
             float cx = x + 24 + i % 5 * (cell + 12), cy = y + 54 + i / 5 * (cell + 8);
@@ -1293,7 +1327,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     {
         const float w = 560;
         var skills = voyage.UsableSkills();
-        var items = voyage.UsableItems();
+        var items = voyage.UsableItemIds();
         float h = 110 + Math.Max(1, skills.Count + items.Count) * 34 + 50;
         float x = (canvas.Width - w) / 2, y = Math.Max(40, (canvas.Height - h) / 2 - 40);
         canvas.Panel(x, y, w, h);
@@ -1307,17 +1341,17 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             string? blocker = voyage.SkillBlocker(rule);
             SkillIcon(id, x + 20, row - 2, 1);
             canvas.Text($"{voyage.SkillName(id)}  R{voyage.Rank(id)}", x + 56, row + 4, 170, 22, 15, Canvas.White);
-            canvas.Text(blocker ?? "", x + 226, row + 6, 150, 20, 12, Canvas.Dim);
+            canvas.Text(blocker ?? $"행동력 {voyage.VigourCost(rule)}", x + 226, row + 6, 150, 20, 12, blocker == null ? new Color4(0.85f, 0.6f, 0.9f, 1) : Canvas.Dim);
             if (canvas.Button("사용", x + w - 180, row, 70, 28, blocker == null, 13)) voyage.UseSkill(rule);
             if (canvas.Button(voyage.InQuickSlot(id) ? "올림" : "슬롯", x + w - 104, row, 84, 28, !voyage.InQuickSlot(id), 13)) voyage.AddQuickSlot(id);
             row += 34;
         }
         foreach (var item in items)
         {
-            canvas.Text($"{item.Name} × {voyage.Items.GetValueOrDefault(item.Id)}", x + 56, row + 4, 200, 22, 15, Canvas.White);
-            canvas.Text(voyage.ItemNote(item.Id), x + 226, row + 6, 150, 20, 11, Canvas.Dim);
-            if (canvas.Button("사용", x + w - 180, row, 70, 28, true, 13)) voyage.UseItem(item.Id);
-            if (canvas.Button(voyage.InQuickSlot(-item.Id) ? "올림" : "슬롯", x + w - 104, row, 84, 28, !voyage.InQuickSlot(-item.Id), 13)) voyage.AddQuickSlot(-item.Id);
+            canvas.Text($"{voyage.ItemName(item)} × {voyage.Items.GetValueOrDefault(item)}", x + 56, row + 4, 200, 22, 15, Canvas.White);
+            canvas.Text(voyage.ItemNote(item).Replace("\n", " "), x + 226, row + 6, 150, 20, 11, Canvas.Dim);
+            if (canvas.Button("사용", x + w - 180, row, 70, 28, true, 13)) voyage.UseItem(item);
+            if (canvas.Button(voyage.InQuickSlot(-item) ? "올림" : "슬롯", x + w - 104, row, 84, 28, !voyage.InQuickSlot(-item), 13)) voyage.AddQuickSlot(-item);
             row += 34;
         }
         if (skills.Count + items.Count == 0)
@@ -1671,7 +1705,19 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 _tradePage = _tradeChosen / Math.Max(1, _tradeRows.Visible);
                 return true;
             case Dialog.SpecialBuild: (_specialChosen, _specialKeyed) = (Math.Max(0, _specialChosen + step), true); return true;
-            case Dialog.ShipSwap: _swapTop = Math.Max(0, _swapTop + step); return true;
+            case Dialog.ShipSwap:
+            {
+                // 고른 배를 옮긴다(−1 이 타고 있는 배, 0 부터 부두의 배) — 목록은 고른 줄이 보이는 끝을 넘을 때만 굴러간다
+                if (_cmpOpen) return true;
+                const int visible = 4;
+                int now = _swapPicked == null ? -1 : voyage.Dock.IndexOf(_swapPicked);
+                now = Math.Clamp(now + step, -1, voyage.Dock.Count - 1);
+                _swapPicked = now < 0 ? null : voyage.Dock[now];
+                if (now >= 0 && now < _swapTop) _swapTop = now;
+                if (now >= _swapTop + visible) _swapTop = now - visible + 1;
+                if (now < 0) _swapTop = 0;
+                return true;
+            }
             case Dialog.Items: _itemPage = Math.Max(0, _itemPage + step); return true;
             case Dialog.ShipParts: _partPage = Math.Max(0, _partPage + step); return true;
             case Dialog.None: return false;
@@ -1968,7 +2014,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             _itemPage = Math.Clamp(_itemPage, 0, pages - 1);
             canvas.Fill(x + 20, y + 44, 150, 24, new Color4(0.72f, 0.76f, 0.84f, 0.92f));
             canvas.Text("소유물품", x + 20, y + 45, 150, 22, 15, new Color4(0.05f, 0.08f, 0.2f, 1), 1, true, false);
-            canvas.Text($"{total} / 50", x + 180, y + 46, 100, 22, 14, Canvas.Dim);
+            canvas.Text($"{total} / 100", x + 180, y + 46, 100, 22, 14, total > 100 ? new Color4(1f, 0.5f, 0.45f, 1) : Canvas.Dim);
             int pointed = -1;
             for (int k = 0; k < columns * lines; k++)
             {
@@ -2010,6 +2056,17 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                         else (_itemChosen, _itemClicked) = (index, now);
                     }
                 }
+            }
+            // 올려 둔 칸 곁에 뜨는 설명 쪽지 — 창을 다 그린 뒤에 맨 위에 그린다
+            if (pointed >= 0 && pointed < items.Count)
+            {
+                int hid = items[pointed].Key, hk = pointed - _itemPage * columns * lines;
+                string hname = voyage.ItemName(hid), hnote = voyage.ItemNote(hid);
+                const float tw = 330;
+                float th = 40 + MathF.Ceiling(Math.Max(1, hnote.Length) / 25f) * 19;
+                float hx = Math.Min(x + 20 + hk % columns * (tile + 4) + tile + 6, canvas.Width - tw - 6);
+                float hy = Math.Min(y + 76 + hk / columns * (tile + 4), canvas.Height - th - 6);
+                _itemTip = (hname + (items[pointed].Value > 1 ? $"  × {items[pointed].Value}" : ""), hnote, hx, hy, tw, th);
             }
             // 오른쪽: 고른 것의 이름 · 설명 · 사용시 효과
             float px = x + 380, pw = w - 400;
@@ -2133,6 +2190,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                     string kind = voyage.Data.GoodKinds.Find(k => k.Id == good.Kind)?.Name ?? "";
                     Put("교역품", good.Id, good.Name, $"[{kind}] " + (from.Count == 0 ? "파는 도시 없음" : "산지: " + string.Join(" · ", from.Take(6).Select(c => c.Name)) + (from.Count > 6 ? $" 외 {from.Count - 6}곳" : "")));
                 }
+                foreach (var booster in voyage.Data.Boosters) Put("부스트", booster.Id, booster.Name, booster.Description.Replace("\n", " "));
                 foreach (var food in voyage.Data.Foods) Put("음식", food.Id, food.Name, food.Description.Replace("\n", " "));
                 foreach (var deco in voyage.Data.Decos) Put("데코", deco.Id, deco.Name, deco.Description.Replace("\n", " "));
                 foreach (var crew in voyage.Data.CrewGears) Put("선원", crew.Id, crew.Name, $"[{Voyage.CrewKinds[Math.Clamp(crew.Kind, 0, 2)]}] " + crew.Description.Replace("\n", " "));
@@ -2145,6 +2203,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             {
                 int id = entry.Id;
                 if (entry.Tag == "교역품") GoodIcon(id, x + 20, row, 28);
+                else if (entry.Recipe != 0) RecipeIcon(entry.Recipe, x + 20, row - 1, 28);
                 else if (id > 0) canvas.Image($"sb{id / 100000}:{id}", () => (_itemIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(id / 100000, id), x + 20, row - 1, 28, 28);
                 canvas.Text(entry.Tag, x + 54, row + 5, 50, 22, 12, Canvas.Gold);
                 canvas.Text(entry.Name, x + 106, row + 3, 300, 24, entry.Name.Length > 18 ? 12 : 15, Canvas.White);
@@ -2333,8 +2392,9 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             {
                 var recipe = voyage.Data.Recipes.Find(r => r.Id == rule.RecipeId);
                 bool have = voyage.Recipes.Contains(rule.RecipeId);
-                canvas.Text(recipe?.Name ?? rule.Name, x + 20, row + 3, 250, 24, 15, have ? Canvas.Dim : Canvas.White);
-                canvas.Text($"→ {voyage.Good(rule.Output)?.Name} × {rule.OutputCount}", x + 270, row + 5, 230, 22, 12, Canvas.Dim);
+                RecipeIcon(rule.RecipeId, x + 20, row - 1, 28);
+                canvas.Text(recipe?.Name ?? rule.Name, x + 54, row + 3, 250, 24, 15, have ? Canvas.Dim : Canvas.White);
+                canvas.Text($"→ {voyage.Good(rule.Output)?.Name} × {rule.OutputCount}", x + 304, row + 5, 230, 22, 12, Canvas.Dim);
                 if (canvas.Button(have ? "있음" : "추가", x + w - 110, row, 90, 26, !have && recipe != null, 13)) voyage.AddRecipe(recipe!);
                 row += 32;
             }
@@ -2774,7 +2834,6 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             // 고른 판매선박을 내 배와 나란히 견준다
             if (canvas.Button("내 배와 비교", rx + 150, y + h - 150, 110, 26, true, 12)) (_cmpOpen, _cmpSale, _cmpLeft) = (true, ship, 0);
         }
-        canvas.Text($"타고 있는 배: {voyage.Ship.Name} · 부두 {voyage.Dock.Count}/{Voyage.DockSlots}", rx, y + h - 148, rw, 20, 13, Canvas.Gold);
         if (canvas.Button("선박부품", rx, y + h - 50, 88, 34, true, 14)) (voyage.Dialog, _partPage) = (Dialog.ShipParts, 0);
         if (canvas.Button("강화", rx + 236, y + h - 50, 60, 34, true, 14)) { (voyage.Dialog, _workSkillOnly, _workBack) = (Dialog.Strengthen, false, Dialog.Shipyard); _workPicked.Clear(); }
         if (canvas.Button("커스텀설정 조선", rx + 92, y + h - 50, 140, 34, ships.Count > 0, 14))
@@ -3427,6 +3486,10 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private Dialog _swapFrom;
     private bool _workView, _infoDocked;
     private int _combineMain = -1, _combineMaterial = -1, _combineTop;
+    private int _levelSeen;
+    private long _levelShown = -100_000;
+    // 대본용: 조합 창에서 강화 선박과 재료 선박을 고른다
+    public void PickCombine(int main, int material) => (_combineMain, _combineMaterial) = (main, material);
 
     /// <summary>선박부품의 그림 — 아이템 그림 묶음의 무리 6(돛) · 8(장갑) · 9(선수상). 그 번호의 그림이 없으면 무리의 첫 그림.</summary>
     private void PartIcon(ShipPart part, float x, float y, float size)
@@ -3613,14 +3676,17 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         canvas.Panel(x, y, w, h);
         canvas.Block(x, y, w, h);
         canvas.Text("선박 조합", x + 20, y + 10, 200, 28, 20, Canvas.Gold, 0, true);
-        canvas.Text("조합할 선박과 재료가 될 선박을 고른다. 탑승 중인 선박은 고를 수 없고, 재료로 고른 선박은 사라진다.", x + 150, y + 15, w - 170, 22, 13, Canvas.White);
+        bool aboard = voyage.Data.Settings.ModCombineOnBoard;      // 모드: 타고 있는 배가 맨 위에 — 강화 선박으로만
+        canvas.Text(aboard ? "조합할 선박과 재료가 될 선박을 고른다. 타고 있는 배는 강화 선박으로만 고를 수 있고(모드), 재료로 고른 선박은 사라진다."
+                           : "조합할 선박과 재료가 될 선박을 고른다. 탑승 중인 선박은 고를 수 없고, 재료로 고른 선박은 사라진다.", x + 150, y + 15, w - 170, 22, 13, Canvas.White);
         void Header(string text, float hx, float hw)
         {
             canvas.Fill(hx, y + 46, hw, 24, new Color4(0.72f, 0.76f, 0.84f, 0.92f));
             canvas.Text(text, hx, y + 47, hw, 22, 15, new Color4(0.05f, 0.08f, 0.2f, 1), 1, true, false);
         }
-        var dock = voyage.Dock;
+        List<DockedShip> dock = aboard ? [voyage.Aboard, .. voyage.Dock] : [.. voyage.Dock];
         const int shown = 7;
+        if (aboard && _combineMaterial == 0) _combineMaterial = -1;
         _combineTop = Math.Clamp(_combineTop, 0, Math.Max(0, dock.Count - shown));
         if (_combineMain >= dock.Count) _combineMain = -1;
         if (_combineMaterial >= dock.Count) _combineMaterial = -1;
@@ -3630,7 +3696,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             float row = y + 78;
             for (int i = _combineTop; i < Math.Min(dock.Count, _combineTop + shown); i++, row += 46)
             {
-                bool chosen = (material ? _combineMaterial : _combineMain) == i, other = (material ? _combineMain : _combineMaterial) == i;
+                bool mine = aboard && i == 0;
+                bool chosen = (material ? _combineMaterial : _combineMain) == i, other = (material ? _combineMain : _combineMaterial) == i || material && mine;
                 bool hover = !other && canvas.Hover(lx, row, listWidth, 44);
                 if (chosen) canvas.Fill(lx, row, listWidth, 44, new Color4(0.12f, 0.62f, 0.55f, 0.95f));
                 else if (hover) canvas.Fill(lx, row, listWidth, 44, new Color4(0.2f, 0.3f, 0.6f, 0.6f));
@@ -3639,7 +3706,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 string size = sizeNames[Math.Clamp(dock[i].Ship.SizeClass, 0, 4)];
                 bool fits = !material || _combineMain < 0 || _combineMain >= dock.Count || Voyage.SizeGroup(dock[_combineMain].Ship) == Voyage.SizeGroup(dock[i].Ship);
                 var sizeColor = size switch { "대형" => new Color4(1f, 0.72f, 0.45f, 1), "중형" => new Color4(0.65f, 1f, 0.7f, 1), _ => new Color4(0.6f, 0.85f, 1f, 1) };
-                canvas.Text(dock[i].Ship.Name, lx + 8, row + 2, listWidth - 70, 22, 15, other || !fits ? Canvas.Dim : Canvas.White);
+                canvas.Text(dock[i].Ship.Name + (mine ? " (탑승 중)" : ""), lx + 8, row + 2, listWidth - 70, 22, 15, other || !fits ? Canvas.Dim : Canvas.White);
                 canvas.Text(size + " · " + voyage.FormName(dock[i].Ship, dock[i].Work), lx + 140, row + 24, 110, 18, 12, fits ? sizeColor : Canvas.Dim);
                 canvas.Text($"그레이드 {dock[i].Work.Grade}   경험치 {dock[i].Work.GradeExp}", lx + 8, row + 23, 130, 20, 12, Canvas.Dim);
                 // 붙은 선박 스킬의 그림(올리면 이름) — 옵션 스킬과 전용함 스킬
@@ -3722,12 +3789,35 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             canvas.Text(formNow == formNext ? $"선박 형식 {Voyage.FormNames[formNow]} (그대로)" : $"선박 형식 {Voyage.FormNames[formNow]} → {Voyage.FormNames[formNext]}",
                         rx, y + 150, rw, 18, 12, formNow == formNext ? Canvas.Dim : new Color4(0.5f, 1f, 0.6f, 1), 1);
             canvas.Text($"비용 {voyage.CombineCost(main):N0} Ð\n소지금 {voyage.Money:N0} Ð", rx + 4, y + 164, rw - 8, 44, 14, Canvas.White);
-            canvas.Text("성공하면 강화는 초기화된다." + (picked > 0 ? $"\n보너스: {Voyage.BonusName(picked)}" + (inherit > 0 ? $" — {voyage.OptionName(inherit)}" : "") : "") + (main.Work.Grade >= 3 ? "\n4 부터는 대실패(강등)가 있다." : ""), rx + 4, y + 216, rw - 8, 80, 12, Canvas.Dim);
-            if (blocker != null) canvas.Text(blocker, rx + 4, y + 300, rw - 8, 40, 13, new Color4(1f, 0.5f, 0.45f, 1));
+            // 성공하면 달라지는 것 — 지금과 성공 뒤의 능력치를 견줘 바뀌는 줄만(강화가 초기화돼 내려가는 것은 붉게)
+            var after = voyage.Combined(main, material, picked, inherit);
+            var (was, will) = (voyage.StatsWith(main, main.Work), voyage.StatsWith(main, after));
+            int capWas = Voyage.MasteryCap(main.Ship, main.Work), capWill = Voyage.MasteryCap(main.Ship, after);
+            (string Label, double Now, double Then, string Unit)[] gains =
+            [
+                ("내구력", was.Durability, will.Durability, ""), ("세로돛", was.VerticalSail, will.VerticalSail, ""), ("가로돛", was.HorizontalSail, will.HorizontalSail, ""),
+                ("조력", was.Rowing, will.Rowing, ""), ("선회", was.Turn, will.Turn, ""), ("내파", was.WaveResist, will.WaveResist, ""), ("장갑", was.Armor, will.Armor, ""),
+                ("선실", was.MaxCrew, will.MaxCrew, ""), ("포실", was.Guns, will.Guns, ""), ("창고", was.Hold, will.Hold, ""),
+                ("속도", Math.Round(was.Knots, 1), Math.Round(will.Knots, 1), "노트"), ("숙련도 상한", capWas, capWill, ""),
+            ];
+            canvas.Text("성공하면", rx + 4, y + 212, rw - 8, 18, 13, Canvas.Gold, 0, true);
+            float gy = y + 230;
+            foreach (var (label, now, then, unit) in gains)
+            {
+                if (now == then || gy > y + 342) continue;
+                bool up = then > now;
+                canvas.Text(label, rx + 4, gy, 70, 16, 12, Canvas.White);
+                canvas.Text($"{now:0.#} → {then:0.#}{unit}  ({(up ? "+" : "")}{then - now:0.#})", rx + 74, gy, rw - 78, 16, 12, up ? new Color4(0.5f, 1f, 0.6f, 1) : new Color4(1f, 0.55f, 0.5f, 1));
+                gy += 16;
+            }
+            string extra = (picked > 0 ? $"보너스: {Voyage.BonusName(picked)}" + (inherit > 0 ? $" — {voyage.OptionName(inherit)}" : "") + "\n" : "")
+                           + (main.Work.Times > 0 ? "강화는 초기화된다." : "") + (main.Work.Grade >= 3 ? " 4 부터는 대실패(강등)가 있다." : "");
+            canvas.Text(extra, rx + 4, gy + 2, rw - 8, 48, 12, Canvas.Dim);
+            if (blocker != null) canvas.Text(blocker, rx + 4, y + 396, rw - 8, 22, 13, new Color4(1f, 0.5f, 0.45f, 1));
             if (canvas.Button("확인", x + w - 232, y + h - 50, 100, 34, blocker == null))
             {
                 voyage.Combine(main, material, picked, inherit);
-                (_combineMain, _combineMaterial) = (dock.IndexOf(main), -1);
+                (_combineMain, _combineMaterial) = (aboard && main == voyage.Aboard ? 0 : voyage.Dock.IndexOf(main) + (aboard ? 1 : 0), -1);
             }
         }
         else canvas.Text("두 배를 고르면 성공률이 나온다.", rx + 4, y + 84, rw - 8, 44, 13, Canvas.Dim);
@@ -4280,7 +4370,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             var fittedSkills = shownWork.Dedicated > 0 ? shownWork.Skills.Append(shownWork.Dedicated).ToList() : shownWork.Skills;
             float skillY = (_specialChosen == 1 && !onBoard) || _resetAsk ? y + 300 : y + 200;
             canvas.Text($"옵션 스킬 {shownWork.Skills.Count}/{voyage.SkillSlotsOf(shownWork)}" + (shownWork.Grade > 0 ? $"     그레이드 {shownWork.Grade}" : ""), rx, skillY, rw, 20, 13, Canvas.Gold);
-            if (fittedSkills.Count == 0) canvas.Text("없음", rx + 130, skillY, 100, 20, 13, Canvas.Dim);
+            if (fittedSkills.Count == 0) canvas.Text("없음", rx, skillY + 24, 100, 20, 13, Canvas.Dim);
             for (int k = 0; k < fittedSkills.Count && k < 6; k++)
             {
                 int skillId = fittedSkills[k];
@@ -4308,9 +4398,10 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             }
         }
         int books = voyage.Items.GetValueOrDefault(Voyage.DismantleBook);
-        bool worked = _specialChosen > 1 ? (voyage.Dock[_specialChosen - 2].Work?.Times ?? 0) > 0 : _specialChosen == 1 && onBoard && voyage.Work.Times > 0;
-        if (canvas.Button("성능초기화", x + 20, y + h - 50, 120, 34, worked && books > 0, 14)) _resetAsk = true;
-        if (canvas.Hover(x + 20, y + h - 50, 120, 34)) _tip = ($"특수조선 해체 기법서가 한 권 든다 (가진 수 {books})", x + 80, y + h - 52);
+        string? resetWhy = _specialChosen > 1 ? voyage.ResetBlocker(voyage.Dock[_specialChosen - 2].Work) : _specialChosen != 1 ? "초기화할 배를 고른다"
+                         : onBoard ? voyage.ResetBlocker(voyage.Work) : "타고 있는 배는 못 한다 (모드에서 켤 수 있다)";
+        if (canvas.Button("성능초기화", x + 20, y + h - 50, 120, 34, resetWhy == null, 14)) _resetAsk = true;
+        if (canvas.Hover(x + 20, y + h - 50, 120, 34)) _tip = (resetWhy ?? $"특수조선 해체 기법서가 한 권 든다 (가진 수 {books})", x + 20 + 200, y + h - 52);
         if (canvas.Button("돌아가기", x + w - 330, y + h - 50, 100, 34, true, 14)) (voyage.Dialog, _resetAsk) = (Dialog.ShipyardMenu, false);
         if (canvas.Button("다음 ▶", x + w - 224, y + h - 50, 100, 34, _specialChosen != 1 || onBoard, 14))
         {
@@ -4523,6 +4614,12 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         var options = _methodChosen == 2 ? voyage.DedicatedSkills() : voyage.Data.OptionSkills.Where(voyage.ShipAllows).ToList();
         if (_methodChosen != 0 && _contentSearch != "") options = options.Where(o => o.Name.Contains(_contentSearch, StringComparison.OrdinalIgnoreCase)).ToList();
         string? Original(string name) => detail?.Skills.Find(s => s.Name == name) is { Parts.Count: > 0 } real ? string.Join(" + ", real.Parts) : null;
+        // 이 배에 붙는 옵션 스킬의 목록이 없으면 전부 보인다 — 그 사실을 알리고 요청 딱지를 단다
+        if (_methodChosen == 1 && (detail is not { Skills.Count: > 0 } || detail.Borrowed != ""))
+        {
+            canvas.Text(detail is { Skills.Count: > 0 } ? $"{detail.Borrowed}의 목록을 빌려 왔다" : "이 배에 붙는 스킬 목록이 없어 전부 보인다", rx0 + 100, y + h - 78, 300, 20, 12, new Color4(1f, 0.75f, 0.45f, 1));
+            Invented("shipskill", voyage.Ship.Id, voyage.Ship.Name, rx0, y + h - 80);
+        }
         int count = _methodChosen == 0 ? plain.Length : options.Count;
         _contentRows = (count, 7);
         _contentTop = Math.Clamp(_contentTop, 0, Math.Max(0, count - 7));
@@ -4764,7 +4861,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         canvas.Text(voyage.Major == "" ? "전공 없음" : $"전공  {voyage.Major}     학점 {voyage.Credits:N0}", x + 22, y + 90, w - 44, 22, 14, Canvas.Dim);
 
         Header("상태", y + 122);
-        (string Name, int Icon, int Exp, int Fame)[] kinds = [("모험", 268, voyage.AdventureExp, voyage.AdventureFame), ("교역", 269, voyage.TradeExp, 0), ("전투", 270, 0, 0)];
+        (string Name, int Icon, int Exp, int Fame)[] kinds = [("모험", 268, voyage.AdventureExp, voyage.AdventureFame), ("교역", 269, voyage.TradeExp, voyage.TradeFame), ("전투", 270, voyage.BattleExp, voyage.BattleFame)];
         for (int i = 0; i < kinds.Length; i++)
         {
             var (level, next) = Voyage.LevelOf(kinds[i].Exp);
@@ -5069,6 +5166,13 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private (int Count, int Visible) _tradeRows;
 
     /// <summary>교역품 아이콘 — <c>0010\0001\sc</c> 의 무리 0, id 가 교역품 번호다(48 × 48).</summary>
+    // 레시피 책의 그림 — 그 책의 제 그림(아이템 그림 묶음에서 번호로), 없으면 여느 책 그림
+    private void RecipeIcon(int recipeId, float x, float y, float size)
+    {
+        if (!canvas.Image($"sb{recipeId / 100000}:{recipeId}", () => (_itemIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(recipeId / 100000, recipeId), x, y, size, size))
+            canvas.Image("sb17:book", () => (_itemIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(17, 1700000), x, y, size, size);
+    }
+
     private void GoodIcon(int goodId, float x, float y, float size = 26) =>
         canvas.Image($"sc{goodId}", () => (_goodIcons ??= new ImageSet(@"0010\0001\sc")).Pixels(0, goodId), x, y - 1, size, size);
 

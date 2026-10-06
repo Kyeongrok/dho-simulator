@@ -74,6 +74,8 @@ internal sealed class SceneRenderer : IDisposable
         }
         float4 PS(VSOut i) : SV_Target
         {
+            // emblem on a sail: only the 0..1 square of its own UV set carries the picture
+            if (Params.w > 1.5) clip(min(min(i.uv.x, 1.0 - i.uv.x), min(i.uv.y, 1.0 - i.uv.y)));
             float4 base = i.color * Diffuse.Sample(Wrap, i.uv);
             if (Tint.a < 1.5) clip(base.a - (Params.y > 0.5 ? 0.02 : 0.35));
             float3 n = normalize(i.normal);
@@ -316,9 +318,9 @@ internal sealed class SceneRenderer : IDisposable
         ctx.PSSetShader(_meshPs);
     }
 
-    public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false, bool soft = false, bool figure = false, bool cloth = false)
+    public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false, bool soft = false, bool figure = false, bool cloth = false, bool emblem = false)
     {
-        _gfx.SetObject(world, tint ?? Vector4.One, baked, soft, figure, cloth);
+        _gfx.SetObject(world, tint ?? Vector4.One, baked, soft, figure, cloth, emblem);
         _gfx.Context.PSSetShaderResource(0, texture ?? _white);
         mesh.Draw(_gfx);
     }

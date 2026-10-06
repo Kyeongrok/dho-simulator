@@ -31,7 +31,13 @@ internal sealed class Music : IDisposable
     public float Volume { get => _volume; set => _volume = Math.Clamp(value, 0, 1); }
 
     /// <summary>이 번호의 음악을 튼다(같은 것이면 그대로). 0 이면 끈다.</summary>
-    public void Play(int number) => _wanted = number;
+    // patient: 지금 곡을 끝까지 틀고 나서 바꾼다(바다에서 해역이 바뀔 때). 아니면 바로 잦아들며 바꾼다
+    public void Play(int number, bool patient = false)
+    {
+        if (number == _wanted) return;
+        (_patient, _wanted) = (patient && number > 0, number);
+    }
+    private volatile bool _patient;
 
     private void Run()
     {
@@ -42,6 +48,7 @@ internal sealed class Music : IDisposable
         var headers = new IntPtr[Buffers];
         float[] samples = [];
         float gain = 0;
+        bool ended = false;                 // 기다리던 곡이 끝까지 갔다 — 이제 바꾼다
 
         void Close()
         {
@@ -69,9 +76,11 @@ internal sealed class Music : IDisposable
             if (wanted != playing)
             {
                 // 갈아 끼우기 전에 잦아들게 한다
-                if (reader != null && gain > 0.02f) { gain -= 0.08f; }
+                if (_patient && reader != null && !ended) { if (gain < 1) gain = Math.Min(1, gain + 0.05f); }      // 끝까지 듣고 바꾼다
+                else if (reader != null && gain > 0.02f && !ended) { gain -= 0.08f; }
                 else
                 {
+                    ended = false;
                     Close();
                     playing = wanted;
                     gain = 0;
@@ -118,6 +127,8 @@ internal sealed class Music : IDisposable
                     {
                         int got = reader.ReadSamples(samples, filled, samples.Length - filled);
                         if (got > 0) { filled += got; continue; }
+                        // 끝까지 갔는데 다음 곡이 기다리고 있으면 남은 칸을 비우고 바꾼다
+                        if (_patient && _wanted != playing) { Array.Clear(samples, filled, samples.Length - filled); ended = true; break; }
                         // 끝까지 갔다 — 되돌이 자리로
                         reader.SamplePosition = Math.Clamp(loopStart, 0, Math.Max(0, reader.TotalSamples - 1));
                     }
