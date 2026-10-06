@@ -178,6 +178,7 @@ internal sealed partial class Voyage
     {
         _scratch = scratch;
         Data = data;
+        foreach (var detail in data.ShipDetails) if (detail.Days > 0) RealBuildDays[detail.Name] = detail.Days;
         Map = new WorldMap();
         Zones = new SeaZones();
         _cities = data.Cities.ToDictionary(c => c.Id);

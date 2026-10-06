@@ -224,13 +224,34 @@ internal sealed partial class Voyage
         return _ticketShips[ticket.Id] = found;
     }
 
+    // 입은 장비가 그 스킬에 올려 주는 랭크의 합(익힌 스킬에만 듣는다 — Rank 가 익힌 것만 센다)
+    public int GearRank(int skillId)
+    {
+        int sum = 0;
+        foreach (int item in Equipped)
+            if (item > 0 && Items.GetValueOrDefault(item) > 0 && Data.GearBoosts.TryGetValue(item, out var boosts)) sum += boosts.GetValueOrDefault(skillId);
+        return sum;
+    }
+
+    // 장비의 수치와 올려 주는 스킬 — 장비 표 줄 꼬리의 다섯 칸은 공격력 · 방어력 · 정장도 · 변장도 · 내구도(무기 · 옷의 값과 위키의 적는 차례로 맞춤)
+    public static readonly string[] GearStatNames = ["공격력", "방어력", "정장도", "변장도", "내구도"];
+    public string GearLine(GearItem gear)
+    {
+        var parts = new List<string>();
+        for (int k = 0; k < Math.Min(gear.Stats.Count, GearStatNames.Length); k++)
+            if (gear.Stats[k] != 0) parts.Add($"{GearStatNames[k]} {gear.Stats[k]}");
+        if (Data.GearBoosts.TryGetValue(gear.Id, out var boosts))
+            parts.AddRange(boosts.Select(b => $"{SkillName(b.Key)} +{b.Value}"));
+        return parts.Count == 0 ? "" : "\n" + string.Join(" · ", parts);
+    }
+
     public string ItemNote(int item)
     {
         if (FoodOf(item) is { } food) return food.Description.Replace("\n", " ");
         if (BoosterOf(item) is { } booster) return booster.Description.Replace("\n", " ");
         if (DecoOf(item) is { } deco) return deco.Description.Replace("\n", " ");
         if (CrewGearOf(item) is { } crewGear) return crewGear.Description.Replace("\n", " ");
-        if (item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear) return gear.Description.Replace("\n", " ");
+        if (item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear) return gear.Description.Replace("\n", " ") + GearLine(gear);
         if (Data.Papers.Find(p => p.Id == item) is { } paper)
             return paper.Description.Replace("\n", " ") + (paper.Name.Contains("교환권") && (paper.Name.Contains("선박") || TicketShip(paper) != null) ? (TicketShip(paper) is { } gives ? $"  → {gives.Name}" : "  (바꿀 배를 못 찾았다)") : "");
         if (ItemOf(item) is { } known)

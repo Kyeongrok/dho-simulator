@@ -75,8 +75,10 @@ internal sealed class SceneRenderer : IDisposable
         float4 PS(VSOut i) : SV_Target
         {
             // emblem on a sail: only the 0..1 square of its own UV set carries the picture
-            if (Params.w > 1.5) clip(min(min(i.uv.x, 1.0 - i.uv.x), min(i.uv.y, 1.0 - i.uv.y)));
+            if (Params.w > 1.5 && Params.w < 2.5) clip(min(min(i.uv.x, 1.0 - i.uv.x), min(i.uv.y, 1.0 - i.uv.y)));
             float4 base = i.color * Diffuse.Sample(Wrap, i.uv);
+            // wrinkle on a sail: the picture itself, multiplied onto what is already drawn (no lighting of its own)
+            if (Params.w > 2.5) return float4(lerp(float3(1, 1, 1), base.rgb, 0.6), 1);
             if (Tint.a < 1.5) clip(base.a - (Params.y > 0.5 ? 0.02 : 0.35));
             float3 n = normalize(i.normal);
             float3 v = normalize(CameraPosition - i.world);
@@ -318,9 +320,13 @@ internal sealed class SceneRenderer : IDisposable
         ctx.PSSetShader(_meshPs);
     }
 
-    public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false, bool soft = false, bool figure = false, bool cloth = false, bool emblem = false)
+    // 곱해 그리기 / 다시 불투명으로 — 돛의 주름처럼 이미 그린 것 위에 그림을 곱할 때
+    public void Multiply() => _gfx.Multiply();
+    public void Opaque() => _gfx.Opaque();
+
+    public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false, bool soft = false, bool figure = false, bool cloth = false, bool emblem = false, bool multiply = false)
     {
-        _gfx.SetObject(world, tint ?? Vector4.One, baked, soft, figure, cloth, emblem);
+        _gfx.SetObject(world, tint ?? Vector4.One, baked, soft, figure, cloth, emblem, multiply);
         _gfx.Context.PSSetShaderResource(0, texture ?? _white);
         mesh.Draw(_gfx);
     }

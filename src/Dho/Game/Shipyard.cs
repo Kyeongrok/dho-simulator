@@ -159,7 +159,9 @@ internal sealed partial class Voyage
     public IEnumerable<ShipMaterial> SpecialMaterials() => Data.ShipMaterials.Where(m => IsSpecial(m.Id));
 
     /// <summary>건조일수 — 화면 글에 칸만 있고 값은 없어서 크기 등급에서 짓는다.</summary>
-    public static int BuildDays(ShipData ship) => 3 + ship.SizeClass * 4;
+    public static int BuildDays(ShipData ship) => RealBuildDays.TryGetValue(ship.Name, out int days) ? days : 3 + ship.SizeClass * 4;
+    // 배 상세에 건조 일수가 있는 배들(위키의 日数) — 자료를 읽을 때 채운다
+    public static readonly Dictionary<string, int> RealBuildDays = [];
 
     /// <summary>맡기는 값 — 조선소에서 사는 것보다 싸다.</summary>
     public int BuildCost(ShipData ship, int material) => (int)(ShipStats.Of(ship, Settings.Ships).Price * (MaterialOf(material)?.Price ?? 1) * 0.8);

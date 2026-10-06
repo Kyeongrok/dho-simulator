@@ -537,6 +537,40 @@ internal sealed partial class Voyage
     /// <summary>이 배에 붙일 수 있는 옵션 스킬인가 — 배 상세(ssjoy)를 모은 배는 거기 적힌 스킬만, 못 모은 배는 무엇이든.</summary>
     public bool ShipAllows(OptionSkill skill) => Data.ShipDetail(Ship.Name) is not { Skills.Count: > 0 } detail || detail.Skills.Exists(s => s.Name == skill.Name);
 
+    // ── 진짜 재료 조합으로 옵션 스킬 붙이기 ──
+    // 배 상세에 그 스킬의 재료 조합이 적혀 있으면(위키의 「スキル付加例」) 그 조빌 아이템들을 실제로 가지고 있어야 하고, 붙이면 든다.
+    // 조합을 모르는 스킬은 전처럼 지어 준 두 가지 재료로 강화 창에서 붙인다.
+
+    // 그 스킬의 재료 조합을 조빌 아이템 번호로 — 조합이 없거나 아이템을 못 찾으면 null
+    public List<int>? RealCombo(OptionSkill skill)
+    {
+        if (Data.ShipDetail(Ship.Name)?.Skills.Find(s => s.Name == skill.Name) is not { Parts.Count: > 0 } real) return null;
+        var items = real.Parts.Select(name => Data.Papers.Find(p => p.Name == name && IsShipItem(p.Id))?.Id ?? 0).ToList();
+        return items.Contains(0) ? null : items;
+    }
+
+    public string? ComboBlocker(OptionSkill skill)
+    {
+        if (ShipbuildingRank <= 0) return "조선 스킬이 없다";
+        if (Work.Skills.Contains(skill.SkillId) || skill.SkillId == Work.Dedicated) return "이미 붙어 있다";
+        if (Work.Skills.Count >= SkillSlotsOf(Work)) return "옵션 스킬 칸이 없다";
+        if (RealCombo(skill) is not { } items) return "재료 조합을 모른다";
+        var lacking = items.GroupBy(i => i).Where(g => Items.GetValueOrDefault(g.Key) < g.Count()).Select(g => ItemName(g.Key)).ToList();
+        return lacking.Count > 0 ? "재료가 없다: " + string.Join(", ", lacking) : null;
+    }
+
+    public void GrantByCombo(OptionSkill skill)
+    {
+        if (Mode != Mode.Port || ComboBlocker(skill) != null || RealCombo(skill) is not { } items) return;
+        foreach (int item in items)
+            if (--Items[item] <= 0) Items.Remove(item);
+        Work.Skills.Add(skill.SkillId);
+        Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
+        TrainEffect("Shipbuilding", 60);
+        Cues.Enqueue("Done");
+        Say($"{Ship.Name}에 옵션 스킬 「{skill.Name}」을(를) 붙였다. (재료: {string.Join(" · ", items.Select(ItemName))})");
+    }
+
     public OptionSkill? OptionFrom(IReadOnlyCollection<int> parts)
     {
         if (Work.Skills.Count >= SkillSlotsOf(Work)) return null;

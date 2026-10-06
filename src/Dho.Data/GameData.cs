@@ -438,6 +438,8 @@ public sealed class ShipDetailFact
     public string Name { get; set; } = "";
     public int Times { get; set; }
     public int Retimes { get; set; }
+    // 건조 일수(위키의 日数) — 0 이면 모른다
+    public int Days { get; set; }
     public List<int> Caps { get; set; } = [];
     public List<int> Slots { get; set; } = [];
     public List<ShipDetailSkill> Skills { get; set; } = [];
@@ -814,8 +816,12 @@ public sealed class GameData
     [System.Text.Json.Serialization.JsonIgnore] public List<GearModel> GearModels { get; set; } = [];
     // 부스트 아이템 — 아이템 표(14)에서 설명에 「속도가 n% 상승」 · 「스킬이 +n」 · 「스킬 효과가 연장」이 든 것 — data\extracted\booster-items.json(저장소에는 안 둔다)
     [System.Text.Json.Serialization.JsonIgnore] public List<PaperItem> Boosters { get; set; } = [];
+    // 장비가 올려 주는 스킬 — 장비 번호 → (스킬 번호 → 랭크). 클라이언트에는 없어서 위키 사본에서 뽑는다(<c>data\extracted\gear-boosts.json</c>, 저장소에는 안 둔다)
+    [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, Dictionary<int, int>> GearBoosts { get; set; } = [];
     // 재질의 실제 빛깔(0xRRGGBB) — 배 모형 표(0001\0002.bin) 뒤의 재질 줄(40바이트 × 99, 줄 k = 재질 번호 k + 1)에서 뽑은 것: 칠한 재질은 칠 빛깔, 나무는 나무 빛깔
     [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, int> MaterialColors { get; set; } = [];
+    // 칠한 재질의 띠 빛(재질 줄의 어두운 쪽 칠 빛) — 재질 번호 → 0xRRGGBB. 선체의 띠 조각(빛깔 번호 1 · 2)에 쓴다
+    [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, int> MaterialTrims { get; set; } = [];
     /// <summary>행동력 음식 — 아이템 표(14)에서 설명에 「행동력+n」이 든 것(해물 피자 · 마늘닭 통구이 …) — <c>data\extracted\food-items.json</c>(저장소에는 안 둔다).</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<PaperItem> Foods { get; set; } = [];
     /// <summary>선박 데코(표 138) · 선원 장비(표 139) — <c>data\extracted\ship-decos.json</c> · <c>crew-gear.json</c>(저장소에는 안 둔다).</summary>
@@ -890,7 +896,9 @@ public sealed class GameData
         data.Papers = Read<List<PaperItem>>(Path.Combine(extracted, "paper-items.json")) ?? [];
         data.Foods = Read<List<PaperItem>>(Path.Combine(extracted, "food-items.json")) ?? [];
         data.MaterialColors = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-colors.json")) ?? [];
+        data.MaterialTrims = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-trims.json")) ?? [];
         data.Boosters = Read<List<PaperItem>>(Path.Combine(extracted, "booster-items.json")) ?? [];
+        data.GearBoosts = Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts.json")) ?? [];
         data.GearModels = Read<List<GearModel>>(Path.Combine(extracted, "gear-models.json")) ?? [];
         data.Gear = Read<List<GearItem>>(Path.Combine(extracted, "gear-items.json")) ?? [];
         data.MaterialItems = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-items.json")) ?? [];

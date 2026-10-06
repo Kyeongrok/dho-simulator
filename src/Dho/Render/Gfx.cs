@@ -58,7 +58,7 @@ internal sealed unsafe class Gfx : IDisposable
 
     private readonly ID3D11Buffer _frameBuffer, _objectBuffer;
     private readonly ID3D11SamplerState _wrapSampler;
-    private readonly ID3D11BlendState _alphaBlend, _opaqueBlend;
+    private readonly ID3D11BlendState _alphaBlend, _opaqueBlend, _multiplyBlend;
     private readonly ID3D11DepthStencilState _depthWrite, _depthRead, _depthNone;
     private readonly ID3D11RasterizerState _cullNone;
 
@@ -101,6 +101,15 @@ internal sealed unsafe class Gfx : IDisposable
         _wrapSampler = Device.CreateSamplerState(SamplerDescription.AnisotropicWrap);
         _alphaBlend = Device.CreateBlendState(BlendDescription.NonPremultiplied);
         _opaqueBlend = Device.CreateBlendState(BlendDescription.Opaque);
+        // 결과 = 이미 그린 빛 × 그리는 빛. 알파 쪽에는 빛깔 인자를 못 쓰므로(만들 때 오류가 난다) 따로 적는다 — 알파는 그대로 둔다
+        var multiply = new BlendDescription();
+        multiply.RenderTarget[0] = new RenderTargetBlendDescription
+        {
+            BlendEnable = true, SourceBlend = Blend.Zero, DestinationBlend = Blend.SourceColor, BlendOperation = BlendOperation.Add,
+            SourceBlendAlpha = Blend.Zero, DestinationBlendAlpha = Blend.One, BlendOperationAlpha = BlendOperation.Add,
+            RenderTargetWriteMask = ColorWriteEnable.All,
+        };
+        _multiplyBlend = Device.CreateBlendState(multiply);
         _depthWrite = Device.CreateDepthStencilState(DepthStencilDescription.Default);
         _depthRead = Device.CreateDepthStencilState(DepthStencilDescription.DepthRead);
         _depthNone = Device.CreateDepthStencilState(DepthStencilDescription.None);
@@ -191,10 +200,10 @@ internal sealed unsafe class Gfx : IDisposable
 
     /// <param name="soft">알파로 섞어 그리는 면 — 거의 투명한 데만 잘라낸다.</param>
     /// <param name="cloth">돛 천 — 해를 등진 면도 어두워지지 않게 고르게 밝힌다.</param>
-    public void SetObject(in Matrix4x4 world, Vector4 tint, bool baked = false, bool soft = false, bool figure = false, bool cloth = false, bool emblem = false)
+    public void SetObject(in Matrix4x4 world, Vector4 tint, bool baked = false, bool soft = false, bool figure = false, bool cloth = false, bool emblem = false, bool multiply = false)
     {
         // 넷째 칸: 1 돛 천, 2 돛 위의 문장(그림의 0 ~ 1 밖은 잘라낸다)
-        var constants = new ObjectConstants { World = world, Tint = tint, Params = new Vector4(baked ? 1 : 0, soft ? 1 : 0, figure ? 1 : 0, emblem ? 2 : cloth ? 1 : 0) };
+        var constants = new ObjectConstants { World = world, Tint = tint, Params = new Vector4(baked ? 1 : 0, soft ? 1 : 0, figure ? 1 : 0, multiply ? 3 : emblem ? 2 : cloth ? 1 : 0) };
         Context.UpdateSubresource(in constants, _objectBuffer);
     }
 
@@ -203,6 +212,13 @@ internal sealed unsafe class Gfx : IDisposable
     {
         Context.OMSetBlendState(_opaqueBlend);
         Context.OMSetDepthStencilState(_depthWrite);
+    }
+
+    /// <summary>곱하기: 깊이는 읽기만 하고, 이미 그린 빛에 그리는 빛을 곱한다(돛의 주름).</summary>
+    public void Multiply()
+    {
+        Context.OMSetBlendState(_multiplyBlend);
+        Context.OMSetDepthStencilState(_depthRead);
     }
 
     /// <summary>반투명: 깊이는 읽기만 하고 알파로 섞는다.</summary>

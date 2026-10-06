@@ -69,6 +69,8 @@ public sealed class ShipFact
     public int? Rowing { get; set; }
     public int? MinCrew { get; set; }
     public int? Guns { get; set; }
+    // 부품 칸의 수 — 보조돛 · 특수장비 · 추가장갑 · 선측포 · 선수포 · 선미포(위키의 補 特 追 側 首 尾, 원본 선박 카드의 차례). 없으면 지어낸 수를 쓴다
+    public int[]? Slots { get; set; }
 }
 
 /// <summary>

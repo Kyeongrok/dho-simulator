@@ -378,8 +378,17 @@ internal sealed class GameWindow : IDisposable
     }
 
     // 선체의 바탕 판을 그 빛깔에 딸린 것으로 맞추고 빛깔을 낸다
-    private static Vector4 Hull(ShipModel ship, int color)
+    private Dictionary<int, int>? _trims;
+    private Vector4 Hull(ShipModel ship, int color)
     {
+        // 그 선체 빛깔(재질)에 딸린 띠 빛 — 재질 번호가 아니라 빛깔 값으로 찾는다(같은 빛깔의 재질은 띠도 같다)
+        if (_trims == null)
+        {
+            _trims = [];
+            foreach (var (material, trim) in _voyage.Data.MaterialTrims)
+                if (_voyage.Data.MaterialColors.TryGetValue(material, out int whole)) _trims.TryAdd(whole, trim);
+        }
+        ship.Trim = _trims.TryGetValue(color, out int band) ? HullTint(band | color & unchecked((int)0xFF000000)) : null;
         ship.SetHullBase(color >> 24 & 255);
         return HullTint(color);
     }
@@ -1411,6 +1420,7 @@ internal sealed class GameWindow : IDisposable
                 (_mouseX, _mouseY) = (int.Parse(where[0]), int.Parse(where[1]));
                 _clicked = true;                    // 진짜 클릭처럼 화면 창을 먼저 거친다
                 break;
+            case "point": (_mouseX, _mouseY) = (int.Parse(argument.Split(',')[0]), int.Parse(argument.Split(',')[1])); break;      // 누르지 않고 올려만 둔다
             case "outfit": _voyage.Dialog = Dialog.Outfit; break;
             case "character": _voyage.Dialog = Dialog.Character; break;
             case "topmenu": _hud.OpenTopMenu((int)Number()); break;
@@ -1450,6 +1460,7 @@ internal sealed class GameWindow : IDisposable
             case "hullbuild": _voyage.Dialog = Dialog.HullBuild; break;
             case "yardmenu": _voyage.Dialog = Dialog.ShipyardMenu; break;
             case "shipinfo": _voyage.Dialog = Dialog.ShipInfo; break;
+            case "dialog": if (Enum.TryParse<Dialog>(argument, out var opened)) _voyage.Dialog = opened; break;      // 창을 이름으로 연다(확인용)
             case "exp": { var two = argument.Split(','); _voyage.GainExp(int.Parse(two[0]), int.Parse(two[1])); break; }
             case "dyedebug": ShipModel.DyeDebug = [new(1, 1, 1, 1), new(1, 0.1f, 0.1f, 1), new(0.1f, 1, 0.1f, 1), new(0.2f, 0.3f, 1, 1), new(1, 1, 0.1f, 1), new(1, 0, 1, 1), new(0, 1, 1, 1), new(0, 0, 0, 1)]; break;
             case "combinepick": { var two = argument.Split(','); _hud.PickCombine(int.Parse(two[0]), int.Parse(two[1])); break; }

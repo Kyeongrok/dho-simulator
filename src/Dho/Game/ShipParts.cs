@@ -9,7 +9,10 @@ namespace Dho.Game;
 internal sealed partial class Voyage
 {
     /// <summary>배마다 다른 칸 수 — 보조돛은 돛대 수만큼(셋까지), 장갑 하나, 선수상 하나. 원본의 배마다의 칸 수는 자료를 못 찾아 지은 것이다.</summary>
-    public int SlotsOf(int slot) => slot == 0 ? Math.Clamp(Ship.Masts, 1, 3) : 1;
+    public int SlotsOf(int slot) =>
+        ShipStats.Facts.TryGetValue(Ship.Name, out var fact) && fact.Slots is { Length: >= 3 } real
+            ? slot switch { 0 => Math.Clamp(real[0], 0, 5), 1 => Math.Clamp(real[2], 0, 5), _ => 1 }      // 배 자료의 칸 수(보조돛 · 추가장갑)
+            : slot == 0 ? Math.Clamp(Ship.Masts, 1, 3) : 1;
 
     /// <summary>부품을 값 없이 받는다(아이템 추가 창) — 가진 부품 칸이 차 있으면 못 받는다.</summary>
     public void GivePart(ShipPart part)
