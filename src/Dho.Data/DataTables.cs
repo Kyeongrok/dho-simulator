@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 using System.Text;
 
 namespace Dho.Data;
@@ -10,8 +10,17 @@ public sealed record Discovery(int Id, string Name, string Description, int Kind
 public sealed record Skill(int Id, string Name, string Description, int Group, int Sub, int Basic, int Cost, int Job);
 public sealed record Good(int Id, string Name, string Description, int Kind);
 public sealed record Ship(int Id, string Name, string Description, int Model, int Height, int Width, int Length, int SizeClass, int Kind, int Masts);
-/// <summary>배 부품. Slot: 0 보조돛(A 가로돛, B 세로돛) · 1 장갑(A 장갑, B 속도 줄임) · 2 선수상(A ~ D 효과 넷).</summary>
+/// <summary>배 부품. Slot: 0 보조돛(A 가로돛, B 세로돛) · 1 장갑(A 장갑, B 속도 줄임) · 2 선수상(A ~ D 효과 넷) · 3 문장(수치 없음).</summary>
 public sealed record ShipPart(int Id, string Name, string Description, int Slot, int A, int B, int C, int D, int Durability);
+/// <summary>
+/// 선박 데코(표 138) — 줄 꼬리 10바이트: u8 × 5 붙일 수 있는 자리(마스트 톱, 전방 측면 둘, 뒤쪽 측면 둘), u16 모형으로 보이는 번호, u8 ?(깃발은 나라 차례), u8 0, u8 갈래
+/// (0 마스트 톱의 깃발 · 상, 1 작은 배, 2 랜턴, 3 앵커, 4 상, 5 장식, 6 방패). 자리의 뜻은 설명 글(「마스트 톱」 · 「전방 측면」 · 「뒤쪽 측면」)과 맞춰 본 것이다.
+/// </summary>
+public sealed record ShipDeco(int Id, string Name, string Description, int[] Spots, int Model, int Extra, int Kind);
+/// <summary>
+/// 선원 장비(표 139) — 줄 꼬리 26바이트: u8 갈래(0 · 1 · 2 — 번호대 2600 · 2601 · 2602 과 같다), s8 × 5 수치(뜻은 못 밝혔다), u8 내구, 나머지 19바이트는 안 풀었다.
+/// </summary>
+public sealed record CrewGear(int Id, string Name, string Description, int Kind, int[] Values, int Durability);
 public sealed record Nation(int Id, string Name, string Description);
 public sealed record Job(int Id, string Name, string Description, int Line);
 
@@ -56,6 +65,9 @@ public sealed class DataTables
     public IReadOnlyDictionary<int, string> Duties { get; }
     /// <summary>시내 장소 이름(표 40): 9 조선소 · 10 교역소 · 14 은행 … — 시내 지도의 표식이 이 번호를 쓴다.</summary>
     public IReadOnlyDictionary<int, string> Places { get; }
+    /// <summary>선박 데코(표 138) 321줄과 선원 장비(표 139) 214줄 — 이름이 「※」인 빈 줄까지 그대로.</summary>
+    public IReadOnlyList<ShipDeco> Decos { get; }
+    public IReadOnlyList<CrewGear> CrewGears { get; }
 
     public DataTables(int language = GvoFiles.Korean)
     {
@@ -109,11 +121,30 @@ public sealed class DataTables
         });
         parts.AddRange(Rows(Table(ArmorTable), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 1, r.UInt16(), r.UInt16(), 0, 0, r.Int32())));
         parts.AddRange(Rows(Table(FigureheadTable), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 2, r.Int32(), r.Int32(), r.Int32(), r.Int32(), r.Int32())));
+        // 문장(표 26): id(1100001 ~), 이름, 설명뿐 — 수치가 없다
+        parts.AddRange(Rows(Table(26), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 3, 0, 0, 0, 0, 0)));
         ShipParts = parts;
         Recipes = Rows(Table(RecipeTable), (r, id) => (id, r.Text(id), r.Text(id)));
         Aides = Rows(Table(AideTable), (r, id) => (id, r.Text(id), r.Byte(), r.Byte()));
         Duties = Rows(Table(DutyTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(d => d.Id, d => d.Name);
         Places = Rows(Table(PlaceTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(p => p.Id, p => p.Name);
+        Decos = Rows(Table(138), (r, id) =>
+        {
+            string name = r.Text(id), description = r.Text(id);
+            int[] spots = [r.Byte(), r.Byte(), r.Byte(), r.Byte(), r.Byte()];
+            int model = r.UInt16(), extra = r.Byte();
+            r.Byte();
+            return new ShipDeco(id, name, description, spots, model, extra, r.Byte());
+        });
+        CrewGears = Rows(Table(139), (r, id) =>
+        {
+            string name = r.Text(id), description = r.Text(id);
+            int kind = r.Byte();
+            int[] values = [(sbyte)r.Byte(), (sbyte)r.Byte(), (sbyte)r.Byte(), (sbyte)r.Byte(), (sbyte)r.Byte()];
+            int durability = r.Byte();
+            r.Skip(19);
+            return new CrewGear(id, name, description, kind, values, durability);
+        });
     }
 
     private static List<T> Rows<T>(byte[] table, Func<Reader, int, T> row)

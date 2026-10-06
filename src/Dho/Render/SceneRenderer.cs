@@ -90,6 +90,9 @@ internal sealed class SceneRenderer : IDisposable
             // figure: brightness only, no sky tint
             if (Params.z > 0.5)
                 lit = base.rgb * (0.62 + 0.55 * diffuse) * clamp(Ambient.g + SunColor.g * 0.55, 0.66, 0.84);
+            // sail cloth: evenly lit on both faces, only a little shading left; takes the colour of the light (warm at dusk, blue at night)
+            if (Params.w > 0.5)
+                lit = base.rgb * (0.84 + 0.22 * diffuse) * min(Ambient * 0.9 + SunColor * 0.62, 1.08);
             return float4(ApplyFog(lit, i.world), base.a);
         }
         """;
@@ -296,9 +299,9 @@ internal sealed class SceneRenderer : IDisposable
         ctx.PSSetShader(_meshPs);
     }
 
-    public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false, bool soft = false, bool figure = false)
+    public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false, bool soft = false, bool figure = false, bool cloth = false)
     {
-        _gfx.SetObject(world, tint ?? Vector4.One, baked, soft, figure);
+        _gfx.SetObject(world, tint ?? Vector4.One, baked, soft, figure, cloth);
         _gfx.Context.PSSetShaderResource(0, texture ?? _white);
         mesh.Draw(_gfx);
     }

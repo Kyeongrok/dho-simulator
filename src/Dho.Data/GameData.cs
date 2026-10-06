@@ -534,6 +534,9 @@ public sealed class SaveData
     public List<int> PartStock { get; set; } = [];
     /// <summary>입거나 찬 장비 — 갈래(0 옷 … 5 장신구)마다 아이템 번호, 없으면 0.</summary>
     public List<int> Equipped { get; set; } = [];
+    /// <summary>붙인 선박 데코(자리 다섯)와 쥐여 준 선원 장비(갈래 셋) — 아이템 번호, 없으면 0.</summary>
+    public List<int> Decos { get; set; } = [];
+    public List<int> CrewGear { get; set; } = [];
     /// <summary>부두의 배들 — [배 id, 내구, 단 부품 …].</summary>
     public List<double[]> Dock { get; set; } = [];
     public int QuestId { get; set; }
@@ -729,6 +732,9 @@ public sealed class GameData
     public List<ShipMaterial> ShipMaterials { get; set; } = [];
     public ShipWorkBook ShipWorks { get; set; } = new();
     public List<ShipPart> ShipParts { get; set; } = [];
+    /// <summary>선박 데코(표 138) · 선원 장비(표 139) — <c>data\extracted\ship-decos.json</c> · <c>crew-gear.json</c>(저장소에는 안 둔다).</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<ShipDeco> Decos { get; set; } = [];
+    [System.Text.Json.Serialization.JsonIgnore] public List<CrewGear> CrewGears { get; set; } = [];
     /// <summary>부관 후보(표 131) — Group 은 표의 첫 바이트.</summary>
     public List<NamedData> Aides { get; set; } = [];
     /// <summary>부관의 담당 이름(표 36).</summary>
@@ -804,6 +810,8 @@ public sealed class GameData
         data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
         data.ShipParts = Read<List<ShipPart>>(Path.Combine(extracted, "ship-parts.json")) ?? [];
         }
+        data.Decos = Read<List<ShipDeco>>(Path.Combine(extracted, "ship-decos.json")) ?? [];
+        data.CrewGears = Read<List<CrewGear>>(Path.Combine(extracted, "crew-gear.json")) ?? [];
 
         data.Settings = Read<SettingsData>(Path.Combine(directory, "settings.json")) ?? new SettingsData();
         data.Quests = Read<List<QuestData>>(Path.Combine(directory, "quests.json")) ?? [];
@@ -868,6 +876,8 @@ public sealed class GameData
         Write(Path.Combine(extracted, "jobs.json"), Jobs);
         Write(Path.Combine(extracted, "places.json"), Places);
         Write(Path.Combine(extracted, "ship-parts.json"), ShipParts);
+        Write(Path.Combine(extracted, "ship-decos.json"), Decos);
+        Write(Path.Combine(extracted, "crew-gear.json"), CrewGears);
         Write(Path.Combine(extracted, "aides.json"), Aides);
         Write(Path.Combine(extracted, "recipes.json"), Recipes);
         Write(Path.Combine(extracted, "duties.json"), Duties);
@@ -918,6 +928,8 @@ public sealed class GameData
         Aides = tables.Aides.Select(a => new NamedData { Id = a.Id, Name = a.Name, Group = a.A }).ToList();
         Duties = tables.Duties.OrderBy(d => d.Key).Select(d => new NamedData { Id = d.Key, Name = d.Value }).ToList();
         ShipParts = tables.ShipParts.Where(p => p.Name.Length > 0 && !p.Name.StartsWith('※')).ToList();
+        Decos = tables.Decos.Where(d => d.Name.Length > 0 && !d.Name.StartsWith('※')).ToList();
+        CrewGears = tables.CrewGears.Where(g => g.Name.Length > 0 && !g.Name.StartsWith('※')).ToList();
         Places = tables.Places.OrderBy(p => p.Key).Select(p => new NamedData { Id = p.Key, Name = p.Value }).ToList();
         GoodKinds = tables.GoodKinds.OrderBy(k => k.Key).Select(k => new NamedData { Id = k.Key, Name = k.Value }).ToList();
         // 빈 줄(※)과 개조·명품·기념·체험 판은 뺀다

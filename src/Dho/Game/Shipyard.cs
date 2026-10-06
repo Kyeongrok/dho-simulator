@@ -51,16 +51,29 @@ internal sealed partial class Voyage
     private ImageSet? _materialIcons;
 
     /// <summary>
+    /// 재질을 따로 안 정한 배의 타고난 재질 — 「월광 ○○」은 「하얀 달」 특별 주문 도료로 지은 배다(교환권 설명: 「특수 목재 / 금속으로 만들어진 월광 …」,
+    /// 배 설명: 「달빛처럼 하얀 …」). 전열함은 금속, 나머지는 목재. 없으면 0.
+    /// </summary>
+    public int NativeMaterial(ShipData ship) =>
+        !ship.Name.StartsWith("월광") ? 0
+        : Data.ShipMaterials.Find(m => m.Name.Contains("특별 주문 도료") && m.Name.Contains("하얀 달") && m.Name.Contains(ship.Name.Contains("전열함") ? "금속" : "목재"))?.Id ?? 0;
+
+    /// <summary>그 배의 선체 빛깔 — 재질이 정해져 있으면 그것, 아니면 타고난 재질의 것.</summary>
+    public int HullColorOf(ShipData ship, int material) => HullColor(material != 0 ? material : NativeMaterial(ship));
+
+    /// <summary>
     /// 그 재질로 지은 배의 선체 빛깔(0xRRGGBB). 나라 · 의식용 재질은 그 선박재료 아이템의 그림에서 뽑는다
     /// (불투명한 밝은 점들의 평균을 밝게 올린 것) — 그림과 배의 빛깔이 맞는다. 바탕 나무(삼나무 ~ 철)는 전처럼 이름에서 지은 옅은 빛.
+    /// 어두운 재질(야전용의 검정, 검녹색 · 검보라색)은 그림에서 뽑지 않는다 — 밝은 점만 모아 밝게 올리는 셈이라 검은 배가 희게 나왔다.
     /// </summary>
     public int HullColor(int material)
     {
         if (_hullColors.TryGetValue(material, out int known)) return known;
         int color = MaterialOf(material)?.Color ?? 0xFFFFFF;
+        bool dark = Math.Max(color >> 16 & 255, Math.Max(color >> 8 & 255, color & 255)) < 128;
         try
         {
-            if (IsSpecial(material) && Data.MaterialItems.TryGetValue(material, out int item)
+            if (!dark && IsSpecial(material) && Data.MaterialItems.TryGetValue(material, out int item)
                 && (_materialIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(22, item) is { } icon)
             {
                 double r = 0, g = 0, b = 0, n = 0;
@@ -254,7 +267,7 @@ internal sealed partial class Voyage
     {
         if (Ordered is not { DaysLeft: > 0 } order) return;
         order.DaysLeft -= days;
-        if (order.DaysLeft <= 0) Say($"맡겨 둔 {order.Ship.Name}이(가) 다 지어졌을 것이다. 조선소에서 받는다.");
+        if (order.DaysLeft <= 0) { Say($"맡겨 둔 {order.Ship.Name}이(가) 다 지어졌을 것이다. 조선소에서 받는다."); Cues.Enqueue("SkillUp"); }      // 건조가 끝나면 레벨업 소리(0:7)
     }
 
     private void StartShip(int shipId)

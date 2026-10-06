@@ -190,9 +190,10 @@ internal sealed unsafe class Gfx : IDisposable
     public void EndInset() => Context.RSSetViewport(0, 0, Width, Height);
 
     /// <param name="soft">알파로 섞어 그리는 면 — 거의 투명한 데만 잘라낸다.</param>
-    public void SetObject(in Matrix4x4 world, Vector4 tint, bool baked = false, bool soft = false, bool figure = false)
+    /// <param name="cloth">돛 천 — 해를 등진 면도 어두워지지 않게 고르게 밝힌다.</param>
+    public void SetObject(in Matrix4x4 world, Vector4 tint, bool baked = false, bool soft = false, bool figure = false, bool cloth = false)
     {
-        var constants = new ObjectConstants { World = world, Tint = tint, Params = new Vector4(baked ? 1 : 0, soft ? 1 : 0, figure ? 1 : 0, 0) };
+        var constants = new ObjectConstants { World = world, Tint = tint, Params = new Vector4(baked ? 1 : 0, soft ? 1 : 0, figure ? 1 : 0, cloth ? 1 : 0) };
         Context.UpdateSubresource(in constants, _objectBuffer);
     }
 

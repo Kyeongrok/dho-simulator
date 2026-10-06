@@ -93,6 +93,8 @@ internal sealed partial class Voyage
 
     public string ItemName(int item) =>
         ItemOf(item) is { } known ? known.Name :
+        DecoOf(item) is { } deco ? deco.Name :
+        CrewGearOf(item) is { } crewGear ? crewGear.Name :
         Data.Papers.Find(p => p.Id == item) is { } paper ? paper.Name :
         item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear ? gear.Name :
         item > MaterialItem && item < MaterialItem + 1000 && MaterialOf(item - MaterialItem) is { } wood ? wood.Name :
@@ -169,11 +171,16 @@ internal sealed partial class Voyage
                 }
                 if (found != null) break;
             }
+        // 「」 없이 「…월광 상업용 대형 클리퍼와 교환할 수 있는 티켓」처럼 적힌 교환권 — 설명 글에 이름이 통째로 든 배 가운데 가장 긴 것
+        if (found == null && Tight(text) is { Length: > 0 } packed)
+            found = Data.Ships.Where(s => Tight(s.Name).Length >= 4 && packed.Contains(Tight(s.Name))).MaxBy(s => Tight(s.Name).Length);
         return _ticketShips[ticket.Id] = found;
     }
 
     public string ItemNote(int item)
     {
+        if (DecoOf(item) is { } deco) return deco.Description.Replace("\n", " ");
+        if (CrewGearOf(item) is { } crewGear) return crewGear.Description.Replace("\n", " ");
         if (item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear) return gear.Description.Replace("\n", " ");
         if (Data.Papers.Find(p => p.Id == item) is { } paper)
             return paper.Description.Replace("\n", " ") + (paper.Name.Contains("교환권") && (paper.Name.Contains("선박") || TicketShip(paper) != null) ? (TicketShip(paper) is { } gives ? $"  → {gives.Name}" : "  (바꿀 배를 못 찾았다)") : "");
@@ -264,7 +271,7 @@ internal sealed partial class Voyage
                 ? Data.OptionSkills.Where(o => detail.Skills.Exists(s => s.Name == o.Name)).ToList() : Data.OptionSkills;
             var bonus = allowed.Count > 0 ? allowed[_random.Next(allowed.Count)] : null;
             if (bonus != null) fitted.Skills.Add(bonus.SkillId);
-            Dock.Add(new DockedShip { Ship = given, Durability = ShipStats.Of(given, Data.Settings.Ships).Durability, Work = fitted });
+            Dock.Add(new DockedShip { Ship = given, Durability = ShipStats.Of(given, Data.Settings.Ships).Durability, Work = fitted, Material = NativeMaterial(given) });
             Say($"{ticket.Name}을(를) {given.Name}(으)로 바꿔 부두에 매어 두었다. 선박교환에서 갈아탄다." + (bonus == null ? "" : $" 옵션 스킬 「{bonus.Name}」이(가) 붙어 있다."));
         }
         else if (item >= JobPaper && Data.Jobs.Find(j => j.Id == item - JobPaper) is { } job)

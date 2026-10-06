@@ -349,6 +349,17 @@ internal sealed class GameWindow : IDisposable
 
     /// <summary>설정에 적힌 효과음을 튼다. 대본으로 돌릴 때는 조용히.</summary>
 
+    /// <summary>
+    /// 선체에 입히는 빛깔 — 선체 그림(잿빛 도는 나무)에 곱한다. 흰 재질(하얀 달)은 곱해서는 희어지지 않으니 더 세게 곱해 바랜 흰빛으로 올린다.
+    /// 0xFFFFFF 는 「재질 빛깔 없음」이라 그대로 둔다.
+    /// </summary>
+    private static Vector4 HullTint(int color)
+    {
+        var tint = new Vector3((color >> 16 & 255) / 255f, (color >> 8 & 255) / 255f, (color & 255) / 255f);
+        if (color != 0xFFFFFF && MathF.Min(tint.X, MathF.Min(tint.Y, tint.Z)) > 0.82f) tint *= 2.2f;
+        return new Vector4(tint, 1);
+    }
+
     private void PlayCue(string cue)
     {
         var sounds = _voyage.Data.Settings.Sounds;
@@ -403,6 +414,8 @@ internal sealed class GameWindow : IDisposable
             return;
         }
         if (!_voyage.Created) return;
+        // 조선소 주인 차림에서 C 는 「커스텀설정 조선」(캐릭터 정보보다 먼저)
+        if (key == 'C' && _voyage.Dialog == Dialog.ShipyardMenu) { _hud.OpenCustomSetup(); return; }
         void Toggle(Dialog dialog)
         {
             if (_voyage.Dialog == dialog) _voyage.Dialog = Dialog.None;
@@ -695,9 +708,8 @@ internal sealed class GameWindow : IDisposable
             try { _ship.SetSail(_voyage.SailPattern, _voyage.SailTint); } catch (Exception) { }
             _sailShown = (_ship, _voyage.SailPattern, _voyage.SailTint);
         }
-        int wood = _voyage.HullColor(_voyage.ShipMaterialId);
-        static Vector4 Rgb(int c) => new((c >> 16 & 255) / 255f, (c >> 8 & 255) / 255f, (c & 255) / 255f, 1);
-        if (!town) _ship.Draw(_scene, shipWorld, null, Rgb(wood));
+        int wood = _voyage.HullColorOf(_voyage.Ship, _voyage.ShipMaterialId);
+        if (!town) _ship.Draw(_scene, shipWorld, null, HullTint(wood));
 
         // 화면 글과 창
         _canvas.Scale = UiScale;
@@ -778,7 +790,7 @@ internal sealed class GameWindow : IDisposable
             float spin = _previewYaw;
             // 창이 다른 배를 보이라고 했으면(커스텀설정 조선의 지을 배) 그 모형을 따로 들고 있는다
             var shown = _ship;
-            int timber = _voyage.HullColor(_voyage.ShipMaterialId);
+            int timber = _voyage.HullColorOf(_voyage.Ship, _voyage.ShipMaterialId);
             if (_hud.PreviewShip is { } other)
             {
                 if (_previewShip == null || _previewShipModel != other.Model)
@@ -801,7 +813,7 @@ internal sealed class GameWindow : IDisposable
                 SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
             }, box.X * UiScale, (box.Y + Hud.TitleHeight) * UiScale, box.W * UiScale, box.H * UiScale);
             _scene.BeginMeshes();
-            shown.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(spin) * Matrix4x4.CreateTranslation(centre), null, new Vector4((timber >> 16 & 255) / 255f, (timber >> 8 & 255) / 255f, (timber & 255) / 255f, 1));
+            shown.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(spin) * Matrix4x4.CreateTranslation(centre), null, HullTint(timber));
             _gfx.EndInset();
         }
 
@@ -1281,6 +1293,7 @@ internal sealed class GameWindow : IDisposable
             case "useitem": _voyage.UseItem((int)Number()); break;
             case "uiscale": _scaleInScript = true; _voyage.Data.Settings.UiScale = Number(); break;
             case "iconscale": _voyage.Data.Settings.IconScale = Number(); break;
+            case "hullbase": _ship.SetHullBase((int)Number()); break;
             case "menu": _hud.OpenMenu((int)Number()); break;
             case "music": _musicOn = !_musicOn; break;
             case "goto":

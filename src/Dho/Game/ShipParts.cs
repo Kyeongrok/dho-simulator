@@ -11,6 +11,14 @@ internal sealed partial class Voyage
     /// <summary>배마다 다른 칸 수 — 보조돛은 돛대 수만큼(셋까지), 장갑 하나, 선수상 하나. 원본의 배마다의 칸 수는 자료를 못 찾아 지은 것이다.</summary>
     public int SlotsOf(int slot) => slot == 0 ? Math.Clamp(Ship.Masts, 1, 3) : 1;
 
+    /// <summary>부품을 값 없이 받는다(아이템 추가 창) — 가진 부품 칸이 차 있으면 못 받는다.</summary>
+    public void GivePart(ShipPart part)
+    {
+        if (PartStock.Count >= PartStockLimit) { Say("부품을 더 가질 수 없다."); Cues.Enqueue("Error"); return; }
+        PartStock.Add(part);
+        Say($"{part.Name}을(를) 얻었다. — B 로 배에 단다.");
+    }
+
     /// <summary>가지고만 있는 부품(소유 선박부품) — 사면 여기 들어오고, 탈착 창(B)에서 배에 단다.</summary>
     public List<ShipPart> PartStock { get; } = [];
     public const int PartStockLimit = 30;
@@ -35,7 +43,7 @@ internal sealed partial class Voyage
         Cues.Enqueue("Part");
         Say($"{part.Name}을(를) 떼었다.");
     }
-    public static readonly string[] SlotName = ["보조돛", "장갑", "선수상"];
+    public static readonly string[] SlotName = ["보조돛", "장갑", "선수상", "문장"];
 
     /// <summary>타고 있는 배에 단 부품.</summary>
     public List<ShipPart> Parts { get; private set; } = [];
@@ -44,6 +52,7 @@ internal sealed partial class Voyage
     {
         0 => 1500 + (part.A + part.B) * 400,
         1 => 2000 + part.A * 1500,
+        3 => 5000,
         _ => 3000 + (part.A + part.B + part.C + part.D) * 1200,
     };
 
@@ -51,6 +60,7 @@ internal sealed partial class Voyage
     {
         0 => $"가로돛 +{part.A} · 세로돛 +{part.B}",
         1 => $"장갑 {part.A} · 속도 −{part.B}%",
+        3 => "돛에 그리는 문장(모양뿐이다)",
         _ => $"효과 {part.A}/{part.B}/{part.C}/{part.D}",
     };
 

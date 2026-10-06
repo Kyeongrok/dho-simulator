@@ -62,10 +62,11 @@
   "IconScale": 1,
   "SeaMapScale": 0.9,
   "ShipFilterSize": 2,
-  "ShipFilterUse": 3,
+  "ShipFilterUse": 2,
   "ItemRows": 5,
   "ModWorkOnBoard": true,
   "ModCombineBonus": 50,
+  "ModTripleGain": true,
   "Keys": {
     "Map": 53,
     "Skills": 88,
@@ -103,7 +104,10 @@
     "Skill": "5:0",
     "Turn": "9:0",
     "Click": "0:0",
-    "Step": "0:1"
+    "Step": "0:1",
+    "Bank": "0:14",
+    "Buy": "0:23",
+    "Part": "0:20"
   },
   "MaxKnots": 14,
   "UnitsPerKnotSecond": 0.16,
