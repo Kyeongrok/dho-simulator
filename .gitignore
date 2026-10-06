@@ -14,7 +14,11 @@ obj/
 *.nupkg
 
 # 게임 클라이언트에서 뽑은 자료 (저작물이라 저장소에 두지 않는다)
-data/extracted/
+data/extracted/*
+# 위키에서 채운 자료는 올린다 (클라이언트에서 뽑은 것이 아니다)
+!data/extracted/ship-facts.json
+!data/extracted/shipdetail-facts.json
+!data/extracted/gear-boosts.json
 
 # Python
 __pycache__/
