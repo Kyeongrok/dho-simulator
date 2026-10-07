@@ -121,8 +121,8 @@
    "Name": "급가속",
    "PartA": 1,
    "PartB": 7,
-   "Effect": "Speed",
-   "Amount": 0.08
+   "Effect": "Dash",
+   "Amount": 0.3
   },
   {
    "SkillId": 2025,

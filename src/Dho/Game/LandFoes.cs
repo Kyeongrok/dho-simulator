@@ -47,7 +47,9 @@ internal sealed partial class Voyage
             .FirstOrDefault(s => Math.Pow(Dho.Data.WorldMap.DeltaX(ShipX, s.X), 2) + Math.Pow(s.Y - ShipY, 2) < reach);
     }
 
-    public int MaxWaterNow => (int)Rules.MaxWater;
+    /// <summary>물 · 식량을 실을 수 있는 한도 — 원본처럼 창고가 허락하는 만큼(지금 실은 것 + 창고의 빈 자리). 전에는 배와 상관없는 고정값(120)이었다.</summary>
+    public int MaxWaterNow => (int)Math.Ceiling(Water) + Math.Max(0, HoldFree);
+    public int MaxFoodNow => (int)Math.Ceiling(Food) + Math.Max(0, HoldFree);
 
     public void GoAshore()
     {
@@ -60,8 +62,8 @@ internal sealed partial class Voyage
 
     public void DrawWater()
     {
-        if (Dialog != Dialog.Ashore || Water >= Rules.MaxWater) return;
-        Water = Math.Min(Rules.MaxWater, Water + 20);
+        if (Dialog != Dialog.Ashore || Water >= MaxWaterNow) return;
+        Water = Math.Min(MaxWaterNow, Water + 20);
         Fatigue = Math.Min(100, Fatigue + 3 * (1 - March));
         Say($"물을 길었다. (물 {Water:0})");
     }

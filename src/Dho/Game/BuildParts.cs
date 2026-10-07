@@ -43,6 +43,27 @@ internal sealed partial class Voyage
         return $"[{BuildKinds[Math.Clamp(part.Kind, 0, 3)]} · {(part.Sizes.Count == 0 ? "전부" : string.Join("/", part.Sizes.Select(s => sizes[Math.Clamp(s, 0, 2)])))}{(part.Cash ? " · 캐시" : "")}] " + string.Join(" · ", stats);
     }
 
+    // ── 급가속 — 눌러 쓰는 선박 스킬 ──
+    // 원본 글(스킬 표): 「일정시간 속도가 늘어나지만 회전이 극도로 어려워진다.」 전에는 늘 속도 +8% 로 지어 넣었다.
+    // 얼마나 · 얼마 동안인지는 글에 없어 지은 값: 30초 동안 속도 +30%(옵션 스킬의 Amount), 선회는 2할, 다시 쓰기까지 90초.
+    public const double DashSeconds = 30, DashWait = 90;
+    private double _dashUntil = -1, _dashReady;
+    public bool HasDash => Option("Dash") > 0;
+    public bool DashOn => Clock < _dashUntil;
+    /// <summary>켜져 있으면 남은 몫(0 ~ 1), 쉬는 중이면 −(남은 몫), 쓸 수 있으면 0.</summary>
+    public double DashState => DashOn ? (_dashUntil - Clock) / DashSeconds : Clock < _dashReady ? -(_dashReady - Clock) / DashWait : 0;
+    public double DashSpeed => DashOn ? 1 + Option("Dash") : 1;
+    public double DashTurn => DashOn ? 0.2 : 1;
+
+    public void UseDash()
+    {
+        if (Mode != Mode.Sea || !HasDash || DashOn) return;
+        if (Clock < _dashReady) { Say($"급가속 — 아직 쓸 수 없다({_dashReady - Clock:0}초)."); Cues.Enqueue("Error"); return; }
+        (_dashUntil, _dashReady) = (Clock + DashSeconds, Clock + DashSeconds + DashWait);
+        Cues.Enqueue("Skill");
+        Say("급가속! 속도가 늘지만 키가 잘 듣지 않는다.");
+    }
+
     public BuildPart? BuildPartOf(int item) => Data.BuildParts.Find(p => p.Id == item);
 
     /// <summary>이 배에 쓸 수 있는 재료인가 — 배의 크기(소형 · 중형 · 대형)가 맞아야 한다. 선체는 신규 건조의 것이라 강화에는 안 넣는다.</summary>
@@ -73,11 +94,40 @@ internal sealed partial class Voyage
     }
 
     // 재료 아이템 → 옵션 스킬 조합에 쓰는 옛 부품 번호(이름이 같은 것)
+    /// <summary>그 옵션 스킬을 이 배에 붙이는 재료(아이템 번호) — 배 상세의 진짜 조합이 있으면 그것, 없으면 기본 조합의 둘. 못 찾은 재료는 뺀다.</summary>
+    public List<int> BuildComboOf(OptionSkill skill)
+    {
+        if (Data.ShipDetail(Ship.Name)?.Skills.Find(s => s.Name == skill.Name) is { Parts.Count: > 0 } real)
+            return real.Parts.Select(name => Data.BuildParts.Find(b => b.Name == name)?.Id ?? Data.Papers.Find(p => p.Name == name && p.Id is >= ShipItems and < ShipItems + 100_000)?.Id ?? 0).Where(id => id > 0).ToList();
+        return new[] { skill.PartA, skill.PartB }.Select(BuildItemOfOld).Where(id => id > 0).ToList();
+    }
+
+    /// <summary>옛 부품 번호(옵션 스킬의 조합에 적힌 것) → 그 이름의 조선 재료 아이템(없으면 0).</summary>
+    public int BuildItemOfOld(int part) => Data.ShipWorks.Parts.Find(p => p.Id == part) is { } old ? Data.BuildParts.Find(b => b.Name == old.Name)?.Id ?? 0 : 0;
+
     private List<int> BuildPartsAsOld(IEnumerable<int> items) =>
         items.Select(i => Data.ShipWorks.Parts.Find(p => p.Name == BuildPartOf(i)?.Name)?.Id ?? 0).Where(id => id > 0).ToList();
 
     /// <summary>이 재료들로 붙을 옵션 스킬(조합이 맞고 칸이 있을 때).</summary>
-    public OptionSkill? BuildOption(IEnumerable<int> items) => OptionFrom(BuildPartsAsOld(items));
+    /// <summary>
+    /// 넣은 재료로 붙을 옵션 스킬 — 먼저 이 배의 상세(ssjoy 의 「스킬 부가 예」)에 적힌 진짜 조합을 본다:
+    /// 그 조합의 재료가 넣은 것 안에 다 있으면 그 스킬(재료가 많은 조합부터). 313척의 상세에 스킬 85가지의 조합이 있다.
+    /// 상세가 없는 배 · 조합이 안 적힌 스킬은 ship-works.json 의 두 재료 조합으로.
+    /// </summary>
+    public OptionSkill? BuildOption(IEnumerable<int> items)
+    {
+        var list = items.ToList();
+        if (Work.Skills.Count >= SkillSlotsOf(Work)) return null;
+        var names = list.Select(i => BuildPartOf(i)?.Name ?? ItemName(i)).ToList();
+        if (Data.ShipDetail(Ship.Name) is { Skills.Count: > 0 } detail)
+            foreach (var real in detail.Skills.Where(s => s.Parts.Count > 0).OrderByDescending(s => s.Parts.Count))
+            {
+                var left = new List<string>(names);
+                if (!real.Parts.All(left.Remove)) continue;
+                if (Data.OptionSkills.Find(s => s.Name == real.Name) is { } found && !Work.Skills.Contains(found.SkillId) && found.SkillId != Work.Dedicated) return found;
+            }
+        return OptionFrom(BuildPartsAsOld(list));
+    }
 
     /// <summary>
     /// 초과 강화 — 강화 횟수를 다 쓴 뒤에도 끝없이 더 강화할 수 있고, 할수록 성공률만 낮아진다. 캐시 재료를 넣으면 꼭 된다(사용자, 2026-10-08).
@@ -98,6 +148,34 @@ internal sealed partial class Voyage
         if (items.GroupBy(i => i).Any(g => Items.GetValueOrDefault(g.Key) < g.Count())) return "재료가 모자라다";
         if (wood > 0 && (WoodOf(wood) == null || Items.GetValueOrDefault(wood) <= 0)) return "그 선박재료가 없다";
         return null;
+    }
+
+    /// <summary>옵션 스킬 부여(특수 강화)를 못 하는 까닭 — 재료의 조합이 옵션 스킬과 맞아야 하고 칸이 있어야 한다.</summary>
+    public string? GrantBlocker(IReadOnlyList<int> items)
+    {
+        if (ShipbuildingRank <= 0) return "조선 스킬이 없다";
+        if (Work.Skills.Count >= SkillSlotsOf(Work)) return "옵션 스킬 칸이 없다";
+        if (items.Count < 2) return "재료를 둘 넣는다";
+        if (items.GroupBy(i => i).Any(g => Items.GetValueOrDefault(g.Key) < g.Count())) return "재료가 모자라다";
+        if (BuildOption(items) != null) return null;
+        // 조합은 맞는데 못 붙는 까닭을 가른다 — 이 배가 못 받는 스킬 · 이미 붙은 스킬
+        var old = BuildPartsAsOld(items);
+        if (Data.OptionSkills.Find(s => old.Contains(s.PartA) && old.Contains(s.PartB)) is { } known)
+            return Work.Skills.Contains(known.SkillId) || known.SkillId == Work.Dedicated ? $"「{known.Name}」은(는) 이미 붙어 있다" : $"「{known.Name}」은(는) 이 배에 붙일 수 없는 스킬이다";
+        return "이 재료 조합으로 붙는 옵션 스킬이 없다";
+    }
+
+    /// <summary>재료를 넣어 옵션 스킬만 붙인다 — 강화 성능은 변하지 않고 강화 횟수도 안 쓴다(클라이언트 글 49203, 횟수는 짐작).</summary>
+    public void GrantWith(IReadOnlyList<int> items)
+    {
+        if (Mode != Mode.Port || GrantBlocker(items) != null || BuildOption(items) is not { } given) return;
+        foreach (int item in items)
+            if (--Items[item] <= 0) Items.Remove(item);
+        Work.Skills.Add(given.SkillId);
+        Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
+        TrainEffect("Shipbuilding", 60);
+        Cues.Enqueue("Part");
+        Say($"{Ship.Name}에 옵션 스킬 「{given.Name}」을(를) 부여했다." + (OptionValid(given) ? "" : $" 옵션 스킬의 유효 조건을 충족하지 않습니다({OptionNeedLine(given)})."));
     }
 
     /// <summary>재료를 넣어 강화한다 — 능력치마다 범위 안에서 붙고(조타 숙련도의 한계까지), 조합이 맞으면 옵션 스킬이 붙는다.</summary>

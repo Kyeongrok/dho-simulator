@@ -85,7 +85,7 @@ internal sealed partial class Voyage
         {
             // 원본 설명대로 비가 올 때 제대로 모인다
             bool rain = Weather is Weather.Rain or Weather.Storm;
-            double water = Math.Min(Rules.MaxWater - Water, (rain ? 6 : 1) + rank * rule.PerRank * (rain ? 1 : 0.3));
+            double water = Math.Min(MaxWaterNow - Water, (rain ? 6 : 1) + rank * rule.PerRank * (rain ? 1 : 0.3));
             if (water <= 0) return;
             Water += water;
             Say(rain ? $"빗물을 받았다. (물 {water:0.#})" : $"해수를 걸러 물을 얻었다. (물 {water:0.#})");
@@ -123,7 +123,7 @@ internal sealed partial class Voyage
     public void ConvertGood(GoodData good)
     {
         if (ConvertOf(good) is not { } to || !Cargo.TryGetValue(good.Id, out var item) || item.Count <= 0) return;
-        double room = to.Kind switch { 0 => Rules.MaxWater - Water, 1 => Rules.MaxFood - Food, _ => 9999 };
+        double room = to.Kind switch { 0 => MaxWaterNow - Water, 1 => MaxFoodNow - Food, _ => 9999 };
         int count = (int)Math.Min(item.Count, Math.Ceiling(room / to.Each));
         if (count <= 0) { Say($"{ConvertNames[to.Kind]}이(가) 가득 차 있다."); Cues.Enqueue("Error"); return; }
         double gain = Math.Min(room, count * to.Each);
@@ -159,7 +159,7 @@ internal sealed partial class Voyage
         if (Vigour < VigourCost(rule)) return $"행동력이 모자란다 ({Vigour:0}/{VigourCost(rule)})";
         return rule.Effect switch
         {
-            "Procure" when Water >= Rules.MaxWater => "물통이 가득하다",
+            "Procure" when Water >= MaxWaterNow => "물통이 가득하다",
             "Fish" when HoldFree <= 0 => "선창이 가득하다",
             "Repair" when Durability >= Stats.Durability => "고칠 데가 없다",
             "Repair" when SupplyCount(RepairSupply) <= 0 => "수리용 통이 없다",
@@ -227,7 +227,7 @@ internal sealed partial class Voyage
             case "Procure":
                 // 원본 설명대로 비가 올 때 제대로 모인다
                 bool rain = Weather is Weather.Rain or Weather.Storm;
-                double water = Math.Min(Rules.MaxWater - Water, (rain ? 6 : 1) + rank * rule.PerRank * (rain ? 1 : 0.3));
+                double water = Math.Min(MaxWaterNow - Water, (rain ? 6 : 1) + rank * rule.PerRank * (rain ? 1 : 0.3));
                 Water += water;
                 Fatigue = Math.Min(100, Fatigue + 2);
                 Say(rain ? $"{name}: 빗물을 받아 물 {water:0.#} 을 얻었다." : $"{name}: 비가 오지 않아 이슬만 모았다. (물 {water:0.#})");

@@ -573,6 +573,9 @@ internal sealed partial class Voyage
         "Flotsam" => $"하루에 한 번쯤 표류물({skill.Amount:0} 두캇 안팎)",
         "Disguise" => $"해적의 습격 −{skill.Amount * 100:0}%",
         // 아래 여섯은 원본의 설명 글(스킬 표)에 맞춘 것 — 하는 일은 그 글의 것이고 크기는 지은 값
+        "Dash" => $"눌러 쓴다: {Voyage.DashSeconds:0}초 동안 속도 +{skill.Amount * 100:0}% · 선회가 어렵다",
+        "FurledReload" => $"돛을 접고 있는 동안 장전 −{skill.Amount * 100:0}%",
+        "FloodGuard" => $"침수 발생 −{skill.Amount * 100:0}%",
         "Gust" => "돌풍을 막는다",
         "Ambush" => $"해적의 기습 −{skill.Amount * 100:0}%",
         "Hygiene" => $"쥐 · 비위생 발생 −{skill.Amount * 100:0}%",

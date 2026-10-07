@@ -392,7 +392,7 @@ internal sealed partial class Voyage
         if (foe.Monster > 0) dead = 0;      // 괴물은 선원이 없다 — 내구가 다해야 잡힌다(전에는 「선원 1」이 깎여 한 방에 잡혔다)
         foe.Durability -= hit;
         foe.Crew -= dead;
-        battle.MyReload = ReloadSeconds * (1 - Math.Min(0.6, Option("Reload") + Bonus("Reload")));      // 속사 스킬
+        battle.MyReload = ReloadSeconds * (1 - Math.Min(0.6, Option("Reload") + Bonus("Reload") + (Sail == 0 ? Option("FurledReload") : 0)));      // 「집중장전」: 돛을 접고 있는 동안 장전속도 50% 상승(원본 글의 수 그대로)      // 속사 스킬
         battle.Shots.Add(new SeaShot { FromX = ShipX, FromY = ShipY, ToX = foe.X, ToY = foe.Y, Life = 1.1 });
         battle.Hits.Add(new SeaHit { X = foe.X, Y = foe.Y, Text = $"{(rake ? "관통! " : "")}−{hit:0}" });
         battle.Log.Add($"{Fill(Text(20006, "%s에게 포격 명중!"), foe.Name)}{(rake ? " (관통)" : "")} [{AmmoName(ammo)}] {Fill(Text(20007, "선체에 %d의 피해를 주었습니다!"), $"{hit:0}")}{(dead >= 1 ? " " + Fill(Text(20008, "선원들에게 %d의 피해를 주었습니다!"), $"{dead:0}") : "")}");

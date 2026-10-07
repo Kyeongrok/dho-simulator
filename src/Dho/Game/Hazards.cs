@@ -84,8 +84,12 @@ internal sealed partial class Voyage
     public int WaterPrice => (int)Math.Ceiling(Rules.WaterPrice * (1 - Math.Min(0.5, Bonus("Discount"))));
     public int FoodPrice => (int)Math.Ceiling(Rules.FoodPrice * (1 - Math.Min(0.5, Bonus("Discount"))));
 
-    public void BuyWater(int amount) => Water += Buy(amount, WaterPrice, Rules.MaxWater - Water);
-    public void BuyFood(int amount) => Food += Buy(amount, FoodPrice, Rules.MaxFood - Food);
+    public void BuyWater(int amount) => Water += Buy(amount, WaterPrice, MaxWaterNow - Water);
+    public void BuyFood(int amount) => Food += Buy(amount, FoodPrice, MaxFoodNow - Food);
+
+    /// <summary>실은 물 · 식량을 내린다(버린다) — 물자가 창고를 차지하니 교역품 자리를 내려면 덜어야 한다. 값은 돌려받지 않는다.</summary>
+    public void DumpWater(int amount) { if (Mode == Mode.Port) Water = Math.Max(0, Water - amount); }
+    public void DumpFood(int amount) { if (Mode == Mode.Port) Food = Math.Max(0, Food - amount); }
 
     /// <summary>창고와 소지금이 허락하는 만큼 사고, 산 수를 돌려준다.</summary>
     private int Buy(int amount, int price, double room)
@@ -285,7 +289,7 @@ internal sealed partial class Voyage
             if (DaysAtSea < data.MinDays || Fatigue < data.MinFatigue || (data.NearLand && !nearLand)) continue;
             if (data.NearLand && Knots < 3) continue;        // 서 있는 배는 암초에 걸리지 않는다
             // 「양호실」(원본 글: 쥐，비위생 발생을 높은 확률로 미연에 방지한다) — 쥐(4) · 비위생(14)만
-            double clean = data.Id is 4 or 14 ? 1 - Math.Min(1, Option("Hygiene")) : 1;
+            double clean = data.Id is 4 or 14 ? 1 - Math.Min(1, Option("Hygiene")) : data.Id == 2 ? 1 - Math.Min(1, Option("FloodGuard")) : 1;      // 「수밀격벽」 · 「배수펌프」: 침수(2)만
             if (Roll(data.ChancePerDay * clean * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck") + Study("Luck"))) * (PrayerOn(0) ? 0.7 : 1), days)) Begin(data);
         }
 

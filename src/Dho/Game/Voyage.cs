@@ -712,7 +712,7 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
         // 가장 빠른 빠르기는 배의 선회 성능에 비례하고(선회 12 인 배가 초당 14°쯤, 반 바퀴에 13초 남짓),
         // 배가 서 있으면 키가 잘 안 듣고, 돛을 다 펴면 덜 돈다 — 돛을 줄이면 잘 돈다. 값은 지은 것이다.
         double turn = Normalize(TargetHeading - Heading + Math.PI) - Math.PI;
-        double turnRate = Settings.TurnRate * 0.28 * Stats.TurnFactor * (1 + Bonus("Turn")) * (1 + Option("Turn")) * (1 + Study("Turn"))
+        double turnRate = Settings.TurnRate * 0.28 * Stats.TurnFactor * (1 + Bonus("Turn")) * (1 + Option("Turn")) * (1 + Study("Turn")) * DashTurn
                           * (0.35 + 0.65 * Math.Min(1, Knots / 4)) * (1 - 0.25 * Sail / SailSteps);
         double wanted = Math.Clamp(turn * 1.6, -turnRate, turnRate);            // 목표에 가까워지면 미리 늦춘다
         double gain = turnRate / (0.9 + 0.5 / Math.Max(0.4, Stats.TurnFactor)) * dt;      // 빠르기가 다 붙기까지 1.3 ~ 2초
@@ -737,7 +737,7 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
         // 급하게 돌면 그만큼 속도가 죽는다
         double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
-                        * (1 + Bonus("Speed")) * (1 + RowBoost) * (1 + Math.Min(0.2, FormBonus("FormSail"))) * TowSpeed * DelegateBoost * PartSpeed * AideSpeed * (1 + Option("Speed")) * (1 + BoostSpeed) * (1 + Study("Speed"));
+                        * (1 + Bonus("Speed")) * (1 + RowBoost) * (1 + Math.Min(0.2, FormBonus("FormSail"))) * TowSpeed * DelegateBoost * PartSpeed * AideSpeed * (1 + Option("Speed")) * DashSpeed * (1 + BoostSpeed) * (1 + Study("Speed"));
         Knots += (target - Knots) * Math.Min(1, dt * 0.8);
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;

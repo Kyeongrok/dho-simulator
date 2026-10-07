@@ -147,25 +147,24 @@ public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCre
 
     /// <summary>
     /// 커스텀설정 조선으로 지은 배의 능력치 — 재질의 배율과 적재 변경을 입힌다.
-    /// 적재 변경 x%(창고 쪽이 +): 창고가 x% 늘고 선실이 그만큼(반은 포실 몫) 준다.
+    /// 적재 변경 x%: **최대적재량**(선실 + 포실 + 창고)이 x% 늘고 준다 — 원본의 「최대적재량 변경」 화면(1000 에 가능 범위 750 ~ 1250, 적정 범위 800 ~ 1209).
+    /// 는 몫은 창고에 붙고 선실 · 포실은 그대로 둔다(원본에서 선실 · 포실이 어떻게 되는지는 화면에 없다 — 짐작. 전에는 창고를 늘리고 선실 · 포실을 줄였다).
     /// 20% 까지는 손해가 없고 그 너머는 넘은 1% 마다 돛과 내파가 2% 깎인다(원본 규칙 — 풀이 글).
     /// </summary>
     public ShipStats Built(ShipMaterial? material, int load, ShipRules rules)
     {
         double durability = material?.Durability ?? 1, sail = material?.Sail ?? 1;
         double penalty = 1 - Math.Max(0, Math.Abs(load) - 20) * 0.02;
-        int moved = (int)Math.Round(Hold * load / 100.0);
+        int moved = (int)Math.Round((MaxCrew + Guns + Hold) * load / 100.0);
         int vertical = (int)(VerticalSail * sail * penalty), horizontal = (int)(HorizontalSail * sail * penalty);
         int price = (int)(Price * (material?.Price ?? 1));
         return this with
         {
             Durability = Math.Max(1, (int)Math.Round(Durability * durability)),
             Hold = Math.Max(1, Hold + moved),
-            MaxCrew = Math.Max(MinCrew, MaxCrew - moved / 2),
             Knots = Knots * sail * penalty,
             VerticalSail = vertical, HorizontalSail = horizontal,
             WaveResist = Math.Max(0, (int)Math.Round(WaveResist * penalty)),
-            Guns = Math.Max(0, Guns - moved / 20),
             Price = price, SellPrice = (int)(price * rules.SellRate),
         };
     }
