@@ -3,13 +3,13 @@ using Dho.Data;
 namespace Dho.Game;
 
 // 행동력 — 원본에서 스킬을 쓸 때마다 드는 힘. 음식(설명의 「행동력+n」)을 먹거나 주점에서 한턱내면 차고, 날이 지나면 조금씩 돌아온다.
-// 상한과 스킬마다 드는 양, 돌아오는 빠르기는 지은 값이다(스킬 규칙의 Vigour 칸에서 고친다, 0 이면 갈래에 따른 기본값).
+// 상한은 원본의 식이고, 스킬마다 드는 양과 돌아오는 빠르기는 지은 값이다(스킬 규칙의 Vigour 칸에서 고친다, 0 이면 갈래에 따른 기본값).
 internal sealed partial class Voyage
 {
     private double _vigour = -1;
 
-    // 상한: 100 에 모험 · 교역 레벨마다 5 씩(500 까지)
-    public int MaxVigour => Math.Min(500, 100 + (LevelOf(AdventureExp).Level + LevelOf(TradeExp).Level) * 5);
+    // 상한 — 사용자가 준 원본의 식(2026-10-07): 200 + (모험 + 상인 + 군인 레벨) × 5
+    public int MaxVigour => 200 + (LevelOf(AdventureExp).Level + LevelOf(TradeExp).Level + LevelOf(BattleExp).Level) * 5;
 
     public double Vigour
     {

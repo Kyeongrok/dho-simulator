@@ -63,6 +63,7 @@
   "QuickScale": 1,
   "QuickPin": false,
   "SeaMapScale": 0.8,
+  "SeaMapZoom": 1,
   "SeaMapSquare": true,
   "ShipFilterSize": 2,
   "ShipFilterUse": 0,
@@ -77,7 +78,7 @@
   "ModBooksTimes5": false,
   "ModCombineBonus": 50,
   "ModTripleGain": false,
-  "ModGain": 2,
+  "ModGain": 1,
   "Keys": {
     "Map": 53,
     "Skills": 88,

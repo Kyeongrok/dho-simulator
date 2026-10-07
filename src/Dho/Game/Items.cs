@@ -383,7 +383,7 @@ internal sealed partial class Voyage
             bool rests = text.Contains("피로회복");
             var scurvy = text.Contains("괴혈병") ? Disasters.Find(d => d.Data.Name.Contains("괴혈병")) : null;
             if (Vigour >= MaxVigour && (!rests || Fatigue <= 0) && scurvy == null) { Say($"{food.Name} — 지금은 먹을 까닭이 없다."); Cues.Enqueue("Error"); return; }
-            GainVigour(vigour);
+            GainVigour(vigour * (1 + Study("FoodGain")));
             if (rests) Fatigue = Math.Max(0, Fatigue - vigour * 0.5);
             if (scurvy != null) End(scurvy);
             Say($"{food.Name}을(를) 먹었다. 행동력 +{vigour} ({Vigour:0}/{MaxVigour})" + (rests ? " · 피로가 풀렸다" : "") + (scurvy != null ? " · 괴혈병이 가라앉았다" : "") + ".");

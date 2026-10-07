@@ -103,8 +103,12 @@ internal sealed partial class Voyage
     public int LabFailChance(RecipeRule rule) => rule.Facility == "" ? 0 : LabTier(rule.Facility) switch { 1 => 20, 2 => 10, 3 => 3, _ => 100 };
 
     /// <summary>못 만드는 까닭.</summary>
-    /// <summary>생산 한 번에 드는 행동력 — 원본도 생산에 행동력이 든다(사용자, 2026-10-07). 얼마인지는 못 찾아 지은 값.</summary>
+    /// <summary>생산 한 번에 드는 행동력 — 원본의 기본값(사용자 확인, 2026-10-07).</summary>
     public const int ProduceVigour = 5;
+
+    /// <summary>그 레시피를 times 번 만드는 데 드는 행동력 — 기본 5(사용자 확인), 그 스킬의 마이스터 호칭을 내걸었으면 20% 덜 든다(한 번에 4).</summary>
+    public int ProduceVigourOf(RecipeRule rule, int times = 1) =>
+        (int)Math.Ceiling(ProduceVigour * times * (RecipeSkill(rule) is { } craft && MeisterOf(craft.SkillId) ? 0.8 : 1));
 
     /// <summary>
     /// 생산 한 번에 오르는 숙련도 — 사용자가 준 원본의 식(2026-10-07):
@@ -132,7 +136,7 @@ internal sealed partial class Voyage
         if (CanProduce(rule) < times) return "재료가 모자라다";
         int used = rule.InputList().Where(i => IsGoodId(i.Good)).Sum(i => i.Count) * times, made = rule.OutputCount * times;
         if (rule.OutputItem == 0 && HoldFree + used < made) return "창고가 모자라다";
-        if (Vigour < ProduceVigour * times) return $"행동력이 모자라다 — 한 번에 {ProduceVigour}";
+        if (Vigour < ProduceVigourOf(rule, times)) return $"행동력이 모자라다 — 한 번에 {ProduceVigourOf(rule)}";
         return null;
     }
 
@@ -142,7 +146,7 @@ internal sealed partial class Voyage
         times = Math.Min(times, CanProduce(rule));
         if (times <= 0 || ProduceBlocker(rule, times) != null) return;
         long cost = 0;
-        SpendVigour(ProduceVigour * times);
+        SpendVigour(ProduceVigourOf(rule, times));
         foreach (int tool in rule.ConsumeList()) SpendItem(tool, times);
         // 연성한 생산 스킬은 재료를 아껴 준다 — 한 번마다 10%로 그 번의 재료가 안 든다(지은 값)
         int spared = RecipeSkill(rule) is { } craft && Refined(craft.SkillId) ? Enumerable.Range(0, times).Count(_ => _random.Next(100) < 10) : 0;

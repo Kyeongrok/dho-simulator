@@ -55,6 +55,7 @@ internal sealed partial class Voyage
         (Ashore, _ashoreLooked, _gathered, Sail, Knots) = (site, 0, 0, 0, 0);
         Dialog = Dialog.Ashore;
         Say($"{site.Name}에 상륙했다.");
+        Studied("Outdoor");
     }
 
     public void DrawWater()

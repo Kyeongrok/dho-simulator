@@ -487,7 +487,7 @@ internal sealed class GameWindow : IDisposable
             else if (_voyage.Dialog == Dialog.None) _voyage.Dialog = dialog;
         }
         // 퀵슬롯을 펴 두었으면 1 ~ 8 은 퀵슬롯이 먼저다(같은 글쇠를 다른 일에 매어 두었어도)
-        if (_hud.QuickOpen && key is >= '1' and <= '8' && !_keys.Contains(Win32.VK_CONTROL) && _voyage.Dialog is Dialog.None or Dialog.UseSkills)
+        if (_hud.QuickOpen && key is >= '1' and <= '8' && !_keys.Contains(Win32.VK_CONTROL) && _voyage.Dialog is Dialog.None or Dialog.UseSkills or Dialog.Items)      // 소지품 · 레시피 창이 떠 있어도 퀵슬롯은 듣는다(생산하다 음식을 먹는다)
         {
             _voyage.UsePageSlot(key - '1');
             _hud.QuickUsed();

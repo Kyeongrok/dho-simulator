@@ -52,5 +52,9 @@ internal sealed partial class Voyage
         (34, "Haggle") => 0.02, (35, "ShotArmor") => 0.10, (62, "Invest") => 0.2, (63, "Invest") => 0.5, _ => 0,
     };
 
-    public static string HonorNote(int id) => id switch { 34 => "흥정 폭 +2%p", 35 => "받는 포격 −10%", 62 => "투자 공적 +20%", 63 => "투자 공적 +50%", _ => "" };
+    // 생산 마이스터 호칭(1 ~ 6) → 그 스킬. 내걸면 그 생산의 행동력 소모가 20% 준다(사용자가 준 글, 2026-10-07)
+    private static readonly string[] MeisterSkills = ["", "조리", "주조", "봉제", "공예", "보관", "연금술"];
+    public bool MeisterOf(int skillId) => Honor is >= 1 and <= 6 && Data.Skills.Find(s => s.Id == skillId)?.Name == MeisterSkills[Honor];
+
+    public static string HonorNote(int id) => id switch { >= 1 and <= 6 => "그 생산의 행동력 소모 −20%", 34 => "흥정 폭 +2%p", 35 => "받는 포격 −10%", 62 => "투자 공적 +20%", 63 => "투자 공적 +50%", _ => "" };
 }

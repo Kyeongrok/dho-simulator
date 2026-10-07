@@ -1750,7 +1750,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             float cx = x + gap + n / 4 * (cell + gap), cy = y + gap + n % 4 * (cell + gap);
             if (!SlotCell(value, cx, cy, cell, $"{n + 1}") || value == 0) continue;
             _tip = (voyage.QuickSlotName(slot), cx + cell / 2, cy);
-            if (canvas.Pointer.Clicked && voyage.Dialog == Dialog.None) { canvas.Pointer.Consumed = true; if (canvas.Pointer.Ctrl && value > 0 && voyage.SkillOn(value)) voyage.StopSkill(value); else { voyage.UseQuickSlot(slot); QuickUsed(); } }
+            if (canvas.Pointer.Clicked && voyage.Dialog is Dialog.None or Dialog.Items) { canvas.Pointer.Consumed = true; if (canvas.Pointer.Ctrl && value > 0 && voyage.SkillOn(value)) voyage.StopSkill(value); else { voyage.UseQuickSlot(slot); QuickUsed(); } }
         }
         // 「고정」 — 켜 두어야 스킬을 쓴 뒤에도 퀵슬롯이 안 닫힌다(원본의 고정 칸: 사용자, 2026-10-07)
         var quickSettings = voyage.Data.Settings;
@@ -2491,7 +2491,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             }
             int can = voyage.CanProduce(open);
             string needs = voyage.RecipeSkill(open) is { } need ? $"필요 스킬: {voyage.SkillName(need.SkillId)} 랭크 {need.Rank} (지금 {voyage.Rank(need.SkillId)})   " : "";
-            canvas.Text($"{needs}지금 {can}번 만들 수 있다 · 창고 {voyage.CargoCount}/{voyage.TotalHold} · 행동력 {voyage.Vigour:0}(한 번에 {Voyage.ProduceVigour}) · 숙련도 +{voyage.ProduceExp(open) * voyage.Data.Settings.Gain}(대성공 +{voyage.ProduceExp(open, true) * voyage.Data.Settings.Gain})", x + 20, row + 36, w - 40, 22, 13, Canvas.Dim);
+            canvas.Text($"{needs}지금 {can}번 만들 수 있다 · 창고 {voyage.CargoCount}/{voyage.TotalHold} · 행동력 {voyage.Vigour:0}(한 번에 {voyage.ProduceVigourOf(open)}) · 숙련도 +{voyage.ProduceExp(open) * voyage.Data.Settings.Gain}(대성공 +{voyage.ProduceExp(open, true) * voyage.Data.Settings.Gain})", x + 20, row + 36, w - 40, 22, 13, Canvas.Dim);
             if (voyage.ProduceBlocker(open, 1) is { } why) canvas.Text(why, x + 20, row + 60, w - 40, 22, 13, new Color4(1f, 0.5f, 0.45f, 1));
             // 자동 생산 — 켜 두면 0.5초에 한 번씩 만든다. 못 만들게 되거나(재료 · 창고 · 행동력) 다른 레시피로 가면 꺼진다
             bool canOne = voyage.ProduceBlocker(open, 1) == null;
@@ -2502,7 +2502,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             if (_autoProduce && voyage.Clock >= _autoNext) { _autoNext = voyage.Clock + 0.5; voyage.Produce(open, 1); }
             if (canvas.Button("10번", x + 126, y + h - 50, 70, 34, can >= 10 && voyage.ProduceBlocker(open, 10) == null, 14)) voyage.Produce(open, 10);
             // 「전부」는 행동력이 닿는 데까지
-            int all = Math.Min(can, (int)(voyage.Vigour / Voyage.ProduceVigour));
+            int all = Math.Min(can, (int)(voyage.Vigour / (voyage.ProduceVigourOf(open, 100) / 100.0)));
             if (canvas.Button("전부", x + 202, y + h - 50, 70, 34, all > 0 && voyage.ProduceBlocker(open, all) == null, 14)) voyage.Produce(open, all);
             if (canvas.Button("목록으로", x + 290, y + h - 50, 100, 34, true, 14)) _recipeOpen = null;
             return;
@@ -2609,6 +2609,16 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         }
         canvas.Panel(x, y, w, h);
         canvas.Text(_itemTab == 3 ? "아이템 추가" : _itemTab == 4 ? "선박" : $"직업: {voyage.JobName}", x + 20, y + 12, 130, 24, 16, Canvas.Gold, 0, true);
+        if (_itemTab == 1)
+        {
+            // 선창이 얼마나 찼는가 — 막대와 수(생산물이 들어갈 자리를 보면서 만든다)
+            float fill = voyage.TotalHold > 0 ? Math.Clamp(voyage.CargoCount / (float)voyage.TotalHold, 0, 1) : 0;
+            canvas.Text("선창", x + 158, y + 15, 36, 20, 13, Canvas.Dim);
+            canvas.Fill(x + 194, y + 18, 110, 12, new Color4(0.02f, 0.04f, 0.14f, 0.95f));
+            canvas.Fill(x + 194, y + 18, 110 * fill, 12, fill >= 0.98f ? new Color4(1f, 0.45f, 0.4f, 1) : new Color4(0.35f, 0.75f, 0.95f, 1));
+            canvas.Frame(x + 194, y + 18, 110, 12, Canvas.PanelEdge, 1);
+            canvas.Text($"{voyage.CargoCount}/{voyage.TotalHold}", x + 310, y + 15, 80, 20, 13, Canvas.White);
+        }
 
         const int perPage = 10;
         float row = y + 46;

@@ -389,7 +389,8 @@ internal sealed partial class Voyage
         if (Vigour >= MaxVigour && (dish.Kind != 0 || Fatigue <= 0)) { Say($"{dish.Name} — 지금은 배가 부르다."); Cues.Enqueue("Error"); return; }
         Money -= DishPrice(dish);
         if (dish.Kind == 0) Fatigue = Math.Max(0, Fatigue - 15);
-        GainVigour(dish.Kind switch { 0 => 20, 1 => 60, _ => 25 });
+        GainVigour(dish.Kind switch { 0 => 20, 1 => 60, _ => 25 } * (1 + Study("FoodGain")));
+        if (dish.Kind == 1) Studied("Course");
         Cues.Enqueue(dish.Kind == 0 ? "Drunk" : "Eat");
         Say($"{dish.Name}을(를) {(dish.Kind == 1 ? "먹었다" : "마셨다")}. ({DishPrice(dish):N0} 두캇)");
     }
