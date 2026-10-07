@@ -168,7 +168,7 @@ internal sealed partial class Voyage
                 break;
             case "Repair":
                 Supplies[RepairSupply] = SupplyCount(RepairSupply) - 1;
-                double mend = Math.Min(Stats.Durability - Durability, Stats.Durability * (0.06 + rank * rule.PerRank));
+                double mend = Math.Min(Stats.Durability - Durability, Stats.Durability * (0.06 + rank * rule.PerRank) * (1 + Study("Repair")));
                 Durability += mend;
                 Fatigue = Math.Min(100, Fatigue + 4);
                 Say($"{name}: 자재를 써서 배를 고쳤다. (내구 +{mend:0})");

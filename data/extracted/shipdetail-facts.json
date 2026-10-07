@@ -101,7 +101,8 @@
     "Material": "프랑스군 공용",
     "City": "마르세이유"
    }
-  ]
+  ],
+  "Days": 28
  },
  {
   "No": 696,
@@ -161,7 +162,8 @@
    }
   ],
   "Hull": "",
-  "Special": []
+  "Special": [],
+  "Days": 22
  },
  {
   "No": 698,
@@ -619,7 +621,8 @@
     "Material": "붉은 소나무",
     "City": "플리머스"
    }
-  ]
+  ],
+  "Days": 30
  },
  {
   "No": 717,
@@ -15205,5 +15208,2804 @@
   "Special": [],
   "Borrowed": "",
   "Days": 5
+ },
+ {
+  "No": 0,
+  "Name": "중 카락",
+  "Times": 6,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "특수기뢰",
+    "Parts": [
+     "특수기뢰",
+     "전락망"
+    ]
+   },
+   {
+    "Name": "집중수리",
+    "Parts": []
+   },
+   {
+    "Name": "내풍마스트",
+    "Parts": []
+   },
+   {
+    "Name": "백병전 요격",
+    "Parts": []
+   }
+  ],
+  "Hull": "범용 대형 선체",
+  "Special": [
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "리스본"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "세비야"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "런던"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "암스테르담"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "마르세이유"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "베네치아"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "이스탄불"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 21
+ },
+ {
+  "No": 0,
+  "Name": "전투용 갤리온",
+  "Times": 6,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "사령탑",
+    "Parts": [
+     "사령탑",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "특수연막탄",
+    "Parts": []
+   },
+   {
+    "Name": "부관실",
+    "Parts": []
+   },
+   {
+    "Name": "조타강화",
+    "Parts": []
+   }
+  ],
+  "Hull": "범용 대형 선체",
+  "Special": [
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "리스본"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "세비야"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "런던"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "암스테르담"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "마르세이유"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "베네치아"
+   },
+   {
+    "Hull": "범용 대형 선체",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "이스탄불"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 20
+ },
+ {
+  "No": 0,
+  "Name": "슈퍼 코르벳",
+  "Times": 5,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "철갑탄",
+    "Parts": []
+   },
+   {
+    "Name": "강화포문",
+    "Parts": [
+     "대 라틴세일",
+     "개량 대형 포문",
+     "제독실",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "기뢰제거",
+    "Parts": []
+   },
+   {
+    "Name": "돛수선 기술",
+    "Parts": []
+   },
+   {
+    "Name": "내화벽",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 26
+ },
+ {
+  "No": 0,
+  "Name": "스페니시 갤리온",
+  "Times": 4,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "사령탑",
+    "Parts": [
+     "사령탑",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   },
+   {
+    "Name": "조타강화",
+    "Parts": []
+   },
+   {
+    "Name": "부관실",
+    "Parts": []
+   },
+   {
+    "Name": "폭탄 장치",
+    "Parts": []
+   },
+   {
+    "Name": "고층 감시대",
+    "Parts": []
+   }
+  ],
+  "Hull": "2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "2층갑판형 대형선체",
+    "Rank": 12,
+    "Material": "동",
+    "City": "세비야"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 12
+ },
+ {
+  "No": 0,
+  "Name": "강습형 광선",
+  "Times": 5,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "선제공격",
+    "Parts": [
+     "대 스퀘어세일",
+     "개량 대형 포문",
+     "이동망",
+     "마스트 톱"
+    ]
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "수밀격벽",
+    "Parts": []
+   }
+  ],
+  "Hull": "동아시아 대형 선체",
+  "Special": [
+   {
+    "Hull": "동아시아 대형 선체",
+    "Rank": 13,
+    "Material": "떡갈나무",
+    "City": "안평"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 22
+ },
+ {
+  "No": 0,
+  "Name": "포격용 특수 갤리온",
+  "Times": 4,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "집중장전",
+    "Parts": [
+     "대 개프세일",
+     "제독실",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "부관실",
+    "Parts": []
+   },
+   {
+    "Name": "조타강화",
+    "Parts": []
+   }
+  ],
+  "Hull": "2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "2층갑판형 대형선체",
+    "Rank": 13,
+    "Material": "삼나무판",
+    "City": "리스본"
+   },
+   {
+    "Hull": "2층갑판형 대형선체",
+    "Rank": 13,
+    "Material": "삼나무판",
+    "City": "세비야"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 12
+ },
+ {
+  "No": 0,
+  "Name": "무장 대형 스쿠너",
+  "Times": 4,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "급가속",
+    "Parts": [
+     "대 개프세일",
+     "범용 대형 포문",
+     "대 마스트",
+     "오물방지 도장"
+    ]
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "고층 감시대",
+    "Parts": []
+   },
+   {
+    "Name": "장갑열화탄",
+    "Parts": []
+   },
+   {
+    "Name": "수리지원",
+    "Parts": []
+   }
+  ],
+  "Hull": "평갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "평갑판형 대형선체",
+    "Rank": 13,
+    "Material": "삼나무판",
+    "City": "하바나"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 12
+ },
+ {
+  "No": 0,
+  "Name": "삼층갑판 갤리온",
+  "Times": 4,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강화기뢰",
+    "Parts": [
+     "화약고",
+     "철재 가공"
+    ]
+   },
+   {
+    "Name": "집중장전",
+    "Parts": []
+   },
+   {
+    "Name": "부관실",
+    "Parts": []
+   },
+   {
+    "Name": "조타강화",
+    "Parts": []
+   },
+   {
+    "Name": "투묘기뢰",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 14,
+    "Material": "철",
+    "City": "마닐라"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 14
+ },
+ {
+  "No": 0,
+  "Name": "발트 갤리온",
+  "Times": 4,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "철갑탄",
+    "Parts": [
+     "대 라틴세일",
+     "대 마스트",
+     "납포탄"
+    ]
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   },
+   {
+    "Name": "부관실",
+    "Parts": []
+   },
+   {
+    "Name": "작렬탄",
+    "Parts": []
+   }
+  ],
+  "Hull": "2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "2층갑판형 대형선체",
+    "Rank": 15,
+    "Material": "철",
+    "City": "스톡홀름"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 12
+ },
+ {
+  "No": 0,
+  "Name": "로얄 프리깃",
+  "Times": 5,
+  "Retimes": 1,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강화포문",
+    "Parts": [
+     "대 스퀘어세일",
+     "개량 대형 포문",
+     "화약고",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "사령탑",
+    "Parts": []
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   },
+   {
+    "Name": "기뢰제거",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "노르딕 갤리온",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강화포문",
+    "Parts": [
+     "제독실",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "철갑탄",
+    "Parts": []
+   },
+   {
+    "Name": "사령탑",
+    "Parts": []
+   },
+   {
+    "Name": "강화키",
+    "Parts": []
+   },
+   {
+    "Name": "돛수선 기술",
+    "Parts": []
+   }
+  ],
+  "Hull": "2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "2층갑판형 대형선체",
+    "Rank": 17,
+    "Material": "철",
+    "City": "코펜하겐"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 29
+ },
+ {
+  "No": 0,
+  "Name": "장갑전열함",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   },
+   {
+    "Name": "내포격장갑",
+    "Parts": []
+   },
+   {
+    "Name": "사령탑",
+    "Parts": [
+     "대 스퀘어세일",
+     "개량 대형 포문",
+     "사령탑",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "집중장전",
+    "Parts": []
+   },
+   {
+    "Name": "선박관리실",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "그로닝겐"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "플리머스"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "보르도"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "세우타"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "발렌시아"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "라구사"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "슈퍼 프리깃",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강화포문",
+    "Parts": [
+     "대 스퀘어세일",
+     "개량 대형 포문",
+     "화약고",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "백병전 요격",
+    "Parts": []
+   },
+   {
+    "Name": "사령탑",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 32
+ },
+ {
+  "No": 0,
+  "Name": "일등전열함",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "침투방지망",
+    "Parts": [
+     "제독실",
+     "투망"
+    ]
+   },
+   {
+    "Name": "사령탑",
+    "Parts": []
+   },
+   {
+    "Name": "집중장전",
+    "Parts": []
+   },
+   {
+    "Name": "특수선미루",
+    "Parts": []
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "리스본"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "세비야"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "런던"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "암스테르담"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "마르세이유"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "철",
+    "City": "베네치아"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 30
+ },
+ {
+  "No": 0,
+  "Name": "아이언 사이즈",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "직격저지",
+    "Parts": []
+   },
+   {
+    "Name": "내포격장갑",
+    "Parts": []
+   },
+   {
+    "Name": "배수펌프",
+    "Parts": []
+   },
+   {
+    "Name": "백병전 요격",
+    "Parts": [
+     "선미회랑",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "강화키",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 36
+ },
+ {
+  "No": 0,
+  "Name": "노르스케 로브",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "사령탑",
+    "Parts": []
+   },
+   {
+    "Name": "중량포격",
+    "Parts": [
+     "납포탄",
+     "특수유탄"
+    ]
+   },
+   {
+    "Name": "강화포문",
+    "Parts": []
+   },
+   {
+    "Name": "백병전 요격",
+    "Parts": []
+   },
+   {
+    "Name": "내포격장갑",
+    "Parts": []
+   }
+  ],
+  "Hull": "2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "2층갑판형 대형선체",
+    "Rank": 19,
+    "Material": "철",
+    "City": "코펜하겐"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 30
+ },
+ {
+  "No": 0,
+  "Name": "제아들러",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "연대강화",
+    "Parts": [
+     "제독실",
+     "부관실"
+    ]
+   },
+   {
+    "Name": "특수선미루",
+    "Parts": []
+   },
+   {
+    "Name": "강화포문",
+    "Parts": []
+   },
+   {
+    "Name": "배수펌프",
+    "Parts": []
+   },
+   {
+    "Name": "의료지원",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "뤼베크"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 37
+ },
+ {
+  "No": 0,
+  "Name": "산 펠리페",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "집중장전",
+    "Parts": []
+   },
+   {
+    "Name": "배수펌프",
+    "Parts": []
+   }
+  ],
+  "Hull": "공용 3층 갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "공용 3층 갑판형 대형선체",
+    "Rank": 20,
+    "Material": "에스파니아군 공용",
+    "City": "세비야"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 40
+ },
+ {
+  "No": 0,
+  "Name": "로얄 소버린",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "사령탑",
+    "Parts": [
+     "사령탑",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "내포격장갑",
+    "Parts": []
+   },
+   {
+    "Name": "백병전 요격",
+    "Parts": []
+   },
+   {
+    "Name": "기뢰 탐색",
+    "Parts": []
+   },
+   {
+    "Name": "집중수리",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "런던"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "플리머스"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 41
+ },
+ {
+  "No": 0,
+  "Name": "라 쿠론",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "사령탑",
+    "Parts": [
+     "사령탑",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   },
+   {
+    "Name": "철갑탄",
+    "Parts": []
+   },
+   {
+    "Name": "강화기뢰",
+    "Parts": []
+   },
+   {
+    "Name": "수리지원",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "마르세이유"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "낭트"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 40
+ },
+ {
+  "No": 0,
+  "Name": "산타 카타리나",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "특수선미루",
+    "Parts": []
+   },
+   {
+    "Name": "내포격장갑",
+    "Parts": []
+   },
+   {
+    "Name": "사령탑",
+    "Parts": [
+     "제독실",
+     "사령탑"
+    ]
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "장갑열화탄",
+    "Parts": []
+   }
+  ],
+  "Hull": "공용 3층 갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "공용 3층 갑판형 대형선체",
+    "Rank": 20,
+    "Material": "포르투갈군 공용",
+    "City": "리스본"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 39
+ },
+ {
+  "No": 0,
+  "Name": "애플릿",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "배수펌프",
+    "Parts": [
+     "수리도구 셋트",
+     "특수 선창"
+    ]
+   },
+   {
+    "Name": "강화포문",
+    "Parts": []
+   },
+   {
+    "Name": "수리지원",
+    "Parts": []
+   },
+   {
+    "Name": "기뢰 탐색",
+    "Parts": []
+   },
+   {
+    "Name": "내풍마스트",
+    "Parts": []
+   }
+  ],
+  "Hull": "명품 2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "명품 2층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "스웨덴군 공용",
+    "City": "스톡홀름"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 38
+ },
+ {
+  "No": 0,
+  "Name": "드 제벤",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "백병전 요격",
+    "Parts": [
+     "선미회랑",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "특수기뢰",
+    "Parts": []
+   },
+   {
+    "Name": "사령탑",
+    "Parts": []
+   },
+   {
+    "Name": "특수연막탄",
+    "Parts": []
+   },
+   {
+    "Name": "강화키",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "앤트워프"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 37
+ },
+ {
+  "No": 0,
+  "Name": "레이지드 프리깃",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강화포문",
+    "Parts": [
+     "제독실",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "특수연막탄",
+    "Parts": []
+   },
+   {
+    "Name": "굉음기뢰",
+    "Parts": []
+   }
+  ],
+  "Hull": "명품 2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "명품 2층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "플리머스"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 28
+ },
+ {
+  "No": 0,
+  "Name": "잉에르만란드",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "내포격장갑",
+    "Parts": []
+   },
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   },
+   {
+    "Name": "장갑열화탄",
+    "Parts": []
+   },
+   {
+    "Name": "수리지원",
+    "Parts": []
+   },
+   {
+    "Name": "기뢰 탐색",
+    "Parts": []
+   }
+  ],
+  "Hull": "명품 2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "명품 2층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "상트 페테르부르크"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 39
+ },
+ {
+  "No": 0,
+  "Name": "버뮤다 슬루프",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강화포문",
+    "Parts": [
+     "제독실",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   },
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   },
+   {
+    "Name": "특수연막탄",
+    "Parts": []
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "굉음기뢰",
+    "Parts": []
+   }
+  ],
+  "Hull": "평갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "평갑판형 대형선체",
+    "Rank": 19,
+    "Material": "철",
+    "City": "산토도밍고"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 42
+ },
+ {
+  "No": 0,
+  "Name": "빅토리",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "배수펌프",
+    "Parts": []
+   },
+   {
+    "Name": "내포격장갑",
+    "Parts": []
+   },
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   },
+   {
+    "Name": "특수연막탄",
+    "Parts": []
+   },
+   {
+    "Name": "강화포문",
+    "Parts": [
+     "제독실",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "플리머스"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 45
+ },
+ {
+  "No": 0,
+  "Name": "솔레이유 로얄",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "사령탑",
+    "Parts": []
+   },
+   {
+    "Name": "강화포문",
+    "Parts": []
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "내포격장갑",
+    "Parts": [
+     "철재 가공",
+     "수리도구 셋트"
+    ]
+   },
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "마르세이유"
+   },
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 20,
+    "Material": "철",
+    "City": "낭트"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 45
+ },
+ {
+  "No": 0,
+  "Name": "개조 중 카락",
+  "Times": 6,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "굉음기뢰",
+    "Parts": []
+   },
+   {
+    "Name": "철갑탄",
+    "Parts": [
+     "대 라틴세일",
+     "개량 대형 포문",
+     "납포탄",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   },
+   {
+    "Name": "내풍마스트",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 22
+ },
+ {
+  "No": 0,
+  "Name": "중 갤리온",
+  "Times": 6,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "집중장전",
+    "Parts": [
+     "대 라틴세일",
+     "제독실",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "철갑탄",
+    "Parts": []
+   },
+   {
+    "Name": "조타강화",
+    "Parts": []
+   },
+   {
+    "Name": "부관실",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 24
+ },
+ {
+  "No": 0,
+  "Name": "강습형 샴선",
+  "Times": 4,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "선제공격",
+    "Parts": [
+     "이동망",
+     "마스트 톱"
+    ]
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "특수연막탄",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 22
+ },
+ {
+  "No": 0,
+  "Name": "호위용 광선",
+  "Times": 5,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "수리지원",
+    "Parts": []
+   },
+   {
+    "Name": "침투방지망",
+    "Parts": [
+     "투망",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "수밀격벽",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 22
+ },
+ {
+  "No": 0,
+  "Name": "하프 문",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "급가속",
+    "Parts": [
+     "대 개프세일",
+     "오물방지 도장"
+    ]
+   },
+   {
+    "Name": "고층 감시대",
+    "Parts": []
+   },
+   {
+    "Name": "예항 보조",
+    "Parts": []
+   },
+   {
+    "Name": "투망",
+    "Parts": []
+   },
+   {
+    "Name": "표류물 탐색",
+    "Parts": []
+   },
+   {
+    "Name": "내풍마스트",
+    "Parts": []
+   }
+  ],
+  "Hull": "2층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "2층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "너도밤나무",
+    "City": "앤트워프"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 39
+ },
+ {
+  "No": 0,
+  "Name": "프린스 윌리엄",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "침투방지망",
+    "Parts": []
+   },
+   {
+    "Name": "굉음기뢰",
+    "Parts": []
+   },
+   {
+    "Name": "부관실",
+    "Parts": [
+     "부관실",
+     "수리도구 셋트"
+    ]
+   },
+   {
+    "Name": "내화벽",
+    "Parts": []
+   },
+   {
+    "Name": "일반사치품 보관고",
+    "Parts": []
+   }
+  ],
+  "Hull": "3층갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "3층갑판형 대형선체",
+    "Rank": 18,
+    "Material": "떡갈나무",
+    "City": "앤트워프"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 42
+ },
+ {
+  "No": 0,
+  "Name": "중 갤리",
+  "Times": 5,
+  "Retimes": 4,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 라틴세일",
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "강화충각",
+    "Parts": []
+   },
+   {
+    "Name": "선박관리실",
+    "Parts": []
+   }
+  ],
+  "Hull": "범용 대형 도선",
+  "Special": [
+   {
+    "Hull": "범용 대형 도선",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "리스본"
+   },
+   {
+    "Hull": "범용 대형 도선",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "세비야"
+   },
+   {
+    "Hull": "범용 대형 도선",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "런던"
+   },
+   {
+    "Hull": "범용 대형 도선",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "암스테르담"
+   },
+   {
+    "Hull": "범용 대형 도선",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "마르세이유"
+   },
+   {
+    "Hull": "범용 대형 도선",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "베네치아"
+   },
+   {
+    "Hull": "범용 대형 도선",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "이스탄불"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "작전용 중 갤리",
+  "Times": 5,
+  "Retimes": 4,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강화충각",
+    "Parts": []
+   },
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 라틴세일",
+     "범용 대형 포문",
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "폭탄 장치",
+    "Parts": []
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형도선",
+  "Special": [
+   {
+    "Hull": "대형도선",
+    "Rank": 6,
+    "Material": "삼나무판",
+    "City": "암보이나"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "북유럽형 중갤리",
+  "Times": 5,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 라틴세일",
+     "개량 대형 포문",
+     "특수 주문 경량 노",
+     "대 마스트"
+    ]
+   },
+   {
+    "Name": "강화충각",
+    "Parts": []
+   },
+   {
+    "Name": "특수충각",
+    "Parts": []
+   },
+   {
+    "Name": "충각전술",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형 3층도선",
+  "Special": [
+   {
+    "Hull": "대형 3층도선",
+    "Rank": 12,
+    "Material": "동",
+    "City": "스톡홀름"
+   },
+   {
+    "Hull": "대형 3층도선",
+    "Rank": 12,
+    "Material": "동",
+    "City": "암스테르담"
+   },
+   {
+    "Hull": "대형 3층도선",
+    "Rank": 12,
+    "Material": "동",
+    "City": "런던"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 10
+ },
+ {
+  "No": 0,
+  "Name": "안택선",
+  "Times": 5,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 스퀘어세일",
+     "개량 대형 포문",
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "집중장전",
+    "Parts": []
+   },
+   {
+    "Name": "기뢰제거",
+    "Parts": []
+   },
+   {
+    "Name": "강습 갑판전",
+    "Parts": []
+   }
+  ],
+  "Hull": "동아시아 대형 도선",
+  "Special": [
+   {
+    "Hull": "동아시아 대형 도선",
+    "Rank": 12,
+    "Material": "떡갈나무",
+    "City": "사카이"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 21
+ },
+ {
+  "No": 0,
+  "Name": "발트 갤리",
+  "Times": 4,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "폭탄 장치",
+    "Parts": [
+     "화약고",
+     "철재 가공"
+    ]
+   },
+   {
+    "Name": "충각전술",
+    "Parts": []
+   },
+   {
+    "Name": "노 젓기보조",
+    "Parts": []
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": [
+     "대 개프세일",
+     "사령탑",
+     "해체도구 셋트"
+    ]
+   }
+  ],
+  "Hull": "대형 3층도선",
+  "Special": [
+   {
+    "Hull": "대형 3층도선",
+    "Rank": 13,
+    "Material": "철",
+    "City": "단치히"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 10
+ },
+ {
+  "No": 0,
+  "Name": "수송용 오스만 갤리",
+  "Times": 5,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": []
+   },
+   {
+    "Name": "위장창고",
+    "Parts": []
+   },
+   {
+    "Name": "돛수선 기술",
+    "Parts": []
+   },
+   {
+    "Name": "공작실",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형도선",
+  "Special": [
+   {
+    "Hull": "대형도선",
+    "Rank": 13,
+    "Material": "철",
+    "City": "이스탄불"
+   },
+   {
+    "Hull": "대형도선",
+    "Rank": 13,
+    "Material": "철",
+    "City": "알렉산드리아"
+   },
+   {
+    "Hull": "대형도선",
+    "Rank": 13,
+    "Material": "철",
+    "City": "알제"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 11
+ },
+ {
+  "No": 0,
+  "Name": "강습형 안택선",
+  "Times": 5,
+  "Retimes": 1,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강습 갑판전",
+    "Parts": [
+     "대 라틴세일",
+     "개량 대형 포문",
+     "이동망",
+     "강습용 선실"
+    ]
+   },
+   {
+    "Name": "선제공격",
+    "Parts": []
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "폭탄 장치",
+    "Parts": []
+   },
+   {
+    "Name": "방화공격",
+    "Parts": []
+   }
+  ],
+  "Hull": "동아시아 대형 도선",
+  "Special": [
+   {
+    "Hull": "동아시아 대형 도선",
+    "Rank": 13,
+    "Material": "떡갈나무",
+    "City": "사카이"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 21
+ },
+ {
+  "No": 0,
+  "Name": "터키 갤리",
+  "Times": 5,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 라틴세일",
+     "특수 주문 경량 노"
+    ]
+   },
+   {
+    "Name": "선제공격",
+    "Parts": []
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "특수충각",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형도선",
+  "Special": [
+   {
+    "Hull": "대형도선",
+    "Rank": 14,
+    "Material": "철",
+    "City": "이스탄불"
+   },
+   {
+    "Hull": "대형도선",
+    "Rank": 14,
+    "Material": "철",
+    "City": "알렉산드리아"
+   },
+   {
+    "Hull": "대형도선",
+    "Rank": 14,
+    "Material": "철",
+    "City": "알제"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 11
+ },
+ {
+  "No": 0,
+  "Name": "돌격용 오스만 갤리",
+  "Times": 5,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": []
+   },
+   {
+    "Name": "직격저지",
+    "Parts": [
+     "대 개프세일",
+     "사령탑",
+     "마스트 톱"
+    ]
+   },
+   {
+    "Name": "충각전술",
+    "Parts": []
+   },
+   {
+    "Name": "폭탄 장치",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형도선",
+  "Special": [
+   {
+    "Hull": "대형도선",
+    "Rank": 14,
+    "Material": "철",
+    "City": "이스탄불"
+   },
+   {
+    "Hull": "대형도선",
+    "Rank": 14,
+    "Material": "철",
+    "City": "알렉산드리아"
+   },
+   {
+    "Hull": "대형도선",
+    "Rank": 14,
+    "Material": "철",
+    "City": "알제"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 11
+ },
+ {
+  "No": 0,
+  "Name": "갤리스",
+  "Times": 6,
+  "Retimes": 1,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "구명정",
+    "Parts": [
+     "대 스퀘어세일",
+     "구명정",
+     "대 마스트"
+    ]
+   },
+   {
+    "Name": "특수충각",
+    "Parts": []
+   },
+   {
+    "Name": "노 젓기보조",
+    "Parts": []
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "방화공격",
+    "Parts": []
+   }
+  ],
+  "Hull": "공용 대형 2층 도선",
+  "Special": [
+   {
+    "Hull": "공용 대형 2층 도선",
+    "Rank": 15,
+    "Material": "오스만 투르크군 공용",
+    "City": "이스탄불"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 30
+ },
+ {
+  "No": 0,
+  "Name": "베네치안 갤리스",
+  "Times": 6,
+  "Retimes": 1,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 스퀘어세일",
+     "개량 대형 포문",
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "폭탄 장치",
+    "Parts": []
+   },
+   {
+    "Name": "강화충각",
+    "Parts": []
+   },
+   {
+    "Name": "선박관리실",
+    "Parts": []
+   },
+   {
+    "Name": "배수펌프",
+    "Parts": []
+   }
+  ],
+  "Hull": "공용 대형 3층 도선",
+  "Special": [
+   {
+    "Hull": "공용 대형 3층 도선",
+    "Rank": 16,
+    "Material": "",
+    "City": "베네치아"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 32
+ },
+ {
+  "No": 0,
+  "Name": "라 모르",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "직격저지",
+    "Parts": []
+   },
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "기능성 돛줄",
+     "특수 주문 경량 노"
+    ]
+   },
+   {
+    "Name": "선제공격",
+    "Parts": []
+   },
+   {
+    "Name": "특수선미루",
+    "Parts": []
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "내포격장갑",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "강습용 갤리스",
+  "Times": 5,
+  "Retimes": 1,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 라틴세일",
+     "특수 주문 경량 노",
+     "제독실"
+    ]
+   },
+   {
+    "Name": "파괴공작",
+    "Parts": []
+   },
+   {
+    "Name": "선제공격",
+    "Parts": []
+   },
+   {
+    "Name": "방화공격",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형 2층도선",
+  "Special": [
+   {
+    "Hull": "대형 2층도선",
+    "Rank": 17,
+    "Material": "동",
+    "City": "베네치아"
+   },
+   {
+    "Hull": "대형 2층도선",
+    "Rank": 17,
+    "Material": "동",
+    "City": "아테네"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "라 르와이얄",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "선제공격",
+    "Parts": []
+   },
+   {
+    "Name": "강화충각",
+    "Parts": []
+   },
+   {
+    "Name": "방화공격",
+    "Parts": []
+   },
+   {
+    "Name": "특수기뢰",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형 2층도선",
+  "Special": [
+   {
+    "Hull": "대형 2층도선",
+    "Rank": 17,
+    "Material": "동",
+    "City": "마르세이유"
+   },
+   {
+    "Hull": "대형 2층도선",
+    "Rank": 17,
+    "Material": "동",
+    "City": "제노바"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "중갤리스",
+  "Times": 4,
+  "Retimes": 1,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 스퀘어세일",
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "특수선미루",
+    "Parts": []
+   },
+   {
+    "Name": "구명정",
+    "Parts": []
+   },
+   {
+    "Name": "강화충각",
+    "Parts": []
+   },
+   {
+    "Name": "특수충각",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형 2층도선",
+  "Special": [
+   {
+    "Hull": "대형 2층도선",
+    "Rank": 18,
+    "Material": "철",
+    "City": "튀니스"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "대 안택선",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "사령탑",
+    "Parts": []
+   },
+   {
+    "Name": "직격저지",
+    "Parts": []
+   },
+   {
+    "Name": "집중장전",
+    "Parts": []
+   },
+   {
+    "Name": "폭탄 장치",
+    "Parts": [
+     "화약고",
+     "특수 선창"
+    ]
+   },
+   {
+    "Name": "강습 갑판전",
+    "Parts": []
+   }
+  ],
+  "Hull": "개량 동아시아 대형 도선",
+  "Special": [
+   {
+    "Hull": "개량 동아시아 대형 도선",
+    "Rank": 19,
+    "Material": "삼나무판",
+    "City": "사카이"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 28
+ },
+ {
+  "No": 0,
+  "Name": "나폴리탄 갤리스",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "중량포격",
+    "Parts": [
+     "납포탄",
+     "철재 가공"
+    ]
+   },
+   {
+    "Name": "노 젓기보조",
+    "Parts": []
+   },
+   {
+    "Name": "직격저지",
+    "Parts": []
+   },
+   {
+    "Name": "투묘기뢰",
+    "Parts": []
+   },
+   {
+    "Name": "선제공격",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형 2층도선",
+  "Special": [
+   {
+    "Hull": "대형 2층도선",
+    "Rank": 20,
+    "Material": "철",
+    "City": "나폴리"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 36
+ },
+ {
+  "No": 0,
+  "Name": "오스만 갤리온",
+  "Times": 4,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "직격저지",
+    "Parts": []
+   },
+   {
+    "Name": "폭탄 장치",
+    "Parts": []
+   },
+   {
+    "Name": "강화포문",
+    "Parts": []
+   },
+   {
+    "Name": "특수연막탄",
+    "Parts": []
+   },
+   {
+    "Name": "기뢰제거",
+    "Parts": []
+   }
+  ],
+  "Hull": "특별 대형 2층도선",
+  "Special": [
+   {
+    "Hull": "특별 대형 2층도선",
+    "Rank": 20,
+    "Material": "철",
+    "City": "튀니스"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 43
+ },
+ {
+  "No": 0,
+  "Name": "장교용 라레알",
+  "Times": 5,
+  "Retimes": 0,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "직격저지",
+    "Parts": [
+     "마스트 톱",
+     "사령탑"
+    ]
+   },
+   {
+    "Name": "강화충각",
+    "Parts": []
+   },
+   {
+    "Name": "선제공격",
+    "Parts": []
+   },
+   {
+    "Name": "사령탑",
+    "Parts": []
+   },
+   {
+    "Name": "부관실",
+    "Parts": []
+   },
+   {
+    "Name": "노 젓기보조",
+    "Parts": []
+   }
+  ],
+  "Hull": "대형 2층도선",
+  "Special": [
+   {
+    "Hull": "대형 2층도선",
+    "Rank": 18,
+    "Material": "동",
+    "City": "세비야"
+   },
+   {
+    "Hull": "대형 2층도선",
+    "Rank": 18,
+    "Material": "동",
+    "City": "세우타"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 45
+ },
+ {
+  "No": 0,
+  "Name": "플란더스 갤리",
+  "Times": 5,
+  "Retimes": 4,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "대 스퀘어세일",
+     "범용 대형 포문",
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "강화충각",
+    "Parts": []
+   },
+   {
+    "Name": "특수충각",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "라 레알",
+  "Times": 5,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "노 젓기보조",
+    "Parts": [
+     "특수 주문 경량 노",
+     "기능성 돛줄"
+    ]
+   },
+   {
+    "Name": "선제공격",
+    "Parts": []
+   },
+   {
+    "Name": "특수충각",
+    "Parts": []
+   },
+   {
+    "Name": "방화공격",
+    "Parts": []
+   },
+   {
+    "Name": "강화충각",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 23
+ },
+ {
+  "No": 0,
+  "Name": "아라비안 갤리",
+  "Times": 5,
+  "Retimes": 4,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "선제공격",
+    "Parts": [
+     "대 라틴세일",
+     "이동망",
+     "특수 주문 대형 노"
+    ]
+   },
+   {
+    "Name": "노 젓기보조",
+    "Parts": []
+   },
+   {
+    "Name": "특수충각",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 16
+ },
+ {
+  "No": 0,
+  "Name": "작전용 케벡",
+  "Times": 5,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "파괴공작",
+    "Parts": [
+     "범용 대형 라틴세일",
+     "범용 대형 포문",
+     "해체도구 셋트",
+     "티크 선박재료"
+    ]
+   },
+   {
+    "Name": "공작실",
+    "Parts": []
+   },
+   {
+    "Name": "급가속",
+    "Parts": []
+   },
+   {
+    "Name": "조타강화",
+    "Parts": []
+   }
+  ],
+  "Hull": "평갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "평갑판형 대형선체",
+    "Rank": 11,
+    "Material": "삼나무판",
+    "City": "낭트"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 11
+ },
+ {
+  "No": 0,
+  "Name": "의료용 케벡",
+  "Times": 5,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "의료지원",
+    "Parts": [
+     "범용 대형 라틴세일",
+     "범용 대형 포문",
+     "진찰실",
+     "범용 대형 확장 선실"
+    ]
+   },
+   {
+    "Name": "조리실",
+    "Parts": []
+   },
+   {
+    "Name": "급가속",
+    "Parts": []
+   },
+   {
+    "Name": "조타강화",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 11
+ },
+ {
+  "No": 0,
+  "Name": "지벡 프리깃",
+  "Times": 5,
+  "Retimes": 2,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "강화포문",
+    "Parts": [
+     "대 스퀘어세일",
+     "개량 대형 포문",
+     "제독실",
+     "화약고"
+    ]
+   },
+   {
+    "Name": "연대강화",
+    "Parts": []
+   },
+   {
+    "Name": "특수연막탄",
+    "Parts": []
+   },
+   {
+    "Name": "투묘기뢰",
+    "Parts": []
+   },
+   {
+    "Name": "구명정",
+    "Parts": []
+   }
+  ],
+  "Hull": "평갑판형 대형선체",
+  "Special": [
+   {
+    "Hull": "평갑판형 대형선체",
+    "Rank": 14,
+    "Material": "떡갈나무",
+    "City": "세우타"
+   },
+   {
+    "Hull": "평갑판형 대형선체",
+    "Rank": 14,
+    "Material": "떡갈나무",
+    "City": "발렌시아"
+   }
+  ],
+  "Borrowed": "",
+  "Days": 27
+ },
+ {
+  "No": 0,
+  "Name": "무장 지벡",
+  "Times": 5,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "조타강화",
+    "Parts": []
+   },
+   {
+    "Name": "강화키",
+    "Parts": []
+   },
+   {
+    "Name": "중량포격",
+    "Parts": []
+   },
+   {
+    "Name": "철갑탄",
+    "Parts": [
+     "대 라틴세일",
+     "개량 대형 포문",
+     "납포탄",
+     "철재 가공"
+    ]
+   },
+   {
+    "Name": "수리지원",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 20
+ },
+ {
+  "No": 0,
+  "Name": "군용 지벡",
+  "Times": 5,
+  "Retimes": 3,
+  "Caps": [],
+  "Slots": [],
+  "Skills": [
+   {
+    "Name": "연대강화",
+    "Parts": [
+     "대 스퀘어세일",
+     "개량 대형 포문",
+     "제독실",
+     "부관실"
+    ]
+   },
+   {
+    "Name": "집중수리",
+    "Parts": []
+   },
+   {
+    "Name": "강화키",
+    "Parts": []
+   },
+   {
+    "Name": "조타강화",
+    "Parts": []
+   }
+  ],
+  "Hull": "",
+  "Special": [],
+  "Borrowed": "",
+  "Days": 23
  }
 ]

@@ -239,7 +239,7 @@ internal sealed partial class Voyage
     {
         var parts = new List<string>();
         for (int k = 0; k < Math.Min(gear.Stats.Count, GearStatNames.Length); k++)
-            if (gear.Stats[k] != 0) parts.Add($"{GearStatNames[k]} {gear.Stats[k]}");
+            if (gear.Stats[k] != 0) parts.Add($"{GearStatNames[k]} {gear.Stats[k]}" + (k < 2 && ForgedOf(gear.Id, k) is not 0 and var forged ? $"({forged:+0;-0})" : ""));
         if (Data.GearBoosts.TryGetValue(gear.Id, out var boosts))
             parts.AddRange(boosts.Select(b => $"{SkillName(b.Key)} +{b.Value}"));
         return parts.Count == 0 ? "" : "\n" + string.Join(" · ", parts);

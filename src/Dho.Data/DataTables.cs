@@ -11,6 +11,8 @@ public sealed record Skill(int Id, string Name, string Description, int Group, i
 public sealed record Good(int Id, string Name, string Description, int Kind);
 public sealed record Ship(int Id, string Name, string Description, int Model, int Height, int Width, int Length, int SizeClass, int Kind, int Masts);
 /// <summary>배 부품. Slot: 0 보조돛(A 가로돛, B 세로돛) · 1 장갑(A 장갑, B 속도 줄임) · 2 선수상(A ~ D 효과 넷) · 3 문장(수치 없음).</summary>
+/// <summary>주점의 차림 한 가지(표 37) — 갈래: 0 술 · 1 요리 · 2 음료 · 3 물담배.</summary>
+public sealed record TavernDish(int Id, string Name, string Description, int Kind);
 public sealed record ShipPart(int Id, string Name, string Description, int Slot, int A, int B, int C, int D, int Durability);
 /// <summary>
 /// 선박 데코(표 138) — 줄 꼬리 10바이트: u8 × 5 붙일 수 있는 자리(마스트 톱, 전방 측면 둘, 뒤쪽 측면 둘), u16 모형으로 보이는 번호, u8 ?(깃발은 나라 차례), u8 0, u8 갈래
@@ -63,6 +65,13 @@ public sealed class DataTables
     public IReadOnlyList<(int Id, string Name, int A, int B)> Aides { get; }
     /// <summary>부관의 담당(표 36): 0 항해장 · 1 감시 · 2 회계사 · 3 창고당번 · 4 부함장 · 5 선의.</summary>
     public IReadOnlyDictionary<int, string> Duties { get; }
+    public List<TavernDish> TavernMenu { get; }
+    /// <summary>상륙지 번호 → 세계지도 표식의 자리(세계 좌표, 뭍 위일 수 있다).</summary>
+    public IReadOnlyDictionary<int, (int X, int Y)> LandingSpots { get; }
+    public List<(int Zone, int Kind, int Target, int X, int Y)> ZoneMarks { get; }
+    public List<(int Id, string Name, string Description)> Honors { get; }
+    /// <summary>탄의 이름(표 21) — 번호는 대포 줄의 탄 갈래.</summary>
+    public IReadOnlyDictionary<int, string> Ammo { get; }
     /// <summary>시내 장소 이름(표 40): 9 조선소 · 10 교역소 · 14 은행 … — 시내 지도의 표식이 이 번호를 쓴다.</summary>
     public IReadOnlyDictionary<int, string> Places { get; }
     /// <summary>선박 데코(표 138) 321줄과 선원 장비(표 139) 214줄 — 이름이 「※」인 빈 줄까지 그대로.</summary>
@@ -130,10 +139,70 @@ public sealed class DataTables
             string name = r.Text(id), description = r.Text(id);
             int count = r.Int32(), pierce = r.Int32(), spot = r.Int32(), range = r.Int32();
             r.Skip(16);
-            int durability = r.Int32();
-            r.Int32();
-            return new ShipPart(id, name, description, 4, count, pierce, range, spot, durability);
+            int durability = r.Int32(), ammo = r.Int32();
+            // D = 다는 자리 + 탄 갈래 × 10 (탄 갈래는 표 21 의 번호 — 0 통상탄 … 18 파쇄 유탄, 이름이 설명 글과 맞는다)
+            return new ShipPart(id, name, description, 4, count, pierce, range, spot + ammo * 10, durability);
         }));
+        // 특수장비(표 24): id(900001 ~), 이름, 설명, i32 갈래(0 충각 · 1 ? · 2 선수 추가돛 · 3 선미 추가돛 · 4 조교 · 5 기관포 · 6 화염방사기 · 7 방벽), i32 세기, i32 내구, 그 뒤 10바이트(못 풀었다)
+        parts.AddRange(Rows(Table(24), (r, id) =>
+        {
+            string name = r.Text(id), description = r.Text(id);
+            int kind = r.Int32(), power = r.Int32(), durability = r.Int32();
+            r.Skip(10);
+            return new ShipPart(id, name, description, 5, kind, power, 0, 0, durability);
+        }));
+        // 탄(표 21): id 0 ~ 18, 이름 — 줄 꼬리는 풀지 않고 다음 줄의 id 를 찾아 넘어간다
+        var ammo = new Dictionary<int, string>();
+        try
+        {
+            byte[] shells = Table(21);
+            int rows = BinaryPrimitives.ReadInt32LittleEndian(shells), at = 4;
+            for (int n = 0; n < rows && at + 6 <= shells.Length; n++)
+            {
+                int size = BinaryPrimitives.ReadUInt16LittleEndian(shells.AsSpan(at + 4));
+                ammo[n] = TextAt(shells, at + 4, n);
+                at += 6 + size;
+                while (at + 6 <= shells.Length && !(BinaryPrimitives.ReadInt32LittleEndian(shells.AsSpan(at)) == n + 1 && BinaryPrimitives.ReadUInt16LittleEndian(shells.AsSpan(at + 4)) is > 0 and < 60)) at++;
+            }
+        }
+        catch (Exception) { }
+        Ammo = ammo;
+        // 주점의 차림(표 37): id, 이름, 설명, u16 갈래(0 술 · 1 요리 · 2 음료 · 3 물담배) — 244줄을 끝까지 읽어 표의 끝과 맞는다
+        // 호칭(표 35): id, 이름, 설명 — 92줄을 끝까지 읽어 표의 끝과 맞는다
+        Honors = Rows(Table(35), (r, id) => (id, r.Text(id), r.Text(id)));
+        TavernMenu = Rows(Table(37), (r, id) => new TavernDish(id, r.Text(id), r.Text(id), r.UInt16()));
+        // 세계지도의 표식(표 103): u32 id, u8 갈래(3 상륙지 · 4 해역 이름 · 7 · 8 · 9 ?), u16 대상 번호, u16 x, u16 y, 그 뒤 4바이트 0 — 15바이트 고정.
+        // 자리는 640 × 320 짜리 세계지도 그림 위의 것이다: 세계 좌표 x ≈ (x × 25.6 + 8270) mod 16384, y = y × 25.6 (손으로 찍어 둔 상륙지 27곳과 맞춰 본 것)
+        var spots = new Dictionary<int, (int X, int Y)>();
+        try
+        {
+            byte[] marks = Table(103);
+            int count = BinaryPrimitives.ReadInt32LittleEndian(marks);
+            for (int k = 0; k < count && 4 + k * 15 + 11 <= marks.Length; k++)
+            {
+                int at = 4 + k * 15;
+                if (marks[at + 4] != 3) continue;
+                int target = BinaryPrimitives.ReadUInt16LittleEndian(marks.AsSpan(at + 5)), mx = BinaryPrimitives.ReadUInt16LittleEndian(marks.AsSpan(at + 7)), my = BinaryPrimitives.ReadUInt16LittleEndian(marks.AsSpan(at + 9));
+                spots[target] = ((int)((mx * 25.6 + 8270) % 16384), (int)(my * 25.6));      // 8270: 찍어 둔 자리들과 견준 값(반 바퀴 8192 에서 그림 세 칸쯤 더 — 어림)
+            }
+        }
+        catch (Exception) { }
+        LandingSpots = spots;
+        // 해역 지도의 표식(표 102): u32 id, u8 해역 번호, u8 갈래(1 도시 · 3 상륙지 · 6 ?), u16 대상 번호, u16 x, u16 y, 4바이트 0 — 16바이트 고정.
+        // 자리는 그 해역의 지도 그림(200 칸 안팎) 위의 것이라 세계지도 표식보다 여덟 배쯤 촘촘하다. 해역마다 배율이 달라 그 해역의 도시들로 맞춰야 한다
+        var zoneMarks = new List<(int Zone, int Kind, int Target, int X, int Y)>();
+        try
+        {
+            byte[] marks = Table(102);
+            int count = BinaryPrimitives.ReadInt32LittleEndian(marks);
+            for (int k = 0; k < count && 4 + k * 16 + 12 <= marks.Length; k++)
+            {
+                int at = 4 + k * 16;
+                zoneMarks.Add((marks[at + 4], marks[at + 5], BinaryPrimitives.ReadUInt16LittleEndian(marks.AsSpan(at + 6)), BinaryPrimitives.ReadUInt16LittleEndian(marks.AsSpan(at + 8)), BinaryPrimitives.ReadUInt16LittleEndian(marks.AsSpan(at + 10))));
+            }
+        }
+        catch (Exception) { }
+        ZoneMarks = zoneMarks;
         ShipParts = parts;
         Recipes = Rows(Table(RecipeTable), (r, id) => (id, r.Text(id), r.Text(id)));
         Aides = Rows(Table(AideTable), (r, id) => (id, r.Text(id), r.Byte(), r.Byte()));

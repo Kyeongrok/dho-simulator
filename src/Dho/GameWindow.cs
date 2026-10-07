@@ -94,8 +94,10 @@ internal sealed class GameWindow : IDisposable
     private readonly bool _scripted, _newGame;
 
     /// <param name="newGame">이어 하기를 지우고 캐릭터 만들기부터.</param>
-    public GameWindow(string? script, bool newGame = false)
+    private readonly bool _withSave;
+    public GameWindow(string? script, bool newGame = false, bool withSave = false)
     {
+        _withSave = withSave;
         _scripted = script != null;
         _newGame = newGame;
         foreach (var step in (script ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -116,7 +118,7 @@ internal sealed class GameWindow : IDisposable
         var data = GameData.Load();
         // 대본으로 돌릴 때는 이어 하기를 지우지도 적지도 않는다(--new 와 같이 줘도 만들기 화면만 본다)
         if (_newGame && !_scripted) data.DeleteSave();
-        _voyage = new Voyage(data, developer: _scripted && !_newGame, scratch: _scripted);
+        _voyage = new Voyage(data, developer: _scripted && !_newGame, scratch: _scripted && !_withSave);
         _shipModel = _voyage.Ship.Model;
         _ship = new ShipModel(_gfx, _shipModel);
         _canvas = new Canvas(_gfx);
@@ -500,6 +502,7 @@ internal sealed class GameWindow : IDisposable
                 if (_voyage.Dialog != Dialog.None) break;
                 if (Walking) { if (KeeperNear() is { } keeper) _voyage.Visit(keeper.Mark); break; }
                 if (_voyage.SiteInReach()) _voyage.Land();
+                else if (_voyage.PortInReach() == null && _voyage.LandingInReach() != null) _voyage.GoAshore();
                 else _voyage.EnterPort();
                 break;
             case 'G': if (_voyage.Dialog == Dialog.None && !Walking) _voyage.Attack(); break;
@@ -968,7 +971,48 @@ internal sealed class GameWindow : IDisposable
     }
 
     private readonly Dictionary<int, ShipModel> _seaModels = new();
-    private Mesh? _shotMesh;
+    private Mesh? _shotMesh, _puffMesh, _finMesh, _armMesh, _headMesh;
+
+    // 바다 괴물의 모습 — 원본의 모형을 못 찾아 손으로 지은 꼴이다: 상어는 물 위로 나온 지느러미 셋이 맴돌고, 크라켄은 머리와 흔들리는 다리 여섯
+    private void DrawSeaMonster(SeaShip monster)
+    {
+        float x = (float)(WorldMap.DeltaX(_voyage.ShipX, monster.X) * Terrain.Unit), z = (float)((monster.Y - _voyage.ShipY) * Terrain.Unit);
+        float clock = (float)_voyage.Clock, down = (float)Math.Max(0, monster.Sinking) * 260;
+        if (_finMesh == null)
+        {
+            var fin = new MeshBuilder();
+            // 얇은 세모 한 장은 위에서 보면 안 보인다 — 뒤로 누운 뿔 꼴로
+            fin.Cylinder(new Vector3(0, -60, -120), new Vector3(0, 470, 170), 190, 8, new Vector4(0.55f, 0.6f, 0.66f, 1), 6);
+            _finMesh = fin.Build(_gfx);
+            var arm = new MeshBuilder();
+            var flesh = new Vector4(0.45f, 0.16f, 0.2f, 1);
+            arm.Cylinder(new Vector3(0, -200, 0), new Vector3(120, 500, 0), 130, 90, flesh);
+            arm.Cylinder(new Vector3(120, 500, 0), new Vector3(40, 1100, 0), 90, 30, flesh);
+            _armMesh = arm.Build(_gfx);
+            var head = new MeshBuilder();
+            head.Cylinder(new Vector3(0, -300, 0), new Vector3(0, 500, 0), 520, 380, flesh, 12);
+            head.Cylinder(new Vector3(0, 500, 0), new Vector3(0, 760, 0), 380, 60, flesh, 12);
+            _headMesh = head.Build(_gfx);
+        }
+        if (monster.Monster == 1)
+            for (int k = 0; k < 3; k++)
+            {
+                float turn = clock * 1.1f + k * MathF.Tau / 3;
+                _scene.Draw(_finMesh, Matrix4x4.CreateScale(1.8f) * Matrix4x4.CreateRotationY(-turn) * Matrix4x4.CreateTranslation(x + MathF.Cos(turn) * 2100, -down - 40 + MathF.Sin(clock * 2 + k) * 40, z + MathF.Sin(turn) * 2100));
+            }
+        else
+        {
+            _scene.Draw(_headMesh!, Matrix4x4.CreateScale(2f) * Matrix4x4.CreateTranslation(x, -down + MathF.Sin(clock * 1.3f) * 80, z));
+            for (int k = 0; k < 6; k++)
+            {
+                float around = k * MathF.Tau / 6, wave = MathF.Sin(clock * 1.8f + k * 1.3f) * 0.35f;
+                _scene.Draw(_armMesh!, Matrix4x4.CreateScale(2f) * Matrix4x4.CreateRotationZ(wave) * Matrix4x4.CreateRotationY(around) * Matrix4x4.CreateTranslation(x + MathF.Cos(around) * 1500, -down, z - MathF.Sin(around) * 1500));
+            }
+        }
+        if (monster.Sinking >= 0) return;
+        var clip = Vector4.Transform(new Vector4(x, monster.Monster == 2 ? 1500 : 700, z, 1), _viewProjection);
+        if (clip.W > 1) _hud.ShipLabels.Add(((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight, monster.Name, 1));
+    }
 
     /// <summary>바다의 다른 배들 — 제 자리 · 제 뱃머리로 그리고, 화면에서의 자리에 이름표를 단다.</summary>
     private void DrawSeaShips(float sway)
@@ -977,6 +1021,7 @@ internal sealed class GameWindow : IDisposable
         if (_voyage.Mode != Mode.Sea) return;
         foreach (var other in _voyage.SeaShips)
         {
+            if (other.Monster > 0) { DrawSeaMonster(other); continue; }
             if (!_seaModels.TryGetValue(other.Ship.Model, out var model))
             {
                 if (_seaModels.Count >= 8) continue;         // 모형을 너무 많이 올리지 않는다
@@ -986,11 +1031,21 @@ internal sealed class GameWindow : IDisposable
             float x = (float)(WorldMap.DeltaX(_voyage.ShipX, other.X) * Terrain.Unit), z = (float)((other.Y - _voyage.ShipY) * Terrain.Unit);
             model.Furl = 1;
             model.SetFlag(other.NationId);
-            model.Draw(_scene, Matrix4x4.CreateRotationY(MathF.PI - (float)other.Heading) * Matrix4x4.CreateTranslation(x, sway * 40f, z));
+            // 가라앉는 배: 옆으로 기울며 물에 잠긴다
+            float sinking = (float)Math.Max(0, other.Sinking);
+            model.Furl = other.Sinking >= 0 ? 0.4f : 1;
+            model.Draw(_scene, Matrix4x4.CreateRotationZ(sinking * 0.12f) * Matrix4x4.CreateRotationX(sinking * 0.05f) * Matrix4x4.CreateRotationY(MathF.PI - (float)other.Heading)
+                               * Matrix4x4.CreateTranslation(x, sway * 40f - sinking * sinking * 90f, z));
+            if (other.Sinking >= 0) continue;         // 이름표는 뗀다
             var clip = Vector4.Transform(new Vector4(x, model.Radius * 1.3f, z, 1), _viewProjection);
             if (clip.W > 1)
-                _hud.ShipLabels.Add(((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight,
-                                     $"{Voyage.SeaShipKinds[other.Kind]} {other.Name}", other.Kind == 1 ? 1 : other.NationId == _voyage.NationId ? 2 : 0));
+            {
+                float labelX = (clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, labelY = (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight;
+                // 왼쪽 위의 내구 · 선원 줄과 겹치는 이름표는 뺀다
+                bool underBar = _voyage.Battle is { Result: null } && labelY < 160 && labelX > _gfx.Width / UiScale / 2 - 400 && labelX < _gfx.Width / UiScale / 2 + 400;      // 해전 막대 밑에 깔리는 것도
+                if ((labelX > 320 || labelY > 200) && !underBar)
+                    _hud.ShipLabels.Add((labelX, labelY, _voyage.ShipLabel(other), other.Kind == 1 ? 1 : other.NationId == _voyage.NationId ? 2 : 0));
+            }
         }
         if (_voyage.Battle is not { } battle) return;
         // 해전: 날아가는 포탄(작은 쇳덩이가 포물선으로)과, 맞은 배 위로 떠오르는 피해 글
@@ -1000,15 +1055,35 @@ internal sealed class GameWindow : IDisposable
             var ball = new MeshBuilder();
             ball.Box(new Vector3(-70), new Vector3(70), new Vector4(0.08f, 0.08f, 0.09f, 1));
             _shotMesh = ball.Build(_gfx);
+            // 불꽃 · 연기용 흰 덩이 — 포탄 덩이는 검어서 빛깔을 입혀도 검다
+            var puff = new MeshBuilder();
+            puff.Box(new Vector3(-70), new Vector3(70), Vector4.One);
+            _puffMesh = puff.Build(_gfx);
         }
         foreach (var shot in battle.Shots)
         {
             float t = (float)Math.Clamp(shot.Age / shot.Life, 0, 1);
             var along = Vector3.Lerp(At(shot.FromX, shot.FromY, 500), At(shot.ToX, shot.ToY, 500), t) + new Vector3(0, MathF.Sin(t * MathF.PI) * 700, 0);
+            // 쏜 자리의 불꽃(잠깐)과 연기(솟으며 커진다) — 쏜 배의 곁에
+            // 쏜 배의 가운데에서 표적 쪽으로 배 너비쯤 나간 자리 — 가운데에 두면 선체에 가린다
+            var from = At(shot.FromX, shot.FromY, 650); var toward = At(shot.ToX, shot.ToY, 650) - from;
+            var muzzle = from + (toward.LengthSquared() > 1 ? Vector3.Normalize(toward) : Vector3.UnitX) * 1700;
+            if (shot.Age < 0.12)
+                _scene.Draw(_puffMesh!, Matrix4x4.CreateScale(8f) * Matrix4x4.CreateTranslation(muzzle), new Vector4(1f, 0.85f, 0.35f, 1));
+            for (int k = 0; k < 3; k++)
+                _scene.Draw(_puffMesh!, Matrix4x4.CreateScale(3.5f + t * 5 + k * 0.5f) * Matrix4x4.CreateRotationY(k + t)
+                                       * Matrix4x4.CreateTranslation(muzzle + new Vector3((k - 1) * 380, 200 + t * 900 + k * 150, (k - 1) * 240)), new Vector4(0.8f, 0.8f, 0.78f, 1));
             // 한 번의 포격을 여러 발로 — 옆으로 조금씩 벌려 그린다
             for (int k = -2; k <= 2; k++)
                 _scene.Draw(_shotMesh, Matrix4x4.CreateTranslation(along + new Vector3(k * 260 * MathF.Cos(t * 3 + k), k * 40, k * 260 * MathF.Sin(t * 3 + k))), new Vector4(0.1f, 0.1f, 0.1f, 1));
         }
+        // 기뢰 — 물에 반쯤 잠긴 검은 쇳덩이(원본의 모형은 못 찾았다)
+        foreach (var mine in battle.Mines)
+            _scene.Draw(_shotMesh, Matrix4x4.CreateScale(5f) * Matrix4x4.CreateRotationY((float)mine.X) * Matrix4x4.CreateTranslation(At(mine.X, mine.Y, 60 + MathF.Sin((float)(_voyage.Clock * 2 + mine.X)) * 25)), new Vector4(0.1f, 0.1f, 0.1f, 1));
+        // 적의 기뢰는 「기뢰발견」이 있어야 보인다 — 붉은 덩이
+        if (_voyage.SeesMines)
+            foreach (var mine in battle.FoeMines)
+                _scene.Draw(_puffMesh!, Matrix4x4.CreateScale(5f) * Matrix4x4.CreateTranslation(At(mine.X, mine.Y, 60 + MathF.Sin((float)(_voyage.Clock * 2 + mine.Y)) * 25)), new Vector4(0.75f, 0.12f, 0.1f, 1));
         foreach (var hit in battle.Hits)
         {
             var clip = Vector4.Transform(new Vector4(At(hit.X, hit.Y, 2600 + (float)hit.Age * 900), 1), _viewProjection);
@@ -1520,13 +1595,47 @@ internal sealed class GameWindow : IDisposable
             case "rank": { var two = argument.Split(','); _voyage.SetRankForTest(int.Parse(two[0]), int.Parse(two[1])); break; }
             case "optskill": if (_voyage.Data.OptionSkills.Find(o => o.Name == argument) is { } fitted) { _voyage.Work.Skills.Add(fitted.SkillId); _voyage.Say($"(개발) 옵션 스킬 「{fitted.Name}」 — {Voyage.OptionNote(fitted)}"); } break;
             case "foe": _voyage.SpawnForTest((int)Number()); break;
+            case "landspots":
+                {
+                    // 상륙지 자리의 수와, 표식에서 셈한 첫 상륙지로 배를 옮긴다
+                    var all = _voyage.Data.Landings;
+                    _voyage.Say($"상륙지 {all.Count}곳 — 찍은 자리 {all.Count(l => (l.X != 0 || l.Y != 0) && !l.FromMap)} · 표식에서 셈한 자리 {all.Count(l => l.FromMap)} · 자리 없음 {all.Count(l => l.X == 0 && l.Y == 0)}");
+                    if (all.Find(l => l.FromMap && l.Id == (int)Number()) is { } spot2) { _voyage.Teleport(spot2.X, spot2.Y); _voyage.Say($"{spot2.Name} 앞바다 ({spot2.X}, {spot2.Y}) — 표식 ({spot2.MapX}, {spot2.MapY})"); }
+                    break;
+                }
+            case "seaevents": _voyage.SeaEventsForTest(); break;
+            case "drawwater": _voyage.DrawWater(); break;
+            case "lookaround": _voyage.LookAround(); break;
+            case "gather": _voyage.Gather(); break;
+            case "lockchest": _voyage.LockForTest(); break;
+            case "ashore": if (_voyage.Data.Landings.Find(l => l.X != 0 || l.Y != 0) is { } shore) { _voyage.Teleport(shore.X, shore.Y); _voyage.GoAshore(); } break;      // 자리를 아는 첫 상륙지에 오른다
+            case "permits": _voyage.Data.Settings.ModNoPermits = Number() == 0; break;
+            case "fame": _voyage.GainExp(0, 0, (int)Number()); break;
+            case "permit": _voyage.TakePermit(); break;
+            case "fleet": if (_voyage.Aides.FirstOrDefault() is { } sentAide && _voyage.FleetOffers().FirstOrDefault() is { } job) _voyage.SendFleet(sentAide, job); break;
+            case "ram": _voyage.RamForTest(); break;
+            case "foenear": _voyage.SpawnForTest((int)Number(), 1.1); break;
             case "attack": _voyage.Attack(); break;
+            case "tactic": _voyage.SetTactic((int)Number()); break;
+            case "retreat": _voyage.Retreat(); break;
+            case "flee": _voyage.Flee(); break;
+            case "modwindow": _hud.OpenMod(); break;
+            case "mine": _voyage.LayMine(); break;
+            case "aid": _voyage.CallAid(); break;
+            case "foemine": _voyage.FoeMineForTest(); break;
+            case "bribe": _voyage.Bribe(); break;
+            case "hostile": { var two = argument.Split(','); _voyage.SetHostilityForTest(int.Parse(two[0]), int.Parse(two[1])); break; }
+            case "notax": _voyage.Data.Settings.ModNoTax = Number() != 0; break;      // 파일에는 안 적는다
+            case "exile": if (argument == "go") _voyage.Exile(); else _voyage.Dialog = Dialog.Exile; break;
+            case "foefar": _voyage.SpawnForTest((int)Number(), 9); break;
             case "battleact": if ((int)Number() == 0) _voyage.Fire(); else _voyage.Board(); break;
             case "dyedebug": ShipModel.DyeDebug = [new(1, 1, 1, 1), new(1, 0.1f, 0.1f, 1), new(0.1f, 1, 0.1f, 1), new(0.2f, 0.3f, 1, 1), new(1, 1, 0.1f, 1), new(1, 0, 1, 1), new(0, 1, 1, 1), new(0, 0, 0, 1)]; break;
             case "combinepick": { var two = argument.Split(','); _hud.PickCombine(int.Parse(two[0]), int.Parse(two[1])); break; }
             case "combineaboard": (_voyage.Data.Settings.ModCombineOnBoard, _voyage.Dialog) = (true, Dialog.Combine); break;
             case "board": if (_voyage.Dock.ElementAtOrDefault((int)Number()) is { } docked) _voyage.SwapShip(docked); break;
             case "skilltab": _hud.SkillTab = (int)Number(); break;
+            case "skillpick": _hud.SkillPick = argument; break;
+            case "treat": _voyage.Say($"한턱 값 {_voyage.TreatCost:N0} 두캇 · 노 젓기 보정 +{_voyage.RowBoost * 100:0}% (조력 {_voyage.Stats.Rowing})"); _voyage.Treat(); break;
             case "shipyard": _voyage.Dialog = Dialog.Shipyard; break;
             case "trade": _voyage.Dialog = Dialog.Trade; break;
             case "ship": if (_voyage.Data.Ships.Find(s => s.Id == (int)Number()) is { } ship) _voyage.BuyShip(ship); break;

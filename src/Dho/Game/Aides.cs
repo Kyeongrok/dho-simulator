@@ -108,4 +108,41 @@ internal sealed partial class Voyage
     }
 
     private double _aidePay;
+
+    // ── 지방함대 ──
+    // 부관을 그 지역의 일(독초 조사 · 밤도둑 토벌 · 해적단 거점 조사 …)에 내보낸다. 일의 이름과 잘됐을 때 · 안됐을 때의 글은 클라이언트 표 113 의 것이다.
+    // 원본의 지방함대가 어떻게 도는지(누구를 며칠 보내고 무엇을 받는가)는 모른다 — 하루에 한 번, 부관의 레벨로 성패가 갈리고 돈 · 공적 · 부관 경험을 받는 것은 지은 규칙이다.
+
+    private int _fleetDay = -1;
+    public (FleetMission Mission, bool Success, string Reward, string Who)? FleetResult { get; private set; }
+
+    /// <summary>이 도시에서 오늘 맡을 수 있는 일 셋.</summary>
+    public List<FleetMission> FleetOffers()
+    {
+        var pick = new Random(City.Id * 131 + (int)Today);
+        return Data.FleetMissions.OrderBy(_ => pick.Next()).Take(3).ToList();
+    }
+
+    public string? FleetBlocker(Aide? aide) =>
+        Mode != Mode.Port ? "항구에서만 내보낸다" : aide == null ? "부관이 없다" : _fleetDay == (int)Today ? "오늘은 이미 내보냈다 — 내일 다시" : null;
+
+    public static int FleetChance(Aide aide) => Math.Min(95, 50 + aide.Level * 2);
+
+    public void SendFleet(Aide aide, FleetMission mission)
+    {
+        if (FleetBlocker(aide) != null) return;
+        _fleetDay = (int)Today;
+        bool success = _random.Next(100) < FleetChance(aide);
+        int money = success ? 2000 + aide.Level * 500 + _random.Next(2000) : 0, merit = success ? 1 : 0;
+        Money += money;
+        Merit += merit;
+        aide.Exp += (success ? 30 : 10) * GainFactor;
+        while (aide.Level < AideMaxLevel && aide.Exp >= aide.Level * 40) { aide.Exp -= aide.Level * 40; aide.Level++; Say($"부관 {aide.Who.Name}의 레벨이 {aide.Level}(이)가 되었다."); }
+        string reward = success ? $"사례금 {money:N0} 두캇 · 공적 +{merit} · 부관 경험 +{30 * GainFactor}" : $"부관 경험 +{10 * GainFactor}";
+        FleetResult = (mission, success, reward, aide.Who.Name);
+        Say($"지방함대 「{mission.Name}」 — {(success ? "잘 끝났다" : "잘되지 않았다")}. ({reward})");
+        Cues.Enqueue(success ? "Done" : "Error");
+        Dialog = Dialog.FleetReport;
+        if (TitleDue) Say("당신의 올린 공적에 대한 작위가 수여된다고 합니다. 자국 본거지의 투자를 받고있는 인물을 만나러 갑시다.");
+    }
 }

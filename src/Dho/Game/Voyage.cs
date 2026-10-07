@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -182,6 +182,27 @@ internal sealed partial class Voyage
         Map = new WorldMap();
         Zones = new SeaZones();
         _cities = data.Cities.ToDictionary(c => c.Id);
+        // 찍어 둔 자리가 없는 상륙지는 표식(뭍 위에 있다) 둘레의 바다 칸 가운데서 고른다 — 표식에 가깝고, 그 상륙지가 딸린 도시 쪽에 있는 칸을.
+        // 표식은 섬 하나만큼 어긋나기도 해서, 가장 가까운 바다만 찾으면 섬의 엉뚱한 쪽에 서곤 한다(「더블린 북쪽」이 아일랜드 서쪽에)
+        foreach (var landing in data.Landings.Where(l => l.X == 0 && l.Y == 0 && (l.MapX != 0 || l.MapY != 0)))
+        {
+            var town = data.Cities.Find(c => c.Id == landing.City && (c.SeaX != 0 || c.SeaY != 0));
+            (double Cost, int X, int Y)? best = null;
+            for (int ring = 0; ring <= 60; ring++)
+                for (int k = 0; k < Math.Max(1, ring * 8); k++)
+                {
+                    double angle = k * Math.Tau / Math.Max(1, ring * 8);
+                    double x = WorldMap.WrapX(landing.MapX + Math.Sin(angle) * ring * 4), y = landing.MapY - Math.Cos(angle) * ring * 4;
+                    // 배가 설 수 있게 둘레까지 바다인 칸
+                    if (Map.IsLand(x, y) || Map.IsLand(x + 4, y) || Map.IsLand(x - 4, y) || Map.IsLand(x, y + 4) || Map.IsLand(x, y - 4)) continue;
+                    // 표식에서 먼 만큼 0.4, 딸린 도시에서 먼 만큼 1 — 표식 둘레 240 안에서 도시 쪽 기슭으로 끌린다(무게는 지은 값)
+                    double fromTown = town == null ? 0 : Math.Sqrt(Math.Pow(WorldMap.DeltaX(x, town.SeaX), 2) + Math.Pow(town.SeaY - y, 2));
+                    if (town != null && fromTown < 40) continue;      // 항구 바로 앞은 뺀다 — 입항 자리와 겹친다
+                    double cost = town == null ? ring * 4 : ring * 4 * 0.4 + fromTown;
+                    if (best is not { } b || cost < b.Cost) best = (cost, (int)x, (int)y);
+                }
+            if (best is { } found) (landing.X, landing.Y, landing.FromMap) = (found.X, found.Y, true);
+        }
         _landings = data.Landings.ToDictionary(l => l.Id);
         _discoveries = data.Discoveries.ToDictionary(d => d.Id);
         _seas = data.Seas.ToDictionary(s => s.Id, s => s.Name);
@@ -347,8 +368,38 @@ internal sealed partial class Voyage
         Say($"선원 {gone}명을 해고했다. (선원 {Crew:0}명)");
     }
 
+    /// <summary>
+    /// 이 도시 주점의 차림 — 클라이언트의 차림 표(37)에서 도시마다 여덟 가지(술 셋 · 요리 넷 · 음료 하나).
+    /// 어느 도시가 무엇을 내는지는 클라이언트에 없어 도시 번호로 골라 낸 것이다(지은 것). 값과 효과도 지은 것이다.
+    /// </summary>
+    public List<Dho.Data.TavernDish> TavernMenuHere()
+    {
+        var pick = new Random(City.Id * 7919);
+        List<Dho.Data.TavernDish> Some(int kind, int count) => Data.TavernMenu.Where(m => m.Kind == kind).OrderBy(_ => pick.Next()).Take(count).OrderBy(m => m.Id).ToList();
+        return [.. Some(0, 3), .. Some(1, 4), .. Some(2, 1)];
+    }
+
+    public static readonly string[] DishKinds = ["술", "요리", "음료", "물담배"];
+    public static int DishPrice(Dho.Data.TavernDish dish) => dish.Kind switch { 0 => 300, 1 => 500, _ => 150 } + dish.Id % 7 * 40;
+    public static string DishNote(Dho.Data.TavernDish dish) => dish.Kind switch { 0 => "피로 −15 · 행동력 +20", 1 => "행동력 +60", _ => "행동력 +25" };
+
+    public void OrderDish(Dho.Data.TavernDish dish)
+    {
+        if (Mode != Mode.Port || Money < DishPrice(dish)) return;
+        if (Vigour >= MaxVigour && (dish.Kind != 0 || Fatigue <= 0)) { Say($"{dish.Name} — 지금은 배가 부르다."); Cues.Enqueue("Error"); return; }
+        Money -= DishPrice(dish);
+        if (dish.Kind == 0) Fatigue = Math.Max(0, Fatigue - 15);
+        GainVigour(dish.Kind switch { 0 => 20, 1 => 60, _ => 25 });
+        Cues.Enqueue(dish.Kind == 0 ? "Drunk" : "Eat");
+        Say($"{dish.Name}을(를) {(dish.Kind == 1 ? "먹었다" : "마셨다")}. ({DishPrice(dish):N0} 두캇)");
+    }
+
     /// <summary>주점에서 한턱낸다 — 선원 수만큼 술값을 내고 피로를 푼다.</summary>
-    public int TreatCost => 200 + (int)Crew * 20;
+    // 「대화술」(설명: 「주점 종업원에게 모험담을 얘기하여 친밀해 질 수 있다」) — 친해진 만큼 한턱 값이 랭크마다 3% 싸진다(45%까지, 지은 값. 원본의 종업원 친밀도는 없다)
+    public int TreatCost => (int)((200 + (int)Crew * 20) * (1 - Math.Min(0.45, Bonus("Chat"))));
+
+    /// <summary>「노 젓기」(설명: 「조력을 가진 배의 속도가 빨라진다」) — 노가 있는 배만, 랭크마다 +2%(3할까지, 지은 값).</summary>
+    public double RowBoost => Stats.Rowing > 0 ? Math.Min(0.3, Bonus("Row")) : 0;
     public void Treat()
     {
         if (Mode != Mode.Port || Money < TreatCost || (Fatigue <= 0 && Vigour >= MaxVigour)) return;
@@ -356,6 +407,7 @@ internal sealed partial class Voyage
         Fatigue = Math.Max(0, Fatigue - 40);
         GainVigour(MaxVigour);                      // 주점에서 먹고 마시면 행동력이 다 찬다
         Say($"선원들에게 한턱냈다. 피로가 풀렸다. ({TreatCost:N0} 두캇)");
+        TrainEffect("Chat", 15);
         Cues.Enqueue("Drunk");
     }
 
@@ -428,6 +480,8 @@ internal sealed partial class Voyage
     public void EnterPort()
     {
         if (PortInReach() is not { } city) return;
+        if (Battle is { Result: null }) { Say("싸우는 중에는 입항할 수 없다."); Cues.Enqueue("Error"); return; }
+        if (PermitMissing(city) is { } lacking) { Say($"{city.Name} — {lacking}으로의 입항 허가가 없다."); Cues.Enqueue("Error"); return; }
         int days = DaysAtSea;
         MoorAt(city);
         Say($"{city.Name}에 입항했다. (항해 {days}일)");
@@ -470,7 +524,7 @@ internal sealed partial class Voyage
 
     public void Land()
     {
-        if (!SiteInReach()) return;
+        if (!SiteInReach() || Battle is { Result: null }) return;
         _siteCleared = false;
         Sail = 0;
         Knots = 0;
@@ -569,7 +623,7 @@ internal sealed partial class Voyage
         // 바다에서는 창을 열어도 배가 멈추지 않는다. 상륙 · 발견처럼 배를 세우고 하는 일만 멈춘다
         if (Mode != Mode.Sea) SeaShips.Clear();
         // 해전은 차례를 주고받는다 — 그동안 바다의 시간은 멎는다
-        if (Mode != Mode.Sea || Dialog is Dialog.Landing or Dialog.Discovery or Dialog.Wreck or Dialog.Battle or Dialog.LandBattle)
+        if (Mode != Mode.Sea || Dialog is Dialog.Landing or Dialog.Discovery or Dialog.Wreck or Dialog.Battle or Dialog.LandBattle or Dialog.Ashore)
         {
             Knots += (0 - Knots) * Math.Min(1, dt * 2);
             (TurnVelocity, TurnShare) = (0, 0);
@@ -588,7 +642,7 @@ internal sealed partial class Voyage
         // 가장 빠른 빠르기는 배의 선회 성능에 비례하고(선회 12 인 배가 초당 14°쯤, 반 바퀴에 13초 남짓),
         // 배가 서 있으면 키가 잘 안 듣고, 돛을 다 펴면 덜 돈다 — 돛을 줄이면 잘 돈다. 값은 지은 것이다.
         double turn = Normalize(TargetHeading - Heading + Math.PI) - Math.PI;
-        double turnRate = Settings.TurnRate * 0.28 * Stats.TurnFactor * (1 + Bonus("Turn")) * (1 + Option("Turn"))
+        double turnRate = Settings.TurnRate * 0.28 * Stats.TurnFactor * (1 + Bonus("Turn")) * (1 + Option("Turn")) * (1 + Study("Turn"))
                           * (0.35 + 0.65 * Math.Min(1, Knots / 4)) * (1 - 0.25 * Sail / SailSteps);
         double wanted = Math.Clamp(turn * 1.6, -turnRate, turnRate);            // 목표에 가까워지면 미리 늦춘다
         double gain = turnRate / (0.9 + 0.5 / Math.Max(0.4, Stats.TurnFactor)) * dt;      // 빠르기가 다 붙기까지 1.3 ~ 2초
@@ -599,6 +653,7 @@ internal sealed partial class Voyage
         {
             double days = dt / Settings.SecondsPerDay;
             TrainEffect("Speed", 12 * days);
+            if (Stats.Rowing > 0) TrainEffect("Row", 10 * days);
             TrainEffect("Survey", 8 * days);
             if (Math.Abs(turn) > 0.05) TrainEffect("Turn", 30 * days);
         }
@@ -610,7 +665,7 @@ internal sealed partial class Voyage
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
         // 급하게 돌면 그만큼 속도가 죽는다
         double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
-                        * (1 + Bonus("Speed")) * PartSpeed * AideSpeed * (1 + Option("Speed")) * (1 + BoostSpeed);
+                        * (1 + Bonus("Speed")) * (1 + RowBoost) * PartSpeed * AideSpeed * (1 + Option("Speed")) * (1 + BoostSpeed) * (1 + Study("Speed"));
         Knots += (target - Knots) * Math.Min(1, dt * 0.8);
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;

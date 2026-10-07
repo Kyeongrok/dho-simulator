@@ -26,7 +26,8 @@ internal sealed partial class Voyage
     private void Begin(bool developer)
     {
         _developer = developer;
-        if (developer)
+        // 대본 실행이라도 이어 하기를 읽으라고 했으면(scratch 가 아님) 아래에서 읽는다 — 그때도 적지는 않는다(_developer)
+        if (developer && _scratch)
         {
             // 설정의 값으로 바로 시작
             PlayerName = Settings.PlayerName;
@@ -145,7 +146,7 @@ internal sealed partial class Voyage
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(),
+            Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
@@ -195,6 +196,8 @@ internal sealed partial class Voyage
                     Work = save.DockWork.ElementAtOrDefault(Dock.Count) is { } stored_work ? ShipWork.From(stored_work).Renumbered(Data.ShipSkillId) : new ShipWork(),
                     Parts = docked.Skip(4).Select(id => Data.ShipParts.Find(p => p.Id == (int)id)).OfType<ShipPart>().ToList(),
                 });
+        // 배 자료가 바뀌어(위키 값으로 맞춘 뒤) 저장된 내구가 상한을 넘는 배가 있다 — 상한에 맞춘다
+        foreach (var moored in Dock) moored.Durability = Math.Min(moored.Durability, StatsOf(moored).Durability);
         foreach (var saved in save.Aides)
             if (saved.Length >= 4 && Data.Aides.Find(a => a.Id == (int)saved[0]) is { } who)
                 Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3] });
@@ -208,6 +211,14 @@ internal sealed partial class Voyage
             (Title, Merit, Order, OrderProgress) = (save.Court[0], save.Court[1], Data.Orders.Orders.Find(o => o.Id == save.Court[2]), save.Court[3]);
         RestoreInvested(save.Invested, save.InvestedHome);
         RestoreFarm(save.Farm);
+        _fleetDay = save.FleetDay;
+        ExileDay = save.ExileDay;
+        Infamy = save.Infamy;
+        Hostility.Clear();
+        foreach (var (nation, value) in save.Hostility ?? []) Hostility[nation] = value;
+        foreach (int ocean in save.Permits) Permits.Add(ocean);
+        if (save.Honor.Length >= 3) (Honor, PirateWins, NavyWins) = (save.Honor[0], save.Honor[1], save.Honor[2]);
+        foreach (var (id, added) in save.Forged) if (added.Length >= 2) Forged[id] = [added[0], added[1]];
         foreach (int recipe in save.Recipes) Recipes.Add(recipe);
         if (save.QuickSlots.Length > 0) Array.Copy(save.QuickSlots, QuickSlots, Math.Min(save.QuickSlots.Length, QuickSlotCount));
         else foreach (var rule in SeaSkills()) AddQuickSlot(rule.SkillId);      // 예전 저장: 익힌 스킬을 올려 둔다

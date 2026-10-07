@@ -75,7 +75,7 @@ internal sealed partial class Voyage
     /// <summary>지금까지 흥정으로 얻어 낸 비율(살 때 깎고 팔 때 올려 받는다).</summary>
     public double Haggled { get { FreshHaggle(); return _haggled; } }
     /// <summary>회계 랭크로 얻어 낼 수 있는 가장 큰 비율 — 랭크 1 에 4.2%, 랭크마다 1.2%, 설정의 상한까지.</summary>
-    public double HaggleCap => Math.Min(Settings.Trade.MaxHaggle, 0.03 + AccountingRank * 0.012);
+    public double HaggleCap => Math.Min(Settings.Trade.MaxHaggle, 0.03 + AccountingRank * 0.012) + HonorEffect("Haggle");
     /// <summary>다음 흥정이 먹힐 확률 — 랭크가 높을수록 높고, 이미 깎은 만큼 낮아진다.</summary>
     public double HaggleChance => Math.Clamp(0.45 + AccountingRank * 0.04 - Haggled / Math.Max(0.001, HaggleCap) * 0.35, 0.1, 0.95);
 
@@ -102,6 +102,7 @@ internal sealed partial class Voyage
             _haggled = Math.Min(HaggleCap, _haggled + HaggleCap / 3);
             Say($"흥정이 먹혔다. 살 때 {_haggled * 100:0.#}% 깎고, 팔 때 그만큼 더 받는다.");
             TrainEffect("Haggle", 12);
+            Studied("Haggle");
             Cues.Enqueue("Skill");
         }
         else
@@ -130,7 +131,13 @@ internal sealed partial class Voyage
         return found.OrderBy(f => f.Item2).ToList();
     }
 
-    public int BuyPrice(GoodData good) => Math.Max(1, (int)(BasePrice(good) * MarketIndex(good, City) * (1 - Haggle)));
+    public int BuyPrice(GoodData good) => Math.Max(1, (int)(BasePrice(good) * MarketIndex(good, City) * (1 - Haggle) * (1 - Math.Min(0.2, Study("BuyCut"))) * (1 + TaxRate)));
+
+    /// <summary>
+    /// 관세 — 교역품을 살 때 값에 붙는다. 클라이언트에는 「관세 증가 · 감소」라는 말(화면 글 9542 · 9543)만 있고 세율은 없다.
+    /// 지은 값: 남의 나라 항구 10%, 제 나라 항구(본거지 · 영지 · 동맹항) 5%에서 작위 한 단계마다 1%p 씩 깎여 0%까지. 소속 없는 도시는 5%.
+    /// </summary>
+    public double TaxRate => Data.Settings.ModNoTax ? 0 : City.Nation == 0 ? 0.05 : NationId != 0 && City.Nation == NationId ? Math.Max(0, 0.05 - Title * 0.01) : 0.10;
 
     /// <summary>여기서 팔 때의 단가 — 산지에서 멀수록, 지방이 다를수록 비싸다.</summary>
     public int SellPrice(GoodData good) => SellPrice(good, City);

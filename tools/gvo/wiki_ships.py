@@ -31,7 +31,8 @@ def tables(path):
 
 
 def squeeze(s):
-    return re.sub(r"[\s・･·\-－ー]", "", s)
+    # 위키가 새 배 이름 뒤에 붙이는 「new!」 딱지는 뗀다
+    return re.sub(r"[\s・･·\-－ー]", "", re.sub(r"new!$", "", s.strip()))
 
 
 if __name__ == "__main__":

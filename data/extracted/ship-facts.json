@@ -233,7 +233,19 @@
   "WaveResist": 13,
   "Armor": 28,
   "Cabin": 98,
-  "Hold": 536
+  "Hold": 536,
+  "Price": 9600000,
+  "Rowing": 0,
+  "MinCrew": 34,
+  "Guns": 36,
+  "Slots": [
+   3,
+   2,
+   3,
+   3,
+   0,
+   0
+  ]
  },
  {
   "No": 727,
@@ -4367,7 +4379,19 @@
   "WaveResist": 9,
   "Armor": 42,
   "Cabin": 130,
-  "Hold": 404
+  "Hold": 404,
+  "Price": 16000000,
+  "Rowing": 0,
+  "MinCrew": 64,
+  "Guns": 96,
+  "Slots": [
+   3,
+   2,
+   3,
+   5,
+   1,
+   1
+  ]
  },
  {
   "No": 512,
@@ -5751,7 +5775,19 @@
   "WaveResist": 10,
   "Armor": 36,
   "Cabin": 65,
-  "Hold": 711
+  "Hold": 711,
+  "Price": 10030000,
+  "Rowing": 0,
+  "MinCrew": 40,
+  "Guns": 64,
+  "Slots": [
+   3,
+   2,
+   3,
+   4,
+   1,
+   1
+  ]
  },
  {
   "No": 436,
@@ -6595,7 +6631,19 @@
   "WaveResist": 8,
   "Armor": 40,
   "Cabin": 136,
-  "Hold": 460
+  "Hold": 460,
+  "Price": 16000000,
+  "Rowing": 0,
+  "MinCrew": 67,
+  "Guns": 104,
+  "Slots": [
+   3,
+   2,
+   3,
+   5,
+   1,
+   1
+  ]
  },
  {
   "No": 393,
@@ -9199,7 +9247,19 @@
   "WaveResist": 10,
   "Armor": 21,
   "Cabin": 65,
-  "Hold": 836
+  "Hold": 836,
+  "Price": 16700000,
+  "Rowing": 0,
+  "MinCrew": 32,
+  "Guns": 24,
+  "Slots": [
+   3,
+   2,
+   3,
+   3,
+   0,
+   0
+  ]
  },
  {
   "No": 276,
@@ -9299,7 +9359,19 @@
   "WaveResist": 10,
   "Armor": 13,
   "Cabin": 65,
-  "Hold": 711
+  "Hold": 711,
+  "Price": 6018000,
+  "Rowing": 0,
+  "MinCrew": 30,
+  "Guns": 24,
+  "Slots": [
+   2,
+   2,
+   3,
+   3,
+   0,
+   0
+  ]
  },
  {
   "No": 272,
@@ -10479,7 +10551,19 @@
   "WaveResist": 10,
   "Armor": 25,
   "Cabin": 92,
-  "Hold": 489
+  "Hold": 489,
+  "Price": 15860000,
+  "Rowing": 0,
+  "MinCrew": 38,
+  "Guns": 64,
+  "Slots": [
+   3,
+   2,
+   3,
+   4,
+   0,
+   1
+  ]
  },
  {
   "No": 229,

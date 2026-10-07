@@ -188,7 +188,7 @@ internal sealed partial class Voyage
     {
         double days = dt / Settings.SecondsPerDay;
         // 생존 스킬이 선원 피해를 줄인다
-        double loss = (1 - Math.Min(0.75, Bonus("CrewLoss"))) * AideCrewLoss * (1 - Math.Min(0.6, Option("CrewLoss")));
+        double loss = (1 - Math.Min(0.75, Bonus("CrewLoss"))) * AideCrewLoss * (1 - Math.Min(0.6, Option("CrewLoss") + Study("CrewLoss")));
         UpdateOptions(days);
         UpdateAides(days);
         UpdateBuild(days);
@@ -229,7 +229,7 @@ internal sealed partial class Voyage
             {
                 // 내파가 문턱에 가까울수록 덜 다친다(절반까지)
                 double rough = 1 - 0.5 * Math.Clamp(Stats.WaveResist / (double)Math.Max(1, Rules.StormWaveResist), 0, 1);
-                Durability -= Rules.StormDurabilityPerDay * hullScale * days * Sail / SailSteps * PartDamage * (1 - Math.Min(0.8, Option("Storm"))) * rough;
+                Durability -= Rules.StormDurabilityPerDay * hullScale * days * Sail / SailSteps * PartDamage * (1 - Math.Min(0.8, Option("Storm") + Study("Storm"))) * rough;
                 Crew -= 6 * days * loss * crewScale * rough;
                 TrainEffect("CrewLoss", 40 * days);
             }
@@ -260,16 +260,72 @@ internal sealed partial class Voyage
             if (d.DurationDays > 0 && disaster.Days >= d.DurationDays) End(disaster);
         }
 
+        SeaEvents(days, hullScale);
+
         // 새 재해
         bool nearLand = IsNearLand();
         foreach (var data in Data.Disasters)
         {
             if (DaysAtSea < data.MinDays || Fatigue < data.MinFatigue || (data.NearLand && !nearLand)) continue;
             if (data.NearLand && Knots < 3) continue;        // 서 있는 배는 암초에 걸리지 않는다
-            if (Roll(data.ChancePerDay * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck"))), days)) Begin(data);
+            if (Roll(data.ChancePerDay * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck") + Study("Luck"))), days)) Begin(data);
         }
 
         if ((Durability <= 0 || Crew < 1) && !UseLifebuoy()) Wreck();
+    }
+
+    /// <summary>대본용: 하루치 확률을 스무 날치로 굴려 바다의 일들을 일으킨다.</summary>
+    public void SeaEventsForTest() { Knots = Math.Max(Knots, 5); SeaEvents(20, Stats.Durability / 400.0); }
+
+    private bool HasOption(string name) =>
+        Data.OptionSkills.Find(o => o.Name == name) is { } option && (Work.Skills.Contains(option.SkillId) || Work.Dedicated == option.SkillId) && OptionValid(option);
+
+    /// <summary>
+    /// 한 번 치고 가는 바다의 일 — 높은 파도 · 측면의 파도 · 돌풍. 알림 글은 원본 화면 글(3045 ~ 3047)이고,
+    /// 옵션 스킬 「내파장갑」이 파도를, 「내풍마스트」가 돌풍을 막는다는 것도 원본 글(3472 ~ 3481)에서 읽은 것이다. 잦기와 피해는 지은 값이다.
+    /// 배가 달리고 있을 때만 일어난다.
+    /// </summary>
+    private void SeaEvents(double days, double hullScale)
+    {
+        if (Knots < 2) return;
+        // 날씨가 궂을수록 잦다
+        double rough = Weather switch { Weather.Storm => 4, Weather.Rain => 2, Weather.Cloudy => 1.3, _ => 1 };
+        if (Roll(0.05 * rough, days))
+        {
+            if (HasOption("내파장갑")) Say(Text(3475, "내파장갑으로 높은 파도를 회피했습니다"));
+            else
+            {
+                // 내파가 높을수록 덜 다친다
+                double hit = 25 * hullScale * Math.Clamp(1.2 - Stats.WaveResist / 30.0, 0.2, 1.2);
+                Durability -= hit;
+                Say($"{Text(3045, "갑자기 높은 파도가 덮쳤습니다.")} (내구 −{hit:0})");
+                Cues.Enqueue("Warn");
+            }
+        }
+        if (Roll(0.05 * rough, days))
+        {
+            if (HasOption("내파장갑")) Say(Text(3481, "내파장갑으로 측면 파도를 회피하였습니다"));
+            else
+            {
+                double shove = (_random.NextDouble() < 0.5 ? -1 : 1) * (0.25 + _random.NextDouble() * 0.35);
+                Heading = TargetHeading = Normalize(Heading + shove);
+                Say(Text(3046, "갑작스런 측면의 파도때문에 진로가 어긋났습니다!"));
+                Cues.Enqueue("Warn");
+            }
+        }
+        if (Sail > 0 && Roll(0.04 * rough, days))
+        {
+            if (HasOption("내풍마스트")) Say(Text(3473, "내풍마스트로 돌풍을 회피했습니다"));
+            else
+            {
+                // 돛을 편 만큼 다친다 — 돛대가 흔들려 속도가 죽는다
+                double hit = 10 * hullScale * Sail / SailSteps;
+                Durability -= hit;
+                Knots *= 0.4;
+                Say($"{Text(3047, "돌풍을 맞았습니다.")} (내구 −{hit:0})");
+                Cues.Enqueue("Warn");
+            }
+        }
     }
 
     /// <summary>하루 확률 p 인 일이 days 동안에 일어났는가.</summary>
@@ -287,15 +343,16 @@ internal sealed partial class Voyage
     }
 
     /// <summary>배가 못 쓰게 되거나 선원이 다 떠났다 — 가장 가까운 도시로 떠밀려 간다.</summary>
-    private void Wreck(string? beatenBy = null)
+    private void Wreck(string? beatenBy = null, bool monster = false)
     {
         var nearest = Data.Cities.Where(c => c.SeaX != 0 || c.SeaY != 0)
             .MinBy(c => Math.Pow(WorldMap.DeltaX(ShipX, c.SeaX), 2) + Math.Pow(c.SeaY - ShipY, 2)) ?? City;
         // 해전에서 지면 가진 돈의 5%(5만 두캇까지)를 털린다 — 난파보다 가볍다(지은 값)
-        int lost = beatenBy != null ? (int)Math.Min(Money * 0.05, 50_000) : (int)(Money * Rules.WreckMoneyLoss);
+        int lost = monster ? 0 : (int)((beatenBy != null ? Math.Min(Money * 0.05, 50_000) : Money * Rules.WreckMoneyLoss) * (1 - Math.Min(1, Option("Lifeboat"))));      // 구명정이 잃는 돈을 줄인다
         Money -= lost;
         WreckText = (Durability <= 0 ? Text(3038, "선박이 항해불능상태가 되었습니다!") : Text(3037, "선원이 전멸했습니다!")) +
-                    (beatenBy != null ? $"\n\n{beatenBy}에게 져서 {nearest.Name}(으)로 끌려 왔다.\n{lost:N0} 두캇을 빼앗겼다."
+                    (monster ? $"\n\n{beatenBy}에게 당해 {nearest.Name}(으)로 떠밀려 왔다."
+                     : beatenBy != null ? $"\n\n{beatenBy}에게 져서 {nearest.Name}(으)로 끌려 왔다.\n{lost:N0} 두캇을 빼앗겼다."
                                       : $"\n\n난파하여 {nearest.Name}(으)로 떠밀려 왔다.\n수습하는 데 {lost:N0} 두캇이 들었다.");
 
         Durability = Math.Max(Durability, Stats.Durability * 0.3);

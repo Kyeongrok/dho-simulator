@@ -24,15 +24,118 @@ internal sealed class LandBattle
 internal sealed partial class Voyage
 {
     public LandBattle? LandFight { get; private set; }
+
+    // ── 의뢰 없는 상륙 ──
+    // 자리를 아는 상륙지에는 의뢰가 없어도 오른다: 물을 긷고(물 +20, 피로 +3), 둘러본다(도적 · 맹수가 나오기도 한다 — 물리치면 모험 경험).
+    // 원본은 상륙지에서 걸어 다니며 채집 · 관찰 · 전투를 한다 — 여기서는 창 하나로 줄였고, 얻는 것은 모두 지은 값이다.
+
+    /// <summary>올라 있는 상륙지(의뢰 없이 오른 것).</summary>
+    public Dho.Data.LandingData? Ashore { get; private set; }
+    private bool _ashoreLooked;
+
+    /// <summary>바로 곁의 상륙지 — 의뢰의 상륙지가 닿을 때는 그쪽이 먼저다.</summary>
+    public Dho.Data.LandingData? LandingInReach()
+    {
+        if (Mode != Mode.Sea || SiteInReach()) return null;
+        double reach = Settings.LandingRange * Settings.LandingRange;
+        return Data.Landings.Where(s => s.X != 0 || s.Y != 0)
+            .FirstOrDefault(s => Math.Pow(Dho.Data.WorldMap.DeltaX(ShipX, s.X), 2) + Math.Pow(s.Y - ShipY, 2) < reach);
+    }
+
+    public int MaxWaterNow => (int)Rules.MaxWater;
+
+    public void GoAshore()
+    {
+        if (LandingInReach() is not { } site || Battle is { Result: null }) return;
+        (Ashore, _ashoreLooked, _gathered, Sail, Knots) = (site, false, 0, 0, 0);
+        Dialog = Dialog.Ashore;
+        Say($"{site.Name}에 상륙했다.");
+    }
+
+    public void DrawWater()
+    {
+        if (Dialog != Dialog.Ashore || Water >= Rules.MaxWater) return;
+        Water = Math.Min(Rules.MaxWater, Water + 20);
+        Fatigue = Math.Min(100, Fatigue + 3 * (1 - March));
+        Say($"물을 길었다. (물 {Water:0})");
+    }
+
+    public void LookAround()
+    {
+        if (Dialog != Dialog.Ashore || _ashoreLooked) return;
+        _ashoreLooked = true;
+        TrainEffect("Observe", 10);
+        TrainEffect("March", 6);
+        if (!_lockForTest && _random.NextDouble() < 0.5 * (1 - March)) { StartLandBattle(-1); return; }
+        // 「관찰」(설명: 「뭔가가 있을 것 같은 장소를 알 수 있다」) — 랭크마다 8%로 묻힌 것을 찾아낸다(확률과 얻는 것은 지은 값)
+        if (_lockForTest || _random.NextDouble() < Bonus("Observe"))
+        {
+            int found = 300 * (1 + _random.Next(1, 6));
+            // 셋에 하나는 잠긴 궤다(원본 글 3140 · 3142 · 3143 · 3147) — 「자물쇠 따기」가 있어야 열고, 3할 + 랭크마다 7%로 열린다. 열면 다섯 배(확률과 양은 지은 값)
+            if (_random.NextDouble() < 1.0 / 3 || _lockForTest)
+            {
+                _lockForTest = false;
+                Say(Text(3140, "무언가를 발견했습니다!자물쇠로 잠겨있는 것 같습니다"));
+                if (!Has("Lockpick")) { Say(Text(3147, "자물쇠는 열리지 않았습니다.")); GainExp(0, 10); return; }
+                TrainEffect("Lockpick", 20);
+                if (_random.NextDouble() >= 0.3 + Bonus("Lockpick")) { Say(Text(3143, "자물쇠 열기에 실패했습니다…….")); GainExp(0, 10); return; }
+                found *= 5;
+                Say(Text(3142, "자물쇠 여는 방법을 알아냈습니다!"));
+            }
+            Money += found;
+            GainExp(0, 20);
+            Say($"수상한 자리를 알아보고 파 보았다 — {found:N0} 두캇을 찾았다. (모험 경험 +20)");
+            return;
+        }
+        GainExp(0, 5);
+        Say("둘레를 살폈지만 눈에 띄는 것은 없었다. (모험 경험 +5)");
+    }
+
+    // 「행군」(설명: 「육지에서의 피로도 상승률이나 산적 습격률을 억제한다」) — 랭크마다 5%, 6할까지(크기는 지은 값)
+    private double March => Math.Min(0.6, Bonus("March"));
+
+    private bool _lockForTest;
+    /// <summary>대본용: 다음에 둘러볼 때 아무도 안 나오고 잠긴 궤를 찾는다.</summary>
+    public void LockForTest() => _lockForTest = true;
+
+    private int _gathered;
+    public const int GatherTimes = 3;
+
+    /// <summary>「채집」 스킬이 있는가 — 상륙 창에 단추가 선다.</summary>
+    public bool CanGather => Has("Gather");
+    public int GatherLeft => GatherTimes - _gathered;
+
+    /// <summary>
+    /// 채집(스킬 설명: 「여러 가지 재료와 물품을 채집할 수 있다」) — 한 번 오른 뭍에서 세 번까지, 한 번에 피로 +5.
+    /// 원본은 상륙지마다 나는 것이 정해져 있다(클라이언트 표 106 · 107 의 채집 지점 — 무엇이 나는지는 못 풀었다).
+    /// 여기서는 식료품 · 조미료 · 의약품 · 섬유 갈래의 교역품 가운데 아무것이나 1 + 랭크 ÷ 3 개(지은 값).
+    /// </summary>
+    public void Gather()
+    {
+        if (Dialog != Dialog.Ashore || !CanGather || _gathered >= GatherTimes) return;
+        if (HoldFree <= 0) { Say("창고가 가득 찼다."); return; }
+        _gathered++;
+        Fatigue = Math.Min(100, Fatigue + 5 * (1 - March));
+        var wild = Data.Goods.Where(g => g.Kind is 0 or 1 or 5 or 6).ToList();
+        if (wild.Count == 0) return;
+        var good = wild[_random.Next(wild.Count)];
+        int count = Math.Min(HoldFree, 1 + (int)Bonus("Gather") / 3 + _random.Next(2));
+        GiveGood(good, count);
+        GainExp(0, 4);
+        TrainEffect("Gather", 12);
+        TrainEffect("March", 4);
+        Say($"{good.Name} {count}개를 채집했다. (남은 채집 {GatherLeft}번)");
+    }
     /// <summary>생명력 — 싸움에서 깎이고 항구에 들면 가득 찬다(지은 것).</summary>
     public double Life { get; private set; } = 100;
     public int MaxLife => 100 + LevelOf(BattleExp).Level * 8;
 
     // 입은 장비의 공격력(칸 0) · 방어력(칸 1)
     private int WornStat(int stat) =>
-        Equipped.Where(id => id > 0 && Items.GetValueOrDefault(id) > 0).Sum(id => GearOf(id) is { } gear && gear.Stats.Count > stat ? gear.Stats[stat] : 0);
-    public int LandAttack => 12 + WornStat(0) + LevelOf(BattleExp).Level;
-    public int LandDefense => WornStat(1);
+        Equipped.Where(id => id > 0 && Items.GetValueOrDefault(id) > 0).Sum(id => GearOf(id) is { } gear && gear.Stats.Count > stat ? gear.Stats[stat] + ForgedOf(id, stat) : 0);
+    // 검술 · 응용검술 · 돌격(Melee)과 방어(MeleeGuard) 스킬이 육상전에도 듣는다 — 그 비율만큼
+    public int LandAttack => (int)((12 + WornStat(0) + LevelOf(BattleExp).Level + Study("LandAttack") + Study("LandBoth")) * (1 + Bonus("Melee") + Bonus("LandRanged")));      // 저격술 · 던지기 기술 · 활 쏘기 — 육상전에 무기 갈래가 없어 공격력에 그대로 더한다(지은 값)
+    public int LandDefense => (int)((WornStat(1) + Study("LandBoth")) * (1 + Bonus("MeleeGuard")));
 
     private static readonly (string Name, bool Human, double Tough)[] LandFoeKinds =
     [
@@ -44,7 +147,7 @@ internal sealed partial class Voyage
     /// <summary>탐색하려는데 상대가 막아선다 — 한 상륙에 한 번, 절반쯤의 확률로(지은 값).</summary>
     private bool LandFoeAppears()
     {
-        if (_siteCleared || _random.NextDouble() >= 0.5) { _siteCleared = true; return false; }
+        if (_siteCleared || _random.NextDouble() >= 0.5 * (1 - March)) { _siteCleared = true; return false; }
         StartLandBattle(-1);
         return true;
     }
@@ -85,7 +188,9 @@ internal sealed partial class Voyage
         else if (kind == 1)
         {
             if (!SpendVigour(10)) { fight.Log.Add("행동력이 모자라다."); return; }
-            double hit = Hit(LandAttack * 1.8, fight.Defense, _random.NextDouble());
+            // 「상품지식」(아이템 계통) · 「함정」(함정 계통)의 설명: 「…테크닉 효과를 높인다」 — 테크닉의 갈래가 없어 테크닉 피해에 랭크마다 +4%로 더한다(지은 값)
+            double hit = Hit(LandAttack * 1.8 * (1 + Bonus("Technique")), fight.Defense, _random.NextDouble());
+            TrainEffect("Technique", 10);
             fight.Life -= hit;
             string technique = Data.Npcs.Techniques.Count > 0 ? Data.Npcs.Techniques[_random.Next(Math.Min(12, Data.Npcs.Techniques.Count))] : "테크닉";
             fight.Log.Add($"{fight.Round}합: 「{technique}」 — {fight.Name}에게 {hit:0}");
@@ -110,6 +215,8 @@ internal sealed partial class Voyage
             fight.Log.Add($"{fight.Name}의 공격 — 생명력 −{hurt:0}");
         }
         fight.Round++;
+        Studied("LandFight");
+        TrainEffect("Melee", 10); TrainEffect("MeleeGuard", 6);
         if (fight.Log.Count > 9) fight.Log.RemoveRange(0, fight.Log.Count - 9);
 
         if (fight.Life <= 0)
@@ -140,6 +247,6 @@ internal sealed partial class Voyage
         bool won = LandFight?.Won == true;
         LandFight = null;
         // 이겼으면 상륙지에 그대로 — 다시 탐색할 수 있다. 졌거나 달아났으면 배로
-        if (Dialog == Dialog.LandBattle) Dialog = won && SiteInReach() ? Dialog.Landing : Dialog.None;
+        if (Dialog == Dialog.LandBattle) Dialog = won && SiteInReach() ? Dialog.Landing : won && Ashore != null ? Dialog.Ashore : Dialog.None;
     }
 }

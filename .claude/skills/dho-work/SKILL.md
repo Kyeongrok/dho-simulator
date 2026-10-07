@@ -1,0 +1,61 @@
+---
+name: dho-work
+description: dho(대항해시대 온라인 싱글 재구현)를 묻지 않고 한 묶음 분석 · 구현한다. 오래 맡길 때는 `/loop /dho-work` 로 부른다.
+---
+
+# dho 작업 한 묶음
+
+사용자가 "알아서 해", "N시간 해", "계속 분석하고 구현해"라고 맡길 때의 일하는 법이다.
+**묻지 않는다.** 한 묶음(아래 1 ~ 6)을 끝까지 하고 짧게 보고한다. `/loop /dho-work` 로 불렸으면 보고 뒤에 다음 묶음을 예약한다.
+
+인자가 있으면(`/dho-work 해전 소리`) 그것을 이번 묶음의 일감으로 삼는다. 없으면 1에서 고른다.
+
+## 1. 일감 고르기
+차례대로 본다 — 앞의 것이 있으면 그것부터.
+1. 사용자가 이 대화에서 시켰는데 아직 안 한 것, "빌드만 했다 · 못 돌려 봤다"로 남긴 것.
+2. `data\wiki-requests.json` 에 쌓인 요청(`Done` 이 빈 것) — 6을 따른다.
+3. 작업 기록(`C:\Users\ocean\Documents\mv\Project\dho\작업\작업.md`) 끝의 「못 한 것 · 아직 없다」.
+4. 클라이언트에서 아직 안 푼 자료 표(`tools\gvo` 의 `gvo.data_tables` — 표 154개 가운데 이름만 읽은 것)를 풀어 게임에 잇기.
+5. 개요(`…\dho\프로젝트 개요.md`) 맨 아래 「다음 할 일」.
+
+한 묶음은 서로 얽힌 일 두세 가지쯤이다. 고르는 데 오래 쓰지 않는다.
+
+## 2. 분석
+- 클라이언트: `C:\Program Files (x86)\Papaya Play\GV Online KR`. 도구는 `tools\gvo\*.py`.
+- 줄 짜임을 풀었으면 **표를 끝까지 읽어 끝이 맞는지** 확인한다. 열의 뜻은 이름 · 설명 글과 맞춰 본다.
+- 확실한 것과 짐작을 가른다. 짐작은 글에 「짐작」이라고 적는다.
+
+## 3. 구현
+- 규칙은 `src\Dho\Game\`(partial class `Voyage`), 화면은 `src\Dho\Ui\Hud.cs`, 그리기는 `src\Dho\Render\`.
+- 클라이언트에 없어 지어 넣는 값은 주석에 「지은 값」이라고 적고, 화면에 맞는 자리가 있으면 요청 딱지(`Invented(kind, id, name, x, y)`)를 단다.
+- 새 창에는 이름을 붙인다: `canvas.PanelId = "Wnd…"`. 가운데 창이 아니면 `Hud.ExtraWindows` 의 **끝에** 더한다(번호가 바뀌면 안 된다). `Dialog` 열거형에도 끝에만 더한다.
+- 게임 클라이언트에서 뽑은 자료는 저장소에 넣지 않는다(`data\extracted\` — 위키로 채운 세 파일만 예외).
+
+## 4. 빌드와 확인
+```powershell
+$o = if (Get-Process Dho -ErrorAction SilentlyContinue) { 'src\Dho\bin\Next' } else { 'src\Dho\bin\Debug\net8.0-windows' }
+dotnet build src\Dho -v q -nologo -o $o
+& $o\Dho.exe --script "wait:2;…;shot:<scratchpad>\x.png;quit"
+```
+- 게임이 꺼져 있으면 `bin\Debug`, 켜져 있을 때만 `bin\Next` — Next 로 빌드했으면 **보고 맨 앞에** 알린다.
+- 사용자의 실제 저장으로 보려면 `--withsave` 를 붙인다(`Dho.exe --withsave --script "…"`) — 이어 하기를 읽기만 하고 적지 않는다. 그래도 창의 단추를 누르는 대본(`click`)은 설정 파일을 바꿀 수 있으니 보는 데만 쓴다.
+- 화면을 찍어 직접 본다. 대본 명령은 `GameWindow.cs` 의 `case "…":` 들이다(없으면 하나 더한다). 대본으로는 저장이 안 된다.
+- 창 ID 를 보려고 `data\settings.json` 의 `ModWindowIds` 를 바꿨으면 되돌린다.
+- 빌드가 깨진 채로 두지 않는다. 그리기 상태를 바꿨으면 대본으로 한 번 띄워 본다.
+
+## 5. 기록
+- `…\dho\작업\작업.md` 끝에 `w-NNN` 항목: 사용자의 말(그대로) + `> w-NNN 했음(날짜) — …`. 화면으로 본 것 · 빌드만 한 것 · 지은 값을 가른다.
+- 표를 새로 풀었으면 `…\dho\분석\N.분석-….md` 를 쓰거나 덧붙이고 개요의 글 목록에 잇는다.
+- **커밋 · push 는 사용자가 말할 때만.**
+
+## 6. 위키(조심히)
+- `wikiwiki.jp/gvo` 만. 같은 쪽은 한 번만 받아 `data\extracted\wiki\` 에 사본을 둔다(있으면 사본을 읽는다).
+- 새 쪽은 **한 묶음에 하나**, 앞에 받은 쪽과 **12분 넘게** 띄운다(마지막 사본의 수정 시각으로 본다). 429 가 나오면 그 묶음에서는 그만둔다.
+- 받아도 된다고 한 쪽: 쌓인 요청에 맞는 쪽, 그리고 전에 허락받고 못 받은 `Ship/FreeStyle/SoldierL2` · `SoldierL3`. 그 밖의 여러 쪽을 한꺼번에 받을 일이면 그때는 묻는다.
+- 받은 뒤 `python tools\gvo\wiki_ships.py --write`(배) · `wiki_gear.py --write`(장비)로 푼다.
+
+## 7. 보고와 다음 묶음
+- 보고는 합니다체로 짧게: 한 것 · 화면으로 본 것과 못 본 것 · 지은 값. 표 이름이나 내부 기호를 설명 없이 쓰지 않는다.
+- "계속하겠습니다"라고만 쓰고 끝내지 않는다 — 이 세션은 턴이 끝나면 멈춘다.
+- `/loop` 로 불렸으면 `ScheduleWakeup` 으로 다음 묶음을 잡는다: 위키 간격을 기다리는 중이면 그 시각에 맞추고, 아니면 60 ~ 120초 뒤. `prompt` 는 받은 `/loop` 글 그대로.
+- 일감이 정말 떨어졌거나 사용자의 판단이 꼭 필요한 데서 막혔으면 `stop: true` 로 끝내고 까닭을 말한다.

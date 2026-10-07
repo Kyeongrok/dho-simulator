@@ -531,6 +531,13 @@ internal sealed partial class Voyage
         "Hold" => $"창고 +{skill.Amount * 100:0}%",
         "Flotsam" => $"하루에 한 번쯤 표류물({skill.Amount:0} 두캇 안팎)",
         "Disguise" => $"해적의 습격 −{skill.Amount * 100:0}%",
+        "Lifeboat" => $"졌을 때 잃는 돈 −{skill.Amount * 100:0}%",
+        "Shot" => $"포격 +{skill.Amount * 100:0}%",
+        "Reload" => $"장전 −{skill.Amount * 100:0}%",
+        "ShotArmor" => $"받는 포격 −{skill.Amount * 100:0}%",
+        "Ram" => $"충각 +{skill.Amount * 100:0}%",
+        "Melee" => $"백병전 +{skill.Amount * 100:0}%",
+        "MeleeGuard" => $"백병전에서 잃는 선원 −{skill.Amount * 100:0}%",
         _ => "",
     };
 

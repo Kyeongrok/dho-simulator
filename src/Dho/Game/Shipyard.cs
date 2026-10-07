@@ -57,6 +57,9 @@ internal sealed partial class Voyage
     {
         if (stats == null || parts == null || parts.Count == 0) return stats!;
         int square = parts.Where(p => p.Slot == 0).Sum(p => p.A), foreAft = parts.Where(p => p.Slot == 0).Sum(p => p.B), armor = parts.Where(p => p.Slot == 1).Sum(p => p.A);
+        // 특수장비의 추가돛: 선수 것(스프릿)은 가로돛에, 선미 것(스팽커)은 세로돛에
+        square += parts.Where(p => p.Slot == 5 && p.A == 2).Sum(p => p.B);
+        foreAft += parts.Where(p => p.Slot == 5 && p.A == 3).Sum(p => p.B);
         return stats with { VerticalSail = stats.VerticalSail + foreAft, HorizontalSail = stats.HorizontalSail + square, Armor = stats.Armor + armor, Knots = stats.Knots + (square + foreAft) / 80.0 };
     }
     /// <summary>타고 있는 배의 재질 번호와 적재 변경(%).</summary>

@@ -13,6 +13,8 @@ internal sealed partial class Voyage
     public OrderData? Order { get; private set; }
     public int OrderProgress { get; private set; }
 
+    public double Social => Math.Min(0.45, Bonus("Social"));
+
     public string TitleName => Data.Orders.Titles.ElementAtOrDefault(Title) ?? $"작위 {Title}";
     public int MeritToNext => Data.Orders.MeritPerTitle * (Title + 1);
 
@@ -93,8 +95,11 @@ internal sealed partial class Voyage
             }
         }
         Money += order.Reward;
-        Merit += order.Merit;
-        Say($"칙명 「{order.Title}」을(를) 완수했다. 하사금 {order.Reward:N0} 두캇, 공적 {order.Merit}.");
+        // 「사교」(설명: 「높은 신분의 사람과 이야기 나누기 쉬워진다」) — 칙명의 공적이 랭크마다 3% 더 붙는다(45%까지, 지은 값)
+        int merit = (int)Math.Round(order.Merit * (1 + Social));
+        Merit += merit;
+        TrainEffect("Social", 30);
+        Say($"칙명 「{order.Title}」을(를) 완수했다. 하사금 {order.Reward:N0} 두캇, 공적 {merit}.");
         Order = null;
         if (TitleDue) Say("공적이 찼다 — 「작위를 받는다」로 작위를 받자.");
     }

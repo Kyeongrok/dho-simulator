@@ -63,9 +63,14 @@ public sealed class LandingData
     public string Name { get; set; } = "";
     public int City { get; set; }
     public int Region { get; set; }
-    /// <summary>배를 대는 바다 자리(세계 좌표). 클라이언트 자료에 없어 직접 찍는다. 0 이면 아직 없음.</summary>
+    /// <summary>배를 대는 바다 자리(세계 좌표). 직접 찍은 것이 먼저고, 없으면 세계지도 표식(MapX · MapY)에서 가까운 바다를 찾아 쓴다. 0 이면 아직 없음.</summary>
     public int X { get; set; }
     public int Y { get; set; }
+    /// <summary>클라이언트 세계지도 표식의 자리(표 103, 세계 좌표 — 뭍 위일 수 있다). 0 이면 표식이 없다.</summary>
+    public int MapX { get; set; }
+    public int MapY { get; set; }
+    /// <summary>X · Y 가 표식에서 셈한 것이다(직접 찍은 것이 아니다) — 찍은 자리 파일에는 안 적는다.</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public bool FromMap { get; set; }
 }
 
 public sealed class DiscoveryData
@@ -87,6 +92,8 @@ public sealed class NamedData
     public int Group { get; set; }
     /// <summary>해역이면 배경음 번호.</summary>
     public int Music { get; set; }
+    /// <summary>덧붙는 글(호칭의 설명 따위).</summary>
+    public string Extra { get; set; } = "";
 }
 
 /// <summary>
@@ -305,6 +312,15 @@ public sealed class NpcNames
     public List<string> Adjectives { get; set; } = [];
     public List<string> Nouns { get; set; } = [];
     public List<string> Techniques { get; set; } = [];
+}
+
+/// <summary>지방함대의 활동 한 가지.</summary>
+public sealed class FleetMission
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Success { get; set; } = "";
+    public string Fail { get; set; } = "";
 }
 
 /// <summary>레시피 이름(클라이언트 표 16).</summary>
@@ -588,6 +604,17 @@ public sealed class SaveData
     public List<int> InvestedHome { get; set; } = [];
     // 개인농장: 가졌는가, 칸마다 (갈래, 기르는 것, 랭크, 거둔 때)
     public double[] Farm { get; set; } = [];
+    // 지방함대를 마지막으로 내보낸 날(게임의 날 수) — 하루에 한 번
+    public int FleetDay { get; set; } = -1;
+    public int ExileDay { get; set; } = -1;
+    public int Infamy { get; set; }
+    public Dictionary<int, int> Hostility { get; set; } = [];
+    // 대장간의 단련: 장비 · 대포 번호 → 더해진 (공격력 또는 관통력, 방어력)
+    public Dictionary<int, int[]> Forged { get; set; } = [];
+    // 얻은 입항 허가(큰 바다의 번호)
+    public List<int> Permits { get; set; } = [];
+    // 내건 호칭, 물리친 해적 · 군함의 수
+    public int[] Honor { get; set; } = [0, 0, 0];
     /// <summary>은행에 맡긴 돈.</summary>
     public long Bank { get; set; }
     /// <summary>돛의 빛깔(0xRRGGBB) — 돛 도료를 써서 바꾼다.</summary>
@@ -671,6 +698,10 @@ public sealed class SettingsData
     public bool ModNoPirates { get; set; }
     // 모드: 창마다 오른쪽 위에 적는 창 이름 — 0 없음 · 1 아이디(WndShipSwap) · 2 보조 아이디(Wnd012)
     public int ModWindowIds { get; set; }
+    // 모드: 입항 허가 없이 어느 바다의 항구에나 들어간다(원본은 먼 바다에 허가가 든다) — 기본 켜짐
+    public bool ModNoPermits { get; set; } = true;
+    // 모드: 교역 관세 없이 산다(관세의 세율은 지은 값이다) — 기본 꺼짐
+    public bool ModNoTax { get; set; }
     /// <summary>모드: 선박 조합의 성공률에 더하는 값(%) — 0 ~ 50. 0 이면 그대로.</summary>
     public int ModCombineBonus { get; set; }
     /// <summary>모드: 경험치(모험 · 교역 · 부관)와 숙련도(스킬 · 조타)가 세 배로 오른다.</summary>
@@ -753,6 +784,8 @@ public sealed class GameData
     public List<RecipeRule> RecipeRules { get; set; } = [];
     /// <summary>NPC 의 이름 표(클라이언트 표 41 · 72 · 95 · 96 · 51) — tools\gvo\npcs.py 가 뽑는다.</summary>
     public NpcNames Npcs { get; set; } = new();
+    /// <summary>지방함대의 활동(클라이언트 표 113) — 이름과 잘됐을 때 · 안됐을 때의 글. tools\gvo\npcs.py 가 뽑는다.</summary>
+    public List<FleetMission> FleetMissions { get; set; } = [];
     /// <summary>레시피 번호 → (필요 스킬, 만드는 것) — 재료를 모르는 레시피의 쪽지에 쓴다.</summary>
     public Dictionary<int, (string Skill, string Makes)> RecipeNotes { get; } = [];
     public List<ItemData> Items { get; set; } = [];
@@ -779,8 +812,45 @@ public sealed class GameData
     [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, int> MaterialItems { get; set; } = [];
 
     /// <summary>이름으로 찾는 배 상세 — 모으지 못한 배는 null.</summary>
-    public ShipDetailFact? ShipDetail(string name) => ShipDetails.Find(d => d.Name == name);
+    private readonly Dictionary<string, ShipDetailFact?> _detailByName = [];
+    private static readonly string[] VariantPrefixes = ["특주 ", "특급 ", "월광 ", "명품 ", "개량 ", "개조 ", "신형 ", "강화 ", "기념 "];
+
+    /// <summary>
+    /// 배 상세. 제 자료가 없는 변형 배(「특주 …」 · 「월광 …」 · 「… 2」)는 바탕 배의 옵션 스킬 목록과 강화 횟수를 빌린다 —
+    /// 빌린 것은 <c>Borrowed</c> 에 바탕 배의 이름이 남아 화면에 「지은 값」 딱지가 뜬다. 특수 건조 자료 · 건조 일수는 빌리지 않는다.
+    /// </summary>
+    public ShipDetailFact? ShipDetail(string name)
+    {
+        if (_detailByName.TryGetValue(name, out var known)) return known;
+        var own = ShipDetails.Find(d => d.Name == name);
+        if (own is not { Skills.Count: > 0 })
+        {
+            string plain = name;
+            foreach (string prefix in VariantPrefixes) if (plain.StartsWith(prefix)) plain = plain[prefix.Length..];
+            plain = System.Text.RegularExpressions.Regex.Replace(plain, @"\s*\d+$", "");
+            if (plain != name && ShipDetails.Find(d => d.Name == plain) is { Skills.Count: > 0 } source)
+                own = new ShipDetailFact { No = own?.No ?? 0, Name = name, Times = own is { Times: > 0 } ? own.Times : source.Times, Retimes = own?.Retimes ?? source.Retimes, Days = own?.Days ?? 0,
+                                           Caps = own?.Caps ?? [], Slots = own?.Slots ?? [], Skills = source.Skills, Hull = own?.Hull ?? "", Special = own?.Special ?? [], Borrowed = plain };
+        }
+        return _detailByName[name] = own;
+    }
     private List<OptionSkill>? _optionSkills;
+
+    // 이름만 아는 선박 스킬의 효과 — 갈래: 속도 · 선회 · 창고 · 폭풍 · 선원 피해 · 재해, 해전의 포격(Shot) · 장전(Reload) · 받는 포격(ShotArmor) · 충각(Ram) · 백병(Melee) · 백병 방어(MeleeGuard), 군함 위장(Disguise), 구명정(Lifeboat)
+    private static readonly Dictionary<string, (string Effect, double Amount)> NamedEffects = new()
+    {
+        ["개량갑판"] = ("Speed", 0.05), ["추진력 강화"] = ("Speed", 0.05), ["고속범주"] = ("Speed", 0.06), ["증기기관"] = ("Speed", 0.08), ["고속수송"] = ("Speed", 0.04), ["노 젓기보조"] = ("Speed", 0.03),
+        ["조타강화"] = ("Turn", 0.10), ["반동타"] = ("Turn", 0.08), ["충돌 회피"] = ("Turn", 0.05),
+        ["강화창고"] = ("Hold", 0.05), ["식량 비축 창고"] = ("Hold", 0.03), ["내진창고"] = ("Hold", 0.03),
+        ["내파장갑"] = ("Storm", 0.30), ["수밀격벽"] = ("Luck", 0.10), ["배수펌프"] = ("Luck", 0.10), ["의료지원"] = ("CrewLoss", 0.15), ["원양 선실"] = ("CrewLoss", 0.10),
+        ["군함 위장"] = ("Disguise", 0.8), ["구명정"] = ("Lifeboat", 0.5),
+        ["일발필중"] = ("Shot", 0.10), ["견제 포격"] = ("Shot", 0.08), ["중량포격"] = ("Shot", 0.12), ["대 대형 포격"] = ("Shot", 0.20), ["철갑탄"] = ("Shot", 0.10), ["작렬탄"] = ("Shot", 0.10),
+        ["강화포문"] = ("Reload", 0.15), ["집중장전"] = ("Reload", 0.20),
+        ["내포격장갑"] = ("ShotArmor", 0.15), ["직격저지"] = ("ShotArmor", 0.10), ["직격대책"] = ("ShotArmor", 0.10), ["내염현측"] = ("ShotArmor", 0.05),
+        ["특수충각"] = ("Ram", 0.5), ["강화충각"] = ("Ram", 0.5), ["충각전술"] = ("Ram", 0.3),
+        ["강습 갑판전"] = ("Melee", 0.15), ["인해전술"] = ("Melee", 0.15), ["소진백병"] = ("Melee", 0.10), ["백병전 요격"] = ("Melee", 0.10),
+        ["백병전 회피"] = ("MeleeGuard", 0.20), ["갑판 장벽"] = ("MeleeGuard", 0.15), ["침투방지망"] = ("MeleeGuard", 0.15),
+    };
 
     /// <summary>
     /// 옛 저장의 선박 스킬 번호(3000 + ssjoy 표의 차례)를 지금 번호로 — 배에 붙은 스킬에만 쓴다(3000 대의 진짜 스킬과 헷갈리지 않게).
@@ -822,10 +892,9 @@ public sealed class GameData
                 if (all.Exists(s => s.Name.Replace(" ", "") == fact.Name.Replace(" ", "")) || pairs.Count == 0) continue;
                 var (a, b) = pairs.Dequeue();
                 // 개량갑판: 「항해속도가 상승하고 …」 — 속도 +5%(크기는 지은 것). 화재 · 연막 억제는 전투가 없어 뜻이 없다
-                bool deck = fact.Name == "개량갑판";
-                // 군함 위장: 군함처럼 보여 해적이 덤비지 않는다(원본은 NPC 에게 습격당하는 일이 줄어든다 — 크기는 지은 것)
-                bool disguise = fact.Name == "군함 위장";
-                all.Add(new OptionSkill { SkillId = real.GetValueOrDefault(fact.Name.Replace(" ", ""), 3000 + fact.No), Name = fact.Name, PartA = a, PartB = b, Effect = deck ? "Speed" : disguise ? "Disguise" : "", Amount = deck ? 0.05 : disguise ? 0.8 : 0 });
+                // 이름에서 하는 일을 알 수 있는 스킬에는 효과를 준다(NamedEffects) — 어느 쪽에 듣는가는 이름 그대로이고 크기는 모두 지은 것이다
+                var (effect, amount) = NamedEffects.GetValueOrDefault(fact.Name, ("", 0));
+                all.Add(new OptionSkill { SkillId = real.GetValueOrDefault(fact.Name.Replace(" ", ""), 3000 + fact.No), Name = fact.Name, PartA = a, PartB = b, Effect = effect, Amount = amount });
             }
             return _optionSkills = all;
         }
@@ -856,6 +925,10 @@ public sealed class GameData
     public List<NamedData> Aides { get; set; } = [];
     /// <summary>부관의 담당 이름(표 36).</summary>
     public List<NamedData> Duties { get; set; } = [];
+    public List<NamedData> Ammo { get; set; } = [];
+    public List<TavernDish> TavernMenu { get; set; } = [];
+    /// <summary>호칭(표 35) — 이름과 설명(Description 은 NamedData 에 없어 Extra 에 둔다).</summary>
+    public List<NamedData> Honors { get; set; } = [];
     /// <summary>시내 장소 이름(표 40).</summary>
     public List<NamedData> Places { get; set; } = [];
     public List<GoodData> Goods { get; set; } = [];
@@ -935,6 +1008,9 @@ public sealed class GameData
         data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
         data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
+        data.Ammo = Read<List<NamedData>>(Path.Combine(extracted, "ammo.json")) ?? [];
+        data.TavernMenu = Read<List<TavernDish>>(Path.Combine(extracted, "tavern-menu.json")) ?? [];
+        data.Honors = Read<List<NamedData>>(Path.Combine(extracted, "honors.json")) ?? [];
         data.ShipParts = Read<List<ShipPart>>(Path.Combine(extracted, "ship-parts.json")) ?? [];
         }
         data.Decos = Read<List<ShipDeco>>(Path.Combine(extracted, "ship-decos.json")) ?? [];
@@ -945,6 +1021,7 @@ public sealed class GameData
         data.RecipeRules = Read<List<RecipeRule>>(Path.Combine(directory, "recipes.json")) ?? [];
         data.Recipes = Read<List<RecipeData>>(Path.Combine(extracted, "recipes.json")) ?? [];
         data.Npcs = Read<NpcNames>(Path.Combine(extracted, "npc-names.json")) ?? new NpcNames();
+        data.FleetMissions = Read<List<FleetMission>>(Path.Combine(extracted, "fleet-missions.json")) ?? [];
         // 이용자들이 모은 레시피 자료(번호, 이름, …, 필요 스킬, 만드는 것) — 재료는 없다
         foreach (var row in Read<List<List<System.Text.Json.JsonElement>>>(Path.Combine(extracted, "recipe-facts.json")) ?? [])
             if (row.Count >= 5 && row[0].ValueKind == System.Text.Json.JsonValueKind.Number)
@@ -990,7 +1067,7 @@ public sealed class GameData
         Write(Path.Combine(Directory, "markets.json"), Markets.Select(m => new { m.CityId, m.Goods, m.Shipyard }).ToList());
         // 상륙지는 찍어 둔 자리만 따로 적는다 — 이름은 클라이언트 것이라 저장소에 두지 않는다
         Write(Path.Combine(Directory, "landing-points.json"),
-              Landings.Where(l => l.X != 0 || l.Y != 0).Select(l => new { l.Id, l.X, l.Y }).ToList());
+              Landings.Where(l => (l.X != 0 || l.Y != 0) && !l.FromMap).Select(l => new { l.Id, l.X, l.Y }).ToList());
         SaveExtracted();
     }
 
@@ -1016,6 +1093,9 @@ public sealed class GameData
         Write(Path.Combine(extracted, "aides.json"), Aides);
         Write(Path.Combine(extracted, "recipes.json"), Recipes);
         Write(Path.Combine(extracted, "duties.json"), Duties);
+        Write(Path.Combine(extracted, "ammo.json"), Ammo);
+        Write(Path.Combine(extracted, "tavern-menu.json"), TavernMenu);
+        Write(Path.Combine(extracted, "honors.json"), Honors);
         File.WriteAllText(Path.Combine(extracted, ExtractVersion), "");
     }
 
@@ -1026,7 +1106,7 @@ public sealed class GameData
         var tables = new DataTables();
         var map = new WorldMap();
         var scenes = GvoFiles.ReadMwc(@"0000\local\dt000000.bin", GvoFiles.Korean);
-        var points = Landings.Where(l => l.X != 0 || l.Y != 0).ToDictionary(l => l.Id, l => (l.X, l.Y));
+        var points = Landings.Where(l => (l.X != 0 || l.Y != 0) && !l.FromMap).ToDictionary(l => l.Id, l => (l.X, l.Y));
 
         Cities = tables.Cities.Values.OrderBy(c => c.Id).Select(c =>
         {
@@ -1042,10 +1122,46 @@ public sealed class GameData
             };
         }).ToList();
         Seas = tables.Seas.Values.OrderBy(s => s.Id).Select(s => new NamedData { Id = s.Id, Name = s.Name, Group = s.Ocean, Music = SceneMusic(sceneRows, (uint)(0x0400 + s.Id) << 16) }).ToList();
+        // 해역 지도의 표식으로 상륙지 자리를 더 촘촘히: 해역마다 그 해역의 도시들(지도 자리 ↔ 세계 자리)로 가로 · 세로의 배율과 밀림을 맞춘 뒤 상륙지 표식을 옮긴다.
+        // 도시가 둘 넘고 서로 충분히 떨어진 해역만(나머지는 세계지도 표식을 쓴다)
+        var fine = new Dictionary<int, (int X, int Y)>();
+        foreach (var zone in tables.ZoneMarks.Where(m => m.X < 60000 && m.Y < 60000).GroupBy(m => m.Zone))
+        {
+            var towns = zone.Where(m => m.Kind == 1).Select(m => (m.X, m.Y, City: Cities.Find(c => c.Id == m.Target))).Where(m => m.City is { } c && (c.X != 0 || c.Y != 0)).ToList();
+            if (towns.Count < 2) continue;
+            double baseX = towns[0].City!.X;
+            (double Scale, double Offset)? Fit(Func<(int X, int Y, CityData? City), double> local, Func<(int X, int Y, CityData? City), double> world)
+            {
+                double meanLocal = towns.Average(local), meanWorld = towns.Average(world), spread = towns.Sum(t => Math.Pow(local(t) - meanLocal, 2));
+                if (spread < 200) return null;
+                double scale = towns.Sum(t => (local(t) - meanLocal) * (world(t) - meanWorld)) / spread;
+                return (scale, meanWorld - scale * meanLocal);
+            }
+            var fx = Fit(t => t.X, t => baseX + WorldMap.DeltaX(baseX, t.City!.X));
+            var fy = Fit(t => t.Y, t => t.City!.Y);
+            if (fx is not { Scale: > 1 and < 12 } ax || fy is not { Scale: > 1 and < 12 } ay) continue;
+            foreach (var mark in zone.Where(m => m.Kind == 3))
+                fine[mark.Target] = ((int)WorldMap.WrapX(ax.Scale * mark.X + ax.Offset), (int)(ay.Scale * mark.Y + ay.Offset));
+        }
+        // 세계지도 표식만 있는 상륙지는 표식이 200 쯤 어긋나기도 한다(지도 그림이 고르지 않다) — 가까운 표식 셋 가운데 촘촘한 자리를 아는 것들이
+        // 얼마나 어긋났는지를 보고 그만큼 옮긴다
+        var known = fine.Where(f => tables.LandingSpots.ContainsKey(f.Key))
+            .Select(f => (Rough: tables.LandingSpots[f.Key], Dx: WorldMap.DeltaX(tables.LandingSpots[f.Key].X, f.Value.X), Dy: (double)(f.Value.Y - tables.LandingSpots[f.Key].Y))).ToList();
+        var mended = new Dictionary<int, (int X, int Y)>();
+        foreach (var (id, rough) in tables.LandingSpots)
+        {
+            if (fine.ContainsKey(id) || known.Count == 0) continue;
+            var near = known.OrderBy(k => Math.Pow(WorldMap.DeltaX(rough.X, k.Rough.X), 2) + Math.Pow(k.Rough.Y - rough.Y, 2)).Take(3)
+                .Where(k => Math.Abs(WorldMap.DeltaX(rough.X, k.Rough.X)) < 1500 && Math.Abs(k.Rough.Y - rough.Y) < 1500).ToList();
+            if (near.Count > 0) mended[id] = ((int)WorldMap.WrapX(rough.X + near.Average(k => k.Dx)), (int)(rough.Y + near.Average(k => k.Dy)));
+        }
         Landings = tables.Landings.Values.OrderBy(l => l.Id).Select(l =>
         {
             points.TryGetValue(l.Id, out var point);
-            return new LandingData { Id = l.Id, Name = l.Name, City = l.City, Region = l.Region, X = point.X, Y = point.Y };
+            tables.LandingSpots.TryGetValue(l.Id, out var spot);
+            if (fine.TryGetValue(l.Id, out var better)) spot = better;
+            else if (mended.TryGetValue(l.Id, out var moved)) spot = moved;
+            return new LandingData { Id = l.Id, Name = l.Name, City = l.City, Region = l.Region, X = point.X, Y = point.Y, MapX = spot.X, MapY = spot.Y };
         }).ToList();
         Discoveries = tables.Discoveries.Values.OrderBy(d => d.Id).Select(d => new DiscoveryData
         {
@@ -1062,6 +1178,9 @@ public sealed class GameData
         Recipes = tables.Recipes.Where(r => r.Name.Length > 0 && !r.Name.StartsWith('※')).Select(r => new RecipeData { Id = r.Id, Name = r.Name, Description = r.Description }).ToList();
         Aides = tables.Aides.Select(a => new NamedData { Id = a.Id, Name = a.Name, Group = a.A }).ToList();
         Duties = tables.Duties.OrderBy(d => d.Key).Select(d => new NamedData { Id = d.Key, Name = d.Value }).ToList();
+        Ammo = tables.Ammo.OrderBy(d => d.Key).Select(d => new NamedData { Id = d.Key, Name = d.Value }).ToList();
+        Honors = tables.Honors.Where(h => h.Name.Length > 0 && !h.Name.StartsWith('※')).Select(h => new NamedData { Id = h.Id, Name = h.Name, Extra = h.Description.Replace("\n", " ") }).ToList();
+        TavernMenu = tables.TavernMenu.Where(m => m.Name.Length > 0 && !m.Name.StartsWith('※')).ToList();
         ShipParts = tables.ShipParts.Where(p => p.Name.Length > 0 && !p.Name.StartsWith('※')).ToList();
         Decos = tables.Decos.Where(d => d.Name.Length > 0 && !d.Name.StartsWith('※')).ToList();
         CrewGears = tables.CrewGears.Where(g => g.Name.Length > 0 && !g.Name.StartsWith('※')).ToList();
@@ -1141,7 +1260,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-10";
+    private const string ExtractVersion = "extracted-17";
 
     public static string RoomsOf(byte[] sceneTable, int cityId)
     {
