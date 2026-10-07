@@ -1706,6 +1706,7 @@ internal sealed class GameWindow : IDisposable
             case "wheel": _hud.Wheel((int)Number()); break;
             case "mousedown": (_mouseX, _mouseY, _leftDown) = (int.Parse(argument.Split(',')[0]), int.Parse(argument.Split(',')[1]), true); break;      // 대본: 왼쪽 단추를 누른 채로(끌기)
             case "mouseup": _leftDown = false; break;
+            case "discoverport": _voyage.DiscoverPortForTest(); break;
             case "mapzoom": _voyage.Data.Settings.SeaMapZoom = Number(); break;      // 이번 실행 동안만
             case "warpsearch": _hud.WarpSearchForTest(argument); break;
             case "squaremap": _voyage.Data.Settings.SeaMapSquare = Number() != 0; break;      // 이번 실행 동안만(설정 파일에는 안 적는다)

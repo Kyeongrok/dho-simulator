@@ -825,6 +825,8 @@ public sealed class SettingsData
     public bool ModBooksTimes5 { get; set; }
     /// <summary>모드: 선박 조합의 성공률에 더하는 값(%) — 0 ~ 50. 0 이면 그대로.</summary>
     public int ModCombineBonus { get; set; }
+    /// <summary>모드: 초과 강화(강화 횟수를 다 쓴 뒤의 강화)의 성공률에 더하는 값(0 ~ 50, %p).</summary>
+    public int ModOverWorkBonus { get; set; }
     /// <summary>모드: 경험치(모험 · 교역 · 부관)와 숙련도(스킬 · 조타)가 세 배로 오른다.</summary>
     public bool ModTripleGain { get; set; }
     /// <summary>모드: 경험치 · 숙련도 배율(1 ~ 3). 0 이면 아직 안 고른 것 — 예전 설정(ModTripleGain)을 따른다.</summary>
@@ -1084,6 +1086,15 @@ public sealed class GameData
     public List<NamedData> Jobs { get; set; } = [];
     public List<CityData> Cities { get; set; } = [];
     public List<NamedData> Seas { get; set; } = [];
+    /// <summary>장비 번호 → 장비 효과(이름 → 랭크) — gvdb 의 「装備効果」. 지금은 VigourSave(행동력 감소 억제)만.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, Dictionary<string, int>> GearEffects { get; set; } = [];
+    /// <summary>조선 재료(조빌 아이템)의 강화 수치 — gvdb 의 아이템 목록에서(tools\gvo\gvdb_shipparts.py).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public List<BuildPart> BuildParts { get; set; } = [];
+    /// <summary>스킬 번호 → 원본 설명 글(선박 스킬 따위, 스킬 창에 안 나오는 것들).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, string> SkillNotes { get; set; } = [];
     public List<LandingData> Landings { get; set; } = [];
     public List<DiscoveryData> Discoveries { get; set; } = [];
     public List<NamedData> DiscoveryKinds { get; set; } = [];
@@ -1126,6 +1137,9 @@ public sealed class GameData
             data.Discoveries = Read<List<DiscoveryData>>(Path.Combine(extracted, "discoveries.json")) ?? [];
             data.DiscoveryKinds = Read<List<NamedData>>(Path.Combine(extracted, "discovery-kinds.json")) ?? [];
             data.Skills = Read<List<SkillData>>(Path.Combine(extracted, "skills.json")) ?? [];
+            data.BuildParts = Read<List<BuildPart>>(Path.Combine(extracted, "ship-parts-gvdb.json")) ?? [];
+            // 익히는 스킬이 아닌 것들(선박 스킬 · 부관 스킬 · 효과)의 원본 설명 글 — tools\gvo\skills.py 의 표 6 에서 뽑아 둔다(없으면 빈 채)
+            data.SkillNotes = (Read<Dictionary<string, string>>(Path.Combine(extracted, "skill-notes.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
             data.Ships = Read<List<ShipData>>(Path.Combine(extracted, "ships.json")) ?? [];
             data.Goods = Read<List<GoodData>>(Path.Combine(extracted, "goods.json")) ?? [];
             data.GoodKinds = Read<List<NamedData>>(Path.Combine(extracted, "good-kinds.json")) ?? [];
@@ -1150,6 +1164,7 @@ public sealed class GameData
         data.Boosters = Read<List<PaperItem>>(Path.Combine(extracted, "booster-items.json")) ?? [];
         // 이용자 사이트(gvdb items.csv)의 보정이 바탕, 위키에서 뽑은 것이 그것을 덮는다
         data.GearBoosts = Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts-gvdb.json")) ?? [];
+        data.GearEffects = Read<Dictionary<int, Dictionary<string, int>>>(Path.Combine(extracted, "gear-effects-gvdb.json")) ?? [];
         foreach (var (gearId, boosts) in Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts.json")) ?? []) data.GearBoosts[gearId] = boosts;
         // 손으로 적어 넣은 것(위키에서 못 뽑은 장비 — 사용자의 기억 따위)이 뽑은 것을 덮는다. 도구가 extracted 의 파일을 새로 써도 남는다
         foreach (var (gearId, boosts) in Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(directory, "gear-boosts.json")) ?? []) data.GearBoosts[gearId] = boosts;
@@ -1275,6 +1290,7 @@ public sealed class GameData
         Write(Path.Combine(extracted, "discoveries.json"), Discoveries);
         Write(Path.Combine(extracted, "discovery-kinds.json"), DiscoveryKinds);
         Write(Path.Combine(extracted, "skills.json"), Skills);
+        Write(Path.Combine(extracted, "skill-notes.json"), SkillNotes.ToDictionary(n => n.Key.ToString(), n => n.Value));
         Write(Path.Combine(extracted, "ships.json"), Ships);
         Write(Path.Combine(extracted, "goods.json"), Goods);
         Write(Path.Combine(extracted, "good-kinds.json"), GoodKinds);
@@ -1369,6 +1385,7 @@ public sealed class GameData
         {
             Id = s.Id, Name = s.Name, Description = s.Description, Group = s.Group, Cost = s.Cost,
         }).ToList();
+        SkillNotes = tables.Skills.Where(s => s.Group > 3 && s.Description.Length > 0).GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First().Description);
         Goods = tables.Goods.Select(g => new GoodData { Id = g.Id, Name = g.Name, Description = g.Description, Kind = g.Kind }).ToList();
         Nations = tables.Nations.Select(n => new NamedData { Id = n.Id, Name = n.Name }).ToList();
         Jobs = tables.Jobs.Select(j => new NamedData { Id = j.Id, Name = j.Name, Group = j.Line }).ToList();

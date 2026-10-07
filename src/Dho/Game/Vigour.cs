@@ -17,8 +17,17 @@ internal sealed partial class Voyage
         private set => _vigour = Math.Clamp(value, 0, MaxVigour);
     }
 
-    // 그 스킬을 한 번 쓰는 데 드는 행동력
-    public int VigourCost(SkillRuleData rule) => rule.Vigour > 0 ? rule.Vigour : rule.Effect switch
+    /// <summary>
+    /// 입은 장비의 「행동력 감소 억제」 랭크 — 스킬을 쓸 때 드는 행동력이 그 랭크만큼 덜 든다(1 까지).
+    /// 사용자가 준 글(2026-10-07): 「장비에 붙은 랭크만큼 행동력 소모 수치가 직접 차감됩니다(최소 1까지)」. 어느 장비에 몇 랭크인지는 gvdb 의 것.
+    /// 여러 벌을 입었을 때는 가장 높은 것 하나만 친다(더하는지는 모른다).
+    /// </summary>
+    public int VigourSave => Equipped.Where(e => e > 0 && Items.GetValueOrDefault(e) > 0).Select(e => Data.GearEffects.GetValueOrDefault(e)?.GetValueOrDefault("VigourSave") ?? 0).DefaultIfEmpty(0).Max();
+
+    // 그 스킬을 한 번 쓰는 데 드는 행동력(장비의 행동력 감소 억제를 뺀 값)
+    public int VigourCost(SkillRuleData rule) => Math.Max(1, VigourCostBase(rule) - VigourSave);
+
+    private static int VigourCostBase(SkillRuleData rule) => rule.Vigour > 0 ? rule.Vigour : rule.Effect switch
     {
         "Speed" or "Turn" => 8,
         "Survey" => 5,

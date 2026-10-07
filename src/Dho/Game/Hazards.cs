@@ -265,8 +265,10 @@ internal sealed partial class Voyage
         {
             var d = disaster.Data;
             disaster.Days += days;
-            Durability -= d.DurabilityPerDay * hullScale * days * PartDamage;
-            Crew -= d.CrewPerDay * days * loss * crewScale;
+            // 「내화벽」(원본 글: 화재로 인한 피해를 크게 줄일 수 있다) — 화재(1)의 피해만
+            double fire = d.Id == 1 ? 1 - Math.Min(0.9, Option("FireGuard")) : 1;
+            Durability -= d.DurabilityPerDay * hullScale * days * PartDamage * fire;
+            Crew -= d.CrewPerDay * days * loss * crewScale * fire;
             if (d.CrewPerDay > 0) TrainEffect("CrewLoss", 40 * days);
             Food = Math.Max(0, Food - d.FoodPerDay * days);
             Water = Math.Max(0, Water - d.WaterPerDay * days);
@@ -282,7 +284,9 @@ internal sealed partial class Voyage
         {
             if (DaysAtSea < data.MinDays || Fatigue < data.MinFatigue || (data.NearLand && !nearLand)) continue;
             if (data.NearLand && Knots < 3) continue;        // 서 있는 배는 암초에 걸리지 않는다
-            if (Roll(data.ChancePerDay * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck") + Study("Luck"))) * (PrayerOn(0) ? 0.7 : 1), days)) Begin(data);
+            // 「양호실」(원본 글: 쥐，비위생 발생을 높은 확률로 미연에 방지한다) — 쥐(4) · 비위생(14)만
+            double clean = data.Id is 4 or 14 ? 1 - Math.Min(1, Option("Hygiene")) : 1;
+            if (Roll(data.ChancePerDay * clean * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck") + Study("Luck"))) * (PrayerOn(0) ? 0.7 : 1), days)) Begin(data);
         }
 
         if ((Durability <= 0 || Crew < 1) && !UseLifebuoy()) Wreck();

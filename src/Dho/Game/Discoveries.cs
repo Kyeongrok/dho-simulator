@@ -22,10 +22,20 @@ internal sealed partial class Voyage
     {
         _portDiscoveries ??= Data.Discoveries.Where(d => d.Kind == 15).GroupBy(d => d.Name).ToDictionary(g => g.Key, g => g.First());
         if (!_portDiscoveries.TryGetValue(city.Name, out var port) || !Found.Add(port.Id)) return;
-        Cues.Enqueue("Done");
+        Cues.Enqueue("Discover");
         Say($"{port.Name}을(를) 발견했다! (항구-마을 ★{port.Stars}, 모험 경험 {port.Exp} · 명성 {port.Fame})");
         GainExp(0, port.Exp, port.Fame);
-        Discovered = port;
+        (Discovered, DiscoveredAt) = (port, Clock);
+    }
+
+    /// <summary>발견 카드가 뜬 때(<see cref="Clock"/>).</summary>
+    public double DiscoveredAt { get; private set; }
+
+    /// <summary>대본용: 지금 도시를 방금 발견한 것으로 한다(카드와 소리를 본다).</summary>
+    public void DiscoverPortForTest()
+    {
+        _portDiscoveries ??= Data.Discoveries.Where(d => d.Kind == 15).GroupBy(d => d.Name).ToDictionary(g => g.Key, g => g.First());
+        if (_portDiscoveries.TryGetValue(City.Name, out var port)) { Found.Remove(port.Id); DiscoverPort(City); }
     }
 
     /// <summary>대본용: 발견물 몇 개를 찾은 것으로 한다.</summary>

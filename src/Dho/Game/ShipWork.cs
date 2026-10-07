@@ -11,6 +11,13 @@ internal sealed class ShipWork
     public double Turn { get; set; }
     public double Wave { get; set; }
     public double Hold { get; set; }
+    // 조선 재료(조빌)로 올린 몫 — 세로돛 · 가로돛이 따로이고(Sail 은 예전 강화의 것으로 둘 다에 듣는다) 장갑 · 선실 · 포실 · 조력도 오른다. 깎이기도 한다(가로돛 −10 ~ 0)
+    public double Vertical { get; set; }
+    public double Horizontal { get; set; }
+    public double Armor { get; set; }
+    public double Cabin { get; set; }
+    public double Guns { get; set; }
+    public double Rowing { get; set; }
     public List<int> Skills { get; } = [];
     /// <summary>그레이드(0 ~ 8) · 그레이드 경험치(0 ~ 100) · 조타 숙련도 · 그레이드 보너스(<see cref="Voyage.GradeBonuses"/> 의 차례).</summary>
     public int Grade { get; set; }
@@ -33,7 +40,9 @@ internal sealed class ShipWork
                                   1_000_000 + Grade, 2_000_000 + GradeExp, 3_000_000 + Math.Round(Mastery), .. Bonuses.Select(b => 6_000_000.0 + b),
                                   .. Dedicated > 0 ? [5_000_000.0 + Dedicated] : Array.Empty<double>(),
                                   .. Form > 0 ? [7_000_000.0 + Form] : Array.Empty<double>(), .. BonusSkills.Select(s => 9_000_000.0 + s),
-                                  .. HullEffect > 0 ? [10_000_000.0 + HullEffect] : Array.Empty<double>()];
+                                  .. HullEffect > 0 ? [10_000_000.0 + HullEffect] : Array.Empty<double>(),
+                                  // 11e6 ~ 16e6: 세로돛 · 가로돛 · 장갑 · 선실 · 포실 · 조력(음수가 있어 500,000 을 더해 적는다)
+                                  .. new[] { Vertical, Horizontal, Armor, Cabin, Guns, Rowing }.Select((v, k) => (v, k)).Where(p => p.v != 0).Select(p => (11 + p.k) * 1_000_000.0 + 500_000 + Math.Round(p.v))];
 
     // 옛 저장의 보너스 차례(스킬추가 · 가속강화 · 스킬계승 · 내구력 · 세로돛 · 가로돛 · 선회 · 내파 · 장갑 · 선실 · 포실 · 창고) → 표 90 의 번호
     private static readonly int[] OldBonuses = [14, 29, 16, 1, 2, 3, 5, 6, 7, 8, 9, 10];
@@ -65,6 +74,12 @@ internal sealed class ShipWork
             else if (kind == 10) work.HullEffect = rest;
             else if (kind == 8) work.FormPoints[rest / 100] = rest % 100;
             else if (kind == 5) work.Dedicated = rest;
+            else if (kind == 11) work.Vertical = rest - 500_000;
+            else if (kind == 12) work.Horizontal = rest - 500_000;
+            else if (kind == 13) work.Armor = rest - 500_000;
+            else if (kind == 14) work.Cabin = rest - 500_000;
+            else if (kind == 15) work.Guns = rest - 500_000;
+            else if (kind == 16) work.Rowing = rest - 500_000;
         }
         return work;
     }
@@ -104,17 +119,31 @@ internal sealed partial class Voyage
         ];
     }
 
+    /// <summary>조타 숙련도가 찬 비율(0 ~ 1).</summary>
+    public static double MasteryShare(ShipData ship, ShipWork work) => Math.Clamp(work.Mastery / MasteryCap(ship, work), 0, 1);
+
+    /// <summary>
+    /// 지금 올릴 수 있는 강화 한계 — 원본 화면(사용자, 2026-10-08): 같은 배가 조타 숙련도 129/215 일 때 「강화 수치: 0/30」, 215/215 일 때 「0/50(상한: 50)」.
+    /// 30 ÷ 50 = 129 ÷ 215 — 한계 = 상한 × (조타 숙련도 ÷ 숙련도 상한). 숙련도를 다 채우고 강화해야 상한까지 오른다.
+    /// </summary>
+    public int WorkLimit(string stat, ShipStats plain, ShipData ship, ShipWork work)
+    {
+        var caps = StrengthCaps(ship, plain);
+        int cap = stat switch { "Vertical" => caps[1], "Horizontal" => caps[2], "Rowing" => caps[3], "Armor" => caps[6], "Cabin" => caps[7], "Guns" => caps[8], "Durability" => caps[0], "Sail" => caps[1] > 0 && caps[2] > 0 ? Math.Min(caps[1], caps[2]) : Math.Max(caps[1], caps[2]), "Turn" => caps[4], "Wave" => caps[5], "Hold" => caps[9], _ => 0 };
+        return (int)Math.Floor(cap * MasteryShare(ship, work) + 1e-9);
+    }
+
     /// <summary>강화와 옵션 스킬을 입힌 능력치.</summary>
     public ShipStats Worked(ShipStats stats, ShipWork work, ShipData ship)
     {
-        if (work.Times == 0 && work.Skills.Count == 0 && work.Bonuses.Count == 0 && work.Dedicated == 0 && work.Grade == 0) return stats;
+        if (work.Times == 0 && work.Skills.Count == 0 && work.Bonuses.Count == 0 && work.Dedicated == 0 && work.Grade == 0 && work.Vertical == 0 && work.Horizontal == 0) return stats;
         double sails = Math.Max(1, stats.VerticalSail + stats.HorizontalSail);
         double holdBonus = OptionAmount(work, "Hold");
-        // 강화분은 조타 숙련도가 찬 만큼 듣는다(절반은 늘 듣는다). 그레이드 보너스의 강화는 그대로 더한다
-        double applied = WorkShare(ship, work);
+        // 강화분은 그대로 듣는다 — 조타 숙련도는 강화의 「효과」가 아니라 「올릴 수 있는 한계」를 정한다(WorkLimit). 전에는 숙련도만큼만 듣게 했는데 원본 화면과 달랐다
+        const double applied = 1;
         // 보너스는 표 90 의 번호다: 1 내구력 · 2 세로돛 · 3 가로돛 · 4 조력 · 5 선회 · 6 내파 · 7 장갑 · 8 선실 · 9 포실 · 10 창고, 29 ~ 31 가속 강화
         bool Has(int bonus) => work.Bonuses.Contains(bonus);
-        double sail = work.Sail * applied, vertical = sail + (Has(2) ? 12 : 0), horizontal = sail + (Has(3) ? 12 : 0);
+        double sail = work.Sail * applied, vertical = sail + work.Vertical + (Has(2) ? 12 : 0), horizontal = sail + work.Horizontal + (Has(3) ? 12 : 0);
         double turn = work.Turn * applied + (Has(5) ? 2 : 0);
         double haste = 1 + 0.03 * work.Bonuses.Count(b => b is 29 or 30 or 31);
         // 형식에 따라 그레이드마다 오르는 성능이 다르다(이용자 풀이 글의 틀 — 크기는 지은 것):
@@ -131,14 +160,14 @@ internal sealed partial class Voyage
             VerticalSail = (int)Math.Round(stats.VerticalSail + vertical),
             HorizontalSail = (int)Math.Round(stats.HorizontalSail + horizontal),
             Knots = stats.Knots * (1 + (vertical + horizontal) / sails * 0.5) * haste,
-            Rowing = stats.Rowing + (Has(4) && stats.Rowing > 0 ? Math.Max(4, (int)Math.Round(stats.Rowing * 0.1)) : 0),
+            Rowing = stats.Rowing + (stats.Rowing > 0 ? (int)work.Rowing : 0) + (Has(4) && stats.Rowing > 0 ? Math.Max(4, (int)Math.Round(stats.Rowing * 0.1)) : 0),
             Turn = (int)Math.Round(stats.Turn + turn),
             TurnFactor = stats.TurnFactor * (1 + turn / Math.Max(1.0, stats.Turn)),
             WaveResist = (int)Math.Round(stats.WaveResist + work.Wave * applied + (Has(6) ? 2 : 0) + (form == 1 ? g / 2 : 0)),
-            Armor = stats.Armor + (Has(7) ? 3 : 0) + (form == 5 ? g / 2 : 0),
+            Armor = stats.Armor + (int)work.Armor + (Has(7) ? 3 : 0) + (form == 5 ? g / 2 : 0),
             // 선실 · 포실 적재량 강화 — 한 번에 10%(적어도 선실 4 · 포실 2, 지은 값)
-            MaxCrew = stats.MaxCrew + (Has(8) ? Math.Max(4, (int)Math.Round(stats.MaxCrew * 0.1)) : 0),
-            Guns = stats.Guns + (Has(9) ? Math.Max(2, (int)Math.Round(stats.Guns * 0.1)) : 0),
+            MaxCrew = stats.MaxCrew + (int)work.Cabin + (Has(8) ? Math.Max(4, (int)Math.Round(stats.MaxCrew * 0.1)) : 0),
+            Guns = stats.Guns + (int)work.Guns + (Has(9) ? Math.Max(2, (int)Math.Round(stats.Guns * 0.1)) : 0),
             Hold = (int)Math.Round((stats.Hold + work.Hold * applied + (Has(10) ? stats.Hold * 0.08 : 0) + stats.Hold * formHold) * (1 + holdBonus)),
         };
     }
@@ -543,6 +572,12 @@ internal sealed partial class Voyage
         "Hold" => $"창고 +{skill.Amount * 100:0}%",
         "Flotsam" => $"하루에 한 번쯤 표류물({skill.Amount:0} 두캇 안팎)",
         "Disguise" => $"해적의 습격 −{skill.Amount * 100:0}%",
+        // 아래 여섯은 원본의 설명 글(스킬 표)에 맞춘 것 — 하는 일은 그 글의 것이고 크기는 지은 값
+        "Gust" => "돌풍을 막는다",
+        "Ambush" => $"해적의 기습 −{skill.Amount * 100:0}%",
+        "Hygiene" => $"쥐 · 비위생 발생 −{skill.Amount * 100:0}%",
+        "FireGuard" => $"화재의 피해 −{skill.Amount * 100:0}%",
+        "Tow" => "예항할 때 느려지지 않는다",
         "Lifeboat" => $"졌을 때 잃는 돈 −{skill.Amount * 100:0}%",
         "Shot" => $"포격 +{skill.Amount * 100:0}%",
         "Reload" => $"장전 −{skill.Amount * 100:0}%",
@@ -697,8 +732,8 @@ internal sealed partial class Voyage
             foreach (int id in parts)
             {
                 if (Data.ShipWorks.Parts.Find(p => p.Id == id) is not { } part) continue;
-                double cap = WorkCap(part.Stat, plain);
-                double Add(double now) => Math.Min(cap, now + part.Amount);
+                double cap = WorkLimit(part.Stat, plain, Ship, Work);
+                double Add(double now) => Math.Max(now, Math.Min(cap, now + part.Amount));      // 이미 한계를 넘겨 올려 둔 것은 깎지 않는다
                 switch (part.Stat)
                 {
                     case "Durability": after.Durability = Add(after.Durability); break;
@@ -744,8 +779,8 @@ internal sealed partial class Voyage
         foreach (int id in parts)
         {
             if (Data.ShipWorks.Parts.Find(p => p.Id == id) is not { } part) continue;
-            double cap = WorkCap(part.Stat, plain);
-            double Add(double now) => Math.Min(cap, now + part.Amount);
+            double cap = WorkLimit(part.Stat, plain, Ship, Work);
+            double Add(double now) => Math.Max(now, Math.Min(cap, now + part.Amount));      // 이미 한계를 넘겨 올려 둔 것은 깎지 않는다
             switch (part.Stat)
             {
                 case "Durability": Work.Durability = Add(Work.Durability); break;

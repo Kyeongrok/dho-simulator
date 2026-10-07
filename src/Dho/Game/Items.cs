@@ -242,6 +242,7 @@ internal sealed partial class Voyage
             if (gear.Stats[k] != 0) parts.Add($"{GearStatNames[k]} {gear.Stats[k]}" + (k < 2 && ForgedOf(gear.Id, k) is not 0 and var forged ? $"({forged:+0;-0})" : ""));
         if (Data.GearBoosts.TryGetValue(gear.Id, out var boosts))
             parts.AddRange(boosts.Select(b => $"{SkillName(b.Key)} +{b.Value}"));
+        if (Data.GearEffects.GetValueOrDefault(gear.Id)?.GetValueOrDefault("VigourSave") is > 0 and var save) parts.Add($"행동력 감소 억제 {save}");
         return parts.Count == 0 ? "" : "\n" + string.Join(" · ", parts);
     }
 
@@ -253,7 +254,7 @@ internal sealed partial class Voyage
         if (CrewGearOf(item) is { } crewGear) return crewGear.Description.Replace("\n", " ");
         if (item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear) return gear.Description.Replace("\n", " ") + GearLine(gear);
         if (Data.Papers.Find(p => p.Id == item) is { } paper)
-            return paper.Description.Replace("\n", " ") + (paper.Name.Contains("교환권") && (paper.Name.Contains("선박") || TicketShip(paper) != null) ? (TicketShip(paper) is { } gives ? $"  → {gives.Name}" : "  (바꿀 배를 못 찾았다)") : "");
+            return paper.Description.Replace("\n", " ") + (BuildPartLine(item) is { Length: > 0 } build ? "  " + build : "") + (paper.Name.Contains("교환권") && (paper.Name.Contains("선박") || TicketShip(paper) != null) ? (TicketShip(paper) is { } gives ? $"  → {gives.Name}" : "  (바꿀 배를 못 찾았다)") : "");
         if (ItemOf(item) is { } known)
             return known.Effect switch
             {

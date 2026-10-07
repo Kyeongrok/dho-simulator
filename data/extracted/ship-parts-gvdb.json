@@ -1,0 +1,2967 @@
+[
+ {
+  "Id": 2200000,
+  "Name": "평갑판형 소형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200001,
+  "Name": "평갑판형 중형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    20,
+    40
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200002,
+  "Name": "평갑판형 대형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    40,
+    60
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200004,
+  "Name": "2층갑판형 중형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    40,
+    60
+   ],
+   "Turn": [
+    -2,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200005,
+  "Name": "2층갑판형 대형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Turn": [
+    -2,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200007,
+  "Name": "3층갑판형 중형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    40,
+    60
+   ],
+   "Turn": [
+    -2,
+    0
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200008,
+  "Name": "3층갑판형 대형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Turn": [
+    -1,
+    0
+   ],
+   "Armor": [
+    1,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200009,
+  "Name": "소형도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200010,
+  "Name": "중형도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    20,
+    40
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200011,
+  "Name": "대형도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    40,
+    60
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200014,
+  "Name": "대형 2층도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Rowing": [
+    5,
+    7
+   ],
+   "Turn": [
+    -2,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200017,
+  "Name": "대형 3층도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Rowing": [
+    7,
+    9
+   ],
+   "Turn": [
+    -1,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200019,
+  "Name": "구명정",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    20,
+    40
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200020,
+  "Name": "소해정",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200021,
+  "Name": "소 개프세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200022,
+  "Name": "중 개프세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Vertical": [
+    15,
+    25
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200023,
+  "Name": "대 개프세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    25,
+    35
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200024,
+  "Name": "소 라틴세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Vertical": [
+    10,
+    20
+   ],
+   "Horizontal": [
+    -10,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200025,
+  "Name": "중 라틴세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Vertical": [
+    25,
+    35
+   ],
+   "Horizontal": [
+    -10,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200026,
+  "Name": "대 라틴세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    40,
+    50
+   ],
+   "Horizontal": [
+    -10,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200030,
+  "Name": "소 스퀘어세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Vertical": [
+    -10,
+    0
+   ],
+   "Horizontal": [
+    10,
+    20
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200031,
+  "Name": "중 스퀘어세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Vertical": [
+    -10,
+    0
+   ],
+   "Horizontal": [
+    25,
+    35
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200032,
+  "Name": "대 스퀘어세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    -10,
+    0
+   ],
+   "Horizontal": [
+    40,
+    50
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200033,
+  "Name": "소 스톰세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Horizontal": [
+    5,
+    15
+   ],
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200035,
+  "Name": "대 스톰세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Horizontal": [
+    15,
+    25
+   ],
+   "Wave": [
+    3,
+    5
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200036,
+  "Name": "투망",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200037,
+  "Name": "정박용망",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Turn": [
+    2,
+    4
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200038,
+  "Name": "방현망",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200039,
+  "Name": "전락망",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200040,
+  "Name": "이동망",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200041,
+  "Name": "소 마스트",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200042,
+  "Name": "중 마스트",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Vertical": [
+    10,
+    20
+   ],
+   "Horizontal": [
+    10,
+    20
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200043,
+  "Name": "대 마스트",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    15,
+    25
+   ],
+   "Horizontal": [
+    15,
+    25
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200044,
+  "Name": "특수 주문 경량 노",
+  "Kind": 3,
+  "Types": "複合船",
+  "Sizes": [],
+  "Stats": {
+   "Rowing": [
+    -3,
+    -1
+   ],
+   "Turn": [
+    2,
+    4
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200045,
+  "Name": "특수 주문 대형 노",
+  "Kind": 3,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Rowing": [
+    3,
+    5
+   ],
+   "Turn": [
+    -2,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200046,
+  "Name": "특수유탄",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Guns": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200047,
+  "Name": "특수기뢰",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Armor": [
+    1,
+    3
+   ],
+   "Guns": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200048,
+  "Name": "굉음기뢰",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Armor": [
+    1,
+    3
+   ],
+   "Guns": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200049,
+  "Name": "납포탄",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Turn": [
+    -2,
+    0
+   ],
+   "Guns": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200050,
+  "Name": "특수 제작 만능 충각",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200051,
+  "Name": "개량 소형 포문",
+  "Kind": 1,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Guns": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200052,
+  "Name": "개량 중형 포문",
+  "Kind": 1,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Guns": [
+    4,
+    8
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200053,
+  "Name": "개량 대형 포문",
+  "Kind": 1,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Guns": [
+    6,
+    10
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200054,
+  "Name": "사령탑",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200055,
+  "Name": "선미회랑",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ],
+   "Turn": [
+    -2,
+    0
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200056,
+  "Name": "제독실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ],
+   "Wave": [
+    0,
+    2
+   ],
+   "Hold": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200057,
+  "Name": "부관실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ],
+   "Armor": [
+    0,
+    2
+   ],
+   "Hold": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200058,
+  "Name": "오락실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Cabin": [
+    2,
+    6
+   ],
+   "Hold": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200059,
+  "Name": "조리실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Cabin": [
+    -4,
+    0
+   ],
+   "Hold": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200060,
+  "Name": "진찰실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Cabin": [
+    2,
+    6
+   ],
+   "Hold": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200061,
+  "Name": "공작실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Cabin": [
+    -4,
+    0
+   ],
+   "Hold": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200062,
+  "Name": "저장고",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Cabin": [
+    -4,
+    0
+   ],
+   "Hold": [
+    4,
+    8
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200063,
+  "Name": "금고",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Cabin": [
+    -4,
+    0
+   ],
+   "Hold": [
+    4,
+    8
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200064,
+  "Name": "화약고",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Guns": [
+    4,
+    8
+   ],
+   "Hold": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200065,
+  "Name": "특수 선창",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ],
+   "Armor": [
+    0,
+    2
+   ],
+   "Hold": [
+    -6,
+    -2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200066,
+  "Name": "오물방지 도장",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    0,
+    10
+   ],
+   "Armor": [
+    -2,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200067,
+  "Name": "돛 수선도구 셋트",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    0,
+    10
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200068,
+  "Name": "해체도구 셋트",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200069,
+  "Name": "수리도구 셋트",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200070,
+  "Name": "기능성 돛줄",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200071,
+  "Name": "마스트 톱",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200072,
+  "Name": "목재 가공",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    -10,
+    0
+   ],
+   "Horizontal": [
+    -10,
+    0
+   ],
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200073,
+  "Name": "철재 가공",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    -15,
+    -5
+   ],
+   "Horizontal": [
+    -15,
+    -5
+   ],
+   "Armor": [
+    2,
+    4
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200074,
+  "Name": "로프",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200075,
+  "Name": "강화로프",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    20,
+    40
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200076,
+  "Name": "석회",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200077,
+  "Name": "선박관리실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Wave": [
+    1,
+    3
+   ],
+   "Hold": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200078,
+  "Name": "삼나무 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200079,
+  "Name": "붉은 소나무 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200080,
+  "Name": "너도밤나무 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200081,
+  "Name": "느릅나무 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200082,
+  "Name": "티크 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200083,
+  "Name": "떡갈나무 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200084,
+  "Name": "마호가니 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200085,
+  "Name": "동판 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200086,
+  "Name": "로즈우드 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200087,
+  "Name": "철판 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200095,
+  "Name": "델핀 스톰 세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Horizontal": [
+    20,
+    30
+   ],
+   "Wave": [
+    3,
+    5
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200096,
+  "Name": "특수 가공 로프",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ],
+   "Armor": [
+    0,
+    2
+   ],
+   "Cabin": [
+    -6,
+    -2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200097,
+  "Name": "델핀 개프세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    35,
+    45
+   ],
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200098,
+  "Name": "특수 스톰 세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Horizontal": [
+    25,
+    35
+   ],
+   "Wave": [
+    2,
+    4
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200100,
+  "Name": "특수 주문 마스트",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    20,
+    30
+   ],
+   "Horizontal": [
+    20,
+    30
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200101,
+  "Name": "선측 수조",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ],
+   "Wave": [
+    2,
+    4
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200102,
+  "Name": "특수 스카이세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    15,
+    25
+   ],
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200103,
+  "Name": "특수포문",
+  "Kind": 1,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Guns": [
+    8,
+    12
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200104,
+  "Name": "특수 돛 수선도구 셋트",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    5,
+    15
+   ],
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200105,
+  "Name": "특수병력실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Cabin": [
+    2,
+    6
+   ],
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200106,
+  "Name": "특별 확장 창고",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Hold": [
+    6,
+    10
+   ],
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200107,
+  "Name": "델핀 문 세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Horizontal": [
+    25,
+    35
+   ],
+   "Vertical": [
+    5,
+    15
+   ],
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200131,
+  "Name": "근제 문 세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    25,
+    35
+   ],
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200132,
+  "Name": "특제 리깅",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    5,
+    15
+   ],
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200133,
+  "Name": "선미부 확장창고",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Hold": [
+    4,
+    8
+   ],
+   "Wave": [
+    2,
+    4
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200134,
+  "Name": "특제 로프",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    20,
+    40
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200135,
+  "Name": "특제 버뮤다 세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    30,
+    40
+   ],
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": true
+ },
+ {
+  "Id": 2200136,
+  "Name": "강화병실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Armor": [
+    0,
+    2
+   ],
+   "Cabin": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200138,
+  "Name": "복동식 기관",
+  "Kind": 3,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    5,
+    15
+   ],
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200139,
+  "Name": "분리 응축기",
+  "Kind": 3,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    5,
+    15
+   ],
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200140,
+  "Name": "유성 기어기구",
+  "Kind": 3,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    5,
+    15
+   ],
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200161,
+  "Name": "스웨덴군 공용 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    0,
+    20
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200173,
+  "Name": "환상의 비늘 선박재료",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    0,
+    20
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200193,
+  "Name": "특수 도장 목재 재료(회청색)",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200194,
+  "Name": "특수 도장 금속 재료(회청색)",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    0,
+    20
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200195,
+  "Name": "특수 도장 목재 재료(검보라색)",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2200196,
+  "Name": "특수 도장 금속 재료(검보라색)",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Durability": [
+    0,
+    20
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200201,
+  "Name": "동아시아 중형 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    40,
+    60
+   ],
+   "Turn": [
+    0,
+    1
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200202,
+  "Name": "동아시아 대형 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Turn": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200205,
+  "Name": "동아시아 대형 도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Rowing": [
+    3,
+    5
+   ],
+   "Turn": [
+    -2,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200206,
+  "Name": "개량 동아시아 대형 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Turn": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200210,
+  "Name": "소형 정크세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200211,
+  "Name": "중형 정크세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Vertical": [
+    15,
+    25
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200212,
+  "Name": "대형 정크세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    25,
+    35
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200213,
+  "Name": "강습용 선실",
+  "Kind": 3,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Cabin": [
+    2,
+    6
+   ],
+   "Hold": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200214,
+  "Name": "갑판 보강 철판",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0,
+   1,
+   2
+  ],
+  "Stats": {
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200215,
+  "Name": "선체 격벽판",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ],
+   "Hold": [
+    -4,
+    0
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2200216,
+  "Name": "동아시아 무역선창",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   1,
+   2
+  ],
+  "Stats": {
+   "Hold": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201005,
+  "Name": "공용 2층 갑판형 대형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Armor": [
+    0,
+    1
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201008,
+  "Name": "공용 3층 갑판형 대형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201011,
+  "Name": "공용 대형 도선",
+  "Kind": 2,
+  "Types": "複合型",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    40,
+    60
+   ],
+   "Rowing": [
+    1,
+    3
+   ],
+   "Armor": [
+    0,
+    1
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201014,
+  "Name": "공용 대형 2층 도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Rowing": [
+    5,
+    7
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201017,
+  "Name": "공용 대형 3층 도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Rowing": [
+    7,
+    9
+   ],
+   "Armor": [
+    1,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201021,
+  "Name": "장관용 평갑판형 중형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    40,
+    60
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201024,
+  "Name": "장관용 2층갑판형 중형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    50,
+    70
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201030,
+  "Name": "장관용 중형도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    40,
+    60
+   ],
+   "Rowing": [
+    1,
+    3
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201045,
+  "Name": "강화선각 2층 대형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201046,
+  "Name": "명품 2층갑판형 대형선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Turn": [
+    0,
+    2
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2201047,
+  "Name": "특별 대형 2층도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ],
+   "Rowing": [
+    5,
+    7
+   ],
+   "Armor": [
+    0,
+    2
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202000,
+  "Name": "범용 소형 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   0
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2202001,
+  "Name": "범용 중형 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2202002,
+  "Name": "범용 대형 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2202003,
+  "Name": "범용 소형 도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   0
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2202004,
+  "Name": "범용 중형 도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2202005,
+  "Name": "범용 대형 도선",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {},
+  "Cash": false
+ },
+ {
+  "Id": 2202006,
+  "Name": "범용 소형 증강판",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202007,
+  "Name": "범용 중형 증강판",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202008,
+  "Name": "범용 대형 증강판",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    10,
+    30
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202009,
+  "Name": "범용 소형 라틴세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202010,
+  "Name": "범용 중형 라틴세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202011,
+  "Name": "범용 대형 라틴세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202012,
+  "Name": "범용 소형 스퀘어세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Horizontal": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202013,
+  "Name": "범용 중형 스퀘어세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Horizontal": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202014,
+  "Name": "범용 대형 스퀘어세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Horizontal": [
+    5,
+    15
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202015,
+  "Name": "범용 소형 노",
+  "Kind": 3,
+  "Types": "複合船",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Rowing": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202016,
+  "Name": "범용 중형 노",
+  "Kind": 3,
+  "Types": "複合船",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Rowing": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202017,
+  "Name": "범용 대형 노",
+  "Kind": 3,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Rowing": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202018,
+  "Name": "범용 소형 개량 키",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202019,
+  "Name": "범용 중형 개량 키",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202020,
+  "Name": "범용 대형 개량 키",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Turn": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202021,
+  "Name": "범용 소형 수조",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202022,
+  "Name": "범용 중형 수조",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202023,
+  "Name": "범용 대형 수조",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202024,
+  "Name": "범용 소형 장갑판",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202025,
+  "Name": "범용 중형 장갑판",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202026,
+  "Name": "범용 대형 장갑판",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Armor": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202027,
+  "Name": "범용 소형 확장 선실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Cabin": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202028,
+  "Name": "범용 중형 확장 선실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Cabin": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202029,
+  "Name": "범용 대형 확장 선실",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Cabin": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202030,
+  "Name": "범용 소형 포문",
+  "Kind": 1,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Guns": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202031,
+  "Name": "범용 중형 포문",
+  "Kind": 1,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Guns": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202032,
+  "Name": "범용 대형 포문",
+  "Kind": 1,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Guns": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202033,
+  "Name": "범용 소형 확장 창고",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   0
+  ],
+  "Stats": {
+   "Hold": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202034,
+  "Name": "범용 중형 확장 창고",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   1
+  ],
+  "Stats": {
+   "Hold": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202035,
+  "Name": "범용 대형 확장 창고",
+  "Kind": 3,
+  "Types": "すべて",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Hold": [
+    2,
+    6
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202047,
+  "Name": "특제 문 세일",
+  "Kind": 0,
+  "Types": "すべて",
+  "Sizes": [],
+  "Stats": {
+   "Vertical": [
+    5,
+    15
+   ],
+   "Horizontal": [
+    25,
+    35
+   ],
+   "Wave": [
+    1,
+    3
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202068,
+  "Name": "에스파니아 개량 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202069,
+  "Name": "포르투갈 개량 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202070,
+  "Name": "베네치아 개량 선체",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202071,
+  "Name": "프랑스 개량 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202072,
+  "Name": "네덜란드 개량 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202073,
+  "Name": "잉글랜드 개량 선체",
+  "Kind": 2,
+  "Types": "帆船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ]
+  },
+  "Cash": false
+ },
+ {
+  "Id": 2202074,
+  "Name": "오스만 투르크 개량 선체",
+  "Kind": 2,
+  "Types": "複合船",
+  "Sizes": [
+   2
+  ],
+  "Stats": {
+   "Durability": [
+    60,
+    80
+   ]
+  },
+  "Cash": false
+ }
+]

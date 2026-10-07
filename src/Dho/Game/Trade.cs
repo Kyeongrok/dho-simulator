@@ -22,7 +22,13 @@ internal sealed partial class Voyage
     private Dictionary<int, List<CityData>>? _sources;
 
     public int CargoCount => Cargo.Values.Sum(c => c.Count);
-    public int HoldFree => TotalHold - CargoCount;
+    /// <summary>
+    /// 창고에 든 것 — 원본은 물자(물 · 식량 · 자재 · 포탄)도 창고를 차지한다: 원본 화면의 「221/1634」가 물 52 + 식량 130 + 교역품 39 이고,
+    /// 올리면 「창고 (물자:182 교역품:39)」가 뜬다(사용자의 원본 화면, 2026-10-08). 전에는 교역품만 셌다.
+    /// </summary>
+    public int StoresCount => (int)Math.Ceiling(Water) + (int)Math.Ceiling(Food) + SupplyCount(2);
+    public int HoldUsed => StoresCount + CargoCount;
+    public int HoldFree => TotalHold - HoldUsed;
 
     public GoodData? Good(int id)
     {

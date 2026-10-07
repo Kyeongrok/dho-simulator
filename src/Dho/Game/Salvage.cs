@@ -106,7 +106,7 @@ internal sealed partial class Voyage
     /// <summary>끌고 가는 침몰선의 값 — 0 이면 끄는 것이 없다.</summary>
     public int TowValue { get; private set; }
     public bool TowFrayed { get; private set; }
-    public double TowSpeed => TowValue > 0 ? 0.7 : 1;
+    public double TowSpeed => TowValue > 0 ? Math.Min(1, 0.7 + Option("Tow")) : 1;      // 「예항 보조」: 안정된 예항
 
     private void UpdateTow(int days)
     {

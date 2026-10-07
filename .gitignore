@@ -27,6 +27,8 @@ data/extracted/*
 !data/extracted/gear-boosts-gvdb.json
 !data/extracted/specialties.json
 !data/extracted/conversions.json
+!data/extracted/ship-parts-gvdb.json
+!data/extracted/gear-effects-gvdb.json
 
 # Python
 __pycache__/

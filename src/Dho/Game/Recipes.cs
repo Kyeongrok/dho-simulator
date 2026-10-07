@@ -108,7 +108,7 @@ internal sealed partial class Voyage
 
     /// <summary>그 레시피를 times 번 만드는 데 드는 행동력 — 기본 5(사용자 확인), 그 스킬의 마이스터 호칭을 내걸었으면 20% 덜 든다(한 번에 4).</summary>
     public int ProduceVigourOf(RecipeRule rule, int times = 1) =>
-        (int)Math.Ceiling(ProduceVigour * times * (RecipeSkill(rule) is { } craft && MeisterOf(craft.SkillId) ? 0.8 : 1));
+        (int)Math.Ceiling(Math.Max(1, ProduceVigour - VigourSave) * times * (RecipeSkill(rule) is { } craft && MeisterOf(craft.SkillId) ? 0.8 : 1));      // 장비의 행동력 감소 억제(랭크만큼, 1 까지)
 
     /// <summary>
     /// 생산 한 번에 오르는 숙련도 — 사용자가 준 원본의 식(2026-10-07):

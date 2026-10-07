@@ -28,6 +28,7 @@ def main():
     ko = {r["id"]: r["name"] for r in skill_table.skills(gvo.data_tables(gvo.LANG_KO)[skill_table.T_SKILL])}
     skill = {squeeze(n): i for i, n in sorted(ja.items(), reverse=True) if n and i < 2000}
     found, unknown, no_gear = {}, {}, 0
+    effects, effect_names = {}, {}
     for line in open(os.path.join(ROOT, "gvdb", "items.csv"), encoding="cp932", errors="replace").read().splitlines():
         c = line.split("\t")
         if len(c) < 8 or not c[2].startswith("装備品"):
@@ -41,14 +42,23 @@ def main():
                 boosts[skill[squeeze(m.group(1))]] = int(m.group(2))
             else:
                 unknown[m.group(1)] = unknown.get(m.group(1), 0) + 1
-        if not boosts:
+        # 「装備効果：行動力減少抑制 Rank 5」 — 장비 효과. 랭크가 안 적혀 있으면 1 로 본다
+        worn = {}
+        for m in re.finditer(r"装備効果\s*[：:]\s*([^<\s]+)(?:\s*(?:Rank|R)\s*(\d+))?", c[7]):
+            effect_names[m.group(1)] = effect_names.get(m.group(1), 0) + 1
+            if m.group(1) == "行動力減少抑制":
+                worn["VigourSave"] = max(worn.get("VigourSave", 0), int(m.group(2) or 1))
+        if not boosts and not worn:
             continue
         ids = gear.get(squeeze(c[1]))
         if not ids:
             no_gear += 1
             continue
         for rid in ids:
-            found[rid] = boosts
+            if boosts:
+                found[rid] = boosts
+            if worn:
+                effects[rid] = worn
     print("장비", len(found), "· 이름을 못 이은 장비", no_gear, "· 못 이은 스킬 이름", sorted(unknown.items(), key=lambda x: -x[1])[:12])
     for rid in list(found)[:6]:
         print("  %d %s: %s" % (rid, korean.get(rid), " · ".join("%s +%d" % (ko.get(s), a) for s, a in found[rid].items())))
@@ -56,6 +66,10 @@ def main():
         target = os.path.join(ROOT, "gear-boosts-gvdb.json")
         json.dump({str(k): {str(s): a for s, a in v.items()} for k, v in sorted(found.items())}, open(target, "w", encoding="utf-8"), ensure_ascii=False)
         print("적었다:", target)
+        target = os.path.join(ROOT, "gear-effects-gvdb.json")
+        json.dump({str(k): v for k, v in sorted(effects.items())}, open(target, "w", encoding="utf-8"), ensure_ascii=False)
+        print("적었다:", target, len(effects))
+    print("장비 효과의 갈래:", sorted(effect_names.items(), key=lambda x: -x[1])[:20])
 
 
 if __name__ == "__main__":

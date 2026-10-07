@@ -114,7 +114,7 @@ internal sealed partial class Voyage
             {
                 // 해적이 이쪽을 처음 알아볼 때 한 번 정한다 — 열에 넷만 덤빈다(나머지는 제 길을 간다). 지은 값: 다 덤비면 포 없는 배는 바다를 못 다닌다
                 ship.Seen = true;
-                if (_random.NextDouble() >= 0.4 * (1 - Math.Min(0.8, Bonus("Watch")))) ship.Fooled = true;
+                if (_random.NextDouble() >= 0.4 * (1 - Math.Min(0.8, Bonus("Watch"))) * (1 - Math.Min(0.9, Option("Ambush")))) ship.Fooled = true;      // 「고층 감시대」(원본 글: 높은 확률로 바다에서의 기습을 막는다)
                 else if (PetWards(ship)) ship.Fooled = true;      // 「경계」 스킬이 기습당할 확률을 낮춘다(스킬 설명 그대로, 랭크마다 4%는 지은 값)
             }
             if (ship.Monster > 0 && !ship.Hunting && !NoRaids && far < 7)

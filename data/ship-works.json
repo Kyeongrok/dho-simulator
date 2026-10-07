@@ -129,8 +129,8 @@
    "Name": "내풍마스트",
    "PartA": 2,
    "PartB": 9,
-   "Effect": "Storm",
-   "Amount": 0.4
+   "Effect": "Gust",
+   "Amount": 1
   },
   {
    "SkillId": 2008,
@@ -145,40 +145,40 @@
    "Name": "고층 감시대",
    "PartA": 3,
    "PartB": 14,
-   "Effect": "Survey",
-   "Amount": 0.3
+   "Effect": "Ambush",
+   "Amount": 0.7
   },
   {
    "SkillId": 2030,
    "Name": "양호실",
    "PartA": 15,
    "PartB": 7,
-   "Effect": "CrewLoss",
-   "Amount": 0.3
+   "Effect": "Hygiene",
+   "Amount": 0.8
   },
   {
    "SkillId": 2027,
    "Name": "내화벽",
    "PartA": 8,
    "PartB": 10,
-   "Effect": "Luck",
-   "Amount": 0.15
+   "Effect": "FireGuard",
+   "Amount": 0.6
   },
   {
    "SkillId": 2021,
    "Name": "위장창고",
    "PartA": 12,
    "PartB": 11,
-   "Effect": "Hold",
-   "Amount": 0.05
+   "Effect": "Lifeboat",
+   "Amount": 0.5
   },
   {
    "SkillId": 2011,
    "Name": "예항 보조",
    "PartA": 4,
    "PartB": 5,
-   "Effect": "Turn",
-   "Amount": 0.08
+   "Effect": "Tow",
+   "Amount": 0.3
   },
   {
    "SkillId": 2009,
