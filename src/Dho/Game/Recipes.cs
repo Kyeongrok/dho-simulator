@@ -24,6 +24,7 @@ internal sealed partial class Voyage
         int times = int.MaxValue;
         foreach (var (good, count) in rule.InputList())
             times = Math.Min(times, (Cargo.TryGetValue(good, out var item) ? item.Count : 0) / Math.Max(1, count));
+        foreach (int tool in rule.ConsumeList()) times = Math.Min(times, Items.GetValueOrDefault(tool));
         return times == int.MaxValue ? 0 : times;
     }
 
@@ -64,6 +65,7 @@ internal sealed partial class Voyage
         if (rule.Facility != "" && LabTier(rule.Facility) == 0) return $"{LabName(rule.Facility)}가 있어야 한다 — {(rule.Facility == "Furnace" ? "화로를 사용한 연금술" : "실험대에서 진행하는 연금술")}";
         if (rule.ToolList().FirstOrDefault(tool => Items.GetValueOrDefault(tool) <= 0) is > 0 and var missing) return $"도구 「{ItemName(missing)}」이(가) 있어야 한다";
         if (RecipeSkill(rule) is { } need && Rank(need.SkillId) < need.Rank) return $"{SkillName(need.SkillId)} 랭크 {need.Rank} 이 있어야 한다";
+        if (rule.ConsumeList().FirstOrDefault(tool => Items.GetValueOrDefault(tool) < times) is > 0 and var worn) return $"「{ItemName(worn)}」이(가) 모자라다 — 한 번에 하나씩 닳는다";
         if (CanProduce(rule) < times) return "재료가 모자라다";
         int used = rule.InputList().Sum(i => i.Count) * times, made = rule.OutputCount * times;
         if (rule.OutputItem == 0 && HoldFree + used < made) return "창고가 모자라다";
@@ -76,13 +78,17 @@ internal sealed partial class Voyage
         times = Math.Min(times, CanProduce(rule));
         if (times <= 0 || ProduceBlocker(rule, times) != null) return;
         long cost = 0;
+        foreach (int tool in rule.ConsumeList()) SpendItem(tool, times);
+        // 연성한 생산 스킬은 재료를 아껴 준다 — 한 번마다 10%로 그 번의 재료가 안 든다(지은 값)
+        int spared = RecipeSkill(rule) is { } craft && Refined(craft.SkillId) ? Enumerable.Range(0, times).Count(_ => _random.Next(100) < 10) : 0;
+        if (spared > 0) Say($"연성한 솜씨로 재료를 {spared}번 아꼈다.");
         foreach (var (good, count) in rule.InputList())
         {
             var item = Cargo[good];
-            long share = item.Cost * (count * times) / Math.Max(1, item.Count);
+            long share = item.Cost * (count * (times - spared)) / Math.Max(1, item.Count);
             cost += share;
             item.Cost -= share;
-            item.Count -= count * times;
+            item.Count -= count * (times - spared);
             if (item.Count <= 0) Cargo.Remove(good);
         }
         // 연금술 실험은 설비의 급에 따라 한 번씩 실패할 수 있다 — 재료는 들고 나오는 것이 없다

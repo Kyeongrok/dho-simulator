@@ -48,6 +48,9 @@ internal sealed partial class Voyage
         int days = today - _infamyDay;
         if (days <= 0) return;
         _infamyDay = today;
+        UpdateTow(days);
+        UpdateNews(days);
+        UpdatePet(days);
         Infamy = Math.Max(0, Infamy - days);
         foreach (int nation in Hostility.Keys.ToList())
         {

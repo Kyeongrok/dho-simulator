@@ -17,6 +17,7 @@ internal sealed partial class Voyage
     private string RuleEffect(SkillRuleData rule)
     {
         string pct = $"{rule.PerRank * 100:0.#}%";
+        string Forms() => string.Join(" · ", rule.Targets.Select(f => FormNames.ElementAtOrDefault(f)).Where(n => !string.IsNullOrEmpty(n)));
         string Names(Func<int, string?> name) => string.Join(" · ", rule.Targets.Select(name).Where(n => !string.IsNullOrEmpty(n)));
         return rule.Effect switch
         {
@@ -35,7 +36,7 @@ internal sealed partial class Voyage
             "Haggle" => $"흥정 폭 랭크마다 +{pct}",
             "TradeKind" => $"{Names(id => Data.GoodKinds.Find(k => k.Id == id)?.Name)} 구입량 랭크마다 +{pct}",
             "Find" => "발견물을 찾는다",
-            "Appraise" => "발견물을 감정한다",
+            "Appraise" => "발견물을 감정한다. 서고에서 책을 읽어 올릴 수 있다",
             "Craft" => "레시피로 물건을 만든다",
             "Shipbuilding" => "배를 짓고 강화한다",
             "Shot" => $"포격 피해 랭크마다 +{pct}",
@@ -62,9 +63,17 @@ internal sealed partial class Voyage
             "Aid" => $"해전에서 원군을 부른다(한 싸움에 한 번, 포격 세 번 — 한 번에 30 + 랭크마다 {rule.PerRank:0})",
             "LandRanged" => $"육상전 공격력 랭크마다 +{pct}",
             "Technique" => $"육상전 테크닉의 피해 랭크마다 +{pct}",
-            "GearUse" => $"특수장비(충각 · 조교 따위)의 세기 랭크마다 +{pct}",
+            "GearUse" => $"{Forms()}의 특수장비(충각 · 조교 따위) 세기 랭크마다 +{pct}",
+            "FormSail" => $"{Forms()}의 속도 랭크마다 +{pct}",
+            "FormKeep" => $"{Forms()}의 물 · 식량 소모 랭크마다 −{pct}",
             "Lockpick" => $"상륙지에서 찾은 잠긴 궤를 연다(30% + 랭크마다 {pct})",
-            "Gather" => "상륙지에서 채집한다(한 번 오르면 세 번)",
+            "Salvage" => "침몰선을 끌어올린다(한 번에 15% + 랭크마다 3%, 실패 15% − 랭크마다 1%p)",
+            "Tow" => "침몰선을 끌고 갈 때 로프가 상할 확률 랭크마다 −1%p(하루 10%에서)",
+            "Language" => $"말이 통하는 곳: {Names(id => Data.Cultures.Find(c => c.Id == id)?.Name)} (거기서 흥정을 할 수 있다)",
+            "BookLanguage" => $"서고의 책을 읽는다: {Names(id => Data.Cultures.Find(c => c.Id == id)?.Name)}",
+            "Pet" => "애완동물이 하루에 (랭크 + 친밀도 ÷ 20)%로 교역품을 찾아 오고, 해적이 덤빌 때 (랭크 × 2 + 친밀도 ÷ 10)%로 피한다",
+            "BodyTalk" => "어느 도시에서나 말이 통한다(흥정을 할 수 있다)",
+            "Gather" => "상륙지에서 채집한다(한 번 오르면 세 번). 바다에서 켜 두면 해수 · 해초 따위를 건진다",
             "Observe" => $"상륙지를 둘러볼 때 랭크마다 {pct}로 묻힌 것을 찾는다",
             "March" => $"뭍에서의 피로와 도적 · 맹수가 나올 확률 랭크마다 −{pct}",
             "Social" => $"칙명의 공적 랭크마다 +{pct}, 뇌물 값 랭크마다 −{pct}",

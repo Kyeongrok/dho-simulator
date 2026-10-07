@@ -125,7 +125,7 @@ internal sealed partial class Voyage
             CityId = City.Id, ShipId = Ship.Id, Durability = Durability, Crew = Crew, Water = Water, Food = Food,
             Clock = Clock, SkyPhase = SkyPhase,
             AdventureExp = AdventureExp, AdventureFame = AdventureFame, TradeExp = TradeExp, BattleExp = BattleExp, TradeFame = TradeFame, BattleFame = BattleFame,
-            Skills = Skills.ToDictionary(s => s.Key, s => new[] { s.Value.Rank, s.Value.Exp }),
+            Skills = Skills.ToDictionary(s => s.Key, s => new[] { s.Value.Rank, s.Value.Exp, s.Value.Refined ? 1 : 0 }),
             Supplies = new Dictionary<int, int>(Supplies),
             Cargo = Cargo.ToDictionary(c => c.Key, c => new[] { c.Value.Count, c.Value.Cost }),
             DoneQuests = _done.ToList(),
@@ -140,18 +140,18 @@ internal sealed partial class Voyage
             Recipes = Recipes.ToList(),
             QuickSlots = QuickSlots,
             Work = Work.ToArray(),
-            DockWork = Dock.Select(d => d.Work.ToArray()).ToList(),
-            DockSail = Dock.Select(d => new[] { d.SailPattern, d.SailTint }).ToList(),
+            DockWork = AllMoored.Select(d => d.Work.ToArray()).ToList(),
+            DockSail = AllMoored.Select(d => new[] { d.SailPattern, d.SailTint }).ToList(),
             Looks = Looks,
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
+            Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
-            Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp }).ToList(),
-            Dock = Dock.Select(d => new double[] { d.Ship.Id, d.Durability, d.Material, d.Load }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
+            Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp, a.Ship == null ? 0 : AllMoored.IndexOf(a.Ship) + 1 }).ToList(),
+            Dock = AllMoored.Select(d => new double[] { d.Ship.Id, d.Durability, d.Material, d.Load }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
             QuestId = Quest?.Id ?? 0, QuestStage = (int)QuestStage,
         });
     }
@@ -175,7 +175,7 @@ internal sealed partial class Voyage
         AdventureFame = save.AdventureFame;
         TradeExp = save.TradeExp;
         (BattleExp, TradeFame, BattleFame) = (save.BattleExp, save.TradeFame, save.BattleFame);
-        foreach (var (id, state) in save.Skills) Skills[id] = new SkillState { Rank = (int)state[0], Exp = state[1] };
+        foreach (var (id, state) in save.Skills) Skills[id] = new SkillState { Rank = (int)state[0], Exp = state[1], Refined = state.Length > 2 && state[2] > 0 };
         foreach (var (id, count) in save.Supplies) Supplies[id] = count;
         foreach (var (id, item) in save.Cargo) Cargo[id] = new CargoItem { Count = (int)item[0], Cost = item[1] };
         foreach (int id in save.DoneQuests) _done.Add(id);
@@ -200,7 +200,8 @@ internal sealed partial class Voyage
         foreach (var moored in Dock) moored.Durability = Math.Min(moored.Durability, StatsOf(moored).Durability);
         foreach (var saved in save.Aides)
             if (saved.Length >= 4 && Data.Aides.Find(a => a.Id == (int)saved[0]) is { } who)
-                Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3] });
+                Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3], Ship = saved.Length >= 5 ? Dock.ElementAtOrDefault((int)saved[4] - 1) : null });
+        Dock.RemoveAll(d => Aides.Any(a => a.Ship == d));       // 부관 선장의 배는 부두에서 빠져 있다
         Savings = Math.Max(0, save.Bank);
         if (save.SailLook.Length == 2) (SailPattern, SailTint) = (save.SailLook[0], save.SailLook[1]);
         (Major, Credits, Studying) = (save.Major, save.Credits, Data.Research.Find(r => r.No == save.Research && save.Research != 0));
@@ -214,6 +215,18 @@ internal sealed partial class Voyage
         _fleetDay = save.FleetDay;
         ExileDay = save.ExileDay;
         Infamy = save.Infamy;
+        WreckPieces = save.WreckPieces;
+        (TowValue, TowFrayed) = (save.TowValue, false);
+        (PetId, PetLove) = save.Pet is { Count: 2 } pet ? (pet[0], pet[1]) : (0, 0);
+        Found.Clear();
+        foreach (int id in save.Found ?? []) Found.Add(id);
+        // 전에 보고한 의뢰의 발견물도 기록에 넣는다(이 기록이 생기기 전의 저장)
+        foreach (int questId in save.DoneQuests) if (QuestById(questId) is { } old) Found.Add(old.DiscoveryId);
+        Insurance = Math.Clamp(save.Insurance, 0, Insurances.Length - 1);
+        News = save.News is { Count: 3 } news ? (news[0], news[1], news[2]) : default;
+        (Prayer, PrayerUntil) = save.Prayer is { Count: 2 } prayed ? (prayed[0], prayed[1]) : (-1, 0);
+        WreckAt = save.WreckX != 0 || save.WreckY != 0 ? (save.WreckX, save.WreckY) : null;
+        (WreckRaised, WreckFails, WrecksSalvaged) = (save.WreckState?.ElementAtOrDefault(0) ?? 0, save.WreckState?.ElementAtOrDefault(1) ?? 0, save.WreckState?.ElementAtOrDefault(2) ?? 0);
         Hostility.Clear();
         foreach (var (nation, value) in save.Hostility ?? []) Hostility[nation] = value;
         foreach (int ocean in save.Permits) Permits.Add(ocean);
@@ -248,7 +261,7 @@ internal sealed partial class Voyage
             Boosts.Add(new Boost { Kind = b[0] == 0 ? "Speed" : b[0] == 1 ? "Skill" : "Extend", Amount = b[1], Group = (int)b[2], SkillId = (int)b[3], Cap = (int)b[4], Until = Clock + b[5], Name = BoosterOf((int)b[6])?.Name ?? "부스트" });
         for (int spot = 0; spot < DecoOn.Length; spot++) DecoOn[spot] = spot < save.Decos.Count ? save.Decos[spot] : 0;
         for (int kind = 0; kind < CrewOn.Length; kind++) CrewOn[kind] = kind < save.CrewGear.Count ? save.CrewGear[kind] : 0;
-        Quest = Data.Quests.Find(q => q.Id == save.QuestId);
+        Quest = QuestById(save.QuestId);
         QuestStage = Quest == null ? QuestStage.None : (QuestStage)save.QuestStage;
         Enter();
     }

@@ -11,14 +11,14 @@ internal sealed partial class Voyage
     /// <summary>수리에 쓰는 자재(보급품 「수리용 통」).</summary>
     private const int RepairSupply = 2;
 
-    private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest", "Speed", "Turn"];
+    private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest", "Speed", "Turn", "Gather"];
 
     /// <summary>
     /// 켜 두는 스킬 — 돛 조종 · 조타 · 낚시 · 조달. 원본처럼 켜면 한동안 켜져 있다가 꺼지고(화면 오른쪽 가운데에 그림이 뜬다),
     /// 켜져 있는 동안 돛 조종 · 조타는 효과가 걸리고 낚시 · 조달은 일정한 사이를 두고 저절로 된다.
     /// 켜져 있는 시간 · 사이 · 한꺼번에 켜는 수는 지은 값이다.
     /// </summary>
-    private static readonly string[] Sustained = ["Speed", "Turn", "Fish", "Procure", "Survey"];
+    private static readonly string[] Sustained = ["Speed", "Turn", "Fish", "Procure", "Survey", "Gather"];
     public const int MaxSkillsOn = 3;
     private const double OnSeconds = 180, TickSeconds = 15;
     private readonly Dictionary<int, (double Until, double Next)> _skillOn = new();
@@ -46,7 +46,24 @@ internal sealed partial class Voyage
             if (Clock < on.Next) continue;
             _skillOn[id] = (on.Until, Clock + TickSeconds);
             if (rule.Effect is "Fish" or "Procure") Gather(rule);
+            else if (rule.Effect == "Gather") SeaGather(rule);
         }
+    }
+
+    // 바다에서의 채집 — 원본에 「본 해역 해상에서 낚시，채집 실행」(화면 글 42084)이라는 말이 있어 바다에서도 된다는 것만 안다.
+    // 무엇이 건져지는지는 지은 것: 해수 · 해초 · 참다시마, 랭크 5부터 열에 하나는 굴조개 · 진주조개. 한 번에 1 + 랭크 ÷ 4 개
+    private static readonly string[] SeaFinds = ["해수", "해초", "참다시마"], SeaRareFinds = ["굴조개", "진주조개"];
+
+    private void SeaGather(SkillRuleData rule)
+    {
+        int rank = Rank(rule.SkillId);
+        if (HoldFree <= 0) { Say("창고가 가득 차 채집한 것을 실을 수 없다."); return; }
+        string name = rank >= 5 && _random.NextDouble() < 0.1 ? SeaRareFinds[_random.Next(SeaRareFinds.Length)] : SeaFinds[_random.Next(SeaFinds.Length)];
+        if (Data.Goods.Find(g => g.Name == name) is not { } good) return;
+        int count = Math.Min(HoldFree, 1 + rank / 4);
+        GiveGood(good, count);
+        Say($"{good.Name} {count}개를 건져 올렸다.");
+        Train(rule.SkillId, 15);
     }
 
     /// <summary>낚시 · 조달 한 번.</summary>

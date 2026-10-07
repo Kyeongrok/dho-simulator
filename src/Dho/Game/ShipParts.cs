@@ -80,7 +80,7 @@ internal sealed partial class Voyage
         _ => "효과 없음(아직)",
     };
     // 「병기기술」(설명: 「특정 배가 소유한 장비를 유효하게 활용할 수 있다」) — 특수장비의 세기가 랭크마다 +3%(지은 값)
-    private double GearPower(int kind) => Parts.Where(p => p.Slot == 5 && p.A == kind).Select(p => p.B).DefaultIfEmpty(0).Max() * (1 + Bonus("GearUse"));
+    private double GearPower(int kind) => Parts.Where(p => p.Slot == 5 && p.A == kind).Select(p => p.B).DefaultIfEmpty(0).Max() * (1 + FormBonus("GearUse"));
 
     /// <summary>타고 있는 배에 단 부품.</summary>
     public List<ShipPart> Parts { get; private set; } = [];
@@ -143,7 +143,7 @@ internal sealed partial class Voyage
         1 - Parts.Where(p => p.Slot == 1).Sum(p => p.B) / 100.0;       // 보조돛의 몫은 이제 돛 성능과 속도에 바로 얹힌다(Stats)
 
     /// <summary>장갑이 줄여 주는 내구 피해 배율.</summary>
-    public double PartDamage => 1 - Math.Min(0.6, Parts.Where(p => p.Slot == 1).Sum(p => p.A) * 0.02);
+    public double PartDamage => 1 - Math.Min(0.6, Parts.Where(p => p.Slot == 1).Sum(ArmorOf) * 0.02);
 
     /// <summary>선수상이 줄여 주는 재해 확률 배율.</summary>
     public double PartLuck => 1 - Math.Min(0.5, Parts.Where(p => p.Slot == 2).Sum(p => p.A + p.B + p.C + p.D) * 0.012);

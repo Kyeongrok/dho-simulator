@@ -21,6 +21,17 @@ public sealed class QuestData
     public int DiscoveryId { get; set; }
     /// <summary>상륙할 곳(상륙지 표 id). 자리는 상륙지의 X·Y.</summary>
     public int LandingId { get; set; }
+    /// <summary>바다에서 찾는 의뢰면 그 해역(해역 표 id) — 0 이면 상륙지에서 찾는다.</summary>
+    public int SeaZone { get; set; }
+    /// <summary>바다의 한 자리에서 찾는 의뢰면 그 세계 좌표(大航海時代DB 의 의뢰 차례 글에서) — 0 이면 없다.</summary>
+    public int SeaX { get; set; }
+    public int SeaY { get; set; }
+    /// <summary>찾는 스킬(인식 · 탐색 · 생태 조사)에 적힌 랭크 — 0 이면 Rank 를 쓴다.</summary>
+    public int FindRank { get; set; }
+    /// <summary>도시 안에서 찾는 의뢰면 그 도시(도시 표 id) — 그 도시의 항구에서 「의뢰 탐색」을 누른다. 0 이면 아니다.</summary>
+    public int SearchCity { get; set; }
+    /// <summary>의뢰를 받는 데 필요한 언어(스킬 번호) — 진짜 의뢰의 값.</summary>
+    public List<int> Languages { get; set; } = [];
     /// <summary>상륙했을 때 나오는 글.</summary>
     public string LandingText { get; set; } = "";
     public int Advance { get; set; }
@@ -69,8 +80,51 @@ public sealed class LandingData
     /// <summary>클라이언트 세계지도 표식의 자리(표 103, 세계 좌표 — 뭍 위일 수 있다). 0 이면 표식이 없다.</summary>
     public int MapX { get; set; }
     public int MapY { get; set; }
+    /// <summary>클라이언트의 뭍 탐색 지점(표 106): 관찰 지점의 수와 채집 지점의 갈래(1 ~ 5 — 갈래의 뜻은 모른다).</summary>
+    public int ObservePoints { get; set; }
+    public List<int> GatherKinds { get; set; } = [];
     /// <summary>X · Y 가 표식에서 셈한 것이다(직접 찍은 것이 아니다) — 찍은 자리 파일에는 안 적는다.</summary>
     [System.Text.Json.Serialization.JsonIgnore] public bool FromMap { get; set; }
+}
+
+/// <summary>大航海時代DB 의 모험 의뢰 한 건 — 이름 · 글은 일본어 그대로다.</summary>
+public sealed class QuestFact
+{
+    public string Title { get; set; } = "";
+    public int DiscoveryId { get; set; }
+    /// <summary>의뢰를 내는 도시들(도시 표 id).</summary>
+    public List<int> Cities { get; set; } = [];
+    public List<QuestSkill> Skills { get; set; } = [];
+    public int Reward { get; set; }
+    public int Advance { get; set; }
+    /// <summary>바다에서 찾는 자리(세계 좌표) — 0 이면 차례 글에 좌표가 없다(뭍에서 찾거나 못 읽었다).</summary>
+    public int X { get; set; }
+    public int Y { get; set; }
+    public string Steps { get; set; } = "";
+    /// <summary>찾는 자리의 갈래 — 1 바다의 좌표, 2 상륙지, 3 도시 안, 0 못 읽음.</summary>
+    public int Place { get; set; }
+    public int LandingId { get; set; }
+    public int TownId { get; set; }
+    public int Difficulty { get; set; }
+}
+
+public sealed class QuestSkill
+{
+    public string Name { get; set; } = "";
+    public int Rank { get; set; }
+}
+
+/// <summary>위키(wikiwiki.jp/gvo 의 発見物 쪽)에서 채운 것.</summary>
+public sealed class DiscoveryFact
+{
+    public int Id { get; set; }
+    public string Japanese { get; set; } = "";
+    /// <summary>難度 — 찾는 데 필요한 스킬 랭크.</summary>
+    public int Difficulty { get; set; }
+    /// <summary>発見方法 — 의뢰의 이름(일본어), 또는 「…の地図」.</summary>
+    public string Method { get; set; } = "";
+    /// <summary>서고의 지도로 찾는 것.</summary>
+    public bool Map { get; set; }
 }
 
 public sealed class DiscoveryData
@@ -350,6 +404,12 @@ public sealed class RecipeRule
     public string Tools { get; set; } = "";
     /// <summary>생산물이 교역품이 아니라 아이템일 때 그 번호(이그니스의 원액 …). 0 이면 Output 의 교역품.</summary>
     public int OutputItem { get; set; }
+    /// <summary>한 번 만들 때마다 하나씩 닳는 아이템(번호를 쉼표로) — 재봉도구 따위.</summary>
+    public string Consumes { get; set; } = "";
+    public IEnumerable<int> ConsumeList() =>
+        Consumes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(t => int.TryParse(t, out _)).Select(int.Parse);
+    /// <summary>이용자 사이트(gvdb)의 값으로 채운 것 — <c>data\extracted\recipe-inputs.json</c>. 저장소의 recipes.json 에는 적지 않는다.</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public bool FromSite { get; set; }
 
     public IEnumerable<int> ToolList() =>
         Tools.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(t => int.TryParse(t, out _)).Select(int.Parse);
@@ -608,6 +668,21 @@ public sealed class SaveData
     public int FleetDay { get; set; } = -1;
     public int ExileDay { get; set; } = -1;
     public int Infamy { get; set; }
+    /// <summary>침몰선: 조각지도 수, 알아낸 자리(없으면 0, 0), 올린 정도 · 실패 · 누적.</summary>
+    public int WreckPieces { get; set; }
+    public double WreckX { get; set; }
+    public double WreckY { get; set; }
+    public List<int> WreckState { get; set; } = [];
+    public int TowValue { get; set; }
+    /// <summary>기도 효과: 갈래(−1 없음)와 끝나는 날.</summary>
+    public List<int> Prayer { get; set; } = [];
+    /// <summary>나라의 정세: 나라, 갈래, 끝나는 날.</summary>
+    public List<int> News { get; set; } = [];
+    /// <summary>애완동물: 번호(0 없음)와 친밀도.</summary>
+    public List<int> Pet { get; set; } = [];
+    public int Insurance { get; set; }
+    /// <summary>찾아낸 발견물의 번호들.</summary>
+    public List<int> Found { get; set; } = [];
     public Dictionary<int, int> Hostility { get; set; } = [];
     // 대장간의 단련: 장비 · 대포 번호 → 더해진 (공격력 또는 관통력, 방어력)
     public Dictionary<int, int[]> Forged { get; set; } = [];
@@ -702,6 +777,10 @@ public sealed class SettingsData
     public bool ModNoPermits { get; set; } = true;
     // 모드: 교역 관세 없이 산다(관세의 세율은 지은 값이다) — 기본 꺼짐
     public bool ModNoTax { get; set; }
+    // 모드: 어느 도시에서나 말이 통한다(언어를 몰라도 흥정한다) — 기본 꺼짐
+    public bool ModAllLanguages { get; set; }
+    // 모드: 서고에서 하루에 읽는 권수 5배(5 → 25) — 기본 꺼짐
+    public bool ModBooksTimes5 { get; set; }
     /// <summary>모드: 선박 조합의 성공률에 더하는 값(%) — 0 ~ 50. 0 이면 그대로.</summary>
     public int ModCombineBonus { get; set; }
     /// <summary>모드: 경험치(모험 · 교역 · 부관)와 숙련도(스킬 · 조타)가 세 배로 오른다.</summary>
@@ -929,6 +1008,14 @@ public sealed class GameData
     public List<TavernDish> TavernMenu { get; set; } = [];
     /// <summary>호칭(표 35) — 이름과 설명(Description 은 NamedData 에 없어 Extra 에 둔다).</summary>
     public List<NamedData> Honors { get; set; } = [];
+    /// <summary>문화권 이름(클라이언트 표 1) — 도시의 Culture.</summary>
+    public List<NamedData> Cultures { get; set; } = [];
+    /// <summary>애완동물 이름(클라이언트 표 47).</summary>
+    public List<NamedData> Pets { get; set; } = [];
+    /// <summary>위키에서 채운 발견물의 난도(필요 스킬 랭크)와 찾는 법 — <c>data\extracted\discovery-facts.json</c>(<c>tools\gvo\wiki_discovery.py</c>). 없는 발견물은 별 수를 랭크로 쓴다.</summary>
+    public List<DiscoveryFact> DiscoveryFacts { get; set; } = [];
+    /// <summary>大航海時代DB(gvdb.mydns.jp)에서 채운 진짜 의뢰 — <c>data\extracted\quest-facts.json</c>(<c>tools\gvo\gvdb_quests.py</c>).</summary>
+    public List<QuestFact> QuestFacts { get; set; } = [];
     /// <summary>시내 장소 이름(표 40).</summary>
     public List<NamedData> Places { get; set; } = [];
     public List<GoodData> Goods { get; set; } = [];
@@ -994,6 +1081,11 @@ public sealed class GameData
         data.ShipSkillFacts = Read<List<ShipSkillFact>>(Path.Combine(extracted, "shipskill-facts.json")) ?? [];
         data.ShipDetails = Read<List<ShipDetailFact>>(Path.Combine(extracted, "shipdetail-facts.json")) ?? [];
         data.Papers = Read<List<PaperItem>>(Path.Combine(extracted, "paper-items.json")) ?? [];
+        // 아이템 표(items14.json)에서 이름으로 더 고른 것 — 구입 발주서 · 수표 · 변성연금의 책 · 재봉도구. 소지품 이름과 「아이템 추가」 목록에 선다
+        foreach (var extra in (Read<List<PaperItem>>(Path.Combine(extracted, "items14.json")) ?? [])
+                 .Where(i => (i.Name.Contains("구입 발주서") || i.Name.Contains("구입 발주서") || i.Name.EndsWith("구입 발주서") || i.Name.Contains("발주서(카테고리") || i.Name.StartsWith("수표(") || i.Name is "우로보로스의 책" or "유니콘의 책" or "재봉도구")
+                             && i.Id is < 1500793 or > 1500820))
+            if (!data.Papers.Exists(p => p.Id == extra.Id)) data.Papers.Add(extra);
         data.Foods = Read<List<PaperItem>>(Path.Combine(extracted, "food-items.json")) ?? [];
         data.MaterialColors = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-colors.json")) ?? [];
         data.MaterialTrims = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-trims.json")) ?? [];
@@ -1011,6 +1103,10 @@ public sealed class GameData
         data.Ammo = Read<List<NamedData>>(Path.Combine(extracted, "ammo.json")) ?? [];
         data.TavernMenu = Read<List<TavernDish>>(Path.Combine(extracted, "tavern-menu.json")) ?? [];
         data.Honors = Read<List<NamedData>>(Path.Combine(extracted, "honors.json")) ?? [];
+        data.Cultures = Read<List<NamedData>>(Path.Combine(extracted, "cultures.json")) ?? [];
+        data.Pets = Read<List<NamedData>>(Path.Combine(extracted, "pets.json")) ?? [];
+        data.DiscoveryFacts = Read<List<DiscoveryFact>>(Path.Combine(extracted, "discovery-facts.json")) ?? [];
+        data.QuestFacts = Read<List<QuestFact>>(Path.Combine(extracted, "quest-facts.json")) ?? [];
         data.ShipParts = Read<List<ShipPart>>(Path.Combine(extracted, "ship-parts.json")) ?? [];
         }
         data.Decos = Read<List<ShipDeco>>(Path.Combine(extracted, "ship-decos.json")) ?? [];
@@ -1020,6 +1116,14 @@ public sealed class GameData
         data.Quests = Read<List<QuestData>>(Path.Combine(directory, "quests.json")) ?? [];
         data.RecipeRules = Read<List<RecipeRule>>(Path.Combine(directory, "recipes.json")) ?? [];
         data.Recipes = Read<List<RecipeData>>(Path.Combine(extracted, "recipes.json")) ?? [];
+        // 이용자 사이트(gvdb)에서 뽑은 재료 · 생산물 · 수량 — 손으로 적은 것(지은 값)을 덮는다. 설비 · 도구는 손으로 적은 것을 둔다
+        foreach (var real in Read<List<RecipeRule>>(Path.Combine(extracted, "recipe-inputs.json")) ?? [])
+        {
+            real.FromSite = true;
+            if (data.RecipeRules.Find(r => r.RecipeId == real.RecipeId) is { } mine)
+                (mine.Output, mine.OutputCount, mine.Inputs, mine.Skill, mine.OutputItem) = (real.Output, real.OutputCount, real.Inputs, real.Skill == "" ? mine.Skill : real.Skill, 0);
+            else data.RecipeRules.Add(real);
+        }
         data.Npcs = Read<NpcNames>(Path.Combine(extracted, "npc-names.json")) ?? new NpcNames();
         data.FleetMissions = Read<List<FleetMission>>(Path.Combine(extracted, "fleet-missions.json")) ?? [];
         // 이용자들이 모은 레시피 자료(번호, 이름, …, 필요 스킬, 만드는 것) — 재료는 없다
@@ -1057,7 +1161,7 @@ public sealed class GameData
         Write(Path.Combine(Directory, "items.json"), Items);
         if (!_materialsFromFacts) Write(Path.Combine(Directory, "ship-materials.json"), ShipMaterials);      // 모아 온 표는 저장소 쪽 파일에 적지 않는다
         Write(Path.Combine(Directory, "ship-works.json"), ShipWorks);
-        Write(Path.Combine(Directory, "recipes.json"), RecipeRules);
+        Write(Path.Combine(Directory, "recipes.json"), RecipeRules.Where(r => !r.FromSite).ToList());
         Write(Path.Combine(Directory, "disasters.json"), Disasters);
         Write(Path.Combine(Directory, "sea-climates.json"), SeaClimates);
         Write(Path.Combine(Directory, "supplies.json"), Supplies);
@@ -1096,6 +1200,8 @@ public sealed class GameData
         Write(Path.Combine(extracted, "ammo.json"), Ammo);
         Write(Path.Combine(extracted, "tavern-menu.json"), TavernMenu);
         Write(Path.Combine(extracted, "honors.json"), Honors);
+        Write(Path.Combine(extracted, "cultures.json"), Cultures);
+        Write(Path.Combine(extracted, "pets.json"), Pets);
         File.WriteAllText(Path.Combine(extracted, ExtractVersion), "");
     }
 
@@ -1161,7 +1267,8 @@ public sealed class GameData
             tables.LandingSpots.TryGetValue(l.Id, out var spot);
             if (fine.TryGetValue(l.Id, out var better)) spot = better;
             else if (mended.TryGetValue(l.Id, out var moved)) spot = moved;
-            return new LandingData { Id = l.Id, Name = l.Name, City = l.City, Region = l.Region, X = point.X, Y = point.Y, MapX = spot.X, MapY = spot.Y };
+            return new LandingData { Id = l.Id, Name = l.Name, City = l.City, Region = l.Region, X = point.X, Y = point.Y, MapX = spot.X, MapY = spot.Y,
+                                    ObservePoints = tables.LandPoints.GetValueOrDefault(l.Id).Observe, GatherKinds = [.. tables.LandPoints.GetValueOrDefault(l.Id).Gather ?? []] };
         }).ToList();
         Discoveries = tables.Discoveries.Values.OrderBy(d => d.Id).Select(d => new DiscoveryData
         {
@@ -1179,6 +1286,8 @@ public sealed class GameData
         Aides = tables.Aides.Select(a => new NamedData { Id = a.Id, Name = a.Name, Group = a.A }).ToList();
         Duties = tables.Duties.OrderBy(d => d.Key).Select(d => new NamedData { Id = d.Key, Name = d.Value }).ToList();
         Ammo = tables.Ammo.OrderBy(d => d.Key).Select(d => new NamedData { Id = d.Key, Name = d.Value }).ToList();
+        Pets = tables.Pets.Where(p => p.Name.Length > 0 && !p.Name.StartsWith('※')).Select(p => new NamedData { Id = p.Id, Name = p.Name }).ToList();
+        Cultures = tables.Cultures.Select(c => new NamedData { Id = c.Id, Name = c.Name }).ToList();
         Honors = tables.Honors.Where(h => h.Name.Length > 0 && !h.Name.StartsWith('※')).Select(h => new NamedData { Id = h.Id, Name = h.Name, Extra = h.Description.Replace("\n", " ") }).ToList();
         TavernMenu = tables.TavernMenu.Where(m => m.Name.Length > 0 && !m.Name.StartsWith('※')).ToList();
         ShipParts = tables.ShipParts.Where(p => p.Name.Length > 0 && !p.Name.StartsWith('※')).ToList();
@@ -1260,7 +1369,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-17";
+    private const string ExtractVersion = "extracted-20";
 
     public static string RoomsOf(byte[] sceneTable, int cityId)
     {

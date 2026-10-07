@@ -45,8 +45,14 @@ internal sealed partial class Voyage
     {
         get
         {
-            var key = (_bareStats, Parts.Sum(p => p.Id * 31 + 7));
-            if (_fitKey != key) (_fitStats, _fitKey) = (WithParts(_bareStats, Parts), key);
+            // 변성연금으로 오른 장갑도 얹는다(달아 둔 장갑 부품의 것)
+            int transmuted = Parts.Where(p => p.Slot == 1).Sum(p => TransmutedArmor(p.Id));
+            var key = (_bareStats, Parts.Sum(p => p.Id * 31 + 7) + transmuted * 1_000_003);
+            if (_fitKey != key)
+            {
+                var fitted = WithParts(_bareStats, Parts);
+                (_fitStats, _fitKey) = (transmuted > 0 ? fitted with { Armor = fitted.Armor + transmuted } : fitted, key);
+            }
             return _fitStats;
         }
         private set => _bareStats = value;
@@ -289,6 +295,9 @@ internal sealed partial class Voyage
         Say("하루가 지났다." + (Ordered is { DaysLeft: > 0 } order ? $" (건조 {Math.Ceiling(order.DaysLeft):0}일 남음)" : ""));
     }
 
+    /// <summary>대본용: 바다에서 날짜만 하루 넘긴다(물 · 식량 · 재해는 그대로) — 날마다 도는 것들(적대도 · 예항 · 정세 · 애완동물)을 시험한다.</summary>
+    public void SkipSeaDayForTest() { if (Mode == Mode.Sea) Clock += Settings.SecondsPerDay; }
+
     /// <summary>바다에서 보낸 날만큼 건조가 나아간다.</summary>
     private void UpdateBuild(double days)
     {
@@ -379,7 +388,7 @@ internal sealed partial class Voyage
 
     /// <summary>부두의 배로 갈아타지 못하는 까닭.</summary>
     public string? SwapBlocker(DockedShip docked) =>
-        CargoCount > StatsOf(docked).Hold ? "짐이 그 배의 창고보다 많다" : null;
+        CargoCount > StatsOf(docked).Hold + AideHold ? "짐이 그 배의 창고보다 많다" : null;
 
     /// <summary>선박교환 — 부두의 배로 갈아탄다. 타던 배가 부두에 남는다.</summary>
     public void SwapShip(DockedShip docked)

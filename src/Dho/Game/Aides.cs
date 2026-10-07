@@ -10,6 +10,10 @@ internal sealed class Aide
     public int Duty { get; set; }
     public int Level { get; set; } = 1;
     public double Exp { get; set; }
+    /// <summary>부관 선장으로 맡은 배 — 없으면 null.</summary>
+    public DockedShip? Ship { get; set; }
+    /// <summary>해전에서 다음 포격까지 남은 초.</summary>
+    public double FireIn { get; set; }
 }
 
 /// <summary>
@@ -49,7 +53,7 @@ internal sealed partial class Voyage
     public int AideCost(NamedData who) => 8000 + who.Id % 7 * 1500;
 
     /// <summary>바다에서 하루에 나가는 급여.</summary>
-    public int AidePay(Aide aide) => 30 + aide.Level * 12;
+    public int AidePay(Aide aide) => (30 + aide.Level * 12) * (aide.Ship != null ? 2 : 1);
 
     public string? AideBlocker(NamedData who)
     {
@@ -71,6 +75,7 @@ internal sealed partial class Voyage
 
     public void DismissAide(Aide aide)
     {
+        if (aide.Ship != null) { RelieveCaptain(aide); if (aide.Ship != null) return; }
         if (Aides.Remove(aide)) Say($"{aide.Who.Name}을(를) 해고했다.");
     }
 

@@ -221,6 +221,18 @@ internal sealed partial class Voyage
         return top == 0 || tops > 1 ? 7 : levels.Adventure == top ? 1 : levels.Trade == top ? 3 : 5;
     }
 
+    /// <summary>
+    /// 「항해기술」 · 「관리기술」 · 「병기기술」 — 설명 글이 셋 다 「특정 배」에만 듣는다고 한다(「특정 배에 감춰진 성능」 · 「특정 배가 소유한 장비」).
+    /// 그 「특정 배」를 선박 형식으로 풀었다(**짐작**): 항해기술 = 탐험 바탕(탐험선 · 쾌속운송선 · 고속전투함 · 범용함)의 속도 랭크마다 +1%,
+    /// 관리기술 = 운송 바탕(쾌속운송선 · 운송선 · 무장상선 · 범용함)의 물 · 식량 소모 랭크마다 −2%, 병기기술 = 전투 바탕(무장상선 · 전투함 · 고속전투함 · 범용함)의 특수장비 세기 +3%.
+    /// 스킬 규칙의 Targets 가 듣는 형식(표 89 의 번호)이다. 크기는 지은 값.
+    /// </summary>
+    public double FormBonus(string effect)
+    {
+        int form = FormOf(Ship, Work);
+        return Data.SkillRules.Where(r => r.Effect == effect && (r.Targets.Count == 0 || r.Targets.Contains(form))).Sum(r => Rank(r.SkillId) * r.PerRank);
+    }
+
     /// <summary>지금 형식 — 조합으로 바뀌었으면 그것, 아니면 본디 형식.</summary>
     public int FormOf(ShipData ship, ShipWork? work) => work is { Form: > 0 } ? work.Form : BaseForm(ship);
     public string FormName(ShipData ship, ShipWork? work = null) => FormNames[Math.Clamp(FormOf(ship, work), 1, 7)];

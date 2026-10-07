@@ -31,7 +31,12 @@ internal sealed partial class Voyage
 
     /// <summary>올라 있는 상륙지(의뢰 없이 오른 것).</summary>
     public Dho.Data.LandingData? Ashore { get; private set; }
-    private bool _ashoreLooked;
+    private int _ashoreLooked;
+
+    /// <summary>이 뭍에서 둘러볼 수 있는 횟수 — 클라이언트의 관찰 지점 수(표 106, 상륙지마다 넷 · 다섯). 자료가 없는 뭍은 한 번.</summary>
+    public int LooksLeft => Ashore is { } site ? Math.Max(1, site.ObservePoints) - _ashoreLooked : 0;
+    /// <summary>이 뭍에 채집 지점이 있는가(표 106) — 자료가 없는 뭍(지점이 하나도 안 적힌 곳)은 있는 것으로 친다.</summary>
+    public bool GatherHere => Ashore is { } site && (site.GatherKinds.Count > 0 || site.ObservePoints == 0);
 
     /// <summary>바로 곁의 상륙지 — 의뢰의 상륙지가 닿을 때는 그쪽이 먼저다.</summary>
     public Dho.Data.LandingData? LandingInReach()
@@ -47,7 +52,7 @@ internal sealed partial class Voyage
     public void GoAshore()
     {
         if (LandingInReach() is not { } site || Battle is { Result: null }) return;
-        (Ashore, _ashoreLooked, _gathered, Sail, Knots) = (site, false, 0, 0, 0);
+        (Ashore, _ashoreLooked, _gathered, Sail, Knots) = (site, 0, 0, 0, 0);
         Dialog = Dialog.Ashore;
         Say($"{site.Name}에 상륙했다.");
     }
@@ -62,8 +67,8 @@ internal sealed partial class Voyage
 
     public void LookAround()
     {
-        if (Dialog != Dialog.Ashore || _ashoreLooked) return;
-        _ashoreLooked = true;
+        if (Dialog != Dialog.Ashore || LooksLeft <= 0) return;
+        _ashoreLooked++;
         TrainEffect("Observe", 10);
         TrainEffect("March", 6);
         if (!_lockForTest && _random.NextDouble() < 0.5 * (1 - March)) { StartLandBattle(-1); return; }
@@ -81,6 +86,7 @@ internal sealed partial class Voyage
                 if (_random.NextDouble() >= 0.3 + Bonus("Lockpick")) { Say(Text(3143, "자물쇠 열기에 실패했습니다…….")); GainExp(0, 10); return; }
                 found *= 5;
                 Say(Text(3142, "자물쇠 여는 방법을 알아냈습니다!"));
+                FindWreckPiece("궤 안에서");
             }
             Money += found;
             GainExp(0, 20);
@@ -102,7 +108,7 @@ internal sealed partial class Voyage
     public const int GatherTimes = 3;
 
     /// <summary>「채집」 스킬이 있는가 — 상륙 창에 단추가 선다.</summary>
-    public bool CanGather => Has("Gather");
+    public bool CanGather => Has("Gather") && GatherHere;
     public int GatherLeft => GatherTimes - _gathered;
 
     /// <summary>

@@ -22,7 +22,7 @@ internal sealed partial class Voyage
     private Dictionary<int, List<CityData>>? _sources;
 
     public int CargoCount => Cargo.Values.Sum(c => c.Count);
-    public int HoldFree => Stats.Hold - CargoCount;
+    public int HoldFree => TotalHold - CargoCount;
 
     public GoodData? Good(int id)
     {
@@ -87,7 +87,7 @@ internal sealed partial class Voyage
         get
         {
             FreshHaggle();
-            return Mode != Mode.Port ? "항구에서만 한다" : !Has("Haggle") ? "회계 스킬이 없다" : _haggleShut ? "주인이 더는 흥정에 응하지 않는다"
+            return Mode != Mode.Port ? "항구에서만 한다" : !Has("Haggle") ? "회계 스킬이 없다" : !Speaks(City) ? "말이 통하지 않는다" : _haggleShut ? "주인이 더는 흥정에 응하지 않는다"
                 : _haggled >= HaggleCap - 1e-9 ? "더는 깎을 수 없다" : Vigour < HaggleVigour ? $"행동력이 모자란다 ({Vigour:0}/{HaggleVigour})" : null;
         }
     }
@@ -114,7 +114,7 @@ internal sealed partial class Voyage
         }
     }
 
-    private double Haggle => Math.Min(Settings.Trade.MaxHaggle, Haggled + AideHaggle);
+    private double Haggle => Mode == Mode.Port && !Speaks(City) ? 0 : Math.Min(Settings.Trade.MaxHaggle, Haggled + AideHaggle);      // 말이 안 통하면 흥정이 없다
 
     /// <summary>회계: 인근 도시의 시세 — 가까운 차례로 (도시, 거리, 그 품목의 시세 %, 거기서 팔 때의 값, 거기서도 파는가). 랭크가 높을수록 먼 도시까지 보인다.</summary>
     public List<(CityData City, double Distance, int Percent, int Price, bool Sells)> NearbyMarkets(GoodData good)
@@ -131,13 +131,14 @@ internal sealed partial class Voyage
         return found.OrderBy(f => f.Item2).ToList();
     }
 
-    public int BuyPrice(GoodData good) => Math.Max(1, (int)(BasePrice(good) * MarketIndex(good, City) * (1 - Haggle) * (1 - Math.Min(0.2, Study("BuyCut"))) * (1 + TaxRate)));
+    public int BuyPrice(GoodData good) => Math.Max(1, (int)(BasePrice(good) * MarketIndex(good, City) * (1 - Haggle) * (1 - Math.Min(0.2, Study("BuyCut"))) * (1 + TaxRate) * NewsPrice(City)));
 
     /// <summary>
-    /// 관세 — 교역품을 살 때 값에 붙는다. 클라이언트에는 「관세 증가 · 감소」라는 말(화면 글 9542 · 9543)만 있고 세율은 없다.
+    /// 관세 — 교역품을 살 때 값에 붙고, 팔 때 값에서 떼인다(클라이언트 표 50 의 글: 「교역품 구입，매각 시의 관세」). 클라이언트에는 「관세 증가 · 감소」라는 말(화면 글 9542 · 9543)만 있고 세율은 없다.
     /// 지은 값: 남의 나라 항구 10%, 제 나라 항구(본거지 · 영지 · 동맹항) 5%에서 작위 한 단계마다 1%p 씩 깎여 0%까지. 소속 없는 도시는 5%.
     /// </summary>
-    public double TaxRate => Data.Settings.ModNoTax ? 0 : City.Nation == 0 ? 0.05 : NationId != 0 && City.Nation == NationId ? Math.Max(0, 0.05 - Title * 0.01) : 0.10;
+    public double TaxRate => TaxAt(City);
+    private double TaxAt(CityData city) => Data.Settings.ModNoTax ? 0 : Math.Max(0, (city.Nation == 0 ? 0.05 : NationId != 0 && city.Nation == NationId ? Math.Max(0, 0.05 - Title * 0.01) : 0.10) + NewsTax(city));
 
     /// <summary>여기서 팔 때의 단가 — 산지에서 멀수록, 지방이 다를수록 비싸다.</summary>
     public int SellPrice(GoodData good) => SellPrice(good, City);
@@ -145,7 +146,7 @@ internal sealed partial class Voyage
     private int SellPrice(GoodData good, CityData city)
     {
         var rules = Settings.Trade;
-        double price = BasePrice(good) * MarketIndex(good, city) * (1 + Haggle);
+        double price = BasePrice(good) * MarketIndex(good, city) * (1 + Haggle) * (1 - TaxAt(city)) * NewsPrice(city);      // 팔 때도 관세가 떼인다
         if (Sells(city, good.Id)) return Math.Max(1, (int)(price * rules.HomeSellRate));
 
         _sources ??= BuildSources();

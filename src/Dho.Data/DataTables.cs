@@ -68,8 +68,14 @@ public sealed class DataTables
     public List<TavernDish> TavernMenu { get; }
     /// <summary>상륙지 번호 → 세계지도 표식의 자리(세계 좌표, 뭍 위일 수 있다).</summary>
     public IReadOnlyDictionary<int, (int X, int Y)> LandingSpots { get; }
+    /// <summary>뭍 탐색 지점(표 106): 상륙지마다 관찰 지점의 수와 채집 지점의 갈래(1 ~ 5, 갈래마다 셋).</summary>
+    public IReadOnlyDictionary<int, (int Observe, List<int> Gather)> LandPoints { get; }
     public List<(int Zone, int Kind, int Target, int X, int Y)> ZoneMarks { get; }
     public List<(int Id, string Name, string Description)> Honors { get; }
+    /// <summary>문화권 이름(표 1, 32줄) — 도시 표의 Culture 가 이 번호다: 1 북유럽 · 4 브리튼 섬 · 6 이베리아 · 11 북아프리카 …</summary>
+    public List<(int Id, string Name)> Cultures { get; }
+    /// <summary>애완동물(표 47, 57줄): 이름 + 36바이트(실수 여럿 — 놓는 자리 · 크기로 보인다, 안 쓴다).</summary>
+    public List<(int Id, string Name)> Pets { get; }
     /// <summary>탄의 이름(표 21) — 번호는 대포 줄의 탄 갈래.</summary>
     public IReadOnlyDictionary<int, string> Ammo { get; }
     /// <summary>시내 장소 이름(표 40): 9 조선소 · 10 교역소 · 14 은행 … — 시내 지도의 표식이 이 번호를 쓴다.</summary>
@@ -170,6 +176,8 @@ public sealed class DataTables
         // 주점의 차림(표 37): id, 이름, 설명, u16 갈래(0 술 · 1 요리 · 2 음료 · 3 물담배) — 244줄을 끝까지 읽어 표의 끝과 맞는다
         // 호칭(표 35): id, 이름, 설명 — 92줄을 끝까지 읽어 표의 끝과 맞는다
         Honors = Rows(Table(35), (r, id) => (id, r.Text(id), r.Text(id)));
+        Cultures = Rows(Table(1), (r, id) => (id, r.Text(id)));
+        Pets = Rows(Table(47), (r, id) => { string name = r.Text(id); r.Skip(36); return (id, name); });
         TavernMenu = Rows(Table(37), (r, id) => new TavernDish(id, r.Text(id), r.Text(id), r.UInt16()));
         // 세계지도의 표식(표 103): u32 id, u8 갈래(3 상륙지 · 4 해역 이름 · 7 · 8 · 9 ?), u16 대상 번호, u16 x, u16 y, 그 뒤 4바이트 0 — 15바이트 고정.
         // 자리는 640 × 320 짜리 세계지도 그림 위의 것이다: 세계 좌표 x ≈ (x × 25.6 + 8270) mod 16384, y = y × 25.6 (손으로 찍어 둔 상륙지 27곳과 맞춰 본 것)
@@ -188,6 +196,18 @@ public sealed class DataTables
         }
         catch (Exception) { }
         LandingSpots = spots;
+        // 뭍 탐색 지점(표 106): u32 번호, u16 상륙지 id, u8 갈래(0 관찰 · 1 채집), u32 참조(채집이면 1 ~ 5), u16 x, u16 y — 15바이트 고정
+        var landPoints = new Dictionary<int, (int Observe, List<int> Gather)>();
+        var pointTable = Table(106);
+        for (int at = 4, left = BitConverter.ToInt32(pointTable, 0); left > 0 && at + 15 <= pointTable.Length; at += 15, left--)
+        {
+            int site = BitConverter.ToUInt16(pointTable, at + 4), kind = pointTable[at + 6], about = BitConverter.ToInt32(pointTable, at + 7);
+            var entry = landPoints.GetValueOrDefault(site, (0, new List<int>()));
+            if (kind == 0) entry.Item1++;
+            else if (!entry.Item2.Contains(about)) entry.Item2.Add(about);
+            landPoints[site] = entry;
+        }
+        LandPoints = landPoints;
         // 해역 지도의 표식(표 102): u32 id, u8 해역 번호, u8 갈래(1 도시 · 3 상륙지 · 6 ?), u16 대상 번호, u16 x, u16 y, 4바이트 0 — 16바이트 고정.
         // 자리는 그 해역의 지도 그림(200 칸 안팎) 위의 것이라 세계지도 표식보다 여덟 배쯤 촘촘하다. 해역마다 배율이 달라 그 해역의 도시들로 맞춰야 한다
         var zoneMarks = new List<(int Zone, int Kind, int Target, int X, int Y)>();

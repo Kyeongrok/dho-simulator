@@ -114,7 +114,8 @@ internal sealed partial class Voyage
             {
                 // 해적이 이쪽을 처음 알아볼 때 한 번 정한다 — 열에 넷만 덤빈다(나머지는 제 길을 간다). 지은 값: 다 덤비면 포 없는 배는 바다를 못 다닌다
                 ship.Seen = true;
-                if (_random.NextDouble() >= 0.4 * (1 - Math.Min(0.8, Bonus("Watch")))) ship.Fooled = true;      // 「경계」 스킬이 기습당할 확률을 낮춘다(스킬 설명 그대로, 랭크마다 4%는 지은 값)
+                if (_random.NextDouble() >= 0.4 * (1 - Math.Min(0.8, Bonus("Watch")))) ship.Fooled = true;
+                else if (PetWards(ship)) ship.Fooled = true;      // 「경계」 스킬이 기습당할 확률을 낮춘다(스킬 설명 그대로, 랭크마다 4%는 지은 값)
             }
             if (ship.Monster > 0 && !ship.Hunting && !Data.Settings.ModNoPirates && far < 7)
             {
@@ -521,6 +522,8 @@ internal sealed partial class Voyage
         battle.FoeReload = Math.Max(0, battle.FoeReload - dt);
         double far = Distance(foe);
 
+        AideShipsFire(battle, dt);
+        if (Battle != battle || battle.Result != null) return;
         // 원군의 포격
         if (battle.AidLeft > 0 && (battle.AidIn -= dt) <= 0)
         {
@@ -709,7 +712,7 @@ internal sealed partial class Voyage
         {
             bool rake = Raking(Heading, bearing);
             // 적은 한쪽 옆구리의 포만 쏜다 — 포문 수의 절반
-            double hit = Salvo((int)(foe.Guns / 2 * Math.Clamp(foe.Crew / Math.Max(1, foe.MaxCrew * 0.4), 0.3, 1)), Stats.Armor) * (rake ? 1.5 : 1) * (1 - Math.Min(0.6, Option("ShotArmor") + Bonus("ShotArmor") + HonorEffect("ShotArmor"))) * 0.5, dead = hit * 0.04;      // 적의 포격은 절반으로 친다(지은 값 — 그대로면 서너 번에 가라앉는다)
+            double hit = Salvo((int)(foe.Guns / 2 * Math.Clamp(foe.Crew / Math.Max(1, foe.MaxCrew * 0.4), 0.3, 1)), Stats.Armor) * (rake ? 1.5 : 1) * (1 - Math.Min(0.6, Option("ShotArmor") + Bonus("ShotArmor") + HonorEffect("ShotArmor") + (PrayerOn(3) ? 0.1 : 0))) * 0.5, dead = hit * 0.04;      // 적의 포격은 절반으로 친다(지은 값 — 그대로면 서너 번에 가라앉는다)
             Durability -= hit;
             Crew -= dead;
             battle.FoeReload = FoeReloadSeconds;
@@ -770,7 +773,7 @@ internal sealed partial class Voyage
         Studied("SeaWin");
         if (foe.Durability > 0) { Studied("WipeWin"); if (battle.Boarding) Studied("MeleeWin"); }
         if (foe.Kind == 2) { Studied("NavyWin"); NavyWins++; }
-        else if (foe.Kind is 1 or 3) { PirateWins++; if (foe.Kind == 1) Atone(3); }
+        else if (foe.Kind is 1 or 3) { PirateWins++; if (foe.Kind == 1) { Atone(3); if (_random.NextDouble() < 0.3) FindWreckPiece("해적선에서"); } }
         (foe.Durability, foe.Sinking, foe.Knots, foe.Hunting) = (0, 0, 0, false);
         GainExp(2, exp, fame);
         Cues.Enqueue("Done");

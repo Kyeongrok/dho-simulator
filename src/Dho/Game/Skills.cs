@@ -7,6 +7,8 @@ internal sealed class SkillState
 {
     public int Rank { get; set; } = 1;
     public double Exp { get; set; }
+    /// <summary>연성한 스킬 — 랭크 +2, 다음 랭크까지의 숙련도가 8할.</summary>
+    public bool Refined { get; set; }
 }
 
 /// <summary>
@@ -18,7 +20,7 @@ internal sealed partial class Voyage
     public Dictionary<int, SkillState> Skills { get; } = new();
 
     /// <summary>랭크 — 내 직업의 전문 스킬이면 +1 이 붙는다(익힌 것만).</summary>
-    public int Rank(int skillId) => Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) + BoostRank(skillId, state.Rank) + GearRank(skillId) : 0;
+    public int Rank(int skillId) => Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) + BoostRank(skillId, state.Rank) + GearRank(skillId) + (state.Refined ? RefineBoost : 0) : 0;
 
     /// <summary>우대 스킬(노란 별) — 내 직업이 우대하는 스킬. 조건 없이 배운다.</summary>
     public bool IsFavored(int skillId) =>
@@ -60,7 +62,7 @@ internal sealed partial class Voyage
     {
         if (Data.JobFacts.Find(f => f.Name == JobName) is { } job)
             return job.Skills.Select(name => Data.Skills.Find(s => s.Name == name)).OfType<SkillData>().ToList();
-        return Data.Skills.Where(s => s.Group == Teacher && Data.SkillRules.Exists(r => r.SkillId == s.Id)).ToList();
+        return Data.Skills.Where(s => (s.Group == Teacher || (s.Group == 3 && Teacher == 0)) && Data.SkillRules.Exists(r => r.SkillId == s.Id)).ToList();      // 언어(갈래 3)는 모험가조합이 가르친다(지은 것)
     }
 
     public bool CanLearn(SkillData skill) => Teacher >= 0 && SkillsTaught().Contains(skill);
@@ -105,9 +107,9 @@ internal sealed partial class Voyage
         // 숙련도가 오르면 기록에 알린다. 항해 중에 조금씩 오르는 것은 모아서 20 마다 한 번
         double gained = _gained[skillId] = _gained.GetValueOrDefault(skillId) + exp;
         bool ranked = false;
-        while (state.Rank < Settings.MaxSkillRank && state.Exp >= ExpToNext(state.Rank))
+        while (state.Rank < Settings.MaxSkillRank && state.Exp >= ExpNeed(state))
         {
-            state.Exp -= ExpToNext(state.Rank);
+            state.Exp -= ExpNeed(state);
             state.Rank++;
             ranked = true;
         }
@@ -116,7 +118,7 @@ internal sealed partial class Voyage
             _gained.Remove(skillId);
             Say(state.Rank >= Settings.MaxSkillRank
                 ? $"{SkillName(skillId)} 숙련도 +{gained:0}"
-                : $"{SkillName(skillId)} 숙련도 +{gained:0} ({state.Exp:0}/{ExpToNext(state.Rank)})");
+                : $"{SkillName(skillId)} 숙련도 +{gained:0} ({state.Exp:0}/{ExpNeed(state)})");
         }
         if (ranked) { Say($"{SkillName(skillId)} 스킬이 랭크 {state.Rank}(이)가 되었다!"); Cues.Enqueue("SkillUp"); }
     }
@@ -138,8 +140,12 @@ internal sealed partial class Voyage
         if (Quest == null || QuestDiscovery is not { } found || Quest.Rank <= 0) return null;
         var lacking = new List<string>();
         foreach (string effect in (string[])["Find", "Appraise"])
-            if (DiscoveryRule(effect, found.Kind) is { } rule && Rank(rule.SkillId) < Quest.Rank)
-                lacking.Add($"{SkillName(rule.SkillId)} 랭크 {Quest.Rank}");
+        {
+            // 일본 위키(Discovery 쪽)의 규칙: 의뢰에서 학문(감정) 스킬은 필요 랭크가 꼭 차야 하고, 인식 · 탐색 · 생태 조사는 두 랭크 모자라도 된다
+            int need = effect == "Find" ? Math.Max(1, (Quest.FindRank > 0 ? Quest.FindRank : Quest.Rank) - 2) : Quest.Rank;
+            if (DiscoveryRule(effect, found.Kind) is { } rule && Rank(rule.SkillId) < need)
+                lacking.Add($"{SkillName(rule.SkillId)} 랭크 {need}");
+        }
         return lacking.Count == 0 ? null : string.Join(", ", lacking);
     }
 

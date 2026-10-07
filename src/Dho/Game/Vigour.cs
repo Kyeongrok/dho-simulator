@@ -22,7 +22,7 @@ internal sealed partial class Voyage
     {
         "Speed" or "Turn" => 8,
         "Survey" => 5,
-        "Procure" or "Fish" => 15,
+        "Procure" or "Fish" or "Gather" => 15,
         "Repair" => 20,
         "Rest" => 25,
         "Haggle" => 10,

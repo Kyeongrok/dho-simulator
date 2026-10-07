@@ -502,6 +502,8 @@ internal sealed class GameWindow : IDisposable
                 if (_voyage.Dialog != Dialog.None) break;
                 if (Walking) { if (KeeperNear() is { } keeper) _voyage.Visit(keeper.Mark); break; }
                 if (_voyage.SiteInReach()) _voyage.Land();
+                else if (_voyage.SeaSiteInReach() && _voyage.PortInReach() == null) _voyage.SearchAtSea();
+                else if (_voyage.WreckInReach && _voyage.PortInReach() == null) _voyage.Salvage();
                 else if (_voyage.PortInReach() == null && _voyage.LandingInReach() != null) _voyage.GoAshore();
                 else _voyage.EnterPort();
                 break;
@@ -1014,11 +1016,55 @@ internal sealed class GameWindow : IDisposable
         if (clip.W > 1) _hud.ShipLabels.Add(((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight, monster.Name, 1));
     }
 
+    // 부관 선장의 배가 있는 자리와 뱃머리 — 그릴 때마다 내 배 뒤의 제자리로 조금씩 따라온다
+    private readonly Dictionary<Aide, (double X, double Y, double Heading)> _aideWake = new();
+    private double _aideClock;
+
+    /// <summary>부관 선장의 배들 — 내 배 뒤 왼쪽 · 오른쪽에 붙어 따라온다(원본의 「따라가기 표시」). 자리는 그리는 쪽에서만 센다 — 규칙에는 안 쓰인다.</summary>
+    private void DrawAideShips(float sway)
+    {
+        double dt = Math.Clamp(_voyage.Clock - _aideClock, 0, 0.2);
+        _aideClock = _voyage.Clock;
+        int place = 0;
+        foreach (var aide in _voyage.Aides)
+        {
+            if (aide.Ship is not { } ship) { _aideWake.Remove(aide); continue; }
+            // 제자리: 뱃머리 반대로 1.6, 옆으로 0.9(첫 배는 왼쪽, 둘째는 오른쪽)
+            double back = 1.6 + place / 2 * 1.2, side = (place % 2 == 0 ? -0.9 : 0.9);
+            double h = _voyage.Heading;
+            double tx = _voyage.ShipX - Math.Sin(h) * back + Math.Cos(h) * side, ty = _voyage.ShipY + Math.Cos(h) * back + Math.Sin(h) * side;
+            place++;
+            if (!_aideWake.TryGetValue(aide, out var at) || Math.Abs(WorldMap.DeltaX(at.X, tx)) + Math.Abs(ty - at.Y) > 12) at = (tx, ty, h);
+            double dx = WorldMap.DeltaX(at.X, tx), dy = ty - at.Y, far = Math.Sqrt(dx * dx + dy * dy);
+            if (far > 0.02)
+            {
+                double step = Math.Min(1, dt * 1.5);
+                // 뱃머리는 가는 쪽으로 천천히 돈다 — 거의 다 왔으면 내 배의 뱃머리에 맞춘다
+                double want = far > 0.25 ? Math.Atan2(dx, -dy) : h, turn = Math.IEEERemainder(want - at.Heading, Math.Tau);
+                at = (WorldMap.WrapX(at.X + dx * step), at.Y + dy * step, at.Heading + turn * Math.Min(1, dt * 2.5));
+            }
+            _aideWake[aide] = at;
+            if (!_seaModels.TryGetValue(ship.Ship.Model, out var model))
+            {
+                try { model = new ShipModel(_gfx, ship.Ship.Model); } catch (Exception) { continue; }
+                _seaModels[ship.Ship.Model] = model;
+            }
+            float x = (float)(WorldMap.DeltaX(_voyage.ShipX, at.X) * Terrain.Unit), z = (float)((at.Y - _voyage.ShipY) * Terrain.Unit);
+            model.Furl = _voyage.Sail > 0 ? 1 : 0.3f;
+            model.SetFlag(_voyage.NationId);
+            model.Draw(_scene, Matrix4x4.CreateRotationY(MathF.PI - (float)at.Heading) * Matrix4x4.CreateTranslation(x, sway * 40f, z));
+            var clip = Vector4.Transform(new Vector4(x, model.Radius * 1.3f, z, 1), _viewProjection);
+            if (clip.W > 1)
+                _hud.ShipLabels.Add(((clip.X / clip.W * 0.5f + 0.5f) * _gfx.Width / UiScale, (0.5f - clip.Y / clip.W * 0.5f) * _gfx.Height / UiScale - Hud.TitleHeight, $"{aide.Who.Name}(부관 선장)", 2));
+        }
+    }
+
     /// <summary>바다의 다른 배들 — 제 자리 · 제 뱃머리로 그리고, 화면에서의 자리에 이름표를 단다.</summary>
     private void DrawSeaShips(float sway)
     {
         _hud.ShipLabels.Clear();
-        if (_voyage.Mode != Mode.Sea) return;
+        if (_voyage.Mode != Mode.Sea) { _aideWake.Clear(); return; }
+        DrawAideShips(sway);
         foreach (var other in _voyage.SeaShips)
         {
             if (other.Monster > 0) { DrawSeaMonster(other); continue; }
@@ -1466,6 +1512,11 @@ internal sealed class GameWindow : IDisposable
             case "guild": _voyage.Dialog = Dialog.Guild; break;
             case "offer": _voyage.Offered = _voyage.QuestsHere().ElementAtOrDefault((int)Number()); break;
             case "accept": _voyage.AcceptQuest(); break;
+            case "tosite": if (_voyage.Quest is { SeaX: > 0 } afloat) _voyage.Teleport(afloat.SeaX, afloat.SeaY); else if (_voyage.QuestLanding is { X: not 0 } goal) _voyage.Teleport(goal.X, goal.Y); break;      // 받은 의뢰의 상륙지 앞바다로
+            case "land": _voyage.Land(); break;
+            case "seasearch": _voyage.SearchAtSea(); break;
+            case "citysearch": _voyage.SearchInCity(); break;
+            case "seaquest": _voyage.Offered = _voyage.MadeQuests.Find(q => q.SeaZone > 0 && q.CityId == _voyage.City.Id); _voyage.Say(_voyage.Offered is { } sq ? $"(개발) 바다 의뢰 「{sq.Title}」 해역 {sq.SeaZone} 랭크 {sq.Rank}" : $"(개발) 이 도시에는 바다 의뢰가 없다 — 바다 의뢰 {_voyage.MadeQuests.Count(q => q.SeaZone > 0)}건, 내는 도시 {_voyage.MadeQuests.Where(q => q.SeaZone > 0).Select(q => q.CityId).Distinct().Count()}곳"); break;
             case "report": _voyage.Report(); break;
             case "close": _voyage.Dialog = Dialog.None; break;
             case "sail": _voyage.ChangeSail((int)Number()); break;
@@ -1484,7 +1535,11 @@ internal sealed class GameWindow : IDisposable
             case "wizard": _hud.Fill(argument); break;
             case "create": _hud.Finish(); break;
             case "aides": _voyage.Dialog = Dialog.Aides; break;
+            case "captain": _voyage.CaptainForTest(); break;
+            case "refine": _voyage.Refine((int)Number()); break;
+            case "offerlang": _voyage.Offered = _voyage.MadeQuests.Find(q => q.Languages.Count > 0 && q.CityId == _voyage.City.Id); break;
             case "day": _voyage.PassDay(); break;
+            case "seaday": for (int n = Math.Max(1, (int)Number()); n > 0; n--) _voyage.SkipSeaDayForTest(); break;
             case "mastery": _voyage.AddMastery((int)Number()); break;
             case "jobs": _voyage.Dialog = Dialog.Jobs; break;
             case "combine": if (_voyage.Dock.Count >= 2) _voyage.Combine(_voyage.Dock[0], _voyage.Dock[1]); break;
@@ -1607,6 +1662,11 @@ internal sealed class GameWindow : IDisposable
             case "drawwater": _voyage.DrawWater(); break;
             case "lookaround": _voyage.LookAround(); break;
             case "gather": _voyage.Gather(); break;
+            case "rationnote": _voyage.RationNoteForTest(); break;
+            case "wreckpiece": _voyage.WreckPieceForTest(); break;
+            case "wreckhere": _voyage.WreckHereForTest(); break;
+            case "salvage": _voyage.Salvage(); break;
+            case "tow": _voyage.TowForTest(); break;
             case "lockchest": _voyage.LockForTest(); break;
             case "ashore": if (_voyage.Data.Landings.Find(l => l.X != 0 || l.Y != 0) is { } shore) { _voyage.Teleport(shore.X, shore.Y); _voyage.GoAshore(); } break;      // 자리를 아는 첫 상륙지에 오른다
             case "permits": _voyage.Data.Settings.ModNoPermits = Number() == 0; break;
@@ -1620,6 +1680,35 @@ internal sealed class GameWindow : IDisposable
             case "retreat": _voyage.Retreat(); break;
             case "flee": _voyage.Flee(); break;
             case "modwindow": _hud.OpenMod(); break;
+            case "library": _voyage.Dialog = Dialog.Library; break;
+            case "giveitem": _voyage.AddItem((int)Number(), 5); break;
+            case "ordersheet": if (_voyage.GoodsHere().ElementAtOrDefault((int)Number()) is { } restock) _voyage.UseOrderSheet(restock); break;
+            case "transkit": _voyage.TransmuteKitForTest(); break;
+            case "transmute": { bool books = Number() != 0; if (_voyage.Parts.Find(p => p.Slot == 1) is { } plate) _voyage.Transmute(plate, books, books); break; }
+            case "forge": _voyage.Dialog = Dialog.Forge; break;
+            case "foundlist": _voyage.Dialog = Dialog.FoundList; break;
+            case "found": _voyage.FoundForTest((int)Number()); break;
+            case "geodump":
+                File.WriteAllLines(argument, _voyage.MadeQuests.Where(q => q.SeaZone > 0).Select(q => $"{_voyage.Data.Discoveries.Find(d => d.Id == q.DiscoveryId)?.Name}\t{_voyage.Data.Seas.Find(s => s.Id == q.SeaZone)?.Name}\t{_voyage.CityName(q.CityId)}\t랭크 {q.Rank}"));
+                break;
+            case "madequests":
+                {
+                    var all = _voyage.MadeQuests;
+                    _voyage.Say($"(개발) 진짜 의뢰 {all.Count(q => q.Id >= Voyage.RealQuestBase)}건(바다 {all.Count(q => q.Id >= Voyage.RealQuestBase && q.SeaX > 0)} · 상륙지 {all.Count(q => q.Id >= Voyage.RealQuestBase && q.LandingId > 0)} · 도시 {all.Count(q => q.SearchCity > 0)}), 발견물 {all.Where(q => q.Id >= Voyage.RealQuestBase).Select(q => q.DiscoveryId).Distinct().Count()}가지"); _voyage.Say($"(개발) 지어낸 의뢰 {all.Count(q => q.Id < Voyage.RealQuestBase)}건 — 내는 도시 {all.Select(q => q.CityId).Distinct().Count()}곳, 상륙지 {all.Select(q => q.LandingId).Distinct().Count()}곳. 이 도시 {all.Count(q => q.CityId == _voyage.City.Id)}건, 찾은 발견물 {_voyage.Found.Count}");
+                    foreach (var here in _voyage.QuestsHere().Take(8)) _voyage.Say($"  {here.Id} 「{here.Title}」 랭크 {here.Rank} 보수 {here.Reward:N0} → {_voyage.Data.Discoveries.Find(d => d.Id == here.DiscoveryId)?.Name}");
+                    break;
+                }
+            case "readon": if (_voyage.Books().ElementAtOrDefault((int)Number()) is { } tome) _voyage.ReadOn(tome); break;
+            case "insure": _voyage.NextInsurance(); break;
+            case "bank": _voyage.Dialog = Dialog.Bank; break;
+            case "buypet": _voyage.BuyPet(); break;
+            case "pet": _voyage.PetForTest((int)Number()); break;
+            case "tavern": _voyage.Dialog = Dialog.Tavern; break;
+            case "news": { var two = argument.Split(','); _voyage.NewsForTest(int.Parse(two[0]), int.Parse(two[1])); break; }
+            case "books5": _voyage.Data.Settings.ModBooksTimes5 = Number() != 0; break;      // 파일에는 안 적는다
+            case "pray": _voyage.PrayForTest((int)Number()); break;
+            case "place": { bool went = _voyage.EnterPlace((int)Number()); _voyage.Say($"(개발) 장소 {argument}: {(went ? $"{_voyage.InteriorName} 안 — 주인 {_voyage.InteriorHost}, 여는 창 {_voyage.InteriorDialog}" : "들어갈 방이 없다")}"); break; }
+            case "readbook": if (_voyage.Books().ElementAtOrDefault((int)Number()) is { } book) _voyage.ReadBook(book); break;
             case "mine": _voyage.LayMine(); break;
             case "aid": _voyage.CallAid(); break;
             case "foemine": _voyage.FoeMineForTest(); break;

@@ -32,6 +32,12 @@ internal sealed partial class Voyage
     public double Durability { get; private set; }
     public double Crew { get; private set; }
     public double Water { get; private set; }
+    /// <summary>지난 하루에 줄어든 물 · 식량의 양과 그것을 알린 때(Clock) — 화면이 몇 초 동안 보인다.</summary>
+    public (double Used, double At) RationNote { get; private set; } = (0, -100);
+    /// <summary>대본용: 하루치 소모 알림을 지금 띄운다.</summary>
+    public void RationNoteForTest() => RationNote = (7, Clock);
+    private double _rationToday;
+    private int _rationDay = -1;
     public double Food { get; private set; }
     public double Fatigue { get; private set; }
     public Dictionary<int, int> Supplies { get; } = new();
@@ -188,18 +194,26 @@ internal sealed partial class Voyage
     {
         double days = dt / Settings.SecondsPerDay;
         // 생존 스킬이 선원 피해를 줄인다
-        double loss = (1 - Math.Min(0.75, Bonus("CrewLoss"))) * AideCrewLoss * (1 - Math.Min(0.6, Option("CrewLoss") + Study("CrewLoss")));
+        double loss = (1 - Math.Min(0.75, Bonus("CrewLoss"))) * AideCrewLoss * (1 - Math.Min(0.6, Option("CrewLoss") + Study("CrewLoss"))) * (PrayerOn(2) ? 0.7 : 1);
         UpdateOptions(days);
         UpdateAides(days);
+        PayCrew(days);
         UpdateBuild(days);
         // 재해 표의 피해는 선원 80명·내구 400짜리 배가 기준이다. 배 크기에 맞춰 늘리고 줄인다.
         double crewScale = Stats.MaxCrew / 80.0, hullScale = Stats.Durability / 400.0;
 
         // 물과 식량
         // 운용 스킬이 물과 식량을 아낀다
-        double ration = Crew * Rules.RationPerCrewDay * days * (1 - Math.Min(0.5, Bonus("Ration"))) * AideRation;
+        double ration = Crew * Rules.RationPerCrewDay * days * (1 - Math.Min(0.5, Bonus("Ration"))) * (1 - Math.Min(0.3, FormBonus("FormKeep"))) * AideRation;
         Water = Math.Max(0, Water - ration);
         Food = Math.Max(0, Food - ration);
+        // 날이 바뀔 때마다 그날 먹고 마신 양을 화면에 잠깐 띄운다(상태 줄의 물병 · 빵 곁)
+        _rationToday += ration;
+        if ((int)Today != _rationDay)
+        {
+            if (_rationDay >= 0 && _rationToday >= 0.5) RationNote = (_rationToday, Clock);
+            (_rationDay, _rationToday) = ((int)Today, 0);
+        }
         bool starving = Water <= 0 || Food <= 0;
         if (starving && !_starvingSaid)
         {
@@ -209,7 +223,7 @@ internal sealed partial class Voyage
         if (!starving) _starvingSaid = false;
 
         double fatigueBefore = Fatigue;
-        Fatigue = Math.Min(100, Fatigue + (Rules.FatiguePerDay + (starving ? Rules.FatigueWhenStarving : 0)) * days * AideFatigue);
+        Fatigue = Math.Min(100, Fatigue + (Rules.FatiguePerDay + (starving ? Rules.FatigueWhenStarving : 0)) * days * AideFatigue * (PrayerOn(1) ? 0.7 : 1));
         if (starving)
         {
             Crew -= Crew * 0.04 * days * loss;
@@ -268,7 +282,7 @@ internal sealed partial class Voyage
         {
             if (DaysAtSea < data.MinDays || Fatigue < data.MinFatigue || (data.NearLand && !nearLand)) continue;
             if (data.NearLand && Knots < 3) continue;        // 서 있는 배는 암초에 걸리지 않는다
-            if (Roll(data.ChancePerDay * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck") + Study("Luck"))), days)) Begin(data);
+            if (Roll(data.ChancePerDay * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck") + Study("Luck"))) * (PrayerOn(0) ? 0.7 : 1), days)) Begin(data);
         }
 
         if ((Durability <= 0 || Crew < 1) && !UseLifebuoy()) Wreck();
@@ -350,10 +364,11 @@ internal sealed partial class Voyage
         // 해전에서 지면 가진 돈의 5%(5만 두캇까지)를 털린다 — 난파보다 가볍다(지은 값)
         int lost = monster ? 0 : (int)((beatenBy != null ? Math.Min(Money * 0.05, 50_000) : Money * Rules.WreckMoneyLoss) * (1 - Math.Min(1, Option("Lifeboat"))));      // 구명정이 잃는 돈을 줄인다
         Money -= lost;
+        string insured = PayInsurance(lost);
         WreckText = (Durability <= 0 ? Text(3038, "선박이 항해불능상태가 되었습니다!") : Text(3037, "선원이 전멸했습니다!")) +
                     (monster ? $"\n\n{beatenBy}에게 당해 {nearest.Name}(으)로 떠밀려 왔다."
                      : beatenBy != null ? $"\n\n{beatenBy}에게 져서 {nearest.Name}(으)로 끌려 왔다.\n{lost:N0} 두캇을 빼앗겼다."
-                                      : $"\n\n난파하여 {nearest.Name}(으)로 떠밀려 왔다.\n수습하는 데 {lost:N0} 두캇이 들었다.");
+                                      : $"\n\n난파하여 {nearest.Name}(으)로 떠밀려 왔다.\n수습하는 데 {lost:N0} 두캇이 들었다.") + insured;
 
         Durability = Math.Max(Durability, Stats.Durability * 0.3);
         Crew = Math.Max(Crew, Stats.MinCrew);

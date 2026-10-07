@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile, Library, FoundList }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -92,7 +92,7 @@ internal sealed partial class Voyage
             3 => (["해양조합"], "해양조합 마스터", Dialog.None),
             13 => (["주점"], "주점 주인", Dialog.Tavern),
             29 => (["양성학교", "학교"], "교수", Dialog.University),
-            16 => (["서고"], "학자", Dialog.None),
+            16 => (["서고"], "학자", Dialog.Library),
             201 => (["교회", "성당"], "신부", Dialog.None),
             202 => (["모스크", "교회", "성당"], "이맘", Dialog.None),
             203 => (["사원", "교회", "성당"], "승려", Dialog.None),
@@ -121,8 +121,7 @@ internal sealed partial class Voyage
             case 29: Say($"{InteriorHost}: 「항해자 양성학교다. 수업은 아직 열지 않았다 — 조합에서 의뢰를 받으며 익히게.」"); break;
             case 16: Say($"{InteriorHost}: 「지도와 기록은 여기 다 있소. 찾는 곳이 있으면 모험가조합의 의뢰부터 받아 오시오.」"); break;
             case 201 or 202 or 203:
-                if (Fatigue > 0) { Fatigue = 0; Say($"{InteriorHost}와(과) 함께 기도를 올렸다. 피로가 풀렸다."); }
-                else Say($"{InteriorHost}: 「항해가 무사하기를.」");
+                Pray(InteriorHost);
                 break;
             default: Say($"{InteriorHost}: 「먼 길 오셨소. 바다 이야기나 들려주시오.」"); break;
         }
@@ -485,6 +484,9 @@ internal sealed partial class Voyage
         int days = DaysAtSea;
         MoorAt(city);
         Say($"{city.Name}에 입항했다. (항해 {days}일)");
+        DeliverTow();
+        HearLanguage();
+        DiscoverPort(city);
         Studied("Voyage");
         if (days >= 1) GainMastery();
         if (days >= 15) Studied("LongVoyage");
@@ -496,7 +498,7 @@ internal sealed partial class Voyage
 
     /// <summary>이 도시의 조합이 내놓는 의뢰 — 아직 끝내지 않았고 지금 받아 둔 것도 아닌 것.</summary>
     public IEnumerable<QuestData> QuestsHere() =>
-        Data.Quests.Where(q => q.CityId == City.Id && !_done.Contains(q.Id) && q != Quest);
+        Data.Quests.Where(q => q.CityId == City.Id && !_done.Contains(q.Id) && q != Quest).Concat(MadeQuestsHere());
 
     public bool CanReportHere =>
         Mode == Mode.Port && Quest != null && QuestStage == QuestStage.Discovered && Quest.CityId == City.Id;
@@ -504,6 +506,7 @@ internal sealed partial class Voyage
     public void AcceptQuest()
     {
         if (Quest != null || Offered == null || Offered.CityId != City.Id) return;
+        if (AcceptBlocker(Offered) is { } tongue) { Say(tongue); Cues.Enqueue("Error"); return; }
         Quest = Offered;
         Offered = null;
         Cues.Enqueue("Quest");
@@ -512,7 +515,7 @@ internal sealed partial class Voyage
         Dialog = Dialog.None;
         Say($"의뢰 「{Quest.Title}」을(를) 받았다. 선금 {Quest.Advance:N0} 두캇.");
         Say(Quest.Hint);
-        if (QuestLanding is not { X: not 0 }) Say("※ 이 의뢰의 상륙지 자리가 아직 없다. 개발도구에서 찍어야 한다.");
+        if (Quest.SeaZone == 0 && Quest.SeaX == 0 && Quest.SearchCity == 0 && QuestLanding is not { X: not 0 }) Say("※ 이 의뢰의 상륙지 자리가 아직 없다. 개발도구에서 찍어야 한다.");
     }
 
     public bool SiteInReach()
@@ -520,6 +523,58 @@ internal sealed partial class Voyage
         if (Mode != Mode.Sea || QuestStage != QuestStage.Accepted || QuestLanding is not { X: not 0 } site) return false;
         double dx = WorldMap.DeltaX(ShipX, site.X), dy = site.Y - ShipY;
         return dx * dx + dy * dy < Settings.LandingRange * Settings.LandingRange;
+    }
+
+    /// <summary>바다에서 찾는 의뢰의 해역 안에 있는가.</summary>
+    public bool SeaSiteInReach() =>
+        Mode == Mode.Sea && QuestStage == QuestStage.Accepted && Quest is { } quest &&
+        (quest.SeaX > 0 ? QuestSeaFar < SeaSpotReach : quest.SeaZone > 0 && Zones.ZoneAt(ShipX, ShipY) == quest.SeaZone);
+
+    /// <summary>좌표가 있는 바다 의뢰의 자리에서 이만큼 안이면 살필 수 있다(세계 좌표 — 지은 값).</summary>
+    public const double SeaSpotReach = 12;
+    public double QuestSeaFar => Quest is { SeaX: > 0 } spot ? Math.Sqrt(Math.Pow(WorldMap.DeltaX(ShipX, spot.SeaX), 2) + Math.Pow(spot.SeaY - ShipY, 2)) : double.MaxValue;
+
+    /// <summary>받은 바다 의뢰의 자리까지의 방향과 거리 — 화면 왼쪽 위에 보인다.</summary>
+    public string QuestSeaNote()
+    {
+        if (QuestStage != QuestStage.Accepted || Quest is not { SeaX: > 0 } spot) return "";
+        string[] winds = ["북", "북동", "동", "남동", "남", "남서", "서", "북서"];
+        double bearing = Math.Atan2(WorldMap.DeltaX(ShipX, spot.SeaX), -(spot.SeaY - ShipY));
+        return $"의뢰 — ({spot.SeaX}, {spot.SeaY})  {winds[(int)Math.Round((bearing / Math.Tau * 8 + 8) % 8) % 8]}쪽 {QuestSeaFar:0}";
+    }
+
+    /// <summary>바다에서 둘레를 살핀다(F) — 찾는 스킬 · 감정 스킬의 랭크가 차면 발견한다. 한 번에 행동력 10(지은 값).</summary>
+    public void SearchAtSea()
+    {
+        if (!SeaSiteInReach() || Battle is { Result: null }) return;
+        if (SearchBlocker() is { } lacking) { Say($"아무것도 찾지 못했다. ({lacking} 필요)"); Cues.Enqueue("Error"); return; }
+        if (!SpendVigour(10)) { Say("행동력이 모자라다."); Cues.Enqueue("Error"); return; }
+        QuestStage = QuestStage.Discovered;
+        Dialog = Dialog.Discovery;
+        if (QuestDiscovery is not { } found) return;
+        Found.Add(found.Id);
+        Say($"{found.Name}을(를) 발견했다!");
+        Say($"모험 경험 {found.Exp}, 모험 명성 {found.Fame}을(를) 얻었다.");
+        GainExp(0, found.Exp, found.Fame);
+        TrainDiscovery(found);
+    }
+
+    /// <summary>도시 안에서 찾는 의뢰의 그 도시에 와 있는가.</summary>
+    public bool CitySiteHere => Mode == Mode.Port && QuestStage == QuestStage.Accepted && Quest is { SearchCity: > 0 } quest && quest.SearchCity == City.Id;
+
+    /// <summary>도시 안을 탐색한다 — 원본은 교회 · 서고 따위의 한 자리에서 스킬을 쓴다. 여기서는 그 도시의 항구에서 단추 하나로 한다.</summary>
+    public void SearchInCity()
+    {
+        if (!CitySiteHere) return;
+        if (SearchBlocker() is { } lacking) { Say($"아무것도 찾지 못했다. ({lacking} 필요)"); Cues.Enqueue("Error"); return; }
+        QuestStage = QuestStage.Discovered;
+        Dialog = Dialog.Discovery;
+        if (QuestDiscovery is not { } found) return;
+        Found.Add(found.Id);
+        Say($"{found.Name}을(를) 발견했다!");
+        Say($"모험 경험 {found.Exp}, 모험 명성 {found.Fame}을(를) 얻었다.");
+        GainExp(0, found.Exp, found.Fame);
+        TrainDiscovery(found);
     }
 
     public void Land()
@@ -545,6 +600,7 @@ internal sealed partial class Voyage
         Dialog = Dialog.Discovery;
         if (QuestDiscovery is { } found)
         {
+            Found.Add(found.Id);
             Say($"{found.Name}을(를) 발견했다!");
             Say($"모험 경험 {found.Exp}, 모험 명성 {found.Fame}을(를) 얻었다.");
             GainExp(0, found.Exp, found.Fame);
@@ -596,7 +652,7 @@ internal sealed partial class Voyage
 
     public double TimeScale { get; set; } = 1;
     public void SetSkyPhase(double phase) => SkyPhase = phase;
-    public void GoTo(int cityId) { if (_cities.TryGetValue(cityId, out var city)) { MoorAt(city); OrderOnArrive(); } }
+    public void GoTo(int cityId) { if (_cities.TryGetValue(cityId, out var city)) { MoorAt(city); OrderOnArrive(); DiscoverPort(city); } }
     /// <summary>내구를 0 으로 — 다음 틱에 난파한다.</summary>
     public void Sink() => Durability = 0;
 
@@ -654,6 +710,8 @@ internal sealed partial class Voyage
             double days = dt / Settings.SecondsPerDay;
             TrainEffect("Speed", 12 * days);
             if (Stats.Rowing > 0) TrainEffect("Row", 10 * days);
+            if (FormBonus("FormSail") > 0) TrainEffect("FormSail", 6 * days);
+            if (FormBonus("FormKeep") > 0) TrainEffect("FormKeep", 6 * days);
             TrainEffect("Survey", 8 * days);
             if (Math.Abs(turn) > 0.05) TrainEffect("Turn", 30 * days);
         }
@@ -665,7 +723,7 @@ internal sealed partial class Voyage
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
         // 급하게 돌면 그만큼 속도가 죽는다
         double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
-                        * (1 + Bonus("Speed")) * (1 + RowBoost) * PartSpeed * AideSpeed * (1 + Option("Speed")) * (1 + BoostSpeed) * (1 + Study("Speed"));
+                        * (1 + Bonus("Speed")) * (1 + RowBoost) * (1 + Math.Min(0.2, FormBonus("FormSail"))) * TowSpeed * PartSpeed * AideSpeed * (1 + Option("Speed")) * (1 + BoostSpeed) * (1 + Study("Speed"));
         Knots += (target - Knots) * Math.Min(1, dt * 0.8);
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;
