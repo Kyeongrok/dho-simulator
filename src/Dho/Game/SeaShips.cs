@@ -117,14 +117,14 @@ internal sealed partial class Voyage
                 if (_random.NextDouble() >= 0.4 * (1 - Math.Min(0.8, Bonus("Watch")))) ship.Fooled = true;
                 else if (PetWards(ship)) ship.Fooled = true;      // 「경계」 스킬이 기습당할 확률을 낮춘다(스킬 설명 그대로, 랭크마다 4%는 지은 값)
             }
-            if (ship.Monster > 0 && !ship.Hunting && !Data.Settings.ModNoPirates && far < 7)
+            if (ship.Monster > 0 && !ship.Hunting && !NoRaids && far < 7)
             {
                 ship.Hunting = true;
                 // 원본의 알림 글(화면 글 3065 · 3067)
                 Say(ship.Monster == 2 ? Text(3065, "크라켄이 나타났습니다!") : Text(3067, "식인상어가 나타났습니다."));
                 Cues.Enqueue("Alarm");
             }
-            if (ship.Kind == 1 && !ship.Hunting && !ship.Fooled && !Data.Settings.ModNoPirates && far < 9 && Strength(ship) >= MyStrength * 0.6)
+            if (ship.Kind == 1 && !ship.Hunting && !ship.Fooled && !NoRaids && far < 9 && Strength(ship) >= MyStrength * 0.6)
             {
                 ship.Hunting = true;
                 // 원본의 알림 글(화면 글 20013) — 뱃머리를 12시로 본 시계 방향
@@ -133,7 +133,7 @@ internal sealed partial class Voyage
                 Cues.Enqueue("Alarm");
             }
             // 적대도가 높은 나라의 군함은 이쪽을 보면 덤벼든다(원본 글 20014 는 싸움이 붙을 때 나온다)
-            if (ship.Kind == 2 && !ship.Hunting && far < 9 && Hostile(ship.NationId))
+            if (ship.Kind == 2 && !ship.Hunting && !(DelegateSpecial && DelegateTo != null) && far < 9 && Hostile(ship.NationId))
             {
                 ship.Hunting = true;
                 Say($"{Data.Nations.Find(n => n.Id == ship.NationId)?.Name} 군함 「{ship.Name}」이(가) 이쪽을 알아보고 쫓아온다! (적대도 {Hostility.GetValueOrDefault(ship.NationId)})");
@@ -246,7 +246,7 @@ internal sealed partial class Voyage
             double draw = _random.NextDouble();
             // 해적섬(나소 · 홀로 · 포트 로얄) 가까이에서는 나타나는 배의 열에 일곱이 해적이다(지은 값)
             bool den = Data.Cities.Exists(c => c.Kind == 3 && Math.Abs(WorldMap.DeltaX(ShipX, c.SeaX)) < 120 && Math.Abs(c.SeaY - ShipY) < 120);
-            int kind = wanted >= 0 ? wanted : den ? (draw < 0.2 ? 0 : draw < 0.95 ? 1 : 3) : draw < 0.6 ? 0 : draw < 0.8 ? 1 : draw < 0.96 ? 2 : 3;      // 크라켄은 스물다섯에 하나
+            int kind = wanted >= 0 ? wanted : den ? (draw < 0.2 ? 0 : draw < 0.997 ? 1 : 3) : draw < 0.6 ? 0 : draw < 0.8 ? 1 : draw < 0.997 ? 2 : 3;      // 크라켄은 삼백여 척에 하나(지은 값 — 원본의 비율은 못 찾았다. 스물다섯에 하나는 너무 잦았다)
             if (kind >= 3)
             {
                 // 바다 괴물: 상어 떼(선원을 물어 간다)와 크라켄(배를 조른다). 원본에 「상어 격퇴」 · 「크라켄 격퇴」 스킬이 있어 이 둘이 바다에 나온다는 것은 안다 —

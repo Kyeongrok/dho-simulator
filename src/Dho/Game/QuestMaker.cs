@@ -112,8 +112,10 @@ internal sealed partial class Voyage
             // 자리: 바다의 좌표 / 자리를 아는 상륙지 / 도시 안. 그 밖(못 읽은 것 · 자리를 모르는 상륙지)은 건너뛴다
             var site = real.Place == 2 ? sites.Find(l => l.Id == real.LandingId) : null;
             var town = real.Place == 3 ? ports.Find(c => c.Id == real.TownId) : null;
-            if (!(real.Place == 1 && real.X > 0 && real.Y > 0) && site == null && town == null) continue;
-            string where = site?.Name ?? town?.Name ?? (_seas.TryGetValue(Zones.ZoneAt(real.X, real.Y), out var seaAt) ? seaAt : "먼 바다");
+            // 자리 4: 그 해역 안 어디서나(「○○海域 視認」) — 항구가 있는 해역이 아니어도 된다
+            int zoneId = real.Place == 4 && Data.Seas.Exists(s => s.Id == real.SeaZone) ? real.SeaZone : 0;
+            if (!(real.Place == 1 && real.X > 0 && real.Y > 0) && site == null && town == null && zoneId == 0) continue;
+            string where = site?.Name ?? town?.Name ?? (zoneId > 0 ? Data.Seas.Find(s => s.Id == zoneId)!.Name : _seas.TryGetValue(Zones.ZoneAt(real.X, real.Y), out var seaAt) ? seaAt : "먼 바다");
             // 학문(감정) 스킬의 랭크와 찾는 스킬의 랭크 — 언어 · 자물쇠 따기는 안 본다
             int study = real.Skills.Where(s => s.Name is not ("視認" or "探索" or "生態調査" or "開錠") && !s.Name.EndsWith('語')).Select(s => s.Rank).DefaultIfEmpty(Math.Max(1, real.Difficulty)).Max();
             int look = real.Skills.Where(s => s.Name is "視認" or "探索" or "生態調査").Select(s => s.Rank).DefaultIfEmpty(0).Max();
@@ -125,12 +127,13 @@ internal sealed partial class Voyage
                 made.Add(new QuestData
                 {
                     Id = RealQuestBase + n * 32 + k, Title = $"{where}의 {kindName}", Client = "모험가 조합", CityId = giverCity.Id, DiscoveryId = real.DiscoveryId,
-                    SeaX = site == null && town == null ? real.X : 0, SeaY = site == null && town == null ? real.Y : 0,
-                    LandingId = site?.Id ?? 0, SearchCity = town?.Id ?? 0, Languages = tongues, Rank = Math.Clamp(study, 1, most), FindRank = look,
+                    SeaX = site == null && town == null && zoneId == 0 ? real.X : 0, SeaY = site == null && town == null && zoneId == 0 ? real.Y : 0, SeaZone = zoneId,
+                    LandingId = site?.Id ?? 0, SearchCity = town?.Id ?? 0, Languages = tongues, NightOnly = real.Night, Rank = Math.Clamp(study, 1, most), FindRank = look,
                     Request = site != null ? $"{where}에 눈여겨볼 {kindName}이(가) 있다는 이야기가 들어와 있네. 가서 확인하고 돌아와 주게."
                             : town != null ? $"{where}에 있는 {kindName}에 관한 의뢰가 들어와 있네. 그 도시에 가서 찾아봐 주게."
+                            : zoneId > 0 ? $"{where}에서 볼 수 있다는 {kindName}에 관한 의뢰가 들어와 있네. 그 바다에 나가 살펴 주게."
                             : $"{where} ({real.X}, {real.Y}) 부근을 조사해 달라는 의뢰가 들어와 있네. 가서 확인하고 돌아와 주게.",
-                    Hint = site != null ? $"{where}에 상륙해 주변을 탐색한다." : town != null ? $"{where}에 입항해 「의뢰 탐색」을 한다." : $"{where} ({real.X}, {real.Y}) 부근에서 둘레를 살핀다(F).",
+                    Hint = site != null ? $"{where}에 상륙해 주변을 탐색한다." : town != null ? $"{where}에 입항해 「의뢰 탐색」을 한다." : zoneId > 0 ? $"{where}에 나가 둘레를 살핀다(F)." + (real.Night ? " 밤에, 날씨가 거칠지 않을 때만 보인다." : "") : $"{where} ({real.X}, {real.Y}) 부근에서 둘레를 살핀다(F).",
                     LandingText = site != null ? $"{where}에 올랐다.\n소문으로 듣던 자리를 찾아 둘레를 살핀다." : "",
                     Advance = real.Advance, Reward = pay,
                 });

@@ -11,7 +11,8 @@ internal sealed partial class Voyage
     /// <summary>수리에 쓰는 자재(보급품 「수리용 통」).</summary>
     private const int RepairSupply = 2;
 
-    private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest", "Speed", "Turn", "Gather"];
+    // 눌러 쓰는 스킬 — 뒤의 셋(재해 풀기 · 찾기 · 구조)은 원본에서도 눌러 쓰는 스킬이라 스킬 사용 창(F2)과 퀵슬롯에 선다(사용자, 2026-10-07)
+    private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest", "Speed", "Turn", "Gather", "Cure", "Find", "Rescue"];
 
     /// <summary>
     /// 켜 두는 스킬 — 돛 조종 · 조타 · 낚시 · 조달. 원본처럼 켜면 한동안 켜져 있다가 꺼지고(화면 오른쪽 가운데에 그림이 뜬다),
@@ -25,6 +26,12 @@ internal sealed partial class Voyage
     private static readonly string[] Fishes = ["고등어", "정어리", "전갱이", "청어", "대구", "도미", "청상아리", "가다랑어"];
 
     public bool SkillOn(int skillId) => _skillOn.ContainsKey(skillId);
+
+    /// <summary>켜 둔 스킬을 끈다(Ctrl+클릭).</summary>
+    public void StopSkill(int skillId)
+    {
+        if (_skillOn.Remove(skillId)) Say($"{SkillName(skillId)} 스킬을 껐다.");
+    }
 
     /// <summary>켜져 있는 스킬과 남은 시간의 몫(0 ~ 1) — 켠 차례대로.</summary>
     public List<(SkillRuleData Rule, double Left)> SkillsOn() =>
@@ -72,12 +79,7 @@ internal sealed partial class Voyage
         int rank = Rank(rule.SkillId);
         if (rule.Effect == "Fish")
         {
-            // 배가 빠르면 낚싯줄을 드리우기 어렵다
-            double food = Math.Min(Rules.MaxFood - Food, Math.Round((1 + _random.NextDouble() * 2 + rank * rule.PerRank) * (Knots > 8 ? 0.5 : 1)));
-            if (food < 1) { Say("아무것도 낚지 못했다."); return; }
-            Food += food;
-            Say($"{Fishes[_random.Next(Fishes.Length)]}을(를) 낚아 올렸다. (식량 {food:0})");
-            Train(rule.SkillId, 20);
+            CatchFish(rule, "");
         }
         else
         {
@@ -90,6 +92,48 @@ internal sealed partial class Voyage
             Train(rule.SkillId, rain ? 25 : 8);
         }
     }
+    /// <summary>
+    /// 낚시 한 번 — 낚은 물고기는 식량이 아니라 **선창의 교역품**(물고기 갈래, 번호 1601000 ~)으로 실린다(사용자, 2026-10-07 — 원본도 그렇다).
+    /// 무엇이 낚이는가(이름 여덟 가지 가운데 아무거나)와 마릿수(1 ~ 3 + 랭크 몫, 배가 빠르면 반)는 지은 값이다.
+    /// </summary>
+    private void CatchFish(SkillRuleData rule, string lead)
+    {
+        // 배가 빠르면 낚싯줄을 드리우기 어렵다
+        int count = (int)Math.Round((1 + _random.NextDouble() * 2 + Rank(rule.SkillId) * rule.PerRank) * (Knots > 8 ? 0.5 : 1));
+        count = Math.Min(count, HoldFree);
+        string fish = Fishes[_random.Next(Fishes.Length)];
+        var good = Data.Goods.Find(g => g.Name == fish && g.Id is >= 1_601_000 and < 1_602_000) ?? Data.Goods.Find(g => g.Id is >= 1_601_000 and < 1_602_000);
+        if (HoldFree <= 0) { Say($"{lead}선창이 가득 차 낚은 것을 실을 수 없다."); return; }
+        if (count < 1 || good == null) { Say($"{lead}아무것도 낚지 못했다."); return; }
+        GiveGood(good, count);              // 「○○ N개를 실었다」는 글은 그쪽이 낸다
+        Train(rule.SkillId, 20);
+    }
+
+    // ── 전용: 선창의 교역품을 물 · 식량 · 자재로 돌린다 ──
+    // 무엇이 무엇으로 몇이 되는가는 이용자 사이트(gvdb 아이템 설명의 「食料への転用量：3」 · 「水への転用量：1」)의 값(data\extracted\conversions.json).
+    // 거기 없는 물고기(낚은 것)는 한 마리가 식량 1 — 지은 값. 탄약 · 포탄으로의 전용은 이 게임에 그 물자가 없어 뺐다.
+    public static readonly string[] ConvertNames = ["물", "식량", "자재"];
+
+    /// <summary>그 교역품이 돌아가는 물자(0 물 · 1 식량 · 2 자재)와 하나에 얻는 양 — 못 돌리면 null.</summary>
+    public (int Kind, int Each)? ConvertOf(GoodData good) =>
+        Data.Conversions.TryGetValue(good.Id, out var to) && to.Length >= 2 && to[0] is >= 0 and <= 2 ? (to[0], to[1])
+        : good.Id is >= 1_601_000 and < 1_602_000 ? (1, 1) : null;
+
+    /// <summary>실은 것을 모두(들어가는 만큼) 물자로 돌린다.</summary>
+    public void ConvertGood(GoodData good)
+    {
+        if (ConvertOf(good) is not { } to || !Cargo.TryGetValue(good.Id, out var item) || item.Count <= 0) return;
+        double room = to.Kind switch { 0 => Rules.MaxWater - Water, 1 => Rules.MaxFood - Food, _ => 9999 };
+        int count = (int)Math.Min(item.Count, Math.Ceiling(room / to.Each));
+        if (count <= 0) { Say($"{ConvertNames[to.Kind]}이(가) 가득 차 있다."); Cues.Enqueue("Error"); return; }
+        double gain = Math.Min(room, count * to.Each);
+        item.Cost -= item.Cost * count / item.Count;
+        if ((item.Count -= count) <= 0) Cargo.Remove(good.Id);
+        if (to.Kind == 0) Water += gain; else if (to.Kind == 1) Food += gain; else Supplies[RepairSupply] = SupplyCount(RepairSupply) + (int)gain;
+        Cues.Enqueue("Buy");
+        Say($"{good.Name} {count}개를 {ConvertNames[to.Kind]} {gain:0}(으)로 돌렸다.");
+    }
+
     private readonly Dictionary<int, double> _skillReady = new();
 
     /// <summary>익힌 스킬 가운데 바다에서 눌러 쓰는 것.</summary>
@@ -109,18 +153,21 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Sea) return "바다에서만 쓴다";
         if (Sustained.Contains(rule.Effect))
-            return SkillOn(rule.SkillId) ? null : _skillOn.Count >= MaxSkillsOn ? $"스킬은 {MaxSkillsOn}개까지 켠다"
+            return !SkillOn(rule.SkillId) && _skillOn.Count >= MaxSkillsOn ? $"스킬은 {MaxSkillsOn}개까지 켠다"
                 : Vigour < VigourCost(rule) ? $"행동력이 모자란다 ({Vigour:0}/{VigourCost(rule)})" : null;
         if (SkillWait(rule) > 0) return $"{SkillWait(rule):0}초 뒤";
         if (Vigour < VigourCost(rule)) return $"행동력이 모자란다 ({Vigour:0}/{VigourCost(rule)})";
         return rule.Effect switch
         {
             "Procure" when Water >= Rules.MaxWater => "물통이 가득하다",
-            "Fish" when Food >= Rules.MaxFood => "식량 창고가 가득하다",
+            "Fish" when HoldFree <= 0 => "선창이 가득하다",
             "Repair" when Durability >= Stats.Durability => "고칠 데가 없다",
             "Repair" when SupplyCount(RepairSupply) <= 0 => "수리용 통이 없다",
             "Rest" when Food < 5 => "식량이 모자란다",
             "Rest" when Fatigue <= 0 => "선원들이 지치지 않았다",
+            "Cure" when !Disasters.Exists(d => rule.Targets.Contains(d.Data.Id)) => "풀 재해가 없다",
+            "Find" when !SeaSiteInReach() => "찾을 것이 가까이 없다",
+            "Rescue" => "해전에서 이기면 저절로 듣는다",
             _ => null,
         };
     }
@@ -137,15 +184,27 @@ internal sealed partial class Voyage
         string name = SkillName(rule.SkillId);
         if (Sustained.Contains(rule.Effect))
         {
-            // 켜 두는 스킬: 다시 누르면 끈다
-            if (_skillOn.Remove(rule.SkillId)) { Say($"{name} 스킬을 껐다."); return; }
-            _skillOn[rule.SkillId] = (Clock + OnSeconds * BoostExtend, Clock + TickSeconds);
+            // 켜 두는 스킬: 켜져 있을 때 다시 쓰면 끄는 것이 아니라 새로 쓴다 — 남은 시간이 처음부터 다시 흐른다(사용자, 2026-10-07 — 원본이 그렇다)
+            bool again = _skillOn.TryGetValue(rule.SkillId, out var running);
+            _skillOn[rule.SkillId] = (Clock + OnSeconds * BoostExtend, again ? running.Next : Clock + TickSeconds);
             SpendVigour(VigourCost(rule));
             Fatigue = Math.Min(100, Fatigue + 1);
             Say($"{name} 스킬을 사용했다.");
             Cues.Enqueue(rule.Effect == "Speed" ? "Sail" : "Skill");
             return;
         }
+        // 재해 풀기(구제 따위)와 찾기(인식 · 탐색 · 생태 조사)는 제 길이 따로 있다 — 그쪽이 행동력과 숙련을 셈한다
+        if (rule.Effect == "Cure")
+        {
+            if (Disasters.Find(d => rule.Targets.Contains(d.Data.Id)) is not { } trouble) return;
+            _skillReady[rule.SkillId] = Clock + 5;
+            SpendVigour(VigourCost(rule));
+            Cues.Enqueue("Skill");
+            Say($"{name} 스킬을 사용했다.");
+            CureWithSkill(trouble);
+            return;
+        }
+        if (rule.Effect == "Find") { Cues.Enqueue("Skill"); SearchAtSea(); return; }
         _skillReady[rule.SkillId] = Clock + Pause(rule);
         SpendVigour(VigourCost(rule));
         Cues.Enqueue("Skill");
@@ -175,13 +234,8 @@ internal sealed partial class Voyage
                 Train(rule.SkillId, rain ? 25 : 8);
                 break;
             case "Fish":
-                // 배가 빠르면 낚싯줄을 드리우기 어렵다
-                double catchRate = Knots > 8 ? 0.5 : 1;
-                double food = Math.Min(Rules.MaxFood - Food, Math.Round((1 + _random.NextDouble() * 2 + rank * rule.PerRank) * catchRate));
-                Food += food;
                 Fatigue = Math.Min(100, Fatigue + 2);
-                Say(food >= 1 ? $"{name}: 물고기를 낚았다. (식량 {food:0})" : $"{name}: 아무것도 낚지 못했다.");
-                Train(rule.SkillId, 20);
+                CatchFish(rule, $"{name}: ");
                 break;
             case "Repair":
                 Supplies[RepairSupply] = SupplyCount(RepairSupply) - 1;

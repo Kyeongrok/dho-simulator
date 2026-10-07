@@ -78,9 +78,11 @@ def main():
     ja_landing = names(11, gvo.LANG_JA)
     city_by_len = sorted((n for n in ja_city if len(n) >= 2), key=len, reverse=True)
     landing_by_len = sorted((n for n in ja_landing if len(n) >= 3), key=len, reverse=True)
+    ja_sea = names(8, gvo.LANG_JA)
+    sea_by_len = sorted((n for n in ja_sea if len(n) >= 3), key=len, reverse=True)
     paid = rewards()
     raw = open(os.path.join(ROOT, "gvdb", "quests.csv"), "rb").read().decode("cp932", "replace")
-    quests, lost, places = [], 0, [0, 0, 0, 0]
+    quests, lost, places = [], 0, [0, 0, 0, 0, 0]
     for r in list(csv.reader(io.StringIO(raw), delimiter="\t"))[1:]:
         if len(r) < 11 or r[4] != "冒険クエスト" or not r[8]:
             continue
@@ -91,7 +93,7 @@ def main():
         lines = [line for line in steps.split("\n") if re.match(r"\s*\d+[\.．]", line)]
         last = lines[-1] if lines else steps.split("\n")[0] if steps else ""
         spot = re.search(r"(\d{3,5})\s*[\.,，、]\s*(\d{3,5})", steps)
-        x = y = landing = town = 0
+        x = y = landing = town = zone = 0
         place = 0
         if spot:
             place, x, y = 1, int(spot.group(1)), int(spot.group(2))
@@ -107,6 +109,21 @@ def main():
                         place, x, y = 1, sea_of[town][0], sea_of[town][1]
                     else:
                         place = 3
+        if place == 0:
+            # 마지막 줄에서 못 읽은 것: 「○○海域 視認 ※海域内ならどこでも発見可」는 해역(자리 4), 그 밖에는 차례를 거슬러 올라가며 상륙지 · 도시를 찾는다
+            for line in reversed(lines or steps.split("\n")):
+                sea = next((n for n in sea_by_len if n in line), None)
+                if sea and re.search(r"海域|視認|洋上|沖", line):
+                    place, zone = 4, ja_sea[sea]
+                    break
+                hit = next((n for n in landing_by_len if n in line), None)
+                if hit:
+                    place, landing = 2, ja_landing[hit]
+                    break
+                hit = next((n for n in city_by_len if n in line), None)
+                if hit:
+                    place, town = 3, ja_city[hit]
+                    break
         places[place] += 1
         skills = re.findall(r"([^\s,()（）]+?)\((\d+)\)", r[6])
         reward, advance = paid.get(r[1], (0, 0))
@@ -114,10 +131,11 @@ def main():
             "Id": int(r[0]), "Title": r[1], "Kind": r[7], "DiscoveryId": discoveries[r[8]], "Discovery": r[8],
             "Difficulty": int(r[2] or 0), "Cities": [ja_city[t] for t in r[5].split(",") if t in ja_city],
             "Skills": [{"Name": s, "Rank": int(k)} for s, k in skills],
-            "Reward": reward, "Advance": advance, "Place": place, "X": x, "Y": y, "LandingId": landing, "TownId": town,
+            "Reward": reward, "Advance": advance, "Place": place, "X": x, "Y": y, "LandingId": landing, "TownId": town, "SeaZone": zone,
+            "Night": bool(re.search(r"荒天以外の夜|夜のみ|夜間のみ|夜\(曇り可\)|夜（曇り可）", steps)),
             "Item": r[9], "Steps": steps,
         })
-    print(len(quests), "건(발견물을 못 이은 것", lost, ") — 자리: 못 읽음", places[0], "· 바다", places[1], "· 상륙지", places[2], "· 도시", places[3], "· 보수를 아는 것", sum(1 for q in quests if q["Reward"]))
+    print(len(quests), "건(발견물을 못 이은 것", lost, ") — 자리: 못 읽음", places[0], "· 바다", places[1], "· 상륙지", places[2], "· 도시", places[3], "· 해역", places[4], "· 보수를 아는 것", sum(1 for q in quests if q["Reward"]))
     kinds = {}
     for q in quests:
         kinds[q["Kind"]] = kinds.get(q["Kind"], 0) + 1

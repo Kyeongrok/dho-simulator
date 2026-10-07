@@ -132,6 +132,21 @@ internal sealed class SceneRenderer : IDisposable
             float point_ = smoothstep(0.12, 0.0, length(offset)) * step(0.965, star) * twinkle;
             color += point_ * Night * saturate(dir.y * 4.0 + 0.2);
 
+            // moon at night: a small pale disc opposite the sun, a little past half (gibbous), with faint mottling
+            float3 moonDir = normalize(float3(0.35, 0.22, -0.90));      // a fixed spot in the northern sky, low enough to sit in the usual view (about 15 degrees up)
+            float3 mx = normalize(cross(float3(0, 1, 0), moonDir));
+            float3 my = cross(moonDir, mx);
+            float2 mp = float2(dot(dir, mx), dot(dir, my)) / 0.017;
+            if (dot(dir, moonDir) > 0.0 && length(mp) < 1.3)
+            {
+                float disc = smoothstep(1.0, 0.92, length(mp));
+                float shade = smoothstep(0.95, 1.05, length(mp - float2(1.35, 0.55)));      // the dark side eats one edge
+                float mottle = 0.82 + 0.18 * Noise(mp * 2.5 + 3.0);
+                float lit = disc * shade;
+                color = lerp(color, float3(0.92, 0.90, 0.80) * mottle, lit * Night);
+                color += float3(0.25, 0.27, 0.32) * smoothstep(1.3, 0.9, length(mp)) * (1.0 - lit) * Night * 0.25;
+            }
+
             if (dir.y > 0.02)
             {
                 float2 uv = dir.xz / (dir.y + 0.15) * 1.4 + Time * 0.004;
@@ -323,6 +338,7 @@ internal sealed class SceneRenderer : IDisposable
     // 곱해 그리기 / 다시 불투명으로 — 돛의 주름처럼 이미 그린 것 위에 그림을 곱할 때
     public void Multiply() => _gfx.Multiply();
     public void Opaque() => _gfx.Opaque();
+    public void Translucent() => _gfx.Translucent();
 
     public void Draw(Mesh mesh, in Matrix4x4 world, Vector4? tint = null, ID3D11ShaderResourceView? texture = null, bool baked = false, bool soft = false, bool figure = false, bool cloth = false, bool emblem = false, bool multiply = false)
     {

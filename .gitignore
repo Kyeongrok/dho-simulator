@@ -24,6 +24,9 @@ data/extracted/*
 !data/extracted/recipe-inputs.json
 !data/extracted/recipe-books.json
 !data/extracted/market-facts.json
+!data/extracted/gear-boosts-gvdb.json
+!data/extracted/specialties.json
+!data/extracted/conversions.json
 
 # Python
 __pycache__/
@@ -33,3 +36,6 @@ data/save.json
 
 # 브라우저 자동화가 남기는 화면 기록
 .playwright-mcp/
+
+# 이용자가 만든 내비게이션 지도 그림(남의 것 — 올리지 않는다)
+data/navmaps/

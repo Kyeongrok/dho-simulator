@@ -368,6 +368,7 @@ internal sealed partial class Voyage
             string before = JobName;
             JobId = job.Id;
             Say($"{ItemName(item)}을(를) 썼다. {before}에서 {job.Name}(으)로 전직했다!");
+            Cues.Enqueue("JobChange");          // 효과음 0:9(사용자, 2026-10-07)
         }
         else if (BoosterOf(item) is { } booster)
         {

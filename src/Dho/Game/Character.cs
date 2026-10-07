@@ -115,10 +115,13 @@ internal sealed partial class Voyage
         Save();
     }
 
-    /// <summary>항구에 있을 때만 적는다 — 바다에서 끄면 마지막 항구로 돌아간다.</summary>
+    /// <summary>
+    /// 항구에서도 바다에서도 적는다 — 바다에서는 자리 · 뱃머리 · 항해 일수를 함께 적어 그 자리에서 이어 한다(사용자, 2026-10-07).
+    /// 벌어지던 싸움 · 재해 · 둘레의 배는 적지 않는다(불러오면 잔잔한 바다에 닻을 내린 채다). 뭍에 올라 있을 때는 안 적는다.
+    /// </summary>
     public void Save()
     {
-        if (_developer || _scratch || !Created || Mode != Mode.Port) return;
+        if (_developer || _scratch || !Created || Mode is not (Mode.Port or Mode.Sea)) return;
         Data.WriteSave(new SaveData
         {
             Name = PlayerName, Male = Male, NationId = NationId, JobId = JobId, Money = Money,
@@ -146,11 +149,11 @@ internal sealed partial class Voyage
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
+            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
-            Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp, a.Ship == null ? 0 : AllMoored.IndexOf(a.Ship) + 1 }).ToList(),
+            Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp, a.Ship == null ? 0 : AllMoored.IndexOf(a.Ship) + 1, a.Trust }).ToList(),
             Dock = AllMoored.Select(d => new double[] { d.Ship.Id, d.Durability, d.Material, d.Load }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
             QuestId = Quest?.Id ?? 0, QuestStage = (int)QuestStage,
         });
@@ -182,7 +185,8 @@ internal sealed partial class Voyage
         foreach (var (id, count) in save.Items)
         {
             // 옛 색깔별 돛 도료의 번호(9100002 ~ 8)는 이제 돛 도료 2 ~ 8 이다
-            int item = id;
+            // 쥐를 잡는 아이템을 「쥐의 먹이」(1500032 — 원본은 백병전용)로 잘못 팔았다. 그때 산 것은 「쥐약」(1500020)으로 읽는다
+            int item = id == 1500032 ? 1500020 : id;
             Items[item] = Items.GetValueOrDefault(item) + count;
         }
         foreach (var docked in save.Dock)
@@ -200,7 +204,7 @@ internal sealed partial class Voyage
         foreach (var moored in Dock) moored.Durability = Math.Min(moored.Durability, StatsOf(moored).Durability);
         foreach (var saved in save.Aides)
             if (saved.Length >= 4 && Data.Aides.Find(a => a.Id == (int)saved[0]) is { } who)
-                Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3], Ship = saved.Length >= 5 ? Dock.ElementAtOrDefault((int)saved[4] - 1) : null });
+                Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3], Ship = saved.Length >= 5 ? Dock.ElementAtOrDefault((int)saved[4] - 1) : null, Trust = saved.Length >= 6 ? saved[5] : 0 });
         Dock.RemoveAll(d => Aides.Any(a => a.Ship == d));       // 부관 선장의 배는 부두에서 빠져 있다
         Savings = Math.Max(0, save.Bank);
         if (save.SailLook.Length == 2) (SailPattern, SailTint) = (save.SailLook[0], save.SailLook[1]);
@@ -220,6 +224,7 @@ internal sealed partial class Voyage
         (PetId, PetLove) = save.Pet is { Count: 2 } pet ? (pet[0], pet[1]) : (0, 0);
         Found.Clear();
         foreach (int id in save.Found ?? []) Found.Add(id);
+        _delegateSaved = save.DelegateCity;      // 길은 바다의 첫 틱에 다시 찾는다
         // 전에 보고한 의뢰의 발견물도 기록에 넣는다(이 기록이 생기기 전의 저장)
         foreach (int questId in save.DoneQuests) if (QuestById(questId) is { } old) Found.Add(old.DiscoveryId);
         Insurance = Math.Clamp(save.Insurance, 0, Insurances.Length - 1);
@@ -264,5 +269,12 @@ internal sealed partial class Voyage
         Quest = QuestById(save.QuestId);
         QuestStage = Quest == null ? QuestStage.None : (QuestStage)save.QuestStage;
         Enter();
+        // 바다 위에서 적은 저장이면 그 자리로 — 닻을 내린 채(돛 0)
+        if (save.AtSea is { Length: >= 4 } sea && !Map.IsLand(sea[0], sea[1]))
+        {
+            Depart();
+            (ShipX, ShipY, Heading, TargetHeading, SecondsAtSea, Sail) = (WorldMap.WrapX(sea[0]), sea[1], sea[2], sea[2], sea[3], 0);
+            Say($"{SeaName} — 바다 위에서 이어 한다. (항해 {DaysAtSea}일째, 닻을 내리고 있다)");
+        }
     }
 }

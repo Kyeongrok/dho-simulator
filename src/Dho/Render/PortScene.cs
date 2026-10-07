@@ -89,6 +89,7 @@ internal sealed class PortScene : IDisposable
     // 바다에서 멀리 보는 도시 — 네모난 땅바닥의 가장자리를 투명하게 풀어 바다 · 뭍에 스미게 한다
     private readonly bool _fadeGround;
     private readonly HashSet<MeshBuilder> _ground = [];
+    private readonly HashSet<Mesh> _groundMeshes = [];      // 바닥 조각 — 먼바다에서 도시를 키워 그릴 때는 뺀다
 
     /// <param name="solid">정점색의 알파를 무시한다 — 방 장면은 벽의 알파가 0 이라 그대로면 벽이 안 그려진다.</param>
     public PortScene(Gfx gfx, int sceneNumber, TownGrid? grid = null, bool solid = false, bool fadeGround = false)
@@ -158,6 +159,7 @@ internal sealed class PortScene : IDisposable
             }
             if (view != null) _textures.Add(view);
             _parts.Add((builder.Build(gfx), view, soft));
+            if (_ground.Contains(builder)) _groundMeshes.Add(_parts[^1].Item1);
         }
         _builders.Clear();
     }
@@ -307,14 +309,14 @@ internal sealed class PortScene : IDisposable
         }
     }
 
-    public void Draw(SceneRenderer scene, in Matrix4x4 world)
+    public void Draw(SceneRenderer scene, in Matrix4x4 world, bool skipGround = false)
     {
         foreach (var (mesh, texture, soft) in _parts)
-            if (!soft) scene.Draw(mesh, world, null, texture, baked: true);
+            if (!soft && !(skipGround && _groundMeshes.Contains(mesh))) scene.Draw(mesh, world, null, texture, baked: true);
         if (!_parts.Exists(p => p.Soft)) return;
         _gfx.Translucent();
         foreach (var (mesh, texture, soft) in _parts)
-            if (soft) scene.Draw(mesh, world, null, texture, baked: true, soft: true);
+            if (soft && !(skipGround && _groundMeshes.Contains(mesh))) scene.Draw(mesh, world, null, texture, baked: true, soft: true);
         _gfx.Opaque();
     }
 

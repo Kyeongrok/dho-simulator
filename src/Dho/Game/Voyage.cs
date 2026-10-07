@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile, Library, FoundList }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile, Library, FoundList, Delegate, Chart, Nav }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -254,6 +254,7 @@ internal sealed partial class Voyage
     /// <summary>시설 앞에 서 있는 사람의 이름(없는 시설이면 null) — 표 98 의 NPC 갈래 이름을 따른다.</summary>
     public static string? KeeperName(int place) => place switch
     {
+        4 or 5 => "항구관리",              // 도시마다 항구 앞에 선다(사용자, 2026-10-07) — 말을 걸면 부두로(출항 · 보급)
         9 or 30 => "조선소 주인",
         14 or 21 or 22 or 25 => "은행원",
         12 => "대장장이",
@@ -548,6 +549,12 @@ internal sealed partial class Voyage
     {
         if (!SeaSiteInReach() || Battle is { Result: null }) return;
         if (SearchBlocker() is { } lacking) { Say($"아무것도 찾지 못했다. ({lacking} 필요)"); Cues.Enqueue("Error"); return; }
+        // 별 따위는 밤에만, 날씨가 거칠지 않을 때만 보인다(원본의 「荒天以外の夜」 — 흐린 것은 괜찮다)
+        if (Quest is { NightOnly: true })
+        {
+            if (!IsNight) { Say("아직 밝아서 보이지 않는다 — 밤을 기다린다."); Cues.Enqueue("Error"); return; }
+            if (Weather == Weather.Storm) { Say("날씨가 거칠어 하늘이 보이지 않는다."); Cues.Enqueue("Error"); return; }
+        }
         if (!SpendVigour(10)) { Say("행동력이 모자라다."); Cues.Enqueue("Error"); return; }
         QuestStage = QuestStage.Discovered;
         Dialog = Dialog.Discovery;
@@ -641,6 +648,7 @@ internal sealed partial class Voyage
     /// <summary>그쪽으로 뱃머리를 돌린다(바다를 눌렀을 때) — 눈에 띄게 꺾으면 선회 소리가 난다(잇달아 눌러도 띄엄띄엄).</summary>
     public void SteerTo(double heading)
     {
+        CancelDelegate("뱃머리를 돌렸다");
         double before = TargetHeading;
         TargetHeading = Normalize(heading);
         if (Mode != Mode.Sea || Math.Abs(Normalize(TargetHeading - before + Math.PI) - Math.PI) < 0.15 || Clock - _turnCued < 1.2) return;
@@ -652,6 +660,9 @@ internal sealed partial class Voyage
 
     public double TimeScale { get; set; } = 1;
     public void SetSkyPhase(double phase) => SkyPhase = phase;
+
+    /// <summary>밤인가 — 하늘의 때(0.5 가 한낮)로 본다: 해가 수평선 아래에 있는 동안.</summary>
+    public bool IsNight => SkyPhase < 0.23 || SkyPhase > 0.77;
     public void GoTo(int cityId) { if (_cities.TryGetValue(cityId, out var city)) { MoorAt(city); OrderOnArrive(); DiscoverPort(city); } }
     /// <summary>내구를 0 으로 — 다음 틱에 난파한다.</summary>
     public void Sink() => Durability = 0;
@@ -671,6 +682,7 @@ internal sealed partial class Voyage
         SkyPhase = (SkyPhase + dt / Settings.SecondsPerSkyCycle) % 1;
 
         // 바람과 해류는 클라이언트 자료에 없다. 해역마다 지어 둔 값(sea-climates.json)을 따라 천천히 바뀐다.
+if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();      // 교역 창이 닫혔으면(Esc 따위) 걸어 둔 발주서를 푼다
         UpdateClimate(dt);
         RestoreVigour(dt / Settings.SecondsPerDay);
         ExpireBoosts();
@@ -693,6 +705,7 @@ internal sealed partial class Voyage
         if (Mode != Mode.Sea) return;            // 난파해서 항구로 떠밀려 갔다
         TickSkills();
 
+        UpdateDelegate(dt, steer);
         if (steer != 0) TargetHeading = Normalize(Heading + steer * 0.6);
         // 선회 — 키를 꺾는다고 바로 돌지 않는다. 도는 빠르기가 서서히 붙고 서서히 죽는다(큰 배일수록 굼뜨다).
         // 가장 빠른 빠르기는 배의 선회 성능에 비례하고(선회 12 인 배가 초당 14°쯤, 반 바퀴에 13초 남짓),
@@ -718,12 +731,12 @@ internal sealed partial class Voyage
 
         // 돛이 받는 바람: 뒤바람·옆바람에서 빠르고 맞바람에서 느리다
         double off = Math.Cos(Heading - WindDirection);             // 1 = 순풍
-        double windFactor = 0.35 + 0.65 * Math.Clamp(0.55 + 0.6 * off - 0.15 * off * off, 0, 1);
+        double windFactor = WindFactor(off);
         // 선원이 모자라거나 재해가 있으면 느려진다
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
         // 급하게 돌면 그만큼 속도가 죽는다
         double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
-                        * (1 + Bonus("Speed")) * (1 + RowBoost) * (1 + Math.Min(0.2, FormBonus("FormSail"))) * TowSpeed * PartSpeed * AideSpeed * (1 + Option("Speed")) * (1 + BoostSpeed) * (1 + Study("Speed"));
+                        * (1 + Bonus("Speed")) * (1 + RowBoost) * (1 + Math.Min(0.2, FormBonus("FormSail"))) * TowSpeed * DelegateBoost * PartSpeed * AideSpeed * (1 + Option("Speed")) * (1 + BoostSpeed) * (1 + Study("Speed"));
         Knots += (target - Knots) * Math.Min(1, dt * 0.8);
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;
@@ -744,6 +757,22 @@ internal sealed partial class Voyage
         }
         UpdateSeaShips(dt);
     }
+
+    /// <summary>
+    /// 돛이 받는 바람(0.3 ~ 1) — 가로돛은 뒤바람에 세고 맞바람에 약하다, 세로돛은 옆바람에 가장 세고 맞바람에도 버틴다.
+    /// 배의 가로돛 · 세로돛 성능(원본의 값)의 몫대로 섞는다. 「순풍에는 가로돛, 역풍에는 세로돛」이라는 틀은 원본의 것이고 곡선의 값은 지은 것이다:
+    /// 가로돛 — 순풍 1.0 · 옆바람 0.65 · 맞바람 0.30, 세로돛 — 순풍 0.85 · 옆바람 1.0 · 맞바람 0.50.
+    /// </summary>
+    public double WindFactor(double off)
+    {
+        double square = 0.30 + 0.70 * Math.Clamp(0.5 + 0.5 * off, 0, 1);
+        double lateen = off >= 0 ? 1.0 - 0.15 * off : 1.0 + 0.5 * off;
+        double v = Math.Max(0, Stats.VerticalSail), h = Math.Max(0, Stats.HorizontalSail);
+        return v + h <= 0 ? 0.35 + 0.65 * Math.Clamp(0.55 + 0.6 * off - 0.15 * off * off, 0, 1) : (square * h + lateen * v) / (v + h);
+    }
+
+    /// <summary>지금 뱃머리에서 돛이 받는 바람(%) — 화면의 바람 줄에 보인다.</summary>
+    public int WindShare => (int)Math.Round(WindFactor(Math.Cos(Heading - WindDirection)) * 100);
 
     private bool Blocked(double x, double y)
     {

@@ -105,6 +105,5 @@
   {"RecipeId":18,"Name":"깃털 얻는 법(닭)","Output":1600303,"OutputCount":2,"Inputs":"1600032:1","Skill":"봉제 1"},
   {"RecipeId":28,"Name":"모직원단 제조법(양모)","Output":1600454,"OutputCount":2,"Inputs":"1600314:2","Skill":"봉제 3"},
   {"RecipeId":38,"Name":"니트 제조법","Output":1600463,"OutputCount":2,"Inputs":"1600314:2","Skill":"봉제 4"},
-  {"RecipeId":31,"Name":"비단원단 제조법","Output":1600453,"OutputCount":2,"Inputs":"1600306:2","Skill":"봉제 8"},
-  {"RecipeId":495,"Name":"자수실 제조","Output":1600662,"OutputCount":2,"Inputs":"1600306:1","Skill":"봉제 6","Consumes":"1500052"}
+  {"RecipeId":31,"Name":"비단원단 제조법","Output":1600453,"OutputCount":2,"Inputs":"1600306:2","Skill":"봉제 8"}
 ]

@@ -19,6 +19,7 @@ internal static class Win32
     public const uint WM_ERASEBKGND = 0x0014;
     public const uint WM_SIZE = 0x0005;
     public const uint WM_KEYUP = 0x0101;
+    public const uint WM_SYSKEYDOWN = 0x0104, WM_SYSKEYUP = 0x0105, WM_SYSCHAR = 0x0106;
     public const uint WM_CHAR = 0x0102;
     public const uint WM_LBUTTONUP = 0x0202;
     public const uint WM_RBUTTONDOWN = 0x0204;

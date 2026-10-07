@@ -19,6 +19,10 @@ internal sealed partial class Voyage
 {
     public Dictionary<int, SkillState> Skills { get; } = new();
 
+    /// <summary>방금 랭크가 오른 스킬 — 화면에 잠깐 빛 기둥과 아이콘이 뜬다.</summary>
+    public (int SkillId, int Rank, double At) SkillUpNotice { get; private set; } = (0, 0, -100);
+    public void SkillUpForTest(int skillId) => SkillUpNotice = (skillId, Math.Max(1, Rank(skillId)), Clock);
+
     /// <summary>랭크 — 내 직업의 전문 스킬이면 +1 이 붙는다(익힌 것만).</summary>
     public int Rank(int skillId) => Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) + BoostRank(skillId, state.Rank) + GearRank(skillId) + (state.Refined ? RefineBoost : 0) : 0;
 
@@ -96,8 +100,8 @@ internal sealed partial class Voyage
         }
     }
 
-    /// <summary>경험치 · 숙련도에 곱하는 값 — 모드 「경험치 · 숙련도 3배」를 켜면 3.</summary>
-    private int GainFactor => Data.Settings.ModTripleGain ? 3 : 1;
+    /// <summary>경험치 · 숙련도에 곱하는 값 — 모드에서 고른 1 · 2 · 3배.</summary>
+    private int GainFactor => Data.Settings.Gain;
 
     private void Train(int skillId, double exp)
     {
@@ -116,11 +120,12 @@ internal sealed partial class Voyage
         if (exp >= 5 || gained >= 20 || ranked)
         {
             _gained.Remove(skillId);
+            if (!ranked) Cues.Enqueue("Mastery");      // 숙련도가 오를 때의 소리(0:4 — 사용자, 2026-10-07). 랭크가 오르면 그 소리(SkillUp)가 대신 난다
             Say(state.Rank >= Settings.MaxSkillRank
                 ? $"{SkillName(skillId)} 숙련도 +{gained:0}"
                 : $"{SkillName(skillId)} 숙련도 +{gained:0} ({state.Exp:0}/{ExpNeed(state)})");
         }
-        if (ranked) { Say($"{SkillName(skillId)} 스킬이 랭크 {state.Rank}(이)가 되었다!"); Cues.Enqueue("SkillUp"); }
+        if (ranked) { Say($"{SkillName(skillId)} 스킬이 랭크 {state.Rank}(이)가 되었다!"); Cues.Enqueue("SkillUp"); SkillUpNotice = (skillId, state.Rank, Clock); }
     }
 
     private void TrainEffect(string effect, double exp)

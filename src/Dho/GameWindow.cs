@@ -312,6 +312,16 @@ internal sealed class GameWindow : IDisposable
             case Win32.WM_KEYUP:
                 _keys.Remove((int)wParam);
                 return IntPtr.Zero;
+            // Alt 를 누른 채의 글쇠(Alt+T 따위)는 이쪽으로 온다 — Alt+F4 만 창에 맡긴다
+            case Win32.WM_SYSKEYDOWN:
+                if ((int)wParam == 0x73) break;
+                if (_keys.Add((int)wParam)) KeyPressed((int)wParam);
+                return IntPtr.Zero;
+            case Win32.WM_SYSKEYUP:
+                _keys.Remove((int)wParam);
+                return IntPtr.Zero;
+            case Win32.WM_SYSCHAR:
+                return IntPtr.Zero;                    // 띵 소리가 안 나게
 
             case Win32.WM_MOUSEMOVE:
                 int x = Win32.LowWord(lParam), y = Win32.HighWord(lParam);
@@ -419,6 +429,9 @@ internal sealed class GameWindow : IDisposable
         (_sounds ??= new Dho.Audio.SoundEffects()).Play(which);
     }
 
+    /// <summary>지금 누르고 있는 Ctrl · Alt · Shift — 단축키 조합의 윗자리 비트.</summary>
+    private int Mods() => (_keys.Contains(Win32.VK_CONTROL) ? Hud.KeyCtrl : 0) | (_keys.Contains(0x12) ? Hud.KeyAlt : 0) | (_keys.Contains(0x10) ? Hud.KeyShift : 0);
+
     private void KeyPressed(int key)
     {
         // 바다에서 키를 꺾을 때 — 잇달아 눌러도 소리는 띄엄띄엄
@@ -437,8 +450,10 @@ internal sealed class GameWindow : IDisposable
         if (_hud.KeyWaiting is { } waiting)
         {
             _hud.KeyWaiting = null;
-            if (key != Win32.VK_ESCAPE && key != Win32.VK_CONTROL)
+            if (Hud.IsModifier(key)) { _hud.KeyWaiting = waiting; return; }      // Ctrl · Alt · Shift 만 눌렀으면 다음 글쇠를 더 기다린다(조합)
+            if (key != Win32.VK_ESCAPE)
             {
+                key |= Mods();
                 var keys = _voyage.Data.Settings.Keys;
                 foreach (string other in Hud.KeyActions.Select(a => a.Action).Where(a => a != waiting && Hud.KeyOf(keys, a) == key).ToList())
                     keys[other] = 0;                       // 같은 글쇠를 쓰던 일은 비운다
@@ -448,13 +463,21 @@ internal sealed class GameWindow : IDisposable
             return;
         }
         if (key is Win32.VK_UP or Win32.VK_DOWN && _hud.ListKey(key == Win32.VK_UP ? -1 : 1)) return;
-        string action = Hud.KeyActions.Select(a => a.Action).FirstOrDefault(a => Hud.KeyOf(_voyage.Data.Settings.Keys, a) == key) ?? "";
+        // 조합(Ctrl+W · Alt+T)으로 매인 일이 먼저, 없으면 글쇠 하나로 매인 일
+        int combo = Hud.IsModifier(key) ? 0 : key | Mods();
+        string action = Hud.KeyActions.Select(a => a.Action).FirstOrDefault(a => Hud.KeyOf(_voyage.Data.Settings.Keys, a) == combo)
+            ?? Hud.KeyActions.Select(a => a.Action).FirstOrDefault(a => Hud.KeyOf(_voyage.Data.Settings.Keys, a) == key) ?? "";
         if (action == "Fullscreen")
         {
             var settings = _voyage.Data.Settings;
             SetDisplay(settings.WindowWidth, settings.WindowHeight, !settings.Fullscreen);
             return;
         }
+        if (action == "Settings") { _hud.ToggleSettings(); return; }
+        if (action == "Menu") { _hud.ToggleMenu(); return; }
+        if (action == "KeysWin") { _hud.ToggleKeys(); return; }
+        if (action == "Mod") { _hud.ToggleMod(); return; }
+        if (action == "Logout") { _hud.LogOut(); return; }
         if (!_voyage.Created) return;
         // 조선소 주인 차림에서 C 는 「커스텀설정 조선」(캐릭터 정보보다 먼저)
         if (key == 'C' && _voyage.Dialog == Dialog.ShipyardMenu) { _hud.OpenCustomSetup(); return; }
@@ -467,11 +490,17 @@ internal sealed class GameWindow : IDisposable
         if (_hud.QuickOpen && key is >= '1' and <= '8' && !_keys.Contains(Win32.VK_CONTROL) && _voyage.Dialog is Dialog.None or Dialog.UseSkills)
         {
             _voyage.UsePageSlot(key - '1');
+            _hud.QuickUsed();
             return;
         }
         switch (action)
         {
-            case "Map": _hud.TownMapOpen = !_hud.TownMapOpen; return;
+            case "Map":
+                // 시내에서는 시내 지도, 바다 · 부두에서는 세계 지도(원본의 M)
+                if (Walking) _hud.TownMapOpen = !_hud.TownMapOpen;
+                else if (_voyage.Dialog == Dialog.Chart) _voyage.Dialog = Dialog.None;
+                else if (_voyage.Dialog == Dialog.None) _hud.OpenChart();
+                return;
             case "Items": Toggle(Dialog.Items); return;
             case "TownMenu" when _voyage.Mode == Mode.Port && _voyage.TownView && _voyage.Dialog == Dialog.None:
                 _hud.TownMenuOpen = !_hud.TownMenuOpen;
@@ -484,11 +513,27 @@ internal sealed class GameWindow : IDisposable
             case "Cargo": Toggle(Dialog.Cargo); return;
             case "Fitting": Toggle(Dialog.Fitting); return;
             case "Quick": _hud.QuickOpen = !_hud.QuickOpen; return;
+            case "Nav": Toggle(Dialog.Nav); return;
+            case "Dev": _hud.ToggleDev(); return;
+            case "Warp": _hud.ToggleWarp(); return;
+            case "Jobs": Toggle(Dialog.Jobs); return;
+            case "Equip": Toggle(Dialog.Equip); return;
+            case "Aides": Toggle(Dialog.Aides); return;
+            case "QuickSetup": Toggle(Dialog.QuickSetup); return;
+            case "Found": Toggle(Dialog.FoundList); return;
+            // 걸을 때의 W · S 는 걸음이라(글쇠 눌림으로 따로 본다) 돛은 바다에서만 듣는다
+            case "SailUp" when _voyage.Mode == Mode.Sea: _voyage.ChangeSail(+1); return;
+            case "SailDown" when _voyage.Mode == Mode.Sea: _voyage.ChangeSail(-1); return;
+            case "Delegate" when _voyage.Mode == Mode.Sea && _voyage.Dialog == Dialog.None:
+                if (_voyage.DelegateTo == null) _voyage.Dialog = Dialog.Delegate; else _voyage.CancelDelegate();
+                return;
         }
         switch (key)
         {
             case Win32.VK_ESCAPE:
+                // 가운데 창이 떠 있으면 그것부터, 아니면 따로 뜨는 창(설정 · 소리 · 단축키 · 모드 …)과 차림을 닫는다
                 if (_voyage.Dialog != Dialog.None) _voyage.Dialog = Dialog.None;
+                else _hud.CloseTop();
                 break;
             case '5' when _keys.Contains(Win32.VK_CONTROL):
                 _hud.TownMapOpen = !_hud.TownMapOpen;      // 원본의 지도 단축키도 그대로 둔다
@@ -496,8 +541,8 @@ internal sealed class GameWindow : IDisposable
             case >= '1' and <= '8' when !_keys.Contains(Win32.VK_CONTROL) && _voyage.Dialog is Dialog.None or Dialog.UseSkills:
                 _voyage.UsePageSlot(key - '1');
                 break;
-            case 'W' or Win32.VK_UP: _voyage.ChangeSail(+1); break;
-            case 'S' or Win32.VK_DOWN: _voyage.ChangeSail(-1); break;
+            case Win32.VK_UP: _voyage.ChangeSail(+1); break;          // 화살표는 고정 — W · S 는 단축키 등록(돛 올리기 · 내리기)으로 바꾼다
+            case Win32.VK_DOWN: _voyage.ChangeSail(-1); break;
             case 'F' or Win32.VK_RETURN:
                 if (_voyage.Dialog != Dialog.None) break;
                 if (Walking) { if (KeeperNear() is { } keeper) _voyage.Visit(keeper.Mark); break; }
@@ -584,8 +629,10 @@ internal sealed class GameWindow : IDisposable
         // 사람 키가 170 이니 장면 단위가 1cm 쯤이다. 걷기는 초속 3m 남짓(시내가 넓어 조금 빠르게), Shift 를 누르면 달린다
         _sprinting = _keys.Contains(Win32.VK_SHIFT) || (_route.Count > 0 && _routeRuns);
         float speed = _sprinting ? 620f : 310f;
+        // 마우스 왼쪽 · 오른쪽 단추를 함께 누르고 있으면 앞으로 간다(원본의 조작 — 사용자, 2026-10-07). 창 위에서 누른 것은 빼고
+        bool bothMouse = _orbiting && _leftDown && !_canvas.Pointer.Consumed;
         bool Down(int a, int b) => _keys.Contains(a) || _keys.Contains(b);
-        bool keyed = Down('W', Win32.VK_UP) || Down('S', Win32.VK_DOWN) || Down('A', Win32.VK_LEFT) || Down('D', Win32.VK_RIGHT);
+        bool keyed = (Down('W', Win32.VK_UP) || bothMouse) || Down('S', Win32.VK_DOWN) || Down('A', Win32.VK_LEFT) || Down('D', Win32.VK_RIGHT);
         if (keyed) (_route, _bound) = ([], null);              // 손으로 걸으면 자동 이동을 그만둔다
         else if (_route.Count > 0)
         {
@@ -609,7 +656,7 @@ internal sealed class GameWindow : IDisposable
         }
         var forward = new Vector2(-MathF.Sin(_yaw), -MathF.Cos(_yaw));
         var right = new Vector2(MathF.Cos(_yaw), -MathF.Sin(_yaw));
-        var direction = forward * ((Down('W', Win32.VK_UP) ? 1 : 0) - (Down('S', Win32.VK_DOWN) ? 1 : 0))
+        var direction = forward * (((Down('W', Win32.VK_UP) || bothMouse) ? 1 : 0) - (Down('S', Win32.VK_DOWN) ? 1 : 0))
                       + right * ((Down('D', Win32.VK_RIGHT) ? 1 : 0) - (Down('A', Win32.VK_LEFT) ? 1 : 0));
         if (direction == Vector2.Zero) return;
         direction = Vector2.Normalize(direction);
@@ -801,6 +848,23 @@ internal sealed class GameWindow : IDisposable
             }
             float half = _ship.Radius * 0.75f;
             var bow = new Vector3(MathF.Sin((float)_voyage.Heading), 0, -MathF.Cos((float)_voyage.Heading)) * half;
+            // 조타 표시 — 키를 잡고 있는 동안(과 그 뒤 두 초) 배 둘레의 물 위에 동 · 서 · 남 · 북과, 키가 가리키는 쪽에 타륜이 뜬다(원본 화면대로)
+            double off = Math.Abs(Math.IEEERemainder(_voyage.TargetHeading - _voyage.Heading, Math.Tau));
+            if (off > 0.03 || Math.Abs(_voyage.TurnVelocity) > 0.01) _helmUntil = _voyage.Clock + 2;
+            _hud.Helm.Clear();
+            if (_voyage.Clock < _helmUntil && _voyage.Battle == null)
+            {
+                float ring = _ship.Radius * 1.25f;
+                (string Text, float Angle)[] points = [("N", 0), ("E", MathF.PI / 2), ("S", MathF.PI), ("W", MathF.PI * 1.5f)];
+                // 뱃머리 · 고물의 표와 겹치는 방위 글자는 뺀다(원본 화면에도 글자는 셋만 보인다)
+                foreach (var (text, angle) in points)
+                    if (Math.Abs(Math.IEEERemainder(angle - _voyage.Heading, Math.Tau)) > 0.5 && Math.Abs(Math.IEEERemainder(angle - _voyage.Heading - Math.PI, Math.Tau)) > 0.5 && Spot(new Vector3(MathF.Sin(angle), 0, -MathF.Cos(angle)) * ring) is { } at) _hud.Helm.Add((at.X, at.Y, text));
+                // 타륜은 고물(배 뒤) 쪽, 뱃머리 쪽에는 노란 표(사용자, 2026-10-07 — 원본 화면)
+                float now = (float)_voyage.Heading;
+                var ahead = new Vector3(MathF.Sin(now), 0, -MathF.Cos(now)) * ring * 0.9f;
+                if (Spot(-ahead) is { } wheel) _hud.Helm.Add((wheel.X, wheel.Y, "*"));
+                if (Spot(ahead) is { } prow) _hud.Helm.Add((prow.X, prow.Y, "^"));
+            }
             if (Spot(new Vector3(0, 500, 0)) is { } mid && Spot(new Vector3(0, 500, 0) + bow) is { } fore && Spot(new Vector3(0, 500 + half * 0.9f, 0)) is { } top)
                 _hud.ShipOnScreen = (mid.X, mid.Y, fore.X - mid.X, fore.Y - mid.Y, top.X - mid.X, top.Y - mid.Y);
         }
@@ -822,7 +886,7 @@ internal sealed class GameWindow : IDisposable
 
         // 화면 글과 창
         _canvas.Scale = UiScale;
-        _canvas.Pointer = new Pointer { X = _mouseX / UiScale, Y = _mouseY / UiScale - Hud.TitleHeight, Clicked = _clicked, Down = _leftDown };
+        _canvas.Pointer = new Pointer { X = _mouseX / UiScale, Y = _mouseY / UiScale - Hud.TitleHeight, Clicked = _clicked, Down = _leftDown, Ctrl = _keys.Contains(Win32.VK_CONTROL) || _scriptCtrl };
         _canvas.Top = Hud.TitleHeight;
         _canvas.Begin();
         (_hud.TownGrid, _hud.TownSpot, _hud.TownFacing) = (Walking ? _grid : null, _walk, _walkYaw);
@@ -1138,41 +1202,55 @@ internal sealed class GameWindow : IDisposable
         }
     }
 
-    private PortScene? _seaCity;
-    private int _seaCityId;
-    private Vector3 _seaCityAnchor;
+    private double _helmUntil;
 
     /// <summary>
     /// 바다에서 가까운 도시의 항구 장면을 그 도시 자리에 세운다 — 뭍에 도시가 보이게.
     /// 장면의 배 대는 자리(없으면 장면 가운데)를 도시의 바다 자리에 맞춘다. 방향은 장면 그대로다(세계지도와 맞는지는 못 가렸다).
     /// </summary>
+    // 바다에서 보이는 도시들 — 도시 번호 → (장면, 배 대는 자리). 가까운 셋까지 세워 둔다
+    private readonly Dictionary<int, (PortScene? Scene, Vector3 Anchor)> _seaCities = new();
+
     private void DrawCityAtSea()
     {
-        const double range = 60;                    // 세계 좌표 — 이보다 멀면 안 그린다(전에는 14 라 코앞에서야 나타났다)
-        CityData? near = null;
-        double best = range * range;
-        foreach (var city in _voyage.Data.Cities)
+        const double range = 130;                   // 세계 좌표 — 이보다 멀면 안 그린다(14 → 60 → 110 → 130: 원본은 먼 도시도 바닷가에 보인다)
+        // 가까운 도시 셋까지(원본 화면: 리스본 앞바다에서 도시 둘이 함께 보인다)
+        var near = _voyage.Data.Cities.Where(c => c.PortScene != 0 && (c.SeaX != 0 || c.SeaY != 0))
+            .Select(c => (City: c, Far: Math.Sqrt(Math.Pow(WorldMap.DeltaX(_voyage.ShipX, c.SeaX), 2) + Math.Pow(c.SeaY - _voyage.ShipY, 2))))
+            .Where(c => c.Far < range).OrderBy(c => c.Far).Take(3).ToList();
+        foreach (int gone in _seaCities.Keys.Where(id => !near.Exists(n => n.City.Id == id)).ToList())
         {
-            if (city.PortScene == 0 || (city.SeaX == 0 && city.SeaY == 0)) continue;
-            double dx = WorldMap.DeltaX(_voyage.ShipX, city.SeaX), dy = city.SeaY - _voyage.ShipY;
-            if (dx * dx + dy * dy < best) (near, best) = (city, dx * dx + dy * dy);
+            _seaCities[gone].Scene?.Dispose();
+            _seaCities.Remove(gone);
         }
-        if (near == null) return;
-        if (_seaCityId != near.Id)
+        foreach (var (city, far) in near)
         {
-            _seaCity?.Dispose();
-            (_seaCityId, _seaCity) = (near.Id, null);
-            try
+            if (!_seaCities.TryGetValue(city.Id, out var shown))
             {
-                _seaCity = new PortScene(_gfx, near.PortScene, fadeGround: true);
-                var berth = _voyage.Data.Settings.Berths.Find(b => b.Scene == near.PortScene);
-                _seaCityAnchor = berth != null ? new Vector3(berth.X, 0, berth.Z) : new Vector3(_seaCity.Center.X, 0, _seaCity.Center.Z);
+                shown = (null, default);
+                try
+                {
+                    var scene = new PortScene(_gfx, city.PortScene, fadeGround: true);
+                    var berth = _voyage.Data.Settings.Berths.Find(b => b.Scene == city.PortScene);
+                    shown = (scene, berth != null ? new Vector3(berth.X, 0, berth.Z) : new Vector3(scene.Center.X, 0, scene.Center.Z));
+                }
+                catch (Exception) { }                  // 장면을 못 읽는 도시는 그냥 둔다
+                _seaCities[city.Id] = shown;
             }
-            catch (Exception) { }                  // 장면을 못 읽는 도시는 그냥 둔다
+            if (shown.Scene == null) continue;
+            float x = (float)(WorldMap.DeltaX(_voyage.ShipX, city.SeaX) * Terrain.Unit), z = (float)((city.SeaY - _voyage.ShipY) * Terrain.Unit);
+            // 제 크기대로 두면 먼바다에서는 점으로밖에 안 보인다 — 멀수록 키워 그리고(가장 멀 때 10배), 항구 앞(거리 16 안쪽)에서는 제 크기로 돌아온다.
+            // 배 대는 자리를 중심으로 키우니 바닷가에 붙은 채로 커진다. 원본은 지형 조각에 딸린 작은 도시 모형(조각 자료의 IOPL)을 세운다 — 그것은 아직 못 풀어 지어 맞춘 것이다
+            // 가까이 가도 어느 크기 아래로는 줄지 않는다(사용자, 2026-10-07) — 가장 가까울 때 4배(지은 값)
+            float away = (float)Math.Clamp((far - 16) / 60, 0, 1), grow = 4 + 6f * away;
+            // 멀리서는 바다 위가 아니라 **뭍의 도시 자리**에 세우고(장면의 가운데를 거기에 맞춘다) 네모난 바닥은 그리지 않는다(사용자, 2026-10-07).
+            // 항구 앞으로 다가오면 배 대는 자리를 바다 자리에 맞춘 제 모습으로 옮겨 온다
+            var pivot = Vector3.Lerp(shown.Anchor, new Vector3(shown.Scene.Center.X, 0, shown.Scene.Center.Z), MathF.Min(1, away * 4));
+            var target = new Vector3(x, 0, z);
+            if (_voyage.Map.CityOnLand.TryGetValue(city.Id, out var land))
+                target = Vector3.Lerp(target, new Vector3((float)(WorldMap.DeltaX(_voyage.ShipX, land.X) * Terrain.Unit), 0, (float)((land.Y - _voyage.ShipY) * Terrain.Unit)), MathF.Min(1, away * 4));
+            shown.Scene.Draw(_scene, Matrix4x4.CreateTranslation(-pivot.X, 0, -pivot.Z) * Matrix4x4.CreateScale(grow) * Matrix4x4.CreateTranslation(target), skipGround: true);      // 키워 그리니 네모 바닥은 늘 뺀다
         }
-        if (_seaCity == null) return;
-        float x = (float)(WorldMap.DeltaX(_voyage.ShipX, near.SeaX) * Terrain.Unit), z = (float)((near.SeaY - _voyage.ShipY) * Terrain.Unit);
-        _seaCity.Draw(_scene, Matrix4x4.CreateTranslation(x - _seaCityAnchor.X, 0, z - _seaCityAnchor.Z));
     }
 
     /// <summary>항구 장면. 배가 원점이니 장면을 배가 뜬 자리만큼 되민다.</summary>
@@ -1325,7 +1403,7 @@ internal sealed class GameWindow : IDisposable
         foreach (var mark in _voyage.TownMap?.Marks ?? [])
             if (Voyage.KeeperName(mark.Place) is { } name && !_keepers.Exists(k => k.Name == name))
             {
-                var spot = _grid.Nearest(mark.Scene);
+                var spot = _grid.Nearest(mark.Place is 4 or 5 ? mark.Scene + new Vector2(230f, 60f) : mark.Scene);      // 항구 관리는 들어선 자리와 겹치지 않게 옆으로 비켜 선다
                 // 길 쪽(들어선 자리 쪽)을 보고 선다
                 _keepers.Add((mark, name, spot, MathF.Atan2(_walk.X - spot.X, _walk.Y - spot.Y)));
             }
@@ -1471,6 +1549,7 @@ internal sealed class GameWindow : IDisposable
 
     // ── 확인용 대본 ──────────────────────────────────────────────────────────
 
+    private bool _scriptCtrl;
     private void RunScript(double dt)
     {
         if (_script.Count == 0) return;
@@ -1537,6 +1616,38 @@ internal sealed class GameWindow : IDisposable
             case "aides": _voyage.Dialog = Dialog.Aides; break;
             case "captain": _voyage.CaptainForTest(); break;
             case "refine": _voyage.Refine((int)Number()); break;
+            case "offerzone": _voyage.Offered = _voyage.MadeQuests.Find(q => q.SeaZone > 0 && q.Id >= Voyage.RealQuestBase && q.CityId == _voyage.City.Id && _voyage.AcceptBlocker(q) == null); break;
+            case "tozone": if (_voyage.Quest is { SeaZone: > 0 } zoned) _voyage.WarpToSea(zoned.SeaZone); break;
+            case "sellside": _hud.SellSideForTest(); break;
+            case "delegate": if (_voyage.Data.Cities.Find(c => c.Id == (int)Number()) is { } bound) _voyage.StartDelegate(bound); break;
+            case "delegatespecial": if (_voyage.Data.Cities.Find(c => c.Id == (int)Number()) is { } swift) _voyage.StartDelegate(swift, true); break;
+            case "delegatewindow": _voyage.Dialog = Dialog.Delegate; break;
+            case "nopirates": _voyage.Data.Settings.ModNoPirates = true; break;      // 이번 실행 동안만(설정 파일에는 안 적는다)
+            case "gearsearch": _hud.GearSearchForTest(argument); break;
+            case "seeport":
+            {
+                // 그 도시의 앞바다에서 뭍 반대쪽으로 dist 만큼 물러난 자리로 옮긴다(먼바다에서 도시가 보이는지 볼 때): seeport:도시,거리
+                var far = argument.Split(',');
+                int portId = int.Parse(far[0]);
+                double away = double.Parse(far[1], CultureInfo.InvariantCulture);
+                if (_voyage.Map.CityAtSea.TryGetValue(portId, out var afloat2) && _voyage.Map.CityOnLand.TryGetValue(portId, out var onLand))
+                {
+                    double dx = WorldMap.DeltaX(onLand.X, afloat2.X), dy = afloat2.Y - onLand.Y, len = Math.Max(1e-6, Math.Sqrt(dx * dx + dy * dy));
+                    _voyage.Teleport(afloat2.X + dx / len * away, afloat2.Y + dy / len * away);
+                    _voyage.Say($"(개발) 도시 {portId} 에서 {away:0} 떨어진 바다 — 뭍 쪽은 ({-dx / len:0.00}, {-dy / len:0.00})");
+                }
+                break;
+            }
+            case "quickscale": _voyage.Data.Settings.QuickScale = Number(); break;      // 이번 실행 동안만(설정 파일에는 안 적는다)
+            case "convert": if (_voyage.Good((int)Number()) is { } turned) _voyage.ConvertGood(turned); break;
+            case "cargopick": _hud.CargoPickForTest((int)Number()); break;
+            case "pick": _hud.Picked = argument; break;
+            case "trust": _voyage.TrustForTest(); break;
+            case "chart": _hud.OpenChart(); break;
+            case "allsearch": _hud.AllSearchForTest(argument); break;
+            case "great": _voyage.GreatForTest = true; break;
+            case "nav": _voyage.Dialog = Dialog.Nav; break;
+            case "skillup": _voyage.SkillUpForTest((int)Number()); break;
             case "relieve": if (_voyage.Aides.Find(a => a.Ship != null) is { } captain) _voyage.RelieveCaptain(captain); break;
             case "captainpick": _hud.CaptainPickForTest(); break;
             case "offerlang": _voyage.Offered = _voyage.MadeQuests.Find(q => q.Languages.Count > 0 && q.CityId == _voyage.City.Id); break;
@@ -1593,6 +1704,11 @@ internal sealed class GameWindow : IDisposable
             case "workmethod": _voyage.Dialog = Dialog.WorkMethod; break;
             case "keys": _hud.OpenMenu(2); break;
             case "wheel": _hud.Wheel((int)Number()); break;
+            case "mousedown": (_mouseX, _mouseY, _leftDown) = (int.Parse(argument.Split(',')[0]), int.Parse(argument.Split(',')[1]), true); break;      // 대본: 왼쪽 단추를 누른 채로(끌기)
+            case "mouseup": _leftDown = false; break;
+            case "warpsearch": _hud.WarpSearchForTest(argument); break;
+            case "squaremap": _voyage.Data.Settings.SeaMapSquare = Number() != 0; break;      // 이번 실행 동안만(설정 파일에는 안 적는다)
+            case "ctrl":_scriptCtrl = Number() != 0; break;      // 대본: Ctrl 을 누른 채로(1) · 뗀다(0)
             case "dev": _hud.OpenMenu(3); break;
             case "money": _voyage.AddMoney((int)Number()); break;
             case "click":

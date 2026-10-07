@@ -32,7 +32,19 @@ internal sealed partial class Voyage
 
     /// <summary>이 도시 교역소가 파는 품목.</summary>
     public List<GoodData> GoodsHere() =>
-        (Data.Markets.Find(m => m.CityId == City.Id)?.GoodIds() ?? []).Select(Good).OfType<GoodData>().ToList();
+        (Data.Markets.Find(m => m.CityId == City.Id)?.GoodIds() ?? []).Where(id => InvestNeed(City, id) <= InvestedIn(City)).Select(Good).OfType<GoodData>().ToList();
+
+    /// <summary>금액을 모르는 「투자 필요」 품목에 쓰는 어림(지은 값).</summary>
+    public const int UnknownInvest = 200_000;
+
+    /// <summary>그 도시에서 그 품목이 교역소에 나오려면 들여야 하는 투자액 — 그냥 나오는 것은 0. gvdb 의 값(모르는 금액은 어림).</summary>
+    public long InvestNeed(CityData city, int goodId) =>
+        Data.Markets.Find(m => m.CityId == city.Id) is { } market && market.RealInvest.TryGetValue(goodId, out int need) ? (need > 0 ? need : UnknownInvest) : 0;
+
+    /// <summary>아직 투자가 모자라 안 나오는 품목들.</summary>
+    public List<(GoodData Good, long Need)> LockedGoodsHere() =>
+        (Data.Markets.Find(m => m.CityId == City.Id)?.GoodIds() ?? []).Where(id => InvestNeed(City, id) > InvestedIn(City))
+            .Select(id => (Good(id), InvestNeed(City, id))).Where(g => g.Item1 != null).Select(g => (g.Item1!, g.Item2)).ToList();
 
     private bool SoldHere(int goodId) => Sells(City, goodId);
     private bool Sells(CityData city, int goodId) => Data.Markets.Find(m => m.CityId == city.Id)?.GoodIds().Contains(goodId) ?? false;
@@ -148,6 +160,9 @@ internal sealed partial class Voyage
     {
         var rules = Settings.Trade;
         double price = BasePrice(good) * MarketIndex(good, city) * (1 + Haggle) * (1 - TaxAt(city)) * NewsPrice(city);      // 팔 때도 관세가 떼인다
+        // 그 도시에 팔았을 때의 실제 값(gvdb 의 보고)이 있으면 그 값에 시세 · 흥정 · 관세만 얹는다
+        if (Data.BuyPrices.TryGetValue((city.Id, good.Id), out int paid))
+            return Math.Max(1, (int)(paid * MarketIndex(good, city) * (1 + Haggle) * (1 - TaxAt(city)) * NewsPrice(city)));
         if (Sells(city, good.Id)) return Math.Max(1, (int)(price * rules.HomeSellRate));
 
         _sources ??= BuildSources();
@@ -184,13 +199,24 @@ internal sealed partial class Voyage
     private readonly Dictionary<(int City, int Good), (int Bought, double Day)> _bought = new();
     private double Today => Clock / Settings.SecondsPerDay;
 
+    /// <summary>
+    /// 품목마다 다른 진열량의 배수 — 원본은 싼 것(곡물 · 가축 따위)은 많이, 비싼 것(귀금속 · 보석 · 대포)은 조금 판다(사용자, 2026-10-07).
+    /// 품목별 실제 수량 자료가 없어 기준값으로 어림했다(지은 값): 100 두캇 아래 ×4, 300 아래 ×2.5, 800 아래 ×1.5, 2,000 아래 ×1, 그 위 ×0.6.
+    /// </summary>
+    public double StockScale(GoodData good) => BasePrice(good) switch { < 100 => 4, < 300 => 2.5, < 800 => 1.5, < 2000 => 1, _ => 0.6 };
+
+    /// <summary>교역 창의 수량 단추 셋 — 많이 살 수 있는 품목은 단위가 크다.</summary>
+    public int[] BuySteps(GoodData good) => StockScale(good) switch { >= 4 => [10, 50, 100], >= 2.5 => [5, 20, 50], _ => [1, 10, 50] };
+
     /// <summary>지금 살 수 있는 수 — 「○○ 거래」 스킬이 진열량을 늘린다. 며칠 지나면 다시 찬다.</summary>
     public int Stock(GoodData good)
     {
         double more = Data.SkillRules.Where(r => r.Effect == "TradeKind" && r.Targets.Contains(good.Kind)).Sum(r => Rank(r.SkillId) * r.PerRank);
-        int stock = (int)(Settings.Trade.Stock * (1 + more));
+        int stock = (int)(Settings.Trade.Stock * StockScale(good) * (1 + more));
+        int full = stock;
         if (_bought.TryGetValue((City.Id, good.Id), out var bought) && Today - bought.Day < Settings.Trade.RestockDays) stock -= bought.Bought;
-        return Math.Max(0, stock);
+        // 걸어 둔 구입 발주서 한 장마다 진열량이 한 번 더 찬다(거래할 때 쓰인다)
+        return Math.Max(0, stock) + SheetsMarked(good.Kind) * full;
     }
 
     // 그 교역품을 파는 도시들(산지) — 지금 있는 곳에서 가까운 차례
@@ -264,13 +290,21 @@ internal sealed partial class Voyage
         if (item.Count == 0) Cargo.Remove(good.Id);
         if (profit > 0)
         {
-            GainExp(1, (int)Math.Min(100_000, profit / 100), (int)Math.Min(1000, profit / 2000));      // 교역 명성은 이익 2000 에 1(지은 값)
+            // 명산품을 그것이 나는 문화권 밖에서 팔면 교역 경험 · 명성이 반 더 붙는다(「명산품」이 무엇인가는 gvdb 의 값, 반 더는 지은 값 — 원본은 거리에 따라 다르다)
+            double famed = SpecialtyBonus(good);
+            GainExp(1, (int)Math.Min(100_000, profit / 100 * famed), (int)Math.Min(1000, profit / 2000 * famed));      // 교역 명성은 이익 2000 에 1(지은 값)
+            if (famed > 1) Say($"{CultureOf(Data.Specialties[good.Id])}의 명산품 — 교역 경험이 더 붙었다.");
             TrainEffect("Haggle", Math.Min(60, profit / 50.0));
             Studied("Profit");
             if (profit >= 50_000) Studied("BigProfit");
         }
         Say($"{good.Name} {count}개를 팔았다. ({(profit >= 0 ? "이익" : "손해")} {Math.Abs(profit):N0})");
     }
+
+    /// <summary>그 교역품이 명산품이면 나는 문화권의 이름 — 아니면 빈 글.</summary>
+    public string SpecialtyOf(GoodData good) => Data.Specialties.TryGetValue(good.Id, out int culture) ? CultureOf(culture) : "";
+    private string CultureOf(int culture) => Data.Cultures.Find(c => c.Id == culture)?.Name ?? "";
+    private double SpecialtyBonus(GoodData good) => Data.Specialties.TryGetValue(good.Id, out int culture) && City.Culture != culture ? 1.5 : 1;
 
     /// <summary>늘 같은 0 ~ 1 값.</summary>
     private static double Hash(int n)

@@ -36,7 +36,7 @@ internal sealed record Looks(int Frame, int Face, int Hair, int Body, int Leg, i
 internal sealed class CharacterModel : IDisposable
 {
     private const int Head = 9, LeftArm = 11, LeftForeArm = 12, RightArm = 16, RightForeArm = 17;
-    private const int LeftUpLeg = 2, LeftLeg = 3, RightUpLeg = 5, RightLeg = 6, Spine = 8;
+    private const int LeftUpLeg = 2, LeftLeg = 3, RightUpLeg = 5, RightLeg = 6, Spine = 8, Hips = 1;
 
     private sealed class Part
     {
@@ -328,6 +328,7 @@ internal sealed class CharacterModel : IDisposable
             }
         }
 
+        var rigidDone = new HashSet<(int, int)>();          // 딱딱한 조각의 정점은 한 번만 옮긴다
         foreach (int section in (int[])[8, 9])
         {
             int subsetsAt = I32(0x4C + section * 4), subsetCount = U16(0x2C + (section == 8 ? 6 : 8) * 2);
@@ -340,35 +341,48 @@ internal sealed class CharacterModel : IDisposable
                 int first = I32(record + 0x38), primitives = I32(record + 0x3C);
                 var part = buffer < bufferCount ? parts[buffer] : null;
                 if (part == null) continue;
-                for (int v = firstVertex; v < Math.Min(firstVertex + vertexCount, part.Dye.Length); v++) part.Dye[v] = (byte)Math.Min(255, U16(record + 8));
+                // 조각이 실제로 쓰는 정점만 건드린다 — 레코드의 정점 구간(+0x30 · +0x34)은 「가장 작은 번호 ~ 가장 큰 번호」라서
+                // 다른 조각의 정점이 그 사이에 끼어 있을 수 있다(드레스: 치마 조각의 구간이 팔 조각의 정점을 덮는다)
+                int indices = indexAt + I32(buffersAt + buffer * 0x34 + 0x24);
+                uint Index(int i) => (uint)U16(indices + (first + i) * 2);
+                var used = new SortedSet<int>();
+                for (int i = 0, n = primitive == 5 ? primitives + 2 : primitives * 3; i < n; i++)
+                    if (Index(i) is var vertex && vertex < part.Positions.Length) used.Add((int)vertex);
+                foreach (int v in used) part.Dye[v] = (byte)Math.Min(255, U16(record + 8));
 
                 // 행렬 번호가 20 아래인 조각은 뼈대가 아니라 그 옷에 딸린 마디(늘어진 천 · 장식)에 붙는다.
                 // 그 마디의 자리를 못 풀어서 그리지 않는다 — 그대로 그리면 발밑에 조각이 떨어져 보인다
                 // 다만 레코드 첫 바이트에 0x40 이 없는 조각은 몫 없이 뼈대의 마디 하나(레코드 +4)에 통째로 붙는 딱딱한 조각이다
                 // (무릎 보호대 · 팔 장식 · 가슴 장식). 정점이 그 마디 기준 좌표라서 선 자세의 마디 행렬로 몸 좌표로 옮겨 둔다
-                if (weightCounts[buffer] >= 0 && (data[record] & 0x40) == 0 && U16(record + 4) is var rigid && rigid < _bindWorld.Length)
+                // 행렬 번호가 하나라도 적혀 있으면(드레스의 치마 — 첫 바이트에 0x40 이 없어도 몫이 있다) 딱딱한 조각이 아니다
+                bool skinned = I16(record + 0x20) >= 0;
+                if (weightCounts[buffer] >= 0 && (data[record] & 0x40) == 0 && !skinned && U16(record + 4) is var rigid && rigid < _bindWorld.Length)
                 {
-                    for (int v = firstVertex; v < Math.Min(firstVertex + vertexCount, part.Positions.Length); v++)
+                    foreach (int v in used)
                     {
+                        if (part.Bones[v * 4] == rigid && part.Weights[v * 4] == 1 && part.Bones[v * 4 + 1] == -1 && part.Weights[v * 4 + 1] == 0 && rigidDone.Contains((buffer, v))) continue;
+                        rigidDone.Add((buffer, v));
                         part.Positions[v] = Vector3.Transform(part.Positions[v], _bindWorld[rigid]);
                         part.Normals[v] = Vector3.TransformNormal(part.Normals[v], _bindWorld[rigid]);
                         for (int k = 0; k < 4; k++) (part.Bones[v * 4 + k], part.Weights[v * 4 + k]) = (k == 0 ? rigid : -1, k == 0 ? 1 : 0);
                     }
                 }
-                else if (weightCounts[buffer] >= 0 && I16(record + 0x20) is >= 0 and < 20) continue;
+                else if (weightCounts[buffer] >= 0 && (data[record] & 0x40) != 0 && I16(record + 0x20) is >= 0 and < 20) continue;
                 else
 
                 // 이 조각의 정점들에 마디와 몫을 적는다
                 if (weightCounts[buffer] >= 0)
                 {
                     int given = Math.Min(weightCounts[buffer], 3);          // 몫이 셋이면 마디는 넷(마지막은 나머지)
-                    for (int v = firstVertex; v < Math.Min(firstVertex + vertexCount, part.Positions.Length); v++)
+                    foreach (int v in used)
                     {
                         float rest = 1;
                         for (int k = 0; k < 4; k++)
                         {
                             int matrix = I16(record + 0x20 + k * 2);
                             int node = matrix >= 0 && _matrixNode.TryGetValue(matrix, out int mapped) ? mapped : -1;
+                            // 옷에 딸린 마디(치맛자락 따위 — 뼈대에 없는 번호)는 자리를 못 풀었다: 엉덩이 마디에 붙여 몸을 따라가게 한다(천이 따로 흔들리지는 않는다)
+                            if (matrix >= 0 && (node < 0 || node >= _bindWorld.Length)) node = Hips;
                             float weight = k < given ? F32(weightData[buffer].At + v * weightData[buffer].Stride + k * 4) : rest;
                             if (node < 0) weight = 0;
                             rest -= weight;
@@ -378,8 +392,6 @@ internal sealed class CharacterModel : IDisposable
                     }
                 }
 
-                int indices = indexAt + I32(buffersAt + buffer * 0x34 + 0x24);
-                uint Index(int i) => (uint)U16(indices + (first + i) * 2);
                 void Triangle(uint a, uint b, uint c) { part.Indices.Add(a); part.Indices.Add(b); part.Indices.Add(c); }
                 if (primitive == 5)
                     for (int i = 0; i < primitives; i++)

@@ -10,6 +10,8 @@ internal sealed class Aide
     public int Duty { get; set; }
     public int Level { get; set; } = 1;
     public double Exp { get; set; }
+    /// <summary>신뢰도(0 ~ 100) — 함께 바다에 있으면 오른다. 원본의 「부관정보」에 있는 값(화면 글 16208).</summary>
+    public double Trust { get; set; }
     /// <summary>부관 선장으로 맡은 배 — 없으면 null.</summary>
     public DockedShip? Ship { get; set; }
     /// <summary>해전에서 다음 포격까지 남은 초.</summary>
@@ -98,6 +100,10 @@ internal sealed partial class Voyage
     {
         foreach (var aide in Aides)
         {
+            // 신뢰도: 바다에서 하루에 0.5(부관 선장이면 1) — 정수 눈금을 넘을 때마다 알리고 부관이 한마디 한다. 오르는 빠르기와 대사(원본 화면에서 본 한 줄 말고는)는 지은 것
+            double before = aide.Trust;
+            aide.Trust = Math.Min(100, aide.Trust + days * (aide.Ship != null ? 1 : 0.5));
+            if ((int)aide.Trust > (int)before) TrustRose(aide);
             _aidePay += AidePay(aide) * days;
             if (aide.Level >= AideMaxLevel) continue;
             aide.Exp += days * 10 * GainFactor;
@@ -113,6 +119,25 @@ internal sealed partial class Voyage
     }
 
     private double _aidePay;
+
+    /// <summary>부관의 한마디 — 얼굴과 함께 화면 가운데 위에 잠깐 뜬다(원본: 신뢰도가 높아질 때 「나는 선장을 믿어!」).</summary>
+    public (NamedData Who, string Line, double Until)? AideSpeech { get; private set; }
+    private static readonly string[] TrustLines = ["나는 선장을 믿어!", "선장과 함께라면 어디든 가겠어.", "이 배에 타길 잘했어!", "선장, 오늘도 잘 부탁해."];
+
+    private void TrustRose(Aide aide)
+    {
+        Say($"부관 {aide.Who.Name}의 신뢰도가 높아졌습니다.");
+        AideSpeech = (aide.Who, (int)aide.Trust % 4 == 1 ? TrustLines[0] : TrustLines[_random.Next(TrustLines.Length)], Clock + 5);
+    }
+
+    /// <summary>대본용: 첫 부관(없으면 하나 둔다)의 신뢰도를 한 눈금 올린다.</summary>
+    public void TrustForTest()
+    {
+        if (Aides.Count == 0 && Data.Aides.Count > 0) Aides.Add(new Aide { Who = Data.Aides[0], Duty = 0 });
+        if (Aides.Count == 0) return;
+        Aides[0].Trust = Math.Min(100, Math.Floor(Aides[0].Trust) + 1);
+        TrustRose(Aides[0]);
+    }
 
     // ── 지방함대 ──
     // 부관을 그 지역의 일(독초 조사 · 밤도둑 토벌 · 해적단 거점 조사 …)에 내보낸다. 일의 이름과 잘됐을 때 · 안됐을 때의 글은 클라이언트 표 113 의 것이다.

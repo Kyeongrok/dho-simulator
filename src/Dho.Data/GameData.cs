@@ -32,6 +32,8 @@ public sealed class QuestData
     public int SearchCity { get; set; }
     /// <summary>의뢰를 받는 데 필요한 언어(스킬 번호) — 진짜 의뢰의 값.</summary>
     public List<int> Languages { get; set; } = [];
+    /// <summary>밤에만, 폭풍이 아닐 때 찾는다(별 따위) — 진짜 의뢰의 값.</summary>
+    public bool NightOnly { get; set; }
     /// <summary>상륙했을 때 나오는 글.</summary>
     public string LandingText { get; set; } = "";
     public int Advance { get; set; }
@@ -105,6 +107,10 @@ public sealed class QuestFact
     public int Place { get; set; }
     public int LandingId { get; set; }
     public int TownId { get; set; }
+    /// <summary>자리 4: 그 해역 안 어디서나 찾는다(해역 번호).</summary>
+    public int SeaZone { get; set; }
+    /// <summary>밤에만(거친 날씨가 아닐 때) 찾는다 — 차례 글의 「荒天以外の夜」.</summary>
+    public bool Night { get; set; }
     public int Difficulty { get; set; }
 }
 
@@ -297,6 +303,8 @@ public sealed class MarketData
 
     /// <summary>이용자 사이트(gvdb)에서 본 그 도시의 실제 판매 품목 — 있으면 손으로 적은 것(지은 것) 대신 쓴다. 저장소에는 안 적힌다.</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<int>? RealGoods { get; set; }
+    /// <summary>투자해야 교역소에 나오는 품목 — 교역품 → 필요 투자액(모르면 −1). gvdb 의 값.</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, int> RealInvest { get; } = [];
 
     public IEnumerable<int> GoodIds() => RealGoods != null ? RealGoods :
         Goods.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -309,6 +317,8 @@ public sealed class MarketFact
     public int CityId { get; set; }
     public List<int[]> Goods { get; set; } = [];
     public List<int[]> Items { get; set; } = [];
+    /// <summary>그 도시에 팔았을 때의 값(이용자들의 보고) — [교역품, 값].</summary>
+    public List<int[]> Buys { get; set; } = [];
 }
 
 /// <summary>교역 값 셈의 계수. 전부 지은 값이다.</summary>
@@ -703,6 +713,10 @@ public sealed class SaveData
     public int Insurance { get; set; }
     /// <summary>찾아낸 발견물의 번호들.</summary>
     public List<int> Found { get; set; } = [];
+    /// <summary>위임 항해의 목적지(도시 번호) — 없으면 0.</summary>
+    public int DelegateCity { get; set; }
+    /// <summary>바다 위에서 적은 저장 — [x, y, 뱃머리, 바다에서 보낸 초]. 항구에서 적었으면 빈 채.</summary>
+    public double[] AtSea { get; set; } = [];
     public Dictionary<int, int> Hostility { get; set; } = [];
     // 대장간의 단련: 장비 · 대포 번호 → 더해진 (공격력 또는 관통력, 방어력)
     public Dictionary<int, int[]> Forged { get; set; } = [];
@@ -778,8 +792,14 @@ public sealed class SettingsData
     public double MusicVolume { get; set; } = 0.5;
     /// <summary>그림 단추(오른쪽 위 단추 줄 · 항구 단추 · 가장자리 둥근 단추)의 배율(0.5 ~ 2.5) — 글과 창의 배율과 따로 논다.</summary>
     public double IconScale { get; set; } = 1;
+    /// <summary>퀵슬롯 칸의 배율(0.5 ~ 2.5, 10% 단위) — 아이콘 배율과 따로.</summary>
+    public double QuickScale { get; set; } = 1;
+    /// <summary>퀵슬롯의 「고정」 — 켜 두면 스킬을 써도 퀵슬롯이 안 닫힌다.</summary>
+    public bool QuickPin { get; set; }
     /// <summary>바다의 둥근 지도 크기 배율(0.5 ~ 1.5).</summary>
     public double SeaMapScale { get; set; } = 1;
+    /// <summary>바다의 주변 지도를 네모로 그린다(원본은 둥글다).</summary>
+    public bool SeaMapSquare { get; set; }
     /// <summary>판매선박 목록에 걸어 둔 거르기 — 크기(0 전체 · 1 소형 · 2 중형 · 3 대형)와 용도(0 전체 · 1 모험 · 2 교역 · 3 전투). 게임을 껐다 켜도 남는다.</summary>
     public int ShipFilterSize { get; set; }
     public int ShipFilterUse { get; set; }
@@ -805,6 +825,10 @@ public sealed class SettingsData
     public int ModCombineBonus { get; set; }
     /// <summary>모드: 경험치(모험 · 교역 · 부관)와 숙련도(스킬 · 조타)가 세 배로 오른다.</summary>
     public bool ModTripleGain { get; set; }
+    /// <summary>모드: 경험치 · 숙련도 배율(1 ~ 3). 0 이면 아직 안 고른 것 — 예전 설정(ModTripleGain)을 따른다.</summary>
+    public int ModGain { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public int Gain => ModGain is >= 1 and <= 3 ? ModGain : ModTripleGain ? 3 : 1;
     /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
     public Dictionary<string, int> Keys { get; set; } = new();
     /// <summary>효과음 — 일 이름 → "묶음:차례"(<c>data\extracted\se-all</c> 의 파일 이름 앞 두 수). 빈 글이면 소리 없음.</summary>
@@ -887,6 +911,12 @@ public sealed class GameData
     public List<MarketFact> MarketFacts { get; set; } = [];
     /// <summary>교역품의 실제 판매 값(파는 도시들의 가운데 값) — 있으면 갈래 기준값 대신 쓴다.</summary>
     public Dictionary<int, int> GoodPrices { get; } = [];
+    /// <summary>(도시, 교역품) → 그 도시에 팔았을 때의 실제 값(gvdb 의 보고).</summary>
+    public Dictionary<(int City, int Good), int> BuyPrices { get; } = [];
+    /// <summary>명산품 — 교역품 → 그것이 나는 문화권(gvdb 아이템 설명의 「○○の名産品」, <c>data\extracted\specialties.json</c>).</summary>
+    public Dictionary<int, int> Specialties { get; set; } = [];
+    /// <summary>전용 — 교역품 → [물자(0 물 · 1 식량 · 2 자재 · 3 탄약), 하나에 얻는 양]. gvdb 아이템 설명의 「…への転用量」(<c>data\extracted\conversions.json</c>).</summary>
+    public Dictionary<int, int[]> Conversions { get; set; } = [];
     /// <summary>NPC 의 이름 표(클라이언트 표 41 · 72 · 95 · 96 · 51) — tools\gvo\npcs.py 가 뽑는다.</summary>
     public NpcNames Npcs { get; set; } = new();
     /// <summary>지방함대의 활동(클라이언트 표 113) — 이름과 잘됐을 때 · 안됐을 때의 글. tools\gvo\npcs.py 가 뽑는다.</summary>
@@ -1109,14 +1139,16 @@ public sealed class GameData
         data.Papers = Read<List<PaperItem>>(Path.Combine(extracted, "paper-items.json")) ?? [];
         // 아이템 표(items14.json)에서 이름으로 더 고른 것 — 구입 발주서 · 수표 · 변성연금의 책 · 재봉도구. 소지품 이름과 「아이템 추가」 목록에 선다
         foreach (var extra in (Read<List<PaperItem>>(Path.Combine(extracted, "items14.json")) ?? [])
-                 .Where(i => (i.Name.Contains("구입 발주서") || i.Name.Contains("구입 발주서") || i.Name.EndsWith("구입 발주서") || i.Name.Contains("발주서(카테고리") || i.Name.StartsWith("수표(") || i.Name is "우로보로스의 책" or "유니콘의 책" or "재봉도구")
+                 .Where(i => (i.Name.Contains("구입 발주서") || i.Name.Contains("구입 발주서") || i.Name.EndsWith("구입 발주서") || i.Name.Contains("발주서(카테고리") || i.Name.StartsWith("수표(") || i.Name is "우로보로스의 책" or "유니콘의 책" or "재봉도구" or "특별 위임 항해 허가증" or "특별발주증서")
                              && i.Id is < 1500793 or > 1500820))
             if (!data.Papers.Exists(p => p.Id == extra.Id)) data.Papers.Add(extra);
         data.Foods = Read<List<PaperItem>>(Path.Combine(extracted, "food-items.json")) ?? [];
         data.MaterialColors = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-colors.json")) ?? [];
         data.MaterialTrims = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-trims.json")) ?? [];
         data.Boosters = Read<List<PaperItem>>(Path.Combine(extracted, "booster-items.json")) ?? [];
-        data.GearBoosts = Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts.json")) ?? [];
+        // 이용자 사이트(gvdb items.csv)의 보정이 바탕, 위키에서 뽑은 것이 그것을 덮는다
+        data.GearBoosts = Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts-gvdb.json")) ?? [];
+        foreach (var (gearId, boosts) in Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts.json")) ?? []) data.GearBoosts[gearId] = boosts;
         // 손으로 적어 넣은 것(위키에서 못 뽑은 장비 — 사용자의 기억 따위)이 뽑은 것을 덮는다. 도구가 extracted 의 파일을 새로 써도 남는다
         foreach (var (gearId, boosts) in Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(directory, "gear-boosts.json")) ?? []) data.GearBoosts[gearId] = boosts;
         data.GearModels = Read<List<GearModel>>(Path.Combine(extracted, "gear-models.json")) ?? [];
@@ -1143,11 +1175,23 @@ public sealed class GameData
         data.RecipeRules = Read<List<RecipeRule>>(Path.Combine(directory, "recipes.json")) ?? [];
         data.Recipes = Read<List<RecipeData>>(Path.Combine(extracted, "recipes.json")) ?? [];
         // 이용자 사이트(gvdb)에서 뽑은 재료 · 생산물 · 수량 — 손으로 적은 것(지은 값)을 덮는다. 설비 · 도구는 손으로 적은 것을 둔다
+        // 실험 도구(시험관 · 증류기 …)는 사이트에 재료로 적혀 있지만 닳지 않는다 — 손으로 적은 레시피의 도구 목록에 있는 번호는 재료에서 도구로 옮긴다
+        var labTools = data.RecipeRules.SelectMany(r => r.ToolList()).ToHashSet();
         foreach (var real in Read<List<RecipeRule>>(Path.Combine(extracted, "recipe-inputs.json")) ?? [])
         {
             real.FromSite = true;
+            var held = real.InputList().Where(i => labTools.Contains(i.Good)).Select(i => i.Good).ToList();
+            if (held.Count > 0)
+            {
+                real.Inputs = string.Join(",", real.InputList().Where(i => !labTools.Contains(i.Good)).Select(i => $"{i.Good}:{i.Count}"));
+                real.Tools = string.Join(",", held);
+            }
             if (data.RecipeRules.Find(r => r.RecipeId == real.RecipeId) is { } mine)
+            {
                 (mine.Output, mine.OutputCount, mine.Inputs, mine.Skill, mine.OutputItem) = (real.Output, real.OutputCount, real.Inputs, real.Skill == "" ? mine.Skill : real.Skill, real.OutputItem);
+                if (real.Tools != "") mine.Tools = real.Tools;
+                mine.Consumes = "";      // 닳는 도구는 실제 재료 줄에 들어 있다
+            }
             else data.RecipeRules.Add(real);
         }
         data.Npcs = Read<NpcNames>(Path.Combine(extracted, "npc-names.json")) ?? new NpcNames();
@@ -1176,7 +1220,14 @@ public sealed class GameData
         data.MarketFacts = Read<List<MarketFact>>(Path.Combine(extracted, "market-facts.json")) ?? [];
         foreach (var fact in data.MarketFacts)
             if (fact.Goods.Count > 0 && data.Markets.Find(m => m.CityId == fact.CityId) is { } real)
+            {
                 real.RealGoods = fact.Goods.Where(g => g.Length >= 2 && data.Goods.Exists(x => x.Id == g[0])).Select(g => g[0]).ToList();
+                foreach (var locked in fact.Goods.Where(g => g.Length >= 3 && g[2] != 0)) real.RealInvest[locked[0]] = locked[2];
+            }
+        data.Specialties = Read<Dictionary<int, int>>(Path.Combine(extracted, "specialties.json")) ?? [];
+        data.Conversions = Read<Dictionary<int, int[]>>(Path.Combine(extracted, "conversions.json")) ?? [];
+        foreach (var fact in data.MarketFacts)
+            foreach (var buy in fact.Buys.Where(b => b.Length >= 2 && b[1] > 0)) data.BuyPrices[(fact.CityId, buy[0])] = buy[1];
         foreach (var prices in data.MarketFacts.SelectMany(f => f.Goods).Where(g => g.Length >= 2 && g[1] > 0).GroupBy(g => g[0]))
             data.GoodPrices[prices.Key] = prices.Select(g => g[1]).OrderBy(p => p).ElementAt(prices.Count() / 2);
         var points = Read<List<LandingData>>(Path.Combine(directory, "landing-points.json")) ?? [];

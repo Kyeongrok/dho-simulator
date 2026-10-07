@@ -42,8 +42,8 @@
     "Price": 450
   },
   {
-    "Id": 1500032,
-    "Name": "쥐의 먹이",
+    "Id": 1500020,
+    "Name": "쥐약",
     "Effect": "Cure",
     "Amount": 4,
     "Price": 300
