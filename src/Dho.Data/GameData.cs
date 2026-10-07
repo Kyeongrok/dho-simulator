@@ -295,9 +295,20 @@ public sealed class MarketData
     /// </summary>
     public bool? Shipyard { get; set; }
 
-    public IEnumerable<int> GoodIds() =>
+    /// <summary>이용자 사이트(gvdb)에서 본 그 도시의 실제 판매 품목 — 있으면 손으로 적은 것(지은 것) 대신 쓴다. 저장소에는 안 적힌다.</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public List<int>? RealGoods { get; set; }
+
+    public IEnumerable<int> GoodIds() => RealGoods != null ? RealGoods :
         Goods.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(s => int.TryParse(s, out int id) ? id : 0).Where(id => id != 0);
+}
+
+/// <summary>이용자 사이트(gvdb tradeinfo)에서 본 한 도시의 판매 — 교역품과 아이템, [번호, 값].</summary>
+public sealed class MarketFact
+{
+    public int CityId { get; set; }
+    public List<int[]> Goods { get; set; } = [];
+    public List<int[]> Items { get; set; } = [];
 }
 
 /// <summary>교역 값 셈의 계수. 전부 지은 값이다.</summary>
@@ -383,6 +394,15 @@ public sealed class RecipeData
     public int Id { get; set; }
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
+}
+
+/// <summary>레시피 책 한 권 — 아이템 번호 · 이름 · 도구점 값(모르면 0) · 든 레시피들.</summary>
+public sealed class RecipeBook
+{
+    public int ItemId { get; set; }
+    public string Name { get; set; } = "";
+    public int Price { get; set; }
+    public List<int> Recipes { get; set; } = [];
 }
 
 /// <summary>레시피로 만드는 것 — 재료와 생산물. 클라이언트에 없어서 지은 것이다(<c>recipes.json</c>).</summary>
@@ -861,6 +881,12 @@ public sealed class GameData
     public OrderBook Orders { get; set; } = new();
     public List<RecipeData> Recipes { get; set; } = [];
     public List<RecipeRule> RecipeRules { get; set; } = [];
+    /// <summary>레시피 책 — 어느 책(아이템)에 어느 레시피가 있는가. 이용자 사이트(gvdb)의 값(<c>data\extracted\recipe-books.json</c>).</summary>
+    public List<RecipeBook> RecipeBooks { get; set; } = [];
+    /// <summary>도시마다 실제로 파는 것(gvdb) — <c>data\extracted\market-facts.json</c>.</summary>
+    public List<MarketFact> MarketFacts { get; set; } = [];
+    /// <summary>교역품의 실제 판매 값(파는 도시들의 가운데 값) — 있으면 갈래 기준값 대신 쓴다.</summary>
+    public Dictionary<int, int> GoodPrices { get; } = [];
     /// <summary>NPC 의 이름 표(클라이언트 표 41 · 72 · 95 · 96 · 51) — tools\gvo\npcs.py 가 뽑는다.</summary>
     public NpcNames Npcs { get; set; } = new();
     /// <summary>지방함대의 활동(클라이언트 표 113) — 이름과 잘됐을 때 · 안됐을 때의 글. tools\gvo\npcs.py 가 뽑는다.</summary>
@@ -1121,7 +1147,7 @@ public sealed class GameData
         {
             real.FromSite = true;
             if (data.RecipeRules.Find(r => r.RecipeId == real.RecipeId) is { } mine)
-                (mine.Output, mine.OutputCount, mine.Inputs, mine.Skill, mine.OutputItem) = (real.Output, real.OutputCount, real.Inputs, real.Skill == "" ? mine.Skill : real.Skill, 0);
+                (mine.Output, mine.OutputCount, mine.Inputs, mine.Skill, mine.OutputItem) = (real.Output, real.OutputCount, real.Inputs, real.Skill == "" ? mine.Skill : real.Skill, real.OutputItem);
             else data.RecipeRules.Add(real);
         }
         data.Npcs = Read<NpcNames>(Path.Combine(extracted, "npc-names.json")) ?? new NpcNames();
@@ -1133,6 +1159,10 @@ public sealed class GameData
         data.ShipWorks = Read<ShipWorkBook>(Path.Combine(directory, "ship-works.json")) ?? new ShipWorkBook();
         if (!data._materialsFromFacts) data.ShipMaterials = Read<List<ShipMaterial>>(Path.Combine(directory, "ship-materials.json")) ?? [];
         data.Items = Read<List<ItemData>>(Path.Combine(directory, "items.json")) ?? [];
+        // 레시피 책은 아이템으로도 선다(도구점 · 소지품) — 값을 아는 책만 도구점에 나온다. items.json 에는 적지 않는다
+        data.RecipeBooks = Read<List<RecipeBook>>(Path.Combine(extracted, "recipe-books.json")) ?? [];
+        foreach (var book in data.RecipeBooks)
+            if (!data.Items.Exists(i => i.Id == book.ItemId)) data.Items.Add(new ItemData { Id = book.ItemId, Name = book.Name, Effect = "RecipeBook", Price = book.Price });
         data.Orders = Read<OrderBook>(Path.Combine(directory, "orders.json")) ?? new OrderBook();
         data.Disasters = Read<List<DisasterData>>(Path.Combine(directory, "disasters.json")) ?? [];
         data.WikiRequests = Read<List<WikiRequest>>(Path.Combine(directory, "wiki-requests.json")) ?? [];
@@ -1142,6 +1172,13 @@ public sealed class GameData
         data.Markets = Read<List<MarketData>>(Path.Combine(directory, "markets.json")) ?? [];
         data.Start = Read<StartData>(Path.Combine(directory, "start.json")) ?? new StartData();
         data.FillMarkets();
+        // 실제 판매 목록(gvdb)이 있는 도시는 그것으로 — 손으로 적은 markets.json 의 글은 그대로 두고 읽을 때만 바꾼다
+        data.MarketFacts = Read<List<MarketFact>>(Path.Combine(extracted, "market-facts.json")) ?? [];
+        foreach (var fact in data.MarketFacts)
+            if (fact.Goods.Count > 0 && data.Markets.Find(m => m.CityId == fact.CityId) is { } real)
+                real.RealGoods = fact.Goods.Where(g => g.Length >= 2 && data.Goods.Exists(x => x.Id == g[0])).Select(g => g[0]).ToList();
+        foreach (var prices in data.MarketFacts.SelectMany(f => f.Goods).Where(g => g.Length >= 2 && g[1] > 0).GroupBy(g => g[0]))
+            data.GoodPrices[prices.Key] = prices.Select(g => g[1]).OrderBy(p => p).ElementAt(prices.Count() / 2);
         var points = Read<List<LandingData>>(Path.Combine(directory, "landing-points.json")) ?? [];
         foreach (var point in points)
             if (data.Landings.Find(l => l.Id == point.Id) is { } landing) (landing.X, landing.Y) = (point.X, point.Y);
@@ -1158,7 +1195,7 @@ public sealed class GameData
         Write(Path.Combine(Directory, "settings.json"), Settings);
         Write(Path.Combine(Directory, "quests.json"), Quests);
         Write(Path.Combine(Directory, "orders.json"), Orders);
-        Write(Path.Combine(Directory, "items.json"), Items);
+        Write(Path.Combine(Directory, "items.json"), Items.Where(i => i.Effect != "RecipeBook").ToList());
         if (!_materialsFromFacts) Write(Path.Combine(Directory, "ship-materials.json"), ShipMaterials);      // 모아 온 표는 저장소 쪽 파일에 적지 않는다
         Write(Path.Combine(Directory, "ship-works.json"), ShipWorks);
         Write(Path.Combine(Directory, "recipes.json"), RecipeRules.Where(r => !r.FromSite).ToList());

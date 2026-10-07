@@ -2306,7 +2306,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             if (voyage.RuleOf(id) is not { } made) return false;
             return Has(made.OutputItem > 0 ? voyage.ItemName(made.OutputItem) : voyage.Good(made.Output)?.Name) || made.InputList().Any(i => Has(voyage.Good(i.Item1)?.Name));
         }
-        var owned = voyage.Recipes.OrderBy(id => id).Where(Matches).ToList();
+        var owned = voyage.KnownRecipes().Where(Matches).ToList();
         if (_recipeSearch != "") canvas.Text($"{owned.Count}가지", sx - 70, y + 15, 64, 20, 12, Canvas.Dim, 2);
         const int shown = 6;
         int count2 = Math.Max(1, (owned.Count + shown - 1) / shown);
@@ -2353,7 +2353,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
 
     /// <summary>아이템 추가에 늘어놓는 레시피 — 만들 것이 정해진 것이 먼저, 그 뒤로 번호 차례.</summary>
     private IEnumerable<RecipeData> RecipesToAdd() =>
-        voyage.Data.Recipes.Where(r => r.Name != "").OrderBy(r => voyage.RuleOf(r.Id) == null).ThenBy(r => r.Id);
+        voyage.Data.Recipes.Where(r => r.Name != "" && voyage.BooksOf(r.Id).Count == 0).OrderBy(r => voyage.RuleOf(r.Id) == null).ThenBy(r => r.Id);      // 책에 든 것은 책으로 넣는다
 
     private string RecipeNote(RecipeData recipe)
     {
@@ -2498,10 +2498,10 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             bool open = voyage.Mode == Mode.Port && voyage.HasItemShop;
             if (!open) { canvas.Text(voyage.Mode == Mode.Port ? "이 도시에는 도구점이 없다." : "도구점은 항구에서 연다.", x + 20, row, w - 40, 24, 15, Canvas.Dim); row += 30; }
             // 한 쪽에 열 줄 — 휠이나 아래 단추로 넘긴다
-            int shopPages = Math.Max(1, (voyage.Data.Items.Count(i => i.Price > 0) + perPage - 1) / perPage);
+            int shopPages = Math.Max(1, (voyage.Data.Items.Count(voyage.ShopSells) + perPage - 1) / perPage);
             _itemPage = Math.Clamp(_itemPage, 0, shopPages - 1);
             Pages(shopPages);
-            foreach (var item in voyage.Data.Items.Where(i => i.Price > 0).Skip(_itemPage * perPage).Take(open ? perPage : perPage - 1))
+            foreach (var item in voyage.Data.Items.Where(voyage.ShopSells).Skip(_itemPage * perPage).Take(open ? perPage : perPage - 1))
             {
                 canvas.Text(item.Name, x + 20, row + 3, 200, 24, 15, Canvas.White);
                 canvas.Text($"{voyage.ItemNote(item.Id)}   가진 수 {voyage.Items.GetValueOrDefault(item.Id)}", x + 200, row + 5, 300, 22, 12, Canvas.Dim);
@@ -2604,6 +2604,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 }
                 foreach (var job in voyage.JobsToTake()) Put("전직", Voyage.JobPaper + job.Id, voyage.ItemName(Voyage.JobPaper + job.Id), job.Group switch { 0 => "모험 계열", 1 => "교역 계열", 2 => "전투 계열", _ => "" });
                 foreach (var recipe in RecipesToAdd()) Put("레시피", 0, recipe.Name, RecipeNote(recipe), recipe.Id);
+                foreach (var book in voyage.Data.RecipeBooks) Put("레시피", book.ItemId, book.Name, voyage.ItemNote(book.ItemId));
                 foreach (var wood in voyage.SpecialMaterials()) Put("재질", Voyage.MaterialItem + wood.Id, wood.Name, $"내구 {wood.Durability * 100:0}% · 돛 {wood.Sail * 100:0}%");
                 foreach (var dye in voyage.Data.Items.Where(i => i.Effect == "SailPaint")) Put("도료", dye.Id, dye.Name, "돛 도료");
                 int[] books = [Voyage.DismantleBook, 1510029, 1510061, 1510062, 1510030, Voyage.RedesignBook, 1510035, 1510016];
@@ -2642,7 +2643,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 if (entry.Recipe != 0)
                 {
                     var recipe = voyage.Data.Recipes.Find(r => r.Id == entry.Recipe);
-                    bool have = voyage.Recipes.Contains(entry.Recipe);
+                    bool have = voyage.KnowsRecipe(entry.Recipe);
                     if (canvas.Button(have ? "있음" : "추가", x + w - 110, row, 90, 26, !have && recipe != null, 13)) voyage.AddRecipe(recipe!);
                 }
                 else if (entry.Tag == "교역품")
@@ -2690,7 +2691,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             }
             // 연금술 레시피를 한꺼번에 — 만들 것이 정해진 것만
             var labRecipes = voyage.Data.RecipeRules.Where(r => r.Facility != "").ToList();
-            if (canvas.Button($"연금술 레시피 {labRecipes.Count}가지 넣기", x + 180, y + h - 50, 220, 34, labRecipes.Exists(r => !voyage.Recipes.Contains(r.RecipeId)), 13))
+            if (canvas.Button($"연금술 레시피 {labRecipes.Count}가지 넣기", x + 180, y + h - 50, 220, 34, labRecipes.Exists(r => !voyage.KnowsRecipe(r.RecipeId)), 13))
                 foreach (var rule in labRecipes)
                     if (voyage.Data.Recipes.Find(r => r.Id == rule.RecipeId) is { } recipe) voyage.AddRecipe(recipe);
             Pages(pages);
@@ -2831,7 +2832,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             _itemPage = Math.Clamp(_itemPage, 0, pages - 1);
             foreach (var recipe in _addRecipeFound.Skip(_itemPage * addPage).Take(addPage))
             {
-                bool have = voyage.Recipes.Contains(recipe.Id), known = voyage.RuleOf(recipe.Id) != null;
+                bool have = voyage.KnowsRecipe(recipe.Id), known = voyage.RuleOf(recipe.Id) != null;
                 RecipeIcon(recipe.Id, x + 20, row - 1, 28);
                 canvas.Text(recipe.Name, x + 54, row + 3, 250, 24, recipe.Name.Length > 16 ? 12 : 15, have ? Canvas.Dim : Canvas.White);
                 canvas.Text(RecipeNote(recipe), x + 304, row + 5, w - 304 - (known ? 120 : 220), 22, 12, Canvas.Dim);
@@ -3775,6 +3776,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     /// id 가 부관 번호(1 ~ 32). 나라 깃발은 못 찾아 없다.
     /// </summary>
     private Aide? _captainFor;
+    /// <summary>대본용: 첫 부관의 배 고르는 창을 띄운다.</summary>
+    public void CaptainPickForTest() => _captainFor = voyage.Aides.FirstOrDefault();
 
     private void AideWindow()
     {

@@ -40,6 +40,7 @@ internal sealed partial class Voyage
     /// <summary>품목마다 조금씩 다른 기준값 — 갈래 기준값의 0.7 ~ 1.3배.</summary>
     private double BasePrice(GoodData good)
     {
+        if (Data.GoodPrices.TryGetValue(good.Id, out int real)) return real;      // 실제 판매 값(gvdb)을 아는 것은 그 값
         var prices = Settings.Trade.KindPrices;
         double kind = good.Kind >= 0 && good.Kind < prices.Count ? prices[good.Kind] : 100;
         return kind * (0.7 + 0.6 * Hash(good.Id));

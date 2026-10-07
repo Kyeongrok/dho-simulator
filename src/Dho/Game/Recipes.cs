@@ -13,8 +13,46 @@ internal sealed partial class Voyage
 
     public RecipeRule? RuleOf(int recipe) => Data.RecipeRules.Find(r => r.RecipeId == recipe);
 
+    // ── 레시피 책 ──
+    // 책에 든 레시피는 그 책을 가져야 열린다(사용자, 2026-10-07: 「레시피 책을 사야만 열리게」). 어느 책에도 없는 레시피(아직 책 자료를 못 받은 갈래)만 낱개로 가진다.
+    // 책과 든 레시피, 도구점 값은 이용자 사이트(gvdb)의 것. 어느 도시의 도구점이 어느 책을 파는가는 모른다 — 값을 아는 책은 모든 도구점에 선다(지은 것).
+    private Dictionary<int, List<RecipeBook>>? _booksOf;
+
+    /// <summary>그 레시피가 든 책들 — 없으면 빈 목록.</summary>
+    public List<RecipeBook> BooksOf(int recipe)
+    {
+        if (_booksOf == null)
+        {
+            _booksOf = [];
+            foreach (var book in Data.RecipeBooks)
+                foreach (int id in book.Recipes)
+                {
+                    if (!_booksOf.TryGetValue(id, out var list)) _booksOf[id] = list = [];
+                    list.Add(book);
+                }
+        }
+        return _booksOf.GetValueOrDefault(recipe) ?? [];
+    }
+
+    public bool OwnsBook(RecipeBook book) => Items.GetValueOrDefault(book.ItemId) > 0;
+
+    /// <summary>그 레시피를 쓸 수 있는가 — 책에 든 것은 책을 가졌을 때, 아니면 낱개로 얻었을 때.</summary>
+    public bool KnowsRecipe(int recipe) => BooksOf(recipe) is { Count: > 0 } books ? books.Exists(OwnsBook) : Recipes.Contains(recipe);
+
+    /// <summary>지금 쓸 수 있는 레시피 전부 — 가진 책의 것과 낱개로 얻은 것.</summary>
+    public List<int> KnownRecipes() =>
+        Data.RecipeBooks.Where(OwnsBook).SelectMany(b => b.Recipes).Concat(Recipes.Where(id => BooksOf(id).Count == 0)).Distinct().OrderBy(id => id).ToList();
+
+    public RecipeBook? RecipeBookOf(int item) => Data.RecipeBooks.Find(b => b.ItemId == item);
+
+    /// <summary>이 도시의 도구점이 그 아이템을 파는가 — 레시피 책은 실제로 파는 도시(gvdb)에서만. 다른 아이템은 어디서나(지은 것).</summary>
+    public bool ShopSells(ItemData item) =>
+        item.Price > 0 && (item.Effect != "RecipeBook" || Data.MarketFacts.Count == 0 || (Data.MarketFacts.Find(f => f.CityId == City.Id)?.Items.Exists(i => i[0] == item.Id) ?? false));
+
     public void AddRecipe(RecipeData recipe)
     {
+        // 책에 든 레시피는 낱개로 못 얻는다 — 그 책을 넣어 준다(대본 · 개발용)
+        if (BooksOf(recipe.Id) is { Count: > 0 } books) { if (!books.Exists(OwnsBook)) AddItem(books[0].ItemId); return; }
         if (Recipes.Add(recipe.Id)) Say($"레시피 「{recipe.Name}」을(를) 얻었다.");
     }
 
@@ -61,7 +99,7 @@ internal sealed partial class Voyage
     /// <summary>못 만드는 까닭.</summary>
     public string? ProduceBlocker(RecipeRule rule, int times)
     {
-        if (!Recipes.Contains(rule.RecipeId)) return "레시피가 없다";
+        if (!KnowsRecipe(rule.RecipeId)) return BooksOf(rule.RecipeId) is { Count: > 0 } books ? $"레시피 책 「{books[0].Name}」이(가) 있어야 한다" : "레시피가 없다";
         if (rule.Facility != "" && LabTier(rule.Facility) == 0) return $"{LabName(rule.Facility)}가 있어야 한다 — {(rule.Facility == "Furnace" ? "화로를 사용한 연금술" : "실험대에서 진행하는 연금술")}";
         if (rule.ToolList().FirstOrDefault(tool => Items.GetValueOrDefault(tool) <= 0) is > 0 and var missing) return $"도구 「{ItemName(missing)}」이(가) 있어야 한다";
         if (RecipeSkill(rule) is { } need && Rank(need.SkillId) < need.Rank) return $"{SkillName(need.SkillId)} 랭크 {need.Rank} 이 있어야 한다";

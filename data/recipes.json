@@ -102,7 +102,6 @@
   {"RecipeId": 1488, "Name": "흙의 추출액 제조법", "Output": 0, "OutputCount": 3, "Inputs": "1600285:3", "Skill": "연금술 3", "Facility": "Furnace", "Tools": "1500345,1500343", "OutputItem": 1500356},
   {"RecipeId": 1489, "Name": "기의 환원액 제조법", "Output": 0, "OutputCount": 3, "Inputs": "1600290:3", "Skill": "연금술 3", "Facility": "Furnace", "Tools": "1500345,1500343", "OutputItem": 1500354},
   {"RecipeId":905,"Name":"귀중서 사본","Output":1600754,"OutputCount":1,"Inputs":"1600752:1,1600903:4","Skill":"연금술 1"},
-  {"RecipeId":56,"Name":"동광석 추출","Output":1600913,"OutputCount":1,"Inputs":"1600553:1","Skill":"주조 5"},
   {"RecipeId":18,"Name":"깃털 얻는 법(닭)","Output":1600303,"OutputCount":2,"Inputs":"1600032:1","Skill":"봉제 1"},
   {"RecipeId":28,"Name":"모직원단 제조법(양모)","Output":1600454,"OutputCount":2,"Inputs":"1600314:2","Skill":"봉제 3"},
   {"RecipeId":38,"Name":"니트 제조법","Output":1600463,"OutputCount":2,"Inputs":"1600314:2","Skill":"봉제 4"},

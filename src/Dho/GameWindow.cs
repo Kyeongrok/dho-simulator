@@ -1537,6 +1537,8 @@ internal sealed class GameWindow : IDisposable
             case "aides": _voyage.Dialog = Dialog.Aides; break;
             case "captain": _voyage.CaptainForTest(); break;
             case "refine": _voyage.Refine((int)Number()); break;
+            case "relieve": if (_voyage.Aides.Find(a => a.Ship != null) is { } captain) _voyage.RelieveCaptain(captain); break;
+            case "captainpick": _hud.CaptainPickForTest(); break;
             case "offerlang": _voyage.Offered = _voyage.MadeQuests.Find(q => q.Languages.Count > 0 && q.CityId == _voyage.City.Id); break;
             case "day": _voyage.PassDay(); break;
             case "seaday": for (int n = Math.Max(1, (int)Number()); n > 0; n--) _voyage.SkipSeaDayForTest(); break;

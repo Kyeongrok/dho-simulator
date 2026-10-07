@@ -261,6 +261,7 @@ internal sealed partial class Voyage
                 "Repair" => $"내구를 {known.Amount:0}% 고친다.",
                 "Cure" => $"{Data.Disasters.Find(d => d.Id == (int)known.Amount)?.Name ?? "재해"}을(를) 가라앉힌다.",
                 "Lifebuoy" => "난파할 때 저절로 쓰여 한 번 버틴다.",
+                "RecipeBook" when RecipeBookOf(known.Id) is { } book => $"레시피 책 — {book.Recipes.Count}가지: " + string.Join(" · ", book.Recipes.Take(6).Select(id => Data.Recipes.Find(r => r.Id == id)?.Name ?? "")) + (book.Recipes.Count > 6 ? " …" : ""),
                 "SailPaint" => "쓰면 돛의 무늬와 색을 고르는 창이 뜬다. 대장간 · 도구점에서 판다.",
                 "Paper" when known.Id == MedalPaper => $"{PermitCost}장을 본거지 왕궁의 서기관에게 가져가면 전용함 건조 허가증으로 바꿔 준다.",
                 "Paper" when known.Id == ShipPermit => $"국가공헌 훈장증서 {PermitCost}장과 바꾼 증서.",
@@ -317,6 +318,10 @@ internal sealed partial class Voyage
                 case "SailPaint":
                     SailDye = (int)known.Amount;
                     Dialog = Dialog.Sail;              // 무늬와 색을 고르는 창 — 「확인」을 눌러야 도료가 든다
+                    return;
+                case "RecipeBook":
+                    Dialog = Dialog.Items;             // 책은 닳지 않는다 — 레시피 쪽에서 쓴다
+                    Say($"{known.Name} — 「레시피」 쪽에 든 레시피가 열려 있다.");
                     return;
                 case "Cure" when Disasters.Find(d => d.Data.Id == (int)known.Amount) is { } disaster:
                     End(disaster);
