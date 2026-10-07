@@ -63,6 +63,7 @@
   "QuickScale": 1,
   "QuickPin": false,
   "SeaMapScale": 0.8,
+  "SeaMapSquare": true,
   "ShipFilterSize": 2,
   "ShipFilterUse": 0,
   "ItemRows": 5,
@@ -75,8 +76,8 @@
   "ModAllLanguages": false,
   "ModBooksTimes5": false,
   "ModCombineBonus": 50,
-  "ModTripleGain": true,
-  "ModGain": 0,
+  "ModTripleGain": false,
+  "ModGain": 2,
   "Keys": {
     "Map": 53,
     "Skills": 88,
@@ -88,7 +89,8 @@
     "KeysWin": 74,
     "TownMenu": 0,
     "Pause": 0,
-    "Warp": 80
+    "Warp": 80,
+    "Mod": 77
   },
   "SoundMemos": {
     "14:15": "돛 조종 켜질 때 ",

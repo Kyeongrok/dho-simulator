@@ -103,6 +103,25 @@ internal sealed partial class Voyage
     public int LabFailChance(RecipeRule rule) => rule.Facility == "" ? 0 : LabTier(rule.Facility) switch { 1 => 20, 2 => 10, 3 => 3, _ => 100 };
 
     /// <summary>못 만드는 까닭.</summary>
+    /// <summary>생산 한 번에 드는 행동력 — 원본도 생산에 행동력이 든다(사용자, 2026-10-07). 얼마인지는 못 찾아 지은 값.</summary>
+    public const int ProduceVigour = 5;
+
+    /// <summary>
+    /// 생산 한 번에 오르는 숙련도 — 사용자가 준 원본의 식(2026-10-07):
+    /// 성공 = (레시피 요구 랭크 + 1 − 내 스킬 랭크) × 2, 0 이하면 1. 대성공 = (레시피 요구 랭크 + 2) × 2(내 랭크와 상관없다).
+    /// 내 랭크는 부스트를 뺀 제 랭크로 본다(부스트로 제 랭크보다 높은 레시피를 만들면 많이 오른다).
+    /// 원본의 「랭크마다 필요한 숙련도」 표를 몰라 이쪽 표(기준값 × 랭크²)에 맞추려고 12.5 를 곱한다 — 같은 랭크 레시피가 전처럼 25 가 되게. 이 곱은 지은 값.
+    /// </summary>
+    public const double ProduceExpScale = 12.5;
+
+    public int ProduceExp(RecipeRule rule, bool great = false)
+    {
+        if (RecipeSkill(rule) is not { } need) return 0;
+        int mine = Skills.TryGetValue(need.SkillId, out var state) ? state.Rank : 0;
+        int raw = great ? (need.Rank + 2) * 2 : Math.Max(1, (need.Rank + 1 - mine) * 2);
+        return (int)Math.Round(raw * ProduceExpScale);
+    }
+
     public string? ProduceBlocker(RecipeRule rule, int times)
     {
         if (!KnowsRecipe(rule.RecipeId)) return BooksOf(rule.RecipeId) is { Count: > 0 } books ? $"레시피 책 「{books[0].Name}」이(가) 있어야 한다" : "레시피가 없다";
@@ -113,6 +132,7 @@ internal sealed partial class Voyage
         if (CanProduce(rule) < times) return "재료가 모자라다";
         int used = rule.InputList().Where(i => IsGoodId(i.Good)).Sum(i => i.Count) * times, made = rule.OutputCount * times;
         if (rule.OutputItem == 0 && HoldFree + used < made) return "창고가 모자라다";
+        if (Vigour < ProduceVigour * times) return $"행동력이 모자라다 — 한 번에 {ProduceVigour}";
         return null;
     }
 
@@ -122,6 +142,7 @@ internal sealed partial class Voyage
         times = Math.Min(times, CanProduce(rule));
         if (times <= 0 || ProduceBlocker(rule, times) != null) return;
         long cost = 0;
+        SpendVigour(ProduceVigour * times);
         foreach (int tool in rule.ConsumeList()) SpendItem(tool, times);
         // 연성한 생산 스킬은 재료를 아껴 준다 — 한 번마다 10%로 그 번의 재료가 안 든다(지은 값)
         int spared = RecipeSkill(rule) is { } craft && Refined(craft.SkillId) ? Enumerable.Range(0, times).Count(_ => _random.Next(100) < 10) : 0;
@@ -162,7 +183,7 @@ internal sealed partial class Voyage
             made.Cost += cost;
         }
         Fatigue = Math.Min(100, Fatigue + 0.5 * times);
-        if (RecipeSkill(rule) is { } used) Train(used.SkillId, 25 * times);
+        if (RecipeSkill(rule) is { } used) Train(used.SkillId, ProduceExp(rule) * (times - great) + ProduceExp(rule, true) * great);      // 실패한 번도 성공만큼 오른다(실패 때의 양은 모른다)
         Studied("Produce", times);
         GainMastery();
         if (great > 0) { Say(Text(16503, "생산 대성공!!") + (times > 1 ? $" ({great}번)" : "")); Cues.Enqueue("Done"); }

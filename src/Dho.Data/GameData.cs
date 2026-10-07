@@ -798,6 +798,8 @@ public sealed class SettingsData
     public bool QuickPin { get; set; }
     /// <summary>바다의 둥근 지도 크기 배율(0.5 ~ 1.5).</summary>
     public double SeaMapScale { get; set; } = 1;
+    /// <summary>바다의 주변 지도의 배율 — 1 이면 반지름 180(세계 좌표)이 보이고, 크면 좁게 크게 보인다.</summary>
+    public double SeaMapZoom { get; set; } = 1;
     /// <summary>바다의 주변 지도를 네모로 그린다(원본은 둥글다).</summary>
     public bool SeaMapSquare { get; set; }
     /// <summary>판매선박 목록에 걸어 둔 거르기 — 크기(0 전체 · 1 소형 · 2 중형 · 3 대형)와 용도(0 전체 · 1 모험 · 2 교역 · 3 전투). 게임을 껐다 켜도 남는다.</summary>

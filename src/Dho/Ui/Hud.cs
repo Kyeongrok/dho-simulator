@@ -24,7 +24,6 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         DisasterEffects();                        // 재해 · 날씨의 모습도 창들 밑에
         HelmMarks();
         AideSpeechBox();
-        SkillUpEffect();
         Status();
         LogPanel();
         Display();
@@ -62,6 +61,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         Dialogs();
         _dialogRect = voyage.Dialog == Dialog.None ? default : canvas.LastPanel;      // 기록 칸을 굴릴 때 — 창이 덮은 자리가 아니면 굴린다
         canvas.PanelId = null;
+        SkillUpEffect();                          // 스킬 랭크 업의 모습은 창들 위에(레시피 창에서 생산하다 올라도 보이게)
         // 레벨업 알림 — 화면 위쪽 가운데에 잠깐
         if (voyage.LevelNotice.Count != _levelSeen) (_levelSeen, _levelShown) = (voyage.LevelNotice.Count, Environment.TickCount64);
         if (voyage.LevelNotice.Text is { Length: > 0 } levelUp && Environment.TickCount64 - _levelShown < 4000)
@@ -741,7 +741,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         canvas.PanelId = "WndDisplay";
 
         const float w = 300;
-        float h = 74 + (1 + 3) * 30 + 62 + 68 + 68 + 34;      // + 퀵슬롯 배율 줄
+        float h = 74 + (1 + 3) * 30 + 34 + 62 + 68 + 68 + 34;      // + 퀵슬롯 배율 줄
         float x = (canvas.Width - w) / 2, y = 34;
         canvas.Panel(x, y, w, h);
         canvas.Block(x, y, w, h);
@@ -789,6 +789,12 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         // 항해 지도의 모양 — 동그라미(원본) · 네모
         if (canvas.Button(settings.SeaMapSquare ? "■" : "●", x + 230, row, 54, 26, true, 14)) { settings.SeaMapSquare = !settings.SeaMapSquare; voyage.Data.SaveSettings(); }
         if (canvas.Hover(x + 230, row, 54, 26)) _tip = (settings.SeaMapSquare ? "네모 — 누르면 동그라미" : "동그라미 — 누르면 네모", x + 257, row);
+        // 항해 지도의 배율 — 크면 가까운 곳이 크게, 작으면 먼 곳까지(지도 위에서 휠로도 바꾼다)
+        row += 34;
+        canvas.Text($"지도 배율 {settings.SeaMapZoom * 100:0}%", x + 16, row + 3, 130, 22, 14, Canvas.White);
+        if (canvas.Button("−", x + 150, row, 36, 26, settings.SeaMapZoom > 0.25, 16)) SetSeaMapZoom(settings.SeaMapZoom * 0.8);
+        if (canvas.Button("+", x + 190, row, 36, 26, settings.SeaMapZoom < 4, 16)) SetSeaMapZoom(settings.SeaMapZoom * 1.25);
+        if (canvas.Button("100%", x + 230, row, 54, 26, settings.SeaMapZoom != 1, 13)) SetSeaMapZoom(1);
         // 소지품 창의 격자 줄 수(다섯 칸 × n 줄)
         row += 34;
         canvas.Text($"소지품 5 × {settings.ItemRows}", x + 16, row + 3, 130, 22, 14, Canvas.White);
@@ -814,6 +820,15 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         }
     }
     private bool _sizesOpen;
+    private (float X, float Y, float Size) _seaMapRect;
+    private void SetSeaMapZoom(double zoom)
+    {
+        voyage.Data.Settings.SeaMapZoom = Math.Round(Math.Clamp(zoom, 0.25, 4), 2);
+        voyage.Data.SaveSettings();
+    }
+    private bool _autoProduce;
+    private object? _autoFor;
+    private double _autoNext, _autoSeen;
 
     /// <summary>
     /// 효과음 고르기 — 원본 소리 1,397개에 이름표가 없어서, 들어 보고 메모를 달고 일(선회 · 돛 조종 · 스킬)에 매는 창.
@@ -1196,9 +1211,15 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         }
         if (_tip is not { } tip) return;
         _tip = null;
-        float w = tip.Text.Length * 15 + 20, x = Math.Clamp(tip.X - w / 2, 4, canvas.Width - w - 4);
-        canvas.Fill(x, tip.Y - 28, w, 24, new Color4(0.02f, 0.04f, 0.14f, 0.92f));
-        canvas.Text(tip.Text, x, tip.Y - 27, w, 22, 15, Canvas.White, 1);
+        // 글에 맞춘 너비(한글은 넓게, 영문 · 숫자는 좁게)와 줄 수 — 여러 줄이면 첫 줄은 이름, 나머지는 작게
+        var tipLines = tip.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        float Wide(string s, float size) => s.Sum(c => c >= 0x1100 ? size : c == ' ' ? size * 0.32f : size * 0.58f);
+        float w = Math.Max(Wide(tipLines[0], 15), tipLines.Skip(1).Select(l => Wide(l, 12)).DefaultIfEmpty(0).Max()) + 18;
+        float tall = 24 + (tipLines.Length - 1) * 17, x = Math.Clamp(tip.X - w / 2, 4, canvas.Width - w - 4), top = Math.Max(2, tip.Y - tall - 4);
+        canvas.Fill(x, top, w, tall, new Color4(0.02f, 0.04f, 0.14f, 0.94f));
+        canvas.Frame(x, top, w, tall, new Color4(0.45f, 0.5f, 0.7f, 0.9f), 1);
+        canvas.Text(tipLines[0], x, top + 1, w, 22, 15, Canvas.White, 1);
+        for (int k = 1; k < tipLines.Length; k++) canvas.Text(tipLines[k], x, top + 6 + k * 17, w, 16, 12, Canvas.Gold, 1);
     }
 
     private void PortPanel()
@@ -1481,9 +1502,11 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     {
         float size = 208 * (float)Math.Clamp(voyage.Data.Settings.SeaMapScale, 0.5, 1.5), radius = size / 2;
         const int seaTile = 154, cloud = 158, mask = 159, softMask = 160, needle = 162, ship = 163;
-        const double roundReach = 180;                // 둥근 지도가 보이는 반지름(세계 좌표) — 측량과 상관없이 늘 뜬다
+        // 둥근 지도가 보이는 반지름(세계 좌표) — 측량과 상관없이 늘 뜬다. 배율(환경설정 · 지도 위에서 휠)이 크면 좁게 크게 보인다
+        double roundReach = 180 / Math.Clamp(voyage.Data.Settings.SeaMapZoom, 0.25, 4);
         float cx = canvas.Width - radius - 26, cy = canvas.Height - radius - 50;
         bool square = voyage.Data.Settings.SeaMapSquare;      // 환경설정: 네모 지도(원본은 둥글다)
+        _seaMapRect = (cx - radius, cy - radius, size);
 
         // 그림 한 장으로 짓는다: 가림판의 알파 안쪽에 바다·뭍(둥근 지도에는 흐르는 바다 무늬와 구름까지)
         void Paint(byte[] pixels, (int Width, int Height, byte[] Bgra)? shape, double reach, bool lively)
@@ -2101,6 +2124,13 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     /// <summary>마우스 휠 — 목록이 떠 있으면 목록을 굴리고 true(그러면 카메라는 안 움직인다).</summary>
     public bool Wheel(int notches)
     {
+        // 바다의 주변 지도 위에서 굴리면 지도의 배율이 바뀐다(위로: 크게)
+        if (voyage.Created && voyage.Mode == Mode.Sea && voyage.Dialog == Dialog.None && _seaMapRect.Size > 0
+            && canvas.Pointer.X >= _seaMapRect.X && canvas.Pointer.X < _seaMapRect.X + _seaMapRect.Size && canvas.Pointer.Y >= _seaMapRect.Y && canvas.Pointer.Y < _seaMapRect.Y + _seaMapRect.Size)
+        {
+            SetSeaMapZoom(voyage.Data.Settings.SeaMapZoom * (notches > 0 ? 1.25 : 0.8));
+            return true;
+        }
         if (_displayOpen && _soundOpen)
         {
             if (_soundLeft) _bankTop = Math.Max(0, _bankTop - notches * 2);
@@ -2461,11 +2491,19 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             }
             int can = voyage.CanProduce(open);
             string needs = voyage.RecipeSkill(open) is { } need ? $"필요 스킬: {voyage.SkillName(need.SkillId)} 랭크 {need.Rank} (지금 {voyage.Rank(need.SkillId)})   " : "";
-            canvas.Text($"{needs}지금 {can}번 만들 수 있다 · 창고 {voyage.CargoCount}/{voyage.TotalHold}", x + 20, row + 36, w - 40, 22, 13, Canvas.Dim);
+            canvas.Text($"{needs}지금 {can}번 만들 수 있다 · 창고 {voyage.CargoCount}/{voyage.TotalHold} · 행동력 {voyage.Vigour:0}(한 번에 {Voyage.ProduceVigour}) · 숙련도 +{voyage.ProduceExp(open) * voyage.Data.Settings.Gain}(대성공 +{voyage.ProduceExp(open, true) * voyage.Data.Settings.Gain})", x + 20, row + 36, w - 40, 22, 13, Canvas.Dim);
             if (voyage.ProduceBlocker(open, 1) is { } why) canvas.Text(why, x + 20, row + 60, w - 40, 22, 13, new Color4(1f, 0.5f, 0.45f, 1));
-            if (canvas.Button("1번 생산", x + 20, y + h - 50, 100, 34, voyage.ProduceBlocker(open, 1) == null, 14)) voyage.Produce(open, 1);
+            // 자동 생산 — 켜 두면 0.5초에 한 번씩 만든다. 못 만들게 되거나(재료 · 창고 · 행동력) 다른 레시피로 가면 꺼진다
+            bool canOne = voyage.ProduceBlocker(open, 1) == null;
+            if (!ReferenceEquals(_autoFor, open) || !canOne || voyage.Clock - _autoSeen > 0.4) (_autoProduce, _autoFor) = (false, open);      // 창을 닫았다 열어도 꺼져 있다
+            _autoSeen = voyage.Clock;
+            if (canvas.Button(_autoProduce ? "■ 생산 멈춤" : "▶ 자동 생산", x + 20, y + h - 50, 100, 34, canOne, 13)) (_autoProduce, _autoNext) = (!_autoProduce, voyage.Clock);
+            if (_autoProduce) canvas.Frame(x + 20, y + h - 50, 100, 34, Canvas.Gold, 1.6f);
+            if (_autoProduce && voyage.Clock >= _autoNext) { _autoNext = voyage.Clock + 0.5; voyage.Produce(open, 1); }
             if (canvas.Button("10번", x + 126, y + h - 50, 70, 34, can >= 10 && voyage.ProduceBlocker(open, 10) == null, 14)) voyage.Produce(open, 10);
-            if (canvas.Button("전부", x + 202, y + h - 50, 70, 34, can > 0 && voyage.ProduceBlocker(open, can) == null, 14)) voyage.Produce(open, can);
+            // 「전부」는 행동력이 닿는 데까지
+            int all = Math.Min(can, (int)(voyage.Vigour / Voyage.ProduceVigour));
+            if (canvas.Button("전부", x + 202, y + h - 50, 70, 34, all > 0 && voyage.ProduceBlocker(open, all) == null, 14)) voyage.Produce(open, all);
             if (canvas.Button("목록으로", x + 290, y + h - 50, 100, 34, true, 14)) _recipeOpen = null;
             return;
         }
@@ -5065,7 +5103,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             bool worn = voyage.Equipped[Math.Min(gear.Slot, 5)] == gear.Id;
             if (worn) canvas.Frame(tx, ty, tile, tile, new Color4(0.3f, 0.95f, 0.9f, 1), 2.5f);
             if (!canvas.Hover(tx, ty, tile, tile)) continue;
-            _tip = ($"{gear.Name} ({Voyage.GearSlots[Math.Min(gear.Slot, 5)]}){(worn ? " — 장비 중" : "")}", tx + tile / 2, ty - 2);
+            _tip = ($"{gear.Name} ({Voyage.GearSlots[Math.Min(gear.Slot, 5)]}){(worn ? " — 장비 중" : "")}{string.Concat(voyage.GearLine(gear).Trim().Split(" · ", StringSplitOptions.RemoveEmptyEntries).Chunk(4).Select(c => "\n" + string.Join(" · ", c)))}", tx + tile / 2, ty + 2);      // 수치 · 스킬 보정은 네 개씩 끊어 아랫줄에
             if (canvas.Pointer.Clicked) voyage.Equip(gear.Id);
         }
         if (owned.Count == 0) canvas.Text("가진 장비 물품이 없다.\n(소지품 → 아이템 추가 → 「의상」)", x + 30, y + 60, 300, 44, 14, Canvas.Dim);
