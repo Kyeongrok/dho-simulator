@@ -1,0 +1,4016 @@
+[
+ {
+  "RecipeId": 1,
+  "Name": "쇠고기 제조법",
+  "Output": 1600009,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600030:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 2,
+  "Name": "돼지고기 제조법",
+  "Output": 1600025,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600031:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 3,
+  "Name": "닭고기 제조법",
+  "Output": 1600022,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600032:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 4,
+  "Name": "닭에게서 알을 얻는 방법",
+  "Output": 1600034,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600032:1",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 5,
+  "Name": "오리고기 제조법",
+  "Output": 1600002,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600033:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 6,
+  "Name": "오리에게서 알을 얻는 방법",
+  "Output": 1600034,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600033:1",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 8,
+  "Name": "양고기의 제조법",
+  "Output": 1600024,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600037:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 9,
+  "Name": "소에서 우유를 얻는 방법",
+  "Output": 1600042,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600030:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 10,
+  "Name": "염소에서 우유를 얻는 방법",
+  "Output": 1600042,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600036:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 11,
+  "Name": "양에서 우유를 얻는 방법",
+  "Output": 1600042,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600037:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 12,
+  "Name": "돼지고기로 소시지 만드는 방법",
+  "Output": 1600016,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600025:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 13,
+  "Name": "양고기로 소시지 만드는 방법",
+  "Output": 1600016,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600024:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 14,
+  "Name": "햄 제조법",
+  "Output": 1600023,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600025:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 15,
+  "Name": "버터의 제조법",
+  "Output": 1600106,
+  "OutputItem": 0,
+  "OutputCount": 3,
+  "Inputs": "1600104:1,1600042:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 16,
+  "Name": "치즈 제조법",
+  "Output": 1600020,
+  "OutputItem": 0,
+  "OutputCount": 3,
+  "Inputs": "1600104:1,1600042:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 17,
+  "Name": "라드 제조법",
+  "Output": 1600111,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600025:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 18,
+  "Name": "깃털 얻는 법(닭)",
+  "Output": 1600303,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600032:3",
+  "Skill": "봉제 1"
+ },
+ {
+  "RecipeId": 19,
+  "Name": "깃털 얻는 법(오리)",
+  "Output": 1600303,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600033:3",
+  "Skill": "봉제 1"
+ },
+ {
+  "RecipeId": 20,
+  "Name": "피혁 제조법(소)",
+  "Output": 1600309,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600030:1,1600924:1",
+  "Skill": "봉제 4"
+ },
+ {
+  "RecipeId": 21,
+  "Name": "피혁 제조법(돼지)",
+  "Output": 1600309,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600031:1,1600924:3",
+  "Skill": "봉제 4"
+ },
+ {
+  "RecipeId": 22,
+  "Name": "피혁 제조법(사슴)",
+  "Output": 1600309,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600924:2,1600038:1",
+  "Skill": "봉제 3"
+ },
+ {
+  "RecipeId": 23,
+  "Name": "모피 제조법(염소)",
+  "Output": 1600307,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600454:1,1600036:1,1600924:1",
+  "Skill": "봉제 8"
+ },
+ {
+  "RecipeId": 24,
+  "Name": "모피 제조법(사슴)",
+  "Output": 1600307,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600454:1,1600924:2,1600038:1",
+  "Skill": "봉제 8"
+ },
+ {
+  "RecipeId": 25,
+  "Name": "양모 제조법",
+  "Output": 1600314,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600037:2",
+  "Skill": "봉제 1"
+ },
+ {
+  "RecipeId": 26,
+  "Name": "산양모 제조법",
+  "Output": 1600311,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600036:3",
+  "Skill": "봉제 1"
+ },
+ {
+  "RecipeId": 27,
+  "Name": "토끼털 제조법",
+  "Output": 1600302,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600035:2",
+  "Skill": "봉제 1"
+ },
+ {
+  "RecipeId": 28,
+  "Name": "모직원단 제조법(양모)",
+  "Output": 1600454,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:2",
+  "Skill": "봉제 3"
+ },
+ {
+  "RecipeId": 29,
+  "Name": "모직원단 제조법(산양모)",
+  "Output": 1600454,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600311:1",
+  "Skill": "봉제 3"
+ },
+ {
+  "RecipeId": 30,
+  "Name": "면원단 제조법",
+  "Output": 1600467,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600310:3",
+  "Skill": "봉제 5"
+ },
+ {
+  "RecipeId": 31,
+  "Name": "비단원단 제조법",
+  "Output": 1600453,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600306:2",
+  "Skill": "봉제 8"
+ },
+ {
+  "RecipeId": 32,
+  "Name": "코르덴 제조법",
+  "Output": 1600455,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:1,1600310:1",
+  "Skill": "봉제 5"
+ },
+ {
+  "RecipeId": 33,
+  "Name": "고블랭 직물 제조법",
+  "Output": 1600456,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:6,1600662:1",
+  "Skill": "봉제 14"
+ },
+ {
+  "RecipeId": 34,
+  "Name": "공단 제조법",
+  "Output": 1600457,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600306:2,1600662:1",
+  "Skill": "봉제 11"
+ },
+ {
+  "RecipeId": 35,
+  "Name": "조젯 제조법",
+  "Output": 1600458,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600306:2,1600662:1",
+  "Skill": "봉제 12"
+ },
+ {
+  "RecipeId": 36,
+  "Name": "타프타 제조법",
+  "Output": 1600459,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600306:3",
+  "Skill": "봉제 14"
+ },
+ {
+  "RecipeId": 37,
+  "Name": "트위드 제조법",
+  "Output": 1600461,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:3",
+  "Skill": "봉제 8"
+ },
+ {
+  "RecipeId": 38,
+  "Name": "니트 제조법",
+  "Output": 1600463,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:1",
+  "Skill": "봉제 4"
+ },
+ {
+  "RecipeId": 39,
+  "Name": "프란넬 제조법",
+  "Output": 1600464,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:4",
+  "Skill": "봉제 7"
+ },
+ {
+  "RecipeId": 40,
+  "Name": "벨벳 제조법",
+  "Output": 1600466,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600306:3,1600662:1",
+  "Skill": "봉제 13"
+ },
+ {
+  "RecipeId": 41,
+  "Name": "모슬린 제조법",
+  "Output": 1600468,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:1,1600310:1",
+  "Skill": "봉제 8"
+ },
+ {
+  "RecipeId": 42,
+  "Name": "레이스 제조법",
+  "Output": 1600469,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600301:6",
+  "Skill": "봉제 10"
+ },
+ {
+  "RecipeId": 43,
+  "Name": "고급의류 제조법",
+  "Output": 1600654,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600454:1,1600453:1",
+  "Skill": "봉제 13"
+ },
+ {
+  "RecipeId": 55,
+  "Name": "철광석 추출",
+  "Output": 1600552,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600558:1",
+  "Skill": "주조 4"
+ },
+ {
+  "RecipeId": 56,
+  "Name": "동광석 추출",
+  "Output": 1600553,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600559:1",
+  "Skill": "주조 4"
+ },
+ {
+  "RecipeId": 57,
+  "Name": "납광석 추출",
+  "Output": 1600551,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600559:1",
+  "Skill": "주조 4"
+ },
+ {
+  "RecipeId": 58,
+  "Name": "아연광석 추출",
+  "Output": 1600555,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600561:1",
+  "Skill": "주조 4"
+ },
+ {
+  "RecipeId": 59,
+  "Name": "주석 추출",
+  "Output": 1600554,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600561:1",
+  "Skill": "주조 4"
+ },
+ {
+  "RecipeId": 60,
+  "Name": "철재 제조법",
+  "Output": 1600912,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600552:1",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 61,
+  "Name": "강철 제조법",
+  "Output": 1600915,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600909:1,1600552:1",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 62,
+  "Name": "동 제조법",
+  "Output": 1600913,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600553:1",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 63,
+  "Name": "납 제조법",
+  "Output": 1600914,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600551:1",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 64,
+  "Name": "놋쇠의 제조법",
+  "Output": 1600904,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600553:1,1600555:1",
+  "Skill": "주조 8"
+ },
+ {
+  "RecipeId": 65,
+  "Name": "청동 제조법",
+  "Output": 1600906,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600554:1,1600553:1",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 66,
+  "Name": "금 제련법",
+  "Output": 1600501,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600561:4",
+  "Skill": "주조 13"
+ },
+ {
+  "RecipeId": 67,
+  "Name": "은 제련법",
+  "Output": 1600502,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600562:4",
+  "Skill": "주조 11"
+ },
+ {
+  "RecipeId": 68,
+  "Name": "주금법",
+  "Output": 1600501,
+  "OutputItem": 0,
+  "OutputCount": 3,
+  "Inputs": "1600504:3",
+  "Skill": "주조 13"
+ },
+ {
+  "RecipeId": 69,
+  "Name": "유황 제조법",
+  "Output": 1600902,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600561:1",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 70,
+  "Name": "초석 제조법",
+  "Output": 1600557,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600562:1",
+  "Skill": "주조 8"
+ },
+ {
+  "RecipeId": 104,
+  "Name": "베이컨 제조법",
+  "Output": 1600026,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600025:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 122,
+  "Name": "한손검 제조법",
+  "Output": 1600801,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:1,1600915:1",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 123,
+  "Name": "곡도 제조법",
+  "Output": 1600803,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:1,1600915:1",
+  "Skill": "주조 8"
+ },
+ {
+  "RecipeId": 124,
+  "Name": "양손검 제조법",
+  "Output": 1600808,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:2,1600915:1",
+  "Skill": "주조 9"
+ },
+ {
+  "RecipeId": 126,
+  "Name": "서양갑옷 제조법",
+  "Output": 1600804,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:2,1600915:2,1600904:1",
+  "Skill": "주조 11"
+ },
+ {
+  "RecipeId": 127,
+  "Name": "단검 제조법",
+  "Output": 1600806,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:1,1600915:1",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 129,
+  "Name": "장궁 제조법",
+  "Output": 1600807,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:1,1600917:1",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 130,
+  "Name": "화승총 제조법",
+  "Output": 1600851,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:2,1600908:2",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 131,
+  "Name": "화약 제조법",
+  "Output": 1600852,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600902:1,1600557:1",
+  "Skill": "주조 4"
+ },
+ {
+  "RecipeId": 132,
+  "Name": "대포 제조법",
+  "Output": 1600853,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:4,1600908:4",
+  "Skill": "주조 11"
+ },
+ {
+  "RecipeId": 133,
+  "Name": "탄환 제조법",
+  "Output": 1600854,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:1,1600908:1",
+  "Skill": "주조 3"
+ },
+ {
+  "RecipeId": 134,
+  "Name": "포탄 제조법",
+  "Output": 1600855,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:2,1600908:2",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 135,
+  "Name": "머스켓총 제조법",
+  "Output": 1600856,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600912:3,1600908:2,1600915:1",
+  "Skill": "주조 9"
+ },
+ {
+  "RecipeId": 151,
+  "Name": "새우 허브마리네 요리법",
+  "Output": 0,
+  "OutputItem": 1505000,
+  "OutputCount": 1,
+  "Inputs": "1601055:1,1600127:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 152,
+  "Name": "타르타르 스테이크 요리법",
+  "Output": 0,
+  "OutputItem": 1505001,
+  "OutputCount": 1,
+  "Inputs": "1600009:1,1600018:1,1600102:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 153,
+  "Name": "에담치즈 그라탕 요리법",
+  "Output": 0,
+  "OutputItem": 1505002,
+  "OutputCount": 1,
+  "Inputs": "1600020:1,1600025:1,1600042:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 154,
+  "Name": "생선튀김요리 요리법",
+  "Output": 0,
+  "OutputItem": 1505003,
+  "OutputCount": 1,
+  "Inputs": "1600010:1,1600111:1,1600109:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 155,
+  "Name": "부야베스 요리법",
+  "Output": 0,
+  "OutputItem": 1505004,
+  "OutputCount": 1,
+  "Inputs": "1600010:1,1600210:1,1600125:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 156,
+  "Name": "닭고기빠에야 요리법",
+  "Output": 0,
+  "OutputItem": 1505005,
+  "OutputCount": 1,
+  "Inputs": "1600022:1,1600004:1,1600210:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 157,
+  "Name": "해물 피자 요리법",
+  "Output": 0,
+  "OutputItem": 1505006,
+  "OutputCount": 1,
+  "Inputs": "1600010:1,1600020:1,1600043:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 158,
+  "Name": "다진 고기와 가지의 무사카 요리법",
+  "Output": 0,
+  "OutputItem": 1505007,
+  "OutputCount": 1,
+  "Inputs": "1600018:1,1600024:1,1600042:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 159,
+  "Name": "쇠고기 케밥 요리법",
+  "Output": 0,
+  "OutputItem": 1505008,
+  "OutputCount": 1,
+  "Inputs": "1600009:1,1600018:1,1600129:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 160,
+  "Name": "즈키니 마쉬위 요리법",
+  "Output": 0,
+  "OutputItem": 1505009,
+  "OutputCount": 1,
+  "Inputs": "1600024:1,1600015:1,1600129:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 161,
+  "Name": "북아프리카의 스튜 쿠스쿠스 요리법",
+  "Output": 0,
+  "OutputItem": 1505010,
+  "OutputCount": 1,
+  "Inputs": "1600024:1,1600043:1,1600129:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 162,
+  "Name": "서아프리카의 에구시 수프 요리법",
+  "Output": 0,
+  "OutputItem": 1505011,
+  "OutputCount": 1,
+  "Inputs": "1600010:1,1600018:1,1600110:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 163,
+  "Name": "인도풍의 쌈 튀김 - 사모사 요리법",
+  "Output": 0,
+  "OutputItem": 1505012,
+  "OutputCount": 1,
+  "Inputs": "1600024:1,1600205:1,1600043:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 164,
+  "Name": "아랍풍의 향이 매치부스 요리법",
+  "Output": 0,
+  "OutputItem": 1505013,
+  "OutputCount": 1,
+  "Inputs": "1600010:1,1600015:1,1600232:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 165,
+  "Name": "양고기 야채 삶은 요리 조리법",
+  "Output": 0,
+  "OutputItem": 1505014,
+  "OutputCount": 1,
+  "Inputs": "1600024:1,1600001:1,1600369:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 166,
+  "Name": "야채를 듬뿍 넣은 카레",
+  "Output": 0,
+  "OutputItem": 1505015,
+  "OutputCount": 1,
+  "Inputs": "1600018:1,1600006:1,1600232:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 167,
+  "Name": "양고기를 듬뿍 넣은 카레",
+  "Output": 0,
+  "OutputItem": 1505016,
+  "OutputCount": 1,
+  "Inputs": "1600024:1,1600042:1,1600232:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 168,
+  "Name": "고기를 채운 파파야 구이 요리법",
+  "Output": 0,
+  "OutputItem": 1505017,
+  "OutputCount": 1,
+  "Inputs": "1600022:1,1600014:1,1600040:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 169,
+  "Name": "콩과 베이컨의 간단 수프",
+  "Output": 0,
+  "OutputItem": 1505018,
+  "OutputCount": 2,
+  "Inputs": "1600001:1,1600026:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 170,
+  "Name": "누에콩이 듬뿍 들어간 수프",
+  "Output": 0,
+  "OutputItem": 1505019,
+  "OutputCount": 2,
+  "Inputs": "1600025:1,1600017:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 171,
+  "Name": "마늘과 치즈 요리",
+  "Output": 0,
+  "OutputItem": 1505020,
+  "OutputCount": 2,
+  "Inputs": "1600020:1,1600202:1",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 172,
+  "Name": "간단한 계란 요리",
+  "Output": 0,
+  "OutputItem": 1505021,
+  "OutputCount": 1,
+  "Inputs": "1600034:1,1600104:1",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 173,
+  "Name": "버질리코 스파게티",
+  "Output": 0,
+  "OutputItem": 1505022,
+  "OutputCount": 2,
+  "Inputs": "1600102:1,1600219:1,1600044:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 174,
+  "Name": "고기가 들어간 오트밀",
+  "Output": 0,
+  "OutputItem": 1505023,
+  "OutputCount": 2,
+  "Inputs": "1600025:1,1600042:1,1600008:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 175,
+  "Name": "훈제 청어 요리",
+  "Output": 0,
+  "OutputItem": 1505024,
+  "OutputCount": 2,
+  "Inputs": "1600104:1,1600917:1,1601012:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 176,
+  "Name": "햄과 치즈 소테",
+  "Output": 0,
+  "OutputItem": 1505025,
+  "OutputCount": 1,
+  "Inputs": "1600020:1,1600111:1,1600023:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 177,
+  "Name": "버섯이 들어간 간단 소테",
+  "Output": 0,
+  "OutputItem": 1505026,
+  "OutputCount": 1,
+  "Inputs": "1600106:1,1600046:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 178,
+  "Name": "치즈와 달걀 요리",
+  "Output": 0,
+  "OutputItem": 1505027,
+  "OutputCount": 2,
+  "Inputs": "1600020:1,1600034:1,1600042:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 179,
+  "Name": "씨푸드 파스타",
+  "Output": 0,
+  "OutputItem": 1505028,
+  "OutputCount": 1,
+  "Inputs": "1600102:1,1600044:1,1601058:3",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 180,
+  "Name": "버섯 파스타",
+  "Output": 0,
+  "OutputItem": 1505029,
+  "OutputCount": 1,
+  "Inputs": "1600102:1,1600046:1,1600044:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 181,
+  "Name": "닭고기 로스트",
+  "Output": 0,
+  "OutputItem": 1505030,
+  "OutputCount": 1,
+  "Inputs": "1600106:1,1600022:1,1600104:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 182,
+  "Name": "와인으로 찐 대구 요리",
+  "Output": 0,
+  "OutputItem": 1505031,
+  "OutputCount": 2,
+  "Inputs": "1600061:1,1601018:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 183,
+  "Name": "연어 뫼니에르 요리법",
+  "Output": 0,
+  "OutputItem": 1505032,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600043:1,1601019:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 184,
+  "Name": "어패류 그릴",
+  "Output": 0,
+  "OutputItem": 1505033,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1601055:1,1601057:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 185,
+  "Name": "닭고기 향초 구이",
+  "Output": 0,
+  "OutputItem": 1505034,
+  "OutputCount": 1,
+  "Inputs": "1600022:1,1600201:1,1600217:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 186,
+  "Name": "돼지고기 소테와 사과 무침",
+  "Output": 0,
+  "OutputItem": 1505035,
+  "OutputCount": 2,
+  "Inputs": "1600169:1,1600025:1,1600111:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 187,
+  "Name": "와인으로 찐 혀가자미 요리법",
+  "Output": 0,
+  "OutputItem": 1505036,
+  "OutputCount": 2,
+  "Inputs": "1600061:1,1601049:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 188,
+  "Name": "참돔 치즈구이 요리법",
+  "Output": 0,
+  "OutputItem": 1505037,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600020:1,1601032:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 189,
+  "Name": "돼지고기와 순무를 넣은 파스타",
+  "Output": 0,
+  "OutputItem": 1505038,
+  "OutputCount": 2,
+  "Inputs": "1600025:1,1600006:1,1600044:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 190,
+  "Name": "미트 파이 레시피",
+  "Output": 0,
+  "OutputItem": 1505039,
+  "OutputCount": 2,
+  "Inputs": "1600009:1,1600045:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 191,
+  "Name": "아프리카 쌈 - 브리크 조리법",
+  "Output": 0,
+  "OutputItem": 1505040,
+  "OutputCount": 2,
+  "Inputs": "1600024:1,1600034:1,1600043:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 192,
+  "Name": "와인을 넣어 푹 삶은 양고기 요리",
+  "Output": 0,
+  "OutputItem": 1505041,
+  "OutputCount": 2,
+  "Inputs": "1600061:1,1600024:1,1600226:1",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 193,
+  "Name": "오렌지를 곁들인 오리 요리",
+  "Output": 0,
+  "OutputItem": 1505042,
+  "OutputCount": 2,
+  "Inputs": "1600002:1,1600040:1,1600128:1",
+  "Skill": "조리 13"
+ },
+ {
+  "RecipeId": 194,
+  "Name": "다랑어 올리브 스테이크 요리법",
+  "Output": 0,
+  "OutputItem": 1505043,
+  "OutputCount": 2,
+  "Inputs": "1600104:1,1600102:1,1601001:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 195,
+  "Name": "새끼양의 로스트",
+  "Output": 0,
+  "OutputItem": 1505044,
+  "OutputCount": 1,
+  "Inputs": "1600106:1,1600024:1,1600104:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 197,
+  "Name": "아프리카의 스튜 와트 요리법",
+  "Output": 0,
+  "OutputItem": 1505046,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600024:1,1600202:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 198,
+  "Name": "마늘로 양념한 닭고기 구이",
+  "Output": 0,
+  "OutputItem": 1505047,
+  "OutputCount": 2,
+  "Inputs": "1600057:1,1600022:1,1600202:1",
+  "Skill": "조리 14"
+ },
+ {
+  "RecipeId": 199,
+  "Name": "특대 비프 스테이크",
+  "Output": 0,
+  "OutputItem": 1505048,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600009:2,1600217:1",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 200,
+  "Name": "라임을 곁들인 송아지 요리",
+  "Output": 0,
+  "OutputItem": 1505049,
+  "OutputCount": 1,
+  "Inputs": "1600057:1,1600009:1,1600040:1",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 201,
+  "Name": "비스켓 레시피",
+  "Output": 0,
+  "OutputItem": 1505050,
+  "OutputCount": 1,
+  "Inputs": "1600034:1,1600043:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 202,
+  "Name": "달콤한 팬 케이크 레시피",
+  "Output": 0,
+  "OutputItem": 1505051,
+  "OutputCount": 2,
+  "Inputs": "1600034:1,1600107:1,1600043:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 203,
+  "Name": "호밀로 만든 딱딱한 빵",
+  "Output": 0,
+  "OutputItem": 1505052,
+  "OutputCount": 2,
+  "Inputs": "1600027:1,1600043:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 204,
+  "Name": "건포도를 듬뿍 넣고 구운 호밀빵",
+  "Output": 0,
+  "OutputItem": 1505053,
+  "OutputCount": 2,
+  "Inputs": "1600167:1,1600027:1,1600043:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 205,
+  "Name": "포카치아라고 하는 이탈리아 빵",
+  "Output": 0,
+  "OutputItem": 1505054,
+  "OutputCount": 2,
+  "Inputs": "1600102:1,1600043:1",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 206,
+  "Name": "둥글고 딱딱한 빵",
+  "Output": 0,
+  "OutputItem": 1505055,
+  "OutputCount": 1,
+  "Inputs": "1600034:1,1600043:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 207,
+  "Name": "프레첼이라고 불리는 독일 빵",
+  "Output": 0,
+  "OutputItem": 1505056,
+  "OutputCount": 2,
+  "Inputs": "1600111:1,1600043:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 208,
+  "Name": "비타라는 이름의 아랍 빵",
+  "Output": 0,
+  "OutputItem": 1505057,
+  "OutputCount": 2,
+  "Inputs": "1600102:1,1600043:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 209,
+  "Name": "잉글랜드 머핀",
+  "Output": 0,
+  "OutputItem": 1505058,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600034:1,1600043:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 210,
+  "Name": "인도의 납작한 빵 - 난 레시피",
+  "Output": 0,
+  "OutputItem": 1505059,
+  "OutputCount": 3,
+  "Inputs": "1600106:1,1600043:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 211,
+  "Name": "블르라는 이름의 프랑스 빵",
+  "Output": 0,
+  "OutputItem": 1505060,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600043:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 212,
+  "Name": "아프리카 빵 - 인젤라 레시피",
+  "Output": 0,
+  "OutputItem": 1505061,
+  "OutputCount": 2,
+  "Inputs": "1600003:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 213,
+  "Name": "아몬드 비스켓 레시피",
+  "Output": 0,
+  "OutputItem": 1505062,
+  "OutputCount": 2,
+  "Inputs": "1600034:1,1600151:1,1600043:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 214,
+  "Name": "스콘이라고 하는 스코틀랜드 빵",
+  "Output": 0,
+  "OutputItem": 1505063,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600042:1,1600043:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 215,
+  "Name": "파네토네 레시피",
+  "Output": 0,
+  "OutputItem": 1505064,
+  "OutputCount": 1,
+  "Inputs": "1600106:2,1600103:2,1600043:3",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 216,
+  "Name": "바움쿠헨 레시피",
+  "Output": 0,
+  "OutputItem": 1505065,
+  "OutputCount": 1,
+  "Inputs": "1600034:2,1600103:2,1600043:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 217,
+  "Name": "비스코쵸 레시피",
+  "Output": 0,
+  "OutputItem": 1505066,
+  "OutputCount": 1,
+  "Inputs": "1600034:3,1600103:3,1600043:3",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 218,
+  "Name": "피아드네 레시피",
+  "Output": 0,
+  "OutputItem": 1505082,
+  "OutputCount": 2,
+  "Inputs": "1600020:2,1600421:1,1600043:2",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 219,
+  "Name": "사과 콤포트 레시피",
+  "Output": 0,
+  "OutputItem": 1505068,
+  "OutputCount": 2,
+  "Inputs": "1600061:1,1600169:1,1600103:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 220,
+  "Name": "말린 자두 브리오시 레시피",
+  "Output": 0,
+  "OutputItem": 1505069,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600162:1,1600043:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 221,
+  "Name": "파운드 케이크 레시피",
+  "Output": 0,
+  "OutputItem": 1505070,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600103:1,1600043:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 222,
+  "Name": "무화과 파이 레시피",
+  "Output": 0,
+  "OutputItem": 1505071,
+  "OutputCount": 2,
+  "Inputs": "1600107:2,1600166:2,1600045:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 223,
+  "Name": "애플 파이 레시피",
+  "Output": 0,
+  "OutputItem": 1505072,
+  "OutputCount": 1,
+  "Inputs": "1600106:2,1600169:2,1600045:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 224,
+  "Name": "살구 타르트 레시피",
+  "Output": 0,
+  "OutputItem": 1505073,
+  "OutputCount": 1,
+  "Inputs": "1600106:1,1600164:2,1600043:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 225,
+  "Name": "과일을 넣은 코코넛 우유 레시피",
+  "Output": 0,
+  "OutputItem": 1505074,
+  "OutputCount": 1,
+  "Inputs": "1600107:1,1600156:1,1600040:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 226,
+  "Name": "과일 모듬 레시피",
+  "Output": 0,
+  "OutputItem": 1505075,
+  "OutputCount": 2,
+  "Inputs": "1600107:1,1600040:2",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 227,
+  "Name": "망고 푸딩 레시피",
+  "Output": 0,
+  "OutputItem": 1505076,
+  "OutputCount": 1,
+  "Inputs": "1600034:1,1600042:1,1600168:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 228,
+  "Name": "인도의 아주 단 과자 - 라두 레시피",
+  "Output": 0,
+  "OutputItem": 1505077,
+  "OutputCount": 1,
+  "Inputs": "1600103:2,1600156:1,1600042:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 232,
+  "Name": "제분법",
+  "Output": 1600043,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600011:1",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 233,
+  "Name": "파스타 만드는 법",
+  "Output": 1600044,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600043:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 234,
+  "Name": "파이 반죽 레시피",
+  "Output": 1600045,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600043:1",
+  "Skill": "조리 2"
+ },
+ {
+  "RecipeId": 235,
+  "Name": "가죽끈 만드는 법",
+  "Output": 1600661,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600309:2",
+  "Skill": "봉제 2"
+ },
+ {
+  "RecipeId": 236,
+  "Name": "부케가르니의 제조법",
+  "Output": 1600125,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600220:1,1600215:1,1600217:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 237,
+  "Name": "콩소메 수프의 비결",
+  "Output": 0,
+  "OutputItem": 1505080,
+  "OutputCount": 3,
+  "Inputs": "1600018:1,1600022:1,1600104:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 247,
+  "Name": "석유 정제법",
+  "Output": 1600910,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600563:2",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 262,
+  "Name": "가람 마사라 제조법",
+  "Output": 1600232,
+  "OutputItem": 0,
+  "OutputCount": 3,
+  "Inputs": "1600205:1,1600202:1,1600209:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 264,
+  "Name": "끈끈이 기름 제조법",
+  "Output": 0,
+  "OutputItem": 1500024,
+  "OutputCount": 1,
+  "Inputs": "1600924:1,1600563:1",
+  "Skill": "주조 2"
+ },
+ {
+  "RecipeId": 265,
+  "Name": "던지는 나이프의 선별",
+  "Output": 0,
+  "OutputItem": 1500057,
+  "OutputCount": 1,
+  "Inputs": "1600806:1",
+  "Skill": "주조 3"
+ },
+ {
+  "RecipeId": 269,
+  "Name": "열화약 조합",
+  "Output": 0,
+  "OutputItem": 1500023,
+  "OutputCount": 1,
+  "Inputs": "1600305:1,1600852:1",
+  "Skill": "주조 2"
+ },
+ {
+  "RecipeId": 270,
+  "Name": "화염단지 제작법",
+  "Output": 0,
+  "OutputItem": 1500027,
+  "OutputCount": 1,
+  "Inputs": "1600852:2,1600910:1,1600563:1",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 275,
+  "Name": "던지는 화살 제조법",
+  "Output": 0,
+  "OutputItem": 1500055,
+  "OutputCount": 1,
+  "Inputs": "1600925:1",
+  "Skill": "주조 1"
+ },
+ {
+  "RecipeId": 276,
+  "Name": "귀마개 제조법",
+  "Output": 0,
+  "OutputItem": 1500041,
+  "OutputCount": 2,
+  "Inputs": "1600310:2",
+  "Skill": "봉제 3"
+ },
+ {
+  "RecipeId": 277,
+  "Name": "해먹 봉제법",
+  "Output": 0,
+  "OutputItem": 1500109,
+  "OutputCount": 2,
+  "Inputs": "1600451:1",
+  "Skill": "봉제 2"
+ },
+ {
+  "RecipeId": 278,
+  "Name": "로프 제작법",
+  "Output": 0,
+  "OutputItem": 1500072,
+  "OutputCount": 1,
+  "Inputs": "1600305:1",
+  "Skill": "봉제 1"
+ },
+ {
+  "RecipeId": 280,
+  "Name": "철수 신호용 종의 주조법",
+  "Output": 0,
+  "OutputItem": 1500105,
+  "OutputCount": 1,
+  "Inputs": "1600906:2",
+  "Skill": "주조 3"
+ },
+ {
+  "RecipeId": 281,
+  "Name": "폭약장치 제조법",
+  "Output": 0,
+  "OutputItem": 1500029,
+  "OutputCount": 1,
+  "Inputs": "1600902:1,1600852:2,1600910:1",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 282,
+  "Name": "강철포탄 주조법",
+  "Output": 0,
+  "OutputItem": 1500006,
+  "OutputCount": 1,
+  "Inputs": "1600855:1,1600852:1,1600915:1",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 408,
+  "Name": "로프 제작법(아마)",
+  "Output": 0,
+  "OutputItem": 1500072,
+  "OutputCount": 1,
+  "Inputs": "1600301:1",
+  "Skill": "봉제 1"
+ },
+ {
+  "RecipeId": 496,
+  "Name": "금실 제조법",
+  "Output": 1600663,
+  "OutputItem": 0,
+  "OutputCount": 5,
+  "Inputs": "1600504:2,1600306:3",
+  "Skill": "봉제 7"
+ },
+ {
+  "RecipeId": 497,
+  "Name": "포르투갈 풍 부야베스 요리법",
+  "Output": 0,
+  "OutputItem": 1505079,
+  "OutputCount": 1,
+  "Inputs": "1601047:3,1601056:1,1600125:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 566,
+  "Name": "예비 돛의 봉제법",
+  "Output": 0,
+  "OutputItem": 1500042,
+  "OutputCount": 1,
+  "Inputs": "1600451:2",
+  "Skill": "봉제 2"
+ },
+ {
+  "RecipeId": 567,
+  "Name": "목공도구 제조법",
+  "Output": 0,
+  "OutputItem": 1500009,
+  "OutputCount": 2,
+  "Inputs": "1600917:1",
+  "Skill": "주조 1"
+ },
+ {
+  "RecipeId": 568,
+  "Name": "마원단 짜는 법",
+  "Output": 1600451,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600318:3",
+  "Skill": "봉제 1"
+ },
+ {
+  "RecipeId": 569,
+  "Name": "석탄 선택법",
+  "Output": 1600908,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600564:2",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 570,
+  "Name": "예비 키 제조법",
+  "Output": 0,
+  "OutputItem": 1500043,
+  "OutputCount": 1,
+  "Inputs": "1600917:2",
+  "Skill": "주조 2"
+ },
+ {
+  "RecipeId": 744,
+  "Name": "네덜란드 편사 봉제법",
+  "Output": 1600470,
+  "OutputItem": 0,
+  "OutputCount": 2,
+  "Inputs": "1600354:1,1600467:1",
+  "Skill": "봉제 8"
+ },
+ {
+  "RecipeId": 745,
+  "Name": "인도 편사 봉제법",
+  "Output": 1600452,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600352:2,1600467:1",
+  "Skill": "봉제 9"
+ },
+ {
+  "RecipeId": 746,
+  "Name": "터키 융단 봉제법",
+  "Output": 1600462,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:4,1600306:2,1600453:1",
+  "Skill": "봉제 10"
+ },
+ {
+  "RecipeId": 747,
+  "Name": "페르시아 융단 봉제법",
+  "Output": 1600465,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:1,1600306:2,1600453:2",
+  "Skill": "봉제 11"
+ },
+ {
+  "RecipeId": 749,
+  "Name": "신비한 향신료 제조법",
+  "Output": 0,
+  "OutputItem": 1500046,
+  "OutputCount": 2,
+  "Inputs": "1600207:1,1600232:1,1600203:1",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 750,
+  "Name": "명인 목수의 목공도구 제조법",
+  "Output": 0,
+  "OutputItem": 1500044,
+  "OutputCount": 1,
+  "Inputs": "1600912:1,1600917:1,1600562:1",
+  "Skill": "주조 12"
+ },
+ {
+  "RecipeId": 785,
+  "Name": "부시 드 노엘 레시피",
+  "Output": 0,
+  "OutputItem": 1505081,
+  "OutputCount": 2,
+  "Inputs": "1600106:2,1600163:1,1600043:2",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 786,
+  "Name": "피아드네 레시피",
+  "Output": 0,
+  "OutputItem": 1505067,
+  "OutputCount": 1,
+  "Inputs": "1600020:1,1600103:1,1600043:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 787,
+  "Name": "가렛트 레시피",
+  "Output": 0,
+  "OutputItem": 1505083,
+  "OutputCount": 2,
+  "Inputs": "1600167:1,1600153:1,1600043:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 788,
+  "Name": "폰당 밀크레이프 레시피",
+  "Output": 0,
+  "OutputItem": 1505090,
+  "OutputCount": 2,
+  "Inputs": "1600106:2,1600103:1,1600043:3",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 789,
+  "Name": "프프란 레시피",
+  "Output": 0,
+  "OutputItem": 1505091,
+  "OutputCount": 1,
+  "Inputs": "1600105:1,1600043:2,1600924:1",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 807,
+  "Name": "카카우아틀 제조법",
+  "Output": 0,
+  "OutputItem": 1505094,
+  "OutputCount": 1,
+  "Inputs": "1600021:1,1600152:1,1600229:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 809,
+  "Name": "옥수수 빵 - 토라스카리 레시피",
+  "Output": 0,
+  "OutputItem": 1505096,
+  "OutputCount": 1,
+  "Inputs": "1600021:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 811,
+  "Name": "특제소스 닭고기요리 - 모레 요리법",
+  "Output": 0,
+  "OutputItem": 1505098,
+  "OutputCount": 1,
+  "Inputs": "1600022:1,1600152:1,1600229:1",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 812,
+  "Name": "접시에 든 스프 - 타카카 요리법",
+  "Output": 0,
+  "OutputItem": 1505099,
+  "OutputCount": 1,
+  "Inputs": "1601055:1,1600049:1,1600067:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 813,
+  "Name": "피라루크의 소금구이 요리법",
+  "Output": 0,
+  "OutputItem": 1505100,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600219:1,1601053:1",
+  "Skill": "조리 13"
+ },
+ {
+  "RecipeId": 814,
+  "Name": "수렵인의 스프 - 마니소바 요리법",
+  "Output": 0,
+  "OutputItem": 1505101,
+  "OutputCount": 1,
+  "Inputs": "1600009:1,1600025:1,1600049:1",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 864,
+  "Name": "특수기뢰 제조법",
+  "Output": 0,
+  "OutputItem": 2200047,
+  "OutputCount": 1,
+  "Inputs": "1600852:10,1600563:10,1600914:10",
+  "Skill": "주조 13"
+ },
+ {
+  "RecipeId": 865,
+  "Name": "굉음기뢰 제조법",
+  "Output": 0,
+  "OutputItem": 2200048,
+  "OutputCount": 1,
+  "Inputs": "1600852:10,1600562:10,1600914:10",
+  "Skill": "주조 13"
+ },
+ {
+  "RecipeId": 866,
+  "Name": "납포탄 제조법",
+  "Output": 0,
+  "OutputItem": 2200049,
+  "OutputCount": 1,
+  "Inputs": "1600855:15,1600564:15,1600914:15",
+  "Skill": "주조 14"
+ },
+ {
+  "RecipeId": 868,
+  "Name": "개량형 소형 포문 제조법",
+  "Output": 0,
+  "OutputItem": 2200051,
+  "OutputCount": 1,
+  "Inputs": "1600912:20,1600917:20",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 890,
+  "Name": "철재 가공 제조법",
+  "Output": 0,
+  "OutputItem": 2200073,
+  "OutputCount": 1,
+  "Inputs": "1600912:45",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 891,
+  "Name": "로프 제조법",
+  "Output": 0,
+  "OutputItem": 2200074,
+  "OutputCount": 1,
+  "Inputs": "1600305:30",
+  "Skill": "봉제 6"
+ },
+ {
+  "RecipeId": 892,
+  "Name": "강화 로프의 제조법",
+  "Output": 0,
+  "OutputItem": 2200075,
+  "OutputCount": 1,
+  "Inputs": "1600305:15,1600316:30",
+  "Skill": "봉제 8"
+ },
+ {
+  "RecipeId": 895,
+  "Name": "사이잘마 제조법",
+  "Output": 1600316,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1601064:5",
+  "Skill": "봉제 6"
+ },
+ {
+  "RecipeId": 917,
+  "Name": "디오니시오스의 술 제조법",
+  "Output": 0,
+  "OutputItem": 1500142,
+  "OutputCount": 3,
+  "Inputs": "1600167:8,1600260:5,1600285:1",
+  "Skill": "연금술 3"
+ },
+ {
+  "RecipeId": 924,
+  "Name": "강장제 제조법",
+  "Output": 0,
+  "OutputItem": 1500251,
+  "OutputCount": 1,
+  "Inputs": "1600155:1,1600369:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 930,
+  "Name": "연막 제조법",
+  "Output": 0,
+  "OutputItem": 1500049,
+  "OutputCount": 1,
+  "Inputs": "1600852:1,1600557:1",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 932,
+  "Name": "작렬약 제조법",
+  "Output": 0,
+  "OutputItem": 1500026,
+  "OutputCount": 1,
+  "Inputs": "1600305:2,1600852:1",
+  "Skill": "주조 4"
+ },
+ {
+  "RecipeId": 933,
+  "Name": "폭렬약 제조법",
+  "Output": 0,
+  "OutputItem": 1500147,
+  "OutputCount": 4,
+  "Inputs": "1600305:2,1600852:2",
+  "Skill": "주조 8"
+ },
+ {
+  "RecipeId": 934,
+  "Name": "타히보 쥬스 제조법",
+  "Output": 0,
+  "OutputItem": 1500242,
+  "OutputCount": 1,
+  "Inputs": "1600156:1,1601064:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 935,
+  "Name": "스마 쥬스 제조법",
+  "Output": 0,
+  "OutputItem": 1500243,
+  "OutputCount": 1,
+  "Inputs": "1600156:1,1601062:1,1601064:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 936,
+  "Name": "마라쿠자 쥬스 제조법",
+  "Output": 0,
+  "OutputItem": 1500244,
+  "OutputCount": 1,
+  "Inputs": "1600156:1,1601062:1,1601064:2",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 937,
+  "Name": "타히보 보틀 제조법",
+  "Output": 0,
+  "OutputItem": 1500245,
+  "OutputCount": 1,
+  "Inputs": "1600156:2,1601064:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 938,
+  "Name": "스마 보틀 제조법",
+  "Output": 0,
+  "OutputItem": 1500246,
+  "OutputCount": 1,
+  "Inputs": "1600156:2,1601062:2,1601064:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 939,
+  "Name": "마라쿠자 보틀 제조법",
+  "Output": 0,
+  "OutputItem": 1500247,
+  "OutputCount": 1,
+  "Inputs": "1600156:2,1601062:2,1601064:4",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 1075,
+  "Name": "차가운 단팥 요리 - 체 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505102,
+  "OutputCount": 1,
+  "Inputs": "1600156:1,1600015:2,1600012:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 1076,
+  "Name": "해물 쌀국수 - 모힌가 조리법",
+  "Output": 0,
+  "OutputItem": 1505103,
+  "OutputCount": 1,
+  "Inputs": "1600010:2,1600034:1,1600015:2",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 1077,
+  "Name": "힌이라고 불리는 해물카레 조리법",
+  "Output": 0,
+  "OutputItem": 1505104,
+  "OutputCount": 2,
+  "Inputs": "1600202:1,1601055:1,1600355:1",
+  "Skill": "조리 14"
+ },
+ {
+  "RecipeId": 1078,
+  "Name": "튀긴 콩요리 - 토후죠 조리법",
+  "Output": 0,
+  "OutputItem": 1505105,
+  "OutputCount": 1,
+  "Inputs": "1600111:1,1600028:1,1600117:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1079,
+  "Name": "맵고 시큼한 톰양쿵 조리법",
+  "Output": 0,
+  "OutputItem": 1505106,
+  "OutputCount": 2,
+  "Inputs": "1601055:1,1600209:1,1600117:1",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 1080,
+  "Name": "시큼한 맛의 전채요리 솜탐 조리법",
+  "Output": 0,
+  "OutputItem": 1505107,
+  "OutputCount": 2,
+  "Inputs": "1600040:1,1600181:1,1600117:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1081,
+  "Name": "라이스페이퍼 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505108,
+  "OutputCount": 1,
+  "Inputs": "1600015:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 1083,
+  "Name": "포라고 불리는 쌀국수 조리법",
+  "Output": 0,
+  "OutputItem": 1505110,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600022:2,1600015:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1084,
+  "Name": "아주 매운 그린 카레 조리법",
+  "Output": 0,
+  "OutputItem": 1505111,
+  "OutputCount": 2,
+  "Inputs": "1600156:1,1600015:2,1600233:1",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1085,
+  "Name": "맛있는 볶음밥 - 나시고렝 요리법",
+  "Output": 0,
+  "OutputItem": 1505112,
+  "OutputCount": 2,
+  "Inputs": "1600015:2,1601055:1,1600229:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1086,
+  "Name": "맛있는 꼬치구이 - 사테 요리법",
+  "Output": 0,
+  "OutputItem": 1505113,
+  "OutputCount": 1,
+  "Inputs": "1600022:2,1600104:1,1600209:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1087,
+  "Name": "그루쿠마 튀김 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505114,
+  "OutputCount": 2,
+  "Inputs": "1600104:1,1600111:1,1601042:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1088,
+  "Name": "신맛 나는 콩 수프 - 시니간 요리법",
+  "Output": 0,
+  "OutputItem": 1505115,
+  "OutputCount": 2,
+  "Inputs": "1601055:1,1600116:1,1600117:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1089,
+  "Name": "몸에 좋은 콩 요리 - 템페 요리법",
+  "Output": 0,
+  "OutputItem": 1505116,
+  "OutputCount": 1,
+  "Inputs": "1600355:1,1600028:1,1600131:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1090,
+  "Name": "코코넛라이스 카레 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505117,
+  "OutputCount": 1,
+  "Inputs": "1600022:2,1600156:1,1600355:1",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 1091,
+  "Name": "바나나 튀김 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505118,
+  "OutputCount": 1,
+  "Inputs": "1600043:2,1600924:1,1600180:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1138,
+  "Name": "강화 로프의 제조법",
+  "Output": 0,
+  "OutputItem": 2200075,
+  "OutputCount": 1,
+  "Inputs": "1600305:10,1600316:20",
+  "Skill": "봉제 8"
+ },
+ {
+  "RecipeId": 1181,
+  "Name": "악어고기의 꼬치요리 레시피",
+  "Output": 0,
+  "OutputItem": 1505123,
+  "OutputCount": 1,
+  "Inputs": "1600925:1,1600073:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1182,
+  "Name": "캥거루테일스프 레시피",
+  "Output": 0,
+  "OutputItem": 1505124,
+  "OutputCount": 1,
+  "Inputs": "1600369:1,1600019:2,1600072:2",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1183,
+  "Name": "구운 애벌레요리 레시피",
+  "Output": 0,
+  "OutputItem": 1505125,
+  "OutputCount": 1,
+  "Inputs": "1600074:5",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 1184,
+  "Name": "야채 조각 제조법",
+  "Output": 0,
+  "OutputItem": 1506000,
+  "OutputCount": 12,
+  "Inputs": "1600006:5,1600012:2,1600070:3",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 1186,
+  "Name": "보리 껍질을 벗겨 만든 먹이 제조법",
+  "Output": 0,
+  "OutputItem": 1506002,
+  "OutputCount": 12,
+  "Inputs": "1600011:3,1600003:3,1600008:3",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1193,
+  "Name": "선인장 스테이크 제조법",
+  "Output": 0,
+  "OutputItem": 1506009,
+  "OutputCount": 3,
+  "Inputs": "1600071:2",
+  "Skill": "조리 14"
+ },
+ {
+  "RecipeId": 1195,
+  "Name": "과일 조각 제조법",
+  "Output": 0,
+  "OutputItem": 1506011,
+  "OutputCount": 12,
+  "Inputs": "1600180:2,1600181:1,1600182:2",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 1247,
+  "Name": "밀가루의 대량생산",
+  "Output": 1600043,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600011:25",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 1257,
+  "Name": "치즈의 대량생산",
+  "Output": 1600020,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600104:15,1600042:15",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 1258,
+  "Name": "우유의 대량생산",
+  "Output": 1600042,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600030:25",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 1259,
+  "Name": "닭고기의 대량생산",
+  "Output": 1600022,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600032:50",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 1260,
+  "Name": "쇠고기의 대량생산",
+  "Output": 1600009,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600030:50",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 1261,
+  "Name": "돼지고기의 대량생산",
+  "Output": 1600025,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600031:50",
+  "Skill": "조리 1"
+ },
+ {
+  "RecipeId": 1295,
+  "Name": "순철 판금의 제조법",
+  "Output": 0,
+  "OutputItem": 1500301,
+  "OutputCount": 1,
+  "Inputs": "1600552:50,1600908:25",
+  "Skill": "주조 10"
+ },
+ {
+  "RecipeId": 1343,
+  "Name": "인양 로프 제조법",
+  "Output": 0,
+  "OutputItem": 1500292,
+  "OutputCount": 2,
+  "Inputs": "1600305:1,1600312:1,1600313:1",
+  "Skill": "봉제 6"
+ },
+ {
+  "RecipeId": 1344,
+  "Name": "예항보조로프 제조법",
+  "Output": 0,
+  "OutputItem": 1500296,
+  "OutputCount": 2,
+  "Inputs": "1600305:1,1600312:1,1600313:1",
+  "Skill": "봉제 6"
+ },
+ {
+  "RecipeId": 1357,
+  "Name": "토마토 소스 흰살 생선 요리법",
+  "Output": 0,
+  "OutputItem": 1505126,
+  "OutputCount": 2,
+  "Inputs": "1600010:4,1600049:3,1600047:2",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1358,
+  "Name": "양념 치킨 구이 요리법",
+  "Output": 0,
+  "OutputItem": 1505127,
+  "OutputCount": 2,
+  "Inputs": "1600022:2,1600228:1,1600012:4",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1359,
+  "Name": "소금구이 생선과 나무열매 요리법",
+  "Output": 0,
+  "OutputItem": 1505128,
+  "OutputCount": 3,
+  "Inputs": "1600010:3,1600040:1",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 1378,
+  "Name": "명인의 흰 살 생선 요리",
+  "Output": 0,
+  "OutputItem": 1505126,
+  "OutputCount": 2,
+  "Inputs": "1600010:3,1600049:2,1600047:1",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1379,
+  "Name": "명인의 스파이시 치킨",
+  "Output": 0,
+  "OutputItem": 1505127,
+  "OutputCount": 1,
+  "Inputs": "1600022:1,1600228:1,1600012:3",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1398,
+  "Name": "알파카 고기 제조법",
+  "Output": 1600077,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600078:1",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 1399,
+  "Name": "냉동 건조한 감자 - 추뇨 제조법",
+  "Output": 0,
+  "OutputItem": 1505132,
+  "OutputCount": 1,
+  "Inputs": "1600014:2",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 1401,
+  "Name": "키누아 비스켓 레시피",
+  "Output": 0,
+  "OutputItem": 1505134,
+  "OutputCount": 1,
+  "Inputs": "1600076:5",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1402,
+  "Name": "마카죽 요리법",
+  "Output": 0,
+  "OutputItem": 1505135,
+  "OutputCount": 2,
+  "Inputs": "1600042:1,1600269:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1403,
+  "Name": "남미의 부야베스 파리우엘라 요리법",
+  "Output": 0,
+  "OutputItem": 1505136,
+  "OutputCount": 1,
+  "Inputs": "1601013:1,1601047:1,1600229:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1404,
+  "Name": "찐 옥수수 - 초클로 제조법",
+  "Output": 0,
+  "OutputItem": 1505137,
+  "OutputCount": 1,
+  "Inputs": "1600021:2",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 1405,
+  "Name": "파파 아 라 완카이나 요리법",
+  "Output": 0,
+  "OutputItem": 1505138,
+  "OutputCount": 1,
+  "Inputs": "1600020:2,1600014:3,1600042:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1406,
+  "Name": "과카몰레 요리법",
+  "Output": 0,
+  "OutputItem": 1505139,
+  "OutputCount": 2,
+  "Inputs": "1600021:1,1600047:1,1600229:2",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 1408,
+  "Name": "생선과 견과류 볶음 요리법",
+  "Output": 0,
+  "OutputItem": 1505141,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600170:5,1600132:2",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1409,
+  "Name": "파차만카 요리법",
+  "Output": 0,
+  "OutputItem": 1505142,
+  "OutputCount": 2,
+  "Inputs": "1600014:2,1600926:1,1600077:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1425,
+  "Name": "알파카의 털을 깍는 법",
+  "Output": 1600320,
+  "OutputItem": 0,
+  "OutputCount": 4,
+  "Inputs": "1600078:4",
+  "Skill": "봉제 6"
+ },
+ {
+  "RecipeId": 1439,
+  "Name": "안초비 그라탕 요리법",
+  "Output": 0,
+  "OutputItem": 1505144,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600014:2,1600132:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1440,
+  "Name": "바깔라우 크로켓 요리법",
+  "Output": 0,
+  "OutputItem": 1505145,
+  "OutputCount": 2,
+  "Inputs": "1600104:1,1600102:1,1601018:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 1442,
+  "Name": "타라마살라타 요리법",
+  "Output": 0,
+  "OutputItem": 1505147,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600102:1,1601015:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 1443,
+  "Name": "토너파스타",
+  "Output": 0,
+  "OutputItem": 1505148,
+  "OutputCount": 2,
+  "Inputs": "1600044:1,1601001:1,1600047:2",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 1444,
+  "Name": "고등어 파피요트 조리법",
+  "Output": 0,
+  "OutputItem": 1505149,
+  "OutputCount": 2,
+  "Inputs": "1600057:1,1601005:2,1600903:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1445,
+  "Name": "루터피스크 요리법",
+  "Output": 0,
+  "OutputItem": 1505150,
+  "OutputCount": 1,
+  "Inputs": "1600106:1,1600010:1,1600026:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 1446,
+  "Name": "으깬 생선 요리법",
+  "Output": 0,
+  "OutputItem": 1505151,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600156:1,1601005:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1447,
+  "Name": "북구풍 미트볼 요리법",
+  "Output": 0,
+  "OutputItem": 1505152,
+  "OutputCount": 2,
+  "Inputs": "1600009:2,1600034:2,1600105:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1448,
+  "Name": "새콤달콤한 치킨소테",
+  "Output": 0,
+  "OutputItem": 1505153,
+  "OutputCount": 1,
+  "Inputs": "1600022:1,1600105:1,1600113:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1449,
+  "Name": "북구풍 청어 튀김 요리법",
+  "Output": 0,
+  "OutputItem": 1505154,
+  "OutputCount": 1,
+  "Inputs": "1600014:1,1600105:1,1601012:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 1450,
+  "Name": "크로스타타 레시피",
+  "Output": 0,
+  "OutputItem": 1505155,
+  "OutputCount": 1,
+  "Inputs": "1600106:2,1600105:1,1600043:2",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 1451,
+  "Name": "잼을 곁들인 스콘",
+  "Output": 0,
+  "OutputItem": 1505156,
+  "OutputCount": 2,
+  "Inputs": "1600042:1,1600105:1,1600043:2",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1473,
+  "Name": "도가니 제작법",
+  "Output": 0,
+  "OutputItem": 1500339,
+  "OutputCount": 1,
+  "Inputs": "1600912:2",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 1474,
+  "Name": "실험용 냄비 제작법",
+  "Output": 0,
+  "OutputItem": 1500340,
+  "OutputCount": 1,
+  "Inputs": "1600912:2",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 1475,
+  "Name": "실험용 줄 가공법",
+  "Output": 0,
+  "OutputItem": 1500341,
+  "OutputCount": 1,
+  "Inputs": "1600915:1",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 1503,
+  "Name": "연어를 넣어 만드는 주먹밥",
+  "Output": 0,
+  "OutputItem": 1505158,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1601019:1,1600015:2",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 1504,
+  "Name": "해초를 넣어 만드는 주먹밥",
+  "Output": 0,
+  "OutputItem": 1505158,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600015:2,1601059:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 1505,
+  "Name": "깨를 넣어 만드는 주먹밥",
+  "Output": 0,
+  "OutputItem": 1505158,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600208:1,1600015:2",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 1506,
+  "Name": "가다랑어 포를 넣어 만드는 주먹밥",
+  "Output": 0,
+  "OutputItem": 1505158,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600015:2,1601000:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 1509,
+  "Name": "된장 양념 알감자꼬치구이법",
+  "Output": 0,
+  "OutputItem": 1505160,
+  "OutputCount": 1,
+  "Inputs": "1600103:1,1600124:1,1600091:2",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 1510,
+  "Name": "두부 제조법",
+  "Output": 0,
+  "OutputItem": 1505161,
+  "OutputCount": 1,
+  "Inputs": "1600130:1,1600926:1,1600028:3",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1511,
+  "Name": "찹쌀 새알을 넣어 끓이는 단팥죽",
+  "Output": 0,
+  "OutputItem": 1505162,
+  "OutputCount": 1,
+  "Inputs": "1600103:1,1600089:2,1600092:2",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1512,
+  "Name": "육개장 조리법",
+  "Output": 0,
+  "OutputItem": 1505163,
+  "OutputCount": 1,
+  "Inputs": "1600009:2,1600070:3,1600121:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1513,
+  "Name": "불고기 조리법",
+  "Output": 0,
+  "OutputItem": 1505164,
+  "OutputCount": 1,
+  "Inputs": "1600009:1,1600018:2,1600103:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1514,
+  "Name": "대구탕 끓이는 방법",
+  "Output": 0,
+  "OutputItem": 1505165,
+  "OutputCount": 1,
+  "Inputs": "1601018:3,1600369:5,1600081:1",
+  "Skill": "조리 13"
+ },
+ {
+  "RecipeId": 1515,
+  "Name": "약식 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505166,
+  "OutputCount": 1,
+  "Inputs": "1600103:4,1600089:4,1600122:1",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 1516,
+  "Name": "구절판 요리법",
+  "Output": 0,
+  "OutputItem": 1505167,
+  "OutputCount": 1,
+  "Inputs": "1600046:1,1600202:1,1600070:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1517,
+  "Name": "로켄 요리법",
+  "Output": 0,
+  "OutputItem": 1505168,
+  "OutputCount": 1,
+  "Inputs": "1600025:1,1600104:1,1600046:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1518,
+  "Name": "추세가오 요리법",
+  "Output": 0,
+  "OutputItem": 1505169,
+  "OutputCount": 1,
+  "Inputs": "1600031:1,1600160:2,1600015:2",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1519,
+  "Name": "디콰초 요리법",
+  "Output": 0,
+  "OutputItem": 1505170,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600015:1,1600012:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1520,
+  "Name": "오아첸 요리법",
+  "Output": 0,
+  "OutputItem": 1505171,
+  "OutputCount": 1,
+  "Inputs": "1600034:5,1601057:2,1600012:2",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 1521,
+  "Name": "권완탕 요리법",
+  "Output": 0,
+  "OutputItem": 1505172,
+  "OutputCount": 1,
+  "Inputs": "1600018:1,1600025:1,1600207:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1522,
+  "Name": "중국 찐만두 요리법",
+  "Output": 0,
+  "OutputItem": 1505173,
+  "OutputCount": 1,
+  "Inputs": "1600025:1,1600043:3,1600119:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1523,
+  "Name": "월병 요리법",
+  "Output": 0,
+  "OutputItem": 1505174,
+  "OutputCount": 1,
+  "Inputs": "1600103:2,1600160:2,1600090:3",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 1524,
+  "Name": "지마구 요리법",
+  "Output": 0,
+  "OutputItem": 1505175,
+  "OutputCount": 1,
+  "Inputs": "1600208:1,1600089:2,1600090:1",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1525,
+  "Name": "행인두부 요리법",
+  "Output": 0,
+  "OutputItem": 1505176,
+  "OutputCount": 1,
+  "Inputs": "1600103:2,1600042:2,1600255:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1526,
+  "Name": "돼지고기를 넣은 만두 요리법",
+  "Output": 0,
+  "OutputItem": 1505177,
+  "OutputCount": 1,
+  "Inputs": "1600018:1,1600025:1,1600043:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1527,
+  "Name": "팥소를 넣은 만두 요리법",
+  "Output": 0,
+  "OutputItem": 1505177,
+  "OutputCount": 1,
+  "Inputs": "1600043:1,1600090:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1528,
+  "Name": "야채를 넣은 만두 요리법",
+  "Output": 0,
+  "OutputItem": 1505177,
+  "OutputCount": 1,
+  "Inputs": "1600213:1,1600043:1,1600070:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 1535,
+  "Name": "당편사 봉제법",
+  "Output": 1600472,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600467:5,1600310:10,1600366:1",
+  "Skill": "봉제 12"
+ },
+ {
+  "RecipeId": 1536,
+  "Name": "중국 양탄자 봉제법",
+  "Output": 1600474,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:4,1600315:4,1600306:4",
+  "Skill": "봉제 13"
+ },
+ {
+  "RecipeId": 1537,
+  "Name": "빈가타 봉제법",
+  "Output": 1600476,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600903:5,1600364:5,1600321:1",
+  "Skill": "봉제 12"
+ },
+ {
+  "RecipeId": 1538,
+  "Name": "일본 비단 봉제법",
+  "Output": 1600477,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600306:4,1600663:1,1600662:1",
+  "Skill": "봉제 13"
+ },
+ {
+  "RecipeId": 1539,
+  "Name": "단궁 제작법",
+  "Output": 1600810,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600917:5,1600915:2,1600048:1",
+  "Skill": "주조 11"
+ },
+ {
+  "RecipeId": 1540,
+  "Name": "일본갑옷 제작법",
+  "Output": 1600813,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600467:3,1600915:2,1600661:3",
+  "Skill": "주조 12"
+ },
+ {
+  "RecipeId": 1541,
+  "Name": "일본활 제작",
+  "Output": 1600814,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600917:5,1600915:2,1600048:1",
+  "Skill": "주조 11"
+ },
+ {
+  "RecipeId": 1591,
+  "Name": "불꽃 물방울(하얀) 제조법",
+  "Output": 0,
+  "OutputItem": 1500362,
+  "OutputCount": 1,
+  "Inputs": "1600852:5",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 1666,
+  "Name": "철재 가공 제조법",
+  "Output": 0,
+  "OutputItem": 2200073,
+  "OutputCount": 1,
+  "Inputs": "1600912:30",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 1714,
+  "Name": "휘낭세 레시피",
+  "Output": 0,
+  "OutputItem": 1505184,
+  "OutputCount": 1,
+  "Inputs": "1600106:2,1600103:2,1600101:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1715,
+  "Name": "마카롱 레시피",
+  "Output": 0,
+  "OutputItem": 1505185,
+  "OutputCount": 1,
+  "Inputs": "1600107:1,1600151:3,1600105:2",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 1716,
+  "Name": "피렌체풍 고기 요리",
+  "Output": 0,
+  "OutputItem": 1505186,
+  "OutputCount": 1,
+  "Inputs": "1600009:3,1600102:3,1600047:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1865,
+  "Name": "납포탄 제조법",
+  "Output": 0,
+  "OutputItem": 2200049,
+  "OutputCount": 1,
+  "Inputs": "1600855:10,1600564:10,1600914:10",
+  "Skill": "주조 14"
+ },
+ {
+  "RecipeId": 1880,
+  "Name": "감자 끓이는 법",
+  "Output": 0,
+  "OutputItem": 1505189,
+  "OutputCount": 3,
+  "Inputs": "1600020:2,1600014:5,1600042:3",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 1881,
+  "Name": "옥수수 경단찜",
+  "Output": 0,
+  "OutputItem": 1505190,
+  "OutputCount": 1,
+  "Inputs": "1600005:1,1600021:2,1601064:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 1882,
+  "Name": "쇠고기 수프 요리",
+  "Output": 0,
+  "OutputItem": 1505191,
+  "OutputCount": 3,
+  "Inputs": "1600009:4,1600014:2,1600224:2",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 1883,
+  "Name": "나무 열매를 넣은 스튜",
+  "Output": 0,
+  "OutputItem": 1505192,
+  "OutputCount": 3,
+  "Inputs": "1600022:3,1600201:1,1600040:4",
+  "Skill": "조리 14"
+ },
+ {
+  "RecipeId": 1884,
+  "Name": "크랜베리 짜는 법",
+  "Output": 0,
+  "OutputItem": 1505193,
+  "OutputCount": 2,
+  "Inputs": "1600171:3",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 1885,
+  "Name": "북미의 주점 요리",
+  "Output": 0,
+  "OutputItem": 1505194,
+  "OutputCount": 2,
+  "Inputs": "1600018:3,1600022:3,1600070:4",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 1886,
+  "Name": "고기와 채소를 끓인 요리",
+  "Output": 0,
+  "OutputItem": 1505195,
+  "OutputCount": 3,
+  "Inputs": "1600001:10,1600021:2,1600136:2",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 1887,
+  "Name": "콩을 듬뿍 넣은 크림 수프",
+  "Output": 0,
+  "OutputItem": 1505196,
+  "OutputCount": 2,
+  "Inputs": "1600042:2,1600026:5,1601058:5",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 1888,
+  "Name": "랍스터 굽기",
+  "Output": 0,
+  "OutputItem": 1505197,
+  "OutputCount": 1,
+  "Inputs": "1600220:1,1600102:2,1601055:20",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 2072,
+  "Name": "고기와 야채의 감자쌈",
+  "Output": 0,
+  "OutputItem": 1505222,
+  "OutputCount": 2,
+  "Inputs": "1600025:1,1600014:1,1600105:1",
+  "Skill": "조리 13"
+ },
+ {
+  "RecipeId": 2073,
+  "Name": "청어 스테이크",
+  "Output": 0,
+  "OutputItem": 1505223,
+  "OutputCount": 4,
+  "Inputs": "1600043:1,1601012:1,1600128:1",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 2074,
+  "Name": "해물 냉채 수프",
+  "Output": 0,
+  "OutputItem": 1505224,
+  "OutputCount": 4,
+  "Inputs": "1600018:1,1601019:1,1600127:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2075,
+  "Name": "주식으로 먹는 팬 케이크",
+  "Output": 0,
+  "OutputItem": 1505225,
+  "OutputCount": 4,
+  "Inputs": "1600105:1,1600026:1,1600043:3",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 2103,
+  "Name": "당편사 봉제법",
+  "Output": 1600472,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600467:5,1600310:10,1600366:1",
+  "Skill": "봉제 12"
+ },
+ {
+  "RecipeId": 2104,
+  "Name": "중국 양탄자 봉제법",
+  "Output": 1600474,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600314:4,1600315:4,1600306:4",
+  "Skill": "봉제 13"
+ },
+ {
+  "RecipeId": 2105,
+  "Name": "빈가타 봉제법",
+  "Output": 1600476,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600903:5,1600364:5,1600321:1",
+  "Skill": "봉제 12"
+ },
+ {
+  "RecipeId": 2106,
+  "Name": "일본 비단 봉제법",
+  "Output": 1600477,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600306:1,1600663:1,1600662:4",
+  "Skill": "봉제 13"
+ },
+ {
+  "RecipeId": 2107,
+  "Name": "연어를 넣어 만드는 주먹밥",
+  "Output": 0,
+  "OutputItem": 1505158,
+  "OutputCount": 2,
+  "Inputs": "1600104:1,1601019:1,1600015:2",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 2109,
+  "Name": "두부 제조법",
+  "Output": 0,
+  "OutputItem": 1505161,
+  "OutputCount": 1,
+  "Inputs": "1600130:1,1600926:1,1600028:3",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2110,
+  "Name": "불고기 조리법",
+  "Output": 0,
+  "OutputItem": 1505164,
+  "OutputCount": 1,
+  "Inputs": "1600009:1,1600018:2,1600103:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2111,
+  "Name": "약식 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505166,
+  "OutputCount": 1,
+  "Inputs": "1600103:4,1600089:4,1600122:1",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 2112,
+  "Name": "구절판 요리법",
+  "Output": 0,
+  "OutputItem": 1505167,
+  "OutputCount": 1,
+  "Inputs": "1600046:1,1600202:1,1600070:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2113,
+  "Name": "로켄 요리법",
+  "Output": 0,
+  "OutputItem": 1505168,
+  "OutputCount": 1,
+  "Inputs": "1600025:1,1600104:1,1600046:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2114,
+  "Name": "디콰초 요리법",
+  "Output": 0,
+  "OutputItem": 1505170,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600015:1,1600012:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2115,
+  "Name": "권완탕 요리법",
+  "Output": 0,
+  "OutputItem": 1505172,
+  "OutputCount": 1,
+  "Inputs": "1600018:1,1600025:1,1600207:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2116,
+  "Name": "중국 찐만두 요리법",
+  "Output": 0,
+  "OutputItem": 1505173,
+  "OutputCount": 1,
+  "Inputs": "1600025:1,1600043:3,1600119:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2117,
+  "Name": "행인두부 요리법",
+  "Output": 0,
+  "OutputItem": 1505176,
+  "OutputCount": 1,
+  "Inputs": "1600103:2,1600042:2,1600255:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2118,
+  "Name": "돼지고기를 넣은 만두 요리법",
+  "Output": 0,
+  "OutputItem": 1505177,
+  "OutputCount": 1,
+  "Inputs": "1600018:1,1600025:1,1600043:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2120,
+  "Name": "라이스페이퍼 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505108,
+  "OutputCount": 1,
+  "Inputs": "1600015:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 2122,
+  "Name": "포라고 불리는 쌀국수 조리법",
+  "Output": 0,
+  "OutputItem": 1505110,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600022:2,1600015:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2123,
+  "Name": "맛있는 볶음밥 - 나시고렝 요리법",
+  "Output": 0,
+  "OutputItem": 1505112,
+  "OutputCount": 2,
+  "Inputs": "1600015:2,1601055:1,1600229:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2124,
+  "Name": "코코넛라이스 카레 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505117,
+  "OutputCount": 1,
+  "Inputs": "1600022:2,1600156:1,1600355:1",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 2125,
+  "Name": "바나나 튀김 만드는 방법",
+  "Output": 0,
+  "OutputItem": 1505118,
+  "OutputCount": 1,
+  "Inputs": "1600043:2,1600924:1,1600180:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2153,
+  "Name": "콩과 돼지고기 찜",
+  "Output": 0,
+  "OutputItem": 1505234,
+  "OutputCount": 1,
+  "Inputs": "1600016:1,1600001:2",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 2154,
+  "Name": "콩과 돼지고기의 향초 볶음",
+  "Output": 0,
+  "OutputItem": 1505235,
+  "OutputCount": 1,
+  "Inputs": "1600025:1,1600220:1,1600017:1",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 2155,
+  "Name": "껍질이 붙은 돼지고기 구이",
+  "Output": 0,
+  "OutputItem": 1505236,
+  "OutputCount": 1,
+  "Inputs": "1600025:1,1600104:2,1600107:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2156,
+  "Name": "소고기와 돼지고기 스튜",
+  "Output": 0,
+  "OutputItem": 1505237,
+  "OutputCount": 1,
+  "Inputs": "1600009:2,1600018:1,1600025:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2157,
+  "Name": "해물 카레",
+  "Output": 0,
+  "OutputItem": 1505238,
+  "OutputCount": 2,
+  "Inputs": "1601047:1,1601055:1,1600232:1",
+  "Skill": "조리 13"
+ },
+ {
+  "RecipeId": 2158,
+  "Name": "닭고기 카레",
+  "Output": 0,
+  "OutputItem": 1505239,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600022:1,1600232:1",
+  "Skill": "조리 13"
+ },
+ {
+  "RecipeId": 2255,
+  "Name": "철수 신호용 종의 주조법",
+  "Output": 0,
+  "OutputItem": 1500105,
+  "OutputCount": 1,
+  "Inputs": "1600906:2",
+  "Skill": "주조 3"
+ },
+ {
+  "RecipeId": 2258,
+  "Name": "명인 목수의 목공도구 제조법",
+  "Output": 0,
+  "OutputItem": 1500044,
+  "OutputCount": 1,
+  "Inputs": "1600912:1,1600917:1,1600562:1",
+  "Skill": "주조 12"
+ },
+ {
+  "RecipeId": 2268,
+  "Name": "시치 레시피",
+  "Output": 0,
+  "OutputItem": 1505240,
+  "OutputCount": 1,
+  "Inputs": "1600018:1,1600006:1,1600070:2",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2269,
+  "Name": "우하 레시피",
+  "Output": 0,
+  "OutputItem": 1505241,
+  "OutputCount": 1,
+  "Inputs": "1600018:2,1601012:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 2270,
+  "Name": "블리니 레시피",
+  "Output": 0,
+  "OutputItem": 1505242,
+  "OutputCount": 1,
+  "Inputs": "1600042:2,1600043:1,1600178:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2271,
+  "Name": "피로시키 레시피",
+  "Output": 0,
+  "OutputItem": 1505243,
+  "OutputCount": 1,
+  "Inputs": "1600025:1,1600046:2,1600043:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2272,
+  "Name": "카샤 레시피",
+  "Output": 0,
+  "OutputItem": 1505244,
+  "OutputCount": 1,
+  "Inputs": "1600017:1,1600003:2",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2273,
+  "Name": "와인 절임 양고기 꼬치",
+  "Output": 0,
+  "OutputItem": 1505245,
+  "OutputCount": 2,
+  "Inputs": "1600061:2,1600024:2,1600104:1",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 2274,
+  "Name": "아룰 레시피",
+  "Output": 0,
+  "OutputItem": 1505246,
+  "OutputCount": 100,
+  "Inputs": "1600042:50",
+  "Skill": "조리 3"
+ },
+ {
+  "RecipeId": 2275,
+  "Name": "호쇼르 레시피",
+  "Output": 0,
+  "OutputItem": 1505247,
+  "OutputCount": 100,
+  "Inputs": "1600009:50,1600043:50,1600924:50",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2277,
+  "Name": "고릴타이썰르 레시피",
+  "Output": 0,
+  "OutputItem": 1505249,
+  "OutputCount": 90,
+  "Inputs": "1600018:30,1600024:60,1600043:60",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2278,
+  "Name": "차나산 마흐 레시피",
+  "Output": 0,
+  "OutputItem": 1505250,
+  "OutputCount": 80,
+  "Inputs": "1600024:40,1600104:80,1600201:40",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 2279,
+  "Name": "허르헉 레시피",
+  "Output": 0,
+  "OutputItem": 1505251,
+  "OutputCount": 75,
+  "Inputs": "1600018:50,1600024:25,1600070:50",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 2280,
+  "Name": "갈쇼크 레시피",
+  "Output": 0,
+  "OutputItem": 1505252,
+  "OutputCount": 2,
+  "Inputs": "1600018:2,1600046:2,1600045:1",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 2281,
+  "Name": "바바 레시피",
+  "Output": 0,
+  "OutputItem": 1505253,
+  "OutputCount": 1,
+  "Inputs": "1600034:1,1600042:1,1600040:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2282,
+  "Name": "붉은 순무 샐러드",
+  "Output": 0,
+  "OutputItem": 1505254,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600029:1,1600070:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2283,
+  "Name": "펠메니 레시피",
+  "Output": 0,
+  "OutputItem": 1505255,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600025:2,1600202:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2284,
+  "Name": "러시아풍 미트볼 레시피",
+  "Output": 0,
+  "OutputItem": 1505256,
+  "OutputCount": 2,
+  "Inputs": "1600009:2,1600018:1,1600015:1",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 2285,
+  "Name": "러시아풍 감자 샐러드 레시피",
+  "Output": 0,
+  "OutputItem": 1505257,
+  "OutputCount": 1,
+  "Inputs": "1600022:1,1600034:1,1600014:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2286,
+  "Name": "대구 크림 스튜 레시피",
+  "Output": 0,
+  "OutputItem": 1505258,
+  "OutputCount": 2,
+  "Inputs": "1600220:1,1600042:1,1601018:1",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 2287,
+  "Name": "초이완 레시피",
+  "Output": 0,
+  "OutputItem": 1505259,
+  "OutputCount": 100,
+  "Inputs": "1600009:50,1600014:50,1600043:50",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2288,
+  "Name": "부즈 레시피",
+  "Output": 0,
+  "OutputItem": 1505260,
+  "OutputCount": 100,
+  "Inputs": "1600025:50,1600043:50",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 2289,
+  "Name": "구야시 레시피",
+  "Output": 0,
+  "OutputItem": 1505261,
+  "OutputCount": 90,
+  "Inputs": "1600024:30,1600111:30,1600201:30",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2290,
+  "Name": "말고기 타르타르 스테이크 레시피",
+  "Output": 0,
+  "OutputItem": 1505262,
+  "OutputCount": 90,
+  "Inputs": "1600034:60,1600104:30,1600048:30",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 2291,
+  "Name": "버덕 레시피",
+  "Output": 0,
+  "OutputItem": 1505263,
+  "OutputCount": 90,
+  "Inputs": "1600104:60,1600036:30",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 2292,
+  "Name": "말린 고기 수프",
+  "Output": 0,
+  "OutputItem": 1505264,
+  "OutputCount": 100,
+  "Inputs": "1600009:50,1600018:50,1600104:50",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2293,
+  "Name": "짜이다스 레시피",
+  "Output": 0,
+  "OutputItem": 1505265,
+  "OutputCount": 60,
+  "Inputs": "1600037:30,1600217:30,1600202:30",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 2294,
+  "Name": "몽골풍 튀김빵 레시피",
+  "Output": 0,
+  "OutputItem": 1505266,
+  "OutputCount": 80,
+  "Inputs": "1600103:80,1600042:40,1600043:40",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2295,
+  "Name": "두터운 햄 스테이크 레시피",
+  "Output": 0,
+  "OutputItem": 1505267,
+  "OutputCount": 2,
+  "Inputs": "1600104:2,1600102:1,1600023:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2296,
+  "Name": "키쉬 레시피",
+  "Output": 0,
+  "OutputItem": 1505268,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600034:2,1600023:2",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2297,
+  "Name": "스페인풍 포토푀",
+  "Output": 0,
+  "OutputItem": 1505269,
+  "OutputCount": 2,
+  "Inputs": "1600016:2,1600014:1,1600070:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2298,
+  "Name": "쉬케 레시피",
+  "Output": 0,
+  "OutputItem": 1505270,
+  "OutputCount": 1,
+  "Inputs": "1600023:1,1601047:1,1601058:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2308,
+  "Name": "강화 강철의 판금 대량생산",
+  "Output": 0,
+  "OutputItem": 1500302,
+  "OutputCount": 5,
+  "Inputs": "1600552:150,1600560:150",
+  "Skill": "주조 10"
+ },
+ {
+  "RecipeId": 2415,
+  "Name": "말린 고기를 사용한 보존식",
+  "Output": 0,
+  "OutputItem": 1505276,
+  "OutputCount": 2,
+  "Inputs": "1600009:1,1600111:2,1600171:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2416,
+  "Name": "색다른 튀김빵 만드는 법",
+  "Output": 0,
+  "OutputItem": 1505277,
+  "OutputCount": 2,
+  "Inputs": "1600043:1,1600924:1,1600173:2",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2417,
+  "Name": "야채 버터 볶음",
+  "Output": 0,
+  "OutputItem": 1505278,
+  "OutputCount": 2,
+  "Inputs": "1600106:2,1600021:2,1600047:1",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2418,
+  "Name": "최고급 쇠고기 스테이크",
+  "Output": 0,
+  "OutputItem": 1505279,
+  "OutputCount": 2,
+  "Inputs": "1600057:1,1600009:2,1600104:2",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 2419,
+  "Name": "연어 수프",
+  "Output": 0,
+  "OutputItem": 1505280,
+  "OutputCount": 2,
+  "Inputs": "1600018:2,1600042:1,1601019:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2420,
+  "Name": "고구마를 이용한 주식",
+  "Output": 0,
+  "OutputItem": 1505281,
+  "OutputCount": 2,
+  "Inputs": "1600019:3",
+  "Skill": "조리 4"
+ },
+ {
+  "RecipeId": 2421,
+  "Name": "생선을 사용한 남국 요리",
+  "Output": 0,
+  "OutputItem": 1505282,
+  "OutputCount": 2,
+  "Inputs": "1600010:2,1600018:2,1600104:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 2422,
+  "Name": "남국의 잎 찜",
+  "Output": 0,
+  "OutputItem": 1505283,
+  "OutputCount": 2,
+  "Inputs": "1600022:1,1600025:1,1601064:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2423,
+  "Name": "땅속에서 찌는 전통 요리",
+  "Output": 0,
+  "OutputItem": 1505284,
+  "OutputCount": 2,
+  "Inputs": "1600025:2,1600104:1,1600926:2",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2424,
+  "Name": "코코넛의 달콤한 과자",
+  "Output": 0,
+  "OutputItem": 1505285,
+  "OutputCount": 1,
+  "Inputs": "1600103:1,1600156:2,1600019:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2425,
+  "Name": "과일을 사용한 볶음",
+  "Output": 0,
+  "OutputItem": 1505286,
+  "OutputCount": 2,
+  "Inputs": "1600025:1,1600104:2,1600159:1",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 2426,
+  "Name": "과일과 샤베트",
+  "Output": 0,
+  "OutputItem": 1505287,
+  "OutputCount": 2,
+  "Inputs": "1600103:1,1600042:1,1600180:2",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2427,
+  "Name": "남국의 닭 요리",
+  "Output": 0,
+  "OutputItem": 1505288,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600022:1,1600156:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 2428,
+  "Name": "남국 풍 스튜 만드는 법",
+  "Output": 0,
+  "OutputItem": 1505289,
+  "OutputCount": 2,
+  "Inputs": "1600009:1,1600018:2,1600070:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2429,
+  "Name": "새우 코코넛 조림",
+  "Output": 0,
+  "OutputItem": 1505290,
+  "OutputCount": 2,
+  "Inputs": "1600156:2,1600202:1,1601055:2",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 2430,
+  "Name": "팥소를 뿌린 튀긴 생선",
+  "Output": 0,
+  "OutputItem": 1505291,
+  "OutputCount": 2,
+  "Inputs": "1600010:1,1600924:1,1600040:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2431,
+  "Name": "바나나 잎을 사용한 과자",
+  "Output": 0,
+  "OutputItem": 1505292,
+  "OutputCount": 2,
+  "Inputs": "1600103:1,1600156:2",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 2432,
+  "Name": "쇠고기 튀김",
+  "Output": 0,
+  "OutputItem": 1505293,
+  "OutputCount": 1,
+  "Inputs": "1600009:1,1600043:1,1600924:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2433,
+  "Name": "바나나 꿀절임",
+  "Output": 0,
+  "OutputItem": 1505294,
+  "OutputCount": 2,
+  "Inputs": "1600107:2,1600103:1,1600180:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2495,
+  "Name": "왕연어 훈제요리",
+  "Output": 0,
+  "OutputItem": 1505295,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600917:1,1601106:1",
+  "Skill": "조리 13"
+ },
+ {
+  "RecipeId": 2496,
+  "Name": "문어를 사용한 전채요리",
+  "Output": 0,
+  "OutputItem": 1505296,
+  "OutputCount": 1,
+  "Inputs": "1600102:1,1600014:1,1601048:1",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 2497,
+  "Name": "대구 난소의 소금 절임",
+  "Output": 0,
+  "OutputItem": 1505297,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1601018:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 2499,
+  "Name": "감자튀김",
+  "Output": 0,
+  "OutputItem": 1505300,
+  "OutputCount": 1,
+  "Inputs": "1600104:1,1600014:1,1600924:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2504,
+  "Name": "호박으로 만든 파스타",
+  "Output": 0,
+  "OutputItem": 1505302,
+  "OutputCount": 1,
+  "Inputs": "1600020:1,1600007:1,1600043:1",
+  "Skill": "조리 9"
+ },
+ {
+  "RecipeId": 2505,
+  "Name": "호박을 통째로 사용한 푸딩",
+  "Output": 0,
+  "OutputItem": 1505303,
+  "OutputCount": 1,
+  "Inputs": "1600103:1,1600156:1,1600007:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2507,
+  "Name": "동유럽의 붉은 수프",
+  "Output": 0,
+  "OutputItem": 1505305,
+  "OutputCount": 1,
+  "Inputs": "1600009:1,1600014:1,1600029:2",
+  "Skill": "조리 11"
+ },
+ {
+  "RecipeId": 2508,
+  "Name": "와인 소스를 곁들인 사슴고기",
+  "Output": 0,
+  "OutputItem": 1505306,
+  "OutputCount": 1,
+  "Inputs": "1600061:2,1600018:2,1600038:1",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 2509,
+  "Name": "고대 로마의 케이크",
+  "Output": 0,
+  "OutputItem": 1505307,
+  "OutputCount": 1,
+  "Inputs": "1600020:1,1600107:1,1600043:2",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 2518,
+  "Name": "코크스 제조법",
+  "Output": 1600931,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600908:20",
+  "Skill": "주조 3"
+ },
+ {
+  "RecipeId": 2520,
+  "Name": "주석 제조법",
+  "Output": 0,
+  "OutputItem": 1500974,
+  "OutputCount": 1,
+  "Inputs": "1600554:10,1600915:10",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 2521,
+  "Name": "탄소를 포함하는 철 제조법",
+  "Output": 1600932,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600912:20,1600564:5",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 2522,
+  "Name": "가볍고 튼튼한 합금 제조법",
+  "Output": 1600933,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600564:5,1600576:20",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 2523,
+  "Name": "녹이 잘 슬지 않는 강철 제조법",
+  "Output": 1600934,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600912:10,1600578:10,1600577:10",
+  "Skill": "주조 8"
+ },
+ {
+  "RecipeId": 2557,
+  "Name": "카레가루 제조법",
+  "Output": 0,
+  "OutputItem": 1500972,
+  "OutputCount": 2,
+  "Inputs": "1600205:2,1600232:2,1600355:2",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 2565,
+  "Name": "코크스 제조법",
+  "Output": 1600931,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600908:20",
+  "Skill": "주조 3"
+ },
+ {
+  "RecipeId": 2567,
+  "Name": "주석 제조법",
+  "Output": 0,
+  "OutputItem": 1500974,
+  "OutputCount": 1,
+  "Inputs": "1600554:10,1600915:10",
+  "Skill": "주조 5"
+ },
+ {
+  "RecipeId": 2568,
+  "Name": "탄소를 포함하는 철 제조법",
+  "Output": 1600932,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600912:20,1600564:5",
+  "Skill": "주조 6"
+ },
+ {
+  "RecipeId": 2569,
+  "Name": "가볍고 튼튼한 합금 제조법",
+  "Output": 1600933,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600564:5,1600576:20",
+  "Skill": "주조 7"
+ },
+ {
+  "RecipeId": 2570,
+  "Name": "녹이 잘 슬지 않는 강철 제조법",
+  "Output": 1600934,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600912:10,1600578:10,1600577:10",
+  "Skill": "주조 8"
+ },
+ {
+  "RecipeId": 2656,
+  "Name": "우유 가당 및 농축방법",
+  "Output": 0,
+  "OutputItem": 1500973,
+  "OutputCount": 1,
+  "Inputs": "1600103:2,1600042:2",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2658,
+  "Name": "달콤한 커피 끓이는 법",
+  "Output": 0,
+  "OutputItem": 1505309,
+  "OutputCount": 1,
+  "Inputs": "1600103:1,1600155:3",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2659,
+  "Name": "달콤한 홍차 끓이는 법",
+  "Output": 0,
+  "OutputItem": 1505310,
+  "OutputCount": 1,
+  "Inputs": "1600103:1,1600154:2",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2740,
+  "Name": "젤라틴의 추출법",
+  "Output": 0,
+  "OutputItem": 1500996,
+  "OutputCount": 1,
+  "Inputs": "1601013:20",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2792,
+  "Name": "가람 마사라 제조법",
+  "Output": 1600232,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600205:1,1600202:1,1600209:1",
+  "Skill": "조리 6"
+ },
+ {
+  "RecipeId": 2793,
+  "Name": "신비한 향신료 제조법",
+  "Output": 0,
+  "OutputItem": 1500046,
+  "OutputCount": 1,
+  "Inputs": "1600207:1,1600232:1,1600203:1",
+  "Skill": "조리 12"
+ },
+ {
+  "RecipeId": 2873,
+  "Name": "감자볶음",
+  "Output": 0,
+  "OutputItem": 1505316,
+  "OutputCount": 2,
+  "Inputs": "1600207:1,1600014:5,1600026:5",
+  "Skill": "조리 17"
+ },
+ {
+  "RecipeId": 2875,
+  "Name": "참깨 소스를 뿌린 돼지고기 요리",
+  "Output": 0,
+  "OutputItem": 1505318,
+  "OutputCount": 1,
+  "Inputs": "1600025:3,1600208:3,1600122:1",
+  "Skill": "조리 17"
+ },
+ {
+  "RecipeId": 2897,
+  "Name": "허브 샐러드",
+  "Output": 0,
+  "OutputItem": 1505319,
+  "OutputCount": 2,
+  "Inputs": "1600018:1,1600226:1,1600221:1",
+  "Skill": "조리 5"
+ },
+ {
+  "RecipeId": 2898,
+  "Name": "아몬드 라이스",
+  "Output": 0,
+  "OutputItem": 1505320,
+  "OutputCount": 2,
+  "Inputs": "1600151:2,1600015:1,1600210:1",
+  "Skill": "조리 7"
+ },
+ {
+  "RecipeId": 2899,
+  "Name": "황금의 비프 스튜",
+  "Output": 0,
+  "OutputItem": 1505321,
+  "OutputCount": 2,
+  "Inputs": "1600009:2,1600210:2,1600206:1",
+  "Skill": "조리 13"
+ },
+ {
+  "RecipeId": 2900,
+  "Name": "소금물로 데친 돼지고기 요리",
+  "Output": 0,
+  "OutputItem": 1505322,
+  "OutputCount": 2,
+  "Inputs": "1600025:1,1600113:1,1600265:1",
+  "Skill": "조리 15"
+ },
+ {
+  "RecipeId": 2901,
+  "Name": "오리 구이 요리",
+  "Output": 0,
+  "OutputItem": 1505323,
+  "OutputCount": 2,
+  "Inputs": "1600061:1,1600002:1,1600265:1",
+  "Skill": "조리 18"
+ },
+ {
+  "RecipeId": 2902,
+  "Name": "생선을 채운 타르트 요리",
+  "Output": 0,
+  "OutputItem": 1505324,
+  "OutputCount": 2,
+  "Inputs": "1600151:1,1600043:1,1601019:2",
+  "Skill": "조리 8"
+ },
+ {
+  "RecipeId": 2903,
+  "Name": "사순절용 디저트",
+  "Output": 0,
+  "OutputItem": 1505325,
+  "OutputCount": 2,
+  "Inputs": "1600169:2,1600151:2,1600045:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 2904,
+  "Name": "약초 풍미의 와인",
+  "Output": 0,
+  "OutputItem": 1505326,
+  "OutputCount": 1,
+  "Inputs": "1600061:2,1600213:1,1600212:1",
+  "Skill": "조리 10"
+ },
+ {
+  "RecipeId": 3435,
+  "Name": "고대 로마의 음료",
+  "Output": 0,
+  "OutputItem": 1505347,
+  "OutputCount": 4,
+  "Inputs": "1600061:10,1600167:3,1600107:10",
+  "Skill": "조리 21"
+ },
+ {
+  "RecipeId": 3436,
+  "Name": "트로이의 돼지",
+  "Output": 0,
+  "OutputItem": 1505348,
+  "OutputCount": 2,
+  "Inputs": "1600169:5,1600016:5,1600031:5",
+  "Skill": "조리 21"
+ },
+ {
+  "RecipeId": 3437,
+  "Name": "고대 그리스의 비법 요리",
+  "Output": 0,
+  "OutputItem": 1505349,
+  "OutputCount": 4,
+  "Inputs": "1600061:10,1600020:6,1600003:10",
+  "Skill": "조리 21"
+ },
+ {
+  "RecipeId": 3438,
+  "Name": "스파르타의 비전 요리",
+  "Output": 0,
+  "OutputItem": 1505350,
+  "OutputCount": 5,
+  "Inputs": "1600031:5,1600104:10,1600109:8",
+  "Skill": "조리 21"
+ },
+ {
+  "RecipeId": 3439,
+  "Name": "고대의 건강 수프",
+  "Output": 0,
+  "OutputItem": 1505351,
+  "OutputCount": 4,
+  "Inputs": "1600042:5,1600043:8,1601116:5",
+  "Skill": "조리 21"
+ },
+ {
+  "RecipeId": 3440,
+  "Name": "귀리 케이크",
+  "Output": 0,
+  "OutputItem": 1505352,
+  "OutputCount": 5,
+  "Inputs": "1600104:4,1600008:10,1600043:4",
+  "Skill": "조리 21"
+ },
+ {
+  "RecipeId": 3441,
+  "Name": "가장 오래된 파스타",
+  "Output": 0,
+  "OutputItem": 1505353,
+  "OutputCount": 4,
+  "Inputs": "1600104:4,1600202:4,1600043:10",
+  "Skill": "조리 21"
+ }
+]

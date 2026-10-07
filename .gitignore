@@ -19,6 +19,11 @@ data/extracted/*
 !data/extracted/ship-facts.json
 !data/extracted/shipdetail-facts.json
 !data/extracted/gear-boosts.json
+# gvdb(이용자 사이트)에서 뽑아 게임이 읽는 것 — 사용자가 올리기로 했다(2026-10-07). 받은 사본(gvdb 폴더의 CSV · HTML)은 올리지 않는다
+!data/extracted/quest-facts.json
+!data/extracted/recipe-inputs.json
+!data/extracted/recipe-books.json
+!data/extracted/market-facts.json
 
 # Python
 __pycache__/
