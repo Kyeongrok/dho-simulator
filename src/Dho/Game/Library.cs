@@ -63,5 +63,6 @@ internal sealed partial class Voyage
         foreach (var rule in Data.SkillRules.Where(r => r.Effect is "Language" or "BookLanguage" && r.Targets.Contains(City.Culture) && Rank(r.SkillId) > 0).Take(1)) Train(rule.SkillId, 10);
         if (!quiet) Say($"{Fill(Text(7407, "「%s」열람"), book.Name + " 서적")} — {ReadsWith()}(으)로 읽었다. ({Text(907, "열람료")} {BookFee:N0} 두캇, 남은 열람 {BooksLeft}권)");
         if (_random.NextDouble() < 0.05) FindWreckPiece("서적 사이에서");
+        MaybeFindMap(book);
     }
 }

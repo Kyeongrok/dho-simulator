@@ -614,7 +614,7 @@ internal sealed class GameWindow : IDisposable
         _boundDoor = _route.Count > 0 && goal == mark.Scene;
         if (_boundDoor) PlayCue("Door");      // 사람이 아니라 건물 입구를 골랐다
         _routeRuns = true;                         // 지도에서 고른 곳으로는 달려간다
-        _voyage.Say(_route.Count > 0 ? (mark.Place == Voyage.InsideMaster ? $"{_voyage.PlaceName(mark.Place)}에게 간다." : $"{_voyage.PlaceName(mark.Place)}(으)로 간다.") : $"{_voyage.PlaceName(mark.Place)}까지 가는 길을 못 찾았다.");
+        _voyage.Say(_route.Count > 0 ? (mark.Place is Voyage.InsideMaster or Voyage.Broker ? $"{_voyage.PlaceName(mark.Place)}에게 간다." : $"{_voyage.PlaceName(mark.Place)}(으)로 간다.") : $"{_voyage.PlaceName(mark.Place)}까지 가는 길을 못 찾았다.");
     }
 
     /// <summary>그 시설에 선 사람 쪽으로 돌아선다.</summary>
@@ -879,7 +879,7 @@ internal sealed class GameWindow : IDisposable
             try { _ship.SetSail(_voyage.SailPattern, _voyage.SailTint); } catch (Exception) { }
             _sailShown = (_ship, _voyage.SailPattern, _voyage.SailTint);
         }
-        int wood = _voyage.HullColorOf(_voyage.Ship, _voyage.ShipMaterialId);
+        int wood = _voyage.ShipHullColor;
         _ship.Furl = _voyage.Mode == Mode.Sea ? _voyage.Sail / (float)Voyage.SailSteps : 1;      // 바다에서는 돛을 편 만큼만 보인다
         if (!town) _ship.Draw(_scene, shipWorld, null, Hull(_ship, wood));
         DrawSeaShips(sway);
@@ -966,7 +966,7 @@ internal sealed class GameWindow : IDisposable
             float spin = _previewYaw;
             // 창이 다른 배를 보이라고 했으면(커스텀설정 조선의 지을 배) 그 모형을 따로 들고 있는다
             var shown = _ship;
-            int timber = _voyage.HullColorOf(_voyage.Ship, _voyage.ShipMaterialId);
+            int timber = _voyage.ShipHullColor;
             if (_hud.PreviewShip is { } other)
             {
                 if (_previewShip == null || _previewShipModel != other.Model)
@@ -1407,6 +1407,12 @@ internal sealed class GameWindow : IDisposable
                 // 길 쪽(들어선 자리 쪽)을 보고 선다
                 _keepers.Add((mark, name, spot, MathF.Atan2(_walk.X - spot.X, _walk.Y - spot.Y)));
             }
+        // 의뢰 중개인 — 항구 앞, 항구 관리의 맞은편에 선다(사용자, 2026-10-08). 말을 걸면 모험 의뢰 · 교역 의뢰를 고른다
+        if ((_voyage.TownMap?.Marks ?? []).Find(m => m.Place is 5 or 4) is { } harbour && !_keepers.Exists(k => k.Mark.Place == Voyage.Broker))
+        {
+            var spot = _grid.Nearest(harbour.Scene + new Vector2(-230f, 60f));
+            _keepers.Add((new TownMark(Voyage.Broker, harbour.MapX, harbour.MapY, 0, spot, 0), "의뢰 중개인", spot, MathF.Atan2(_walk.X - spot.X, _walk.Y - spot.Y)));
+        }
         // 조선소 주인 곁의 사람들 — 원본(세비야)처럼 한 줄로 나란히 선다. 말은 못 건다(서 있기만 한다)
         if (_keepers.Find(k => k.Mark.Place == 9) is { Name: not null } owner)
         {
@@ -1675,7 +1681,15 @@ internal sealed class GameWindow : IDisposable
             case "fulfil": _voyage.CompleteOrder(); break;
             case "buyitem": if (_voyage.ItemOf((int)Number()) is { } wares) _voyage.BuyItem(wares); break;
             case "addrecipe": if (_voyage.Data.Recipes.Find(r => r.Id == (int)Number()) is { } learned) _voyage.AddRecipe(learned); break;
-            case "produce": if (_voyage.RuleOf((int)Number()) is { } make) _voyage.Produce(make, 1); break;
+            case "produce": if (_voyage.RuleOf((int)Number()) is { } make) { if (_voyage.ProduceBlocker(make, 1) is { } why) _voyage.Say($"(시험) 생산 못 함 — {why}"); _voyage.Produce(make, 1); } else _voyage.Say("(시험) 그 번호의 레시피 규칙이 없다"); break;
+            case "stuffed": _voyage.StuffedForTest(); break;
+            case "battlelog": _voyage.PartsReportForTest(); break;
+            case "dodgeall": _voyage.DodgeAllForTest = true; break;
+            case "refined": _voyage.RefinedForTest((int)Number()); break;
+            case "setvigour": _voyage.VigourForTest(Number()); break;
+            case "recipeopen": if (_voyage.RuleOf((int)Number()) is { } shown) { _voyage.Dialog = Dialog.Items; _hud.RecipeOpen = shown; } break;
+            case "stockpart": if (_voyage.Data.ShipParts.Find(p => p.Id == (int)Number()) is { } spare) _voyage.GivePart(spare); break;      // 달지 않고 가진 부품으로만
+            case "dish": if (_voyage.TavernMenuHere().Where(m => m.Kind == 1).ElementAtOrDefault((int)Number()) is { } meal) _voyage.OrderDish(meal); break;
             case "addgood":
                 var given = argument.Split(',');
                 if (!_voyage.Cargo.TryGetValue(int.Parse(given[0]), out var held)) _voyage.Cargo[int.Parse(given[0])] = held = new CargoItem();
@@ -1707,6 +1721,35 @@ internal sealed class GameWindow : IDisposable
             case "mousedown": (_mouseX, _mouseY, _leftDown) = (int.Parse(argument.Split(',')[0]), int.Parse(argument.Split(',')[1]), true); break;      // 대본: 왼쪽 단추를 누른 채로(끌기)
             case "mouseup": _leftDown = false; break;
             case "dash": _voyage.UseDash(); break;
+            case "worktimes": _voyage.Work.Times = (int)Number(); break;      // 대본: 강화 횟수를 정한다(초과 강화 화면 확인)
+            case "meistertest": _voyage.MeisterForTest(); break;
+            case "fishtest": _voyage.FishForTest((int)Number()); break;
+            case "langtest": _voyage.LanguagesForTest(); break;
+            case "prereqtest": _voyage.PrereqForTest(); break;
+            case "landitem": if (_voyage.Data.Items.Find(i => i.Id == (int)Number()) is { } thrown) _voyage.UseLandItem(thrown); break;      // 대본: 육상전에서 아이템 쓰기
+            case "paintroundtrip": _voyage.PaintRoundTripForTest(); break;
+            case "shoplist": _voyage.ShopListForTest(); break;                         // 대본: 이 도시의 도구점이 파는 것을 글로
+            case "sethull": _voyage.HurtForTest(Number(), -1); break;                     // 대본: 내구를 그 값으로
+            case "life": _voyage.HurtForTest(-1, Number()); break;                     // 대본: 생명력을 그 값으로
+            case "beastquest": _voyage.TakeBeastQuestForTest((int)Number()); break;      // 대본: 생태 조사로 찾는 의뢰를 받은 것으로
+            case "questdetail": _voyage.Dialog = Dialog.QuestDetail; break;
+            case "tradedrop": _voyage.DropTrade(); break;
+            case "tradeguildtest": _voyage.TradeGuildsForTest(); break;
+            case "pricetest": _voyage.ShipPricesForTest(); break;
+            case "fatigue": _voyage.SetFatigueForTest(Number()); break;
+            case "tradeguild": _voyage.Dialog = Dialog.TradeGuild; break;
+            case "seaguild": _voyage.Dialog = Dialog.SeaGuild; break;
+            case "seaaccept": if (_voyage.SeaQuestsHere().ElementAtOrDefault((int)Number()) is { } hunt) _voyage.AcceptSea(hunt); break;
+            case "seatosite": _voyage.SeaToSiteForTest(); break;
+            case "seareport": _voyage.ReportSea(); break;
+            case "seawin": _voyage.SeaWinForTest(); break;
+            case "searoundtrip": _voyage.SeaRoundTripForTest(); break;
+            case "seaguildtest": _voyage.SeaGuildsForTest(); break;
+            case "tradeaccept": if (_voyage.TradeQuestsHere().ElementAtOrDefault((int)Number()) is { } delivery) _voyage.AcceptTrade(delivery); break;
+            case "tradeload": _voyage.TradeLoadForTest(); break;
+            case "tradedeliver": _voyage.DeliverTrade(); break;
+            case "tradereport": _voyage.ReportTrade(); break;
+            case "grant": _voyage.GrantWith(argument.Split(',').Select(int.Parse).ToList()); break;      // 대본: 재료 번호들로 옵션 스킬 부여
             case "discoverport": _voyage.DiscoverPortForTest(); break;
             case "mapzoom": _voyage.Data.Settings.SeaMapZoom = Number(); break;      // 이번 실행 동안만
             case "warpsearch": _hud.WarpSearchForTest(argument); break;
@@ -1783,8 +1826,11 @@ internal sealed class GameWindow : IDisposable
             case "drawwater": _voyage.DrawWater(); break;
             case "lookaround": _voyage.LookAround(); break;
             case "gather": _voyage.Gather(); break;
+            case "ashoreat": if (_voyage.Data.Landings.Find(l => l.Id == (int)Number()) is { } named) { _voyage.Teleport(named.X, named.Y); _voyage.GoAshore(); _voyage.Say($"(시험) {named.Name} — 아는 채집품: {_voyage.GatherKnownText}"); } break;
             case "rationnote": _voyage.RationNoteForTest(); break;
             case "wreckpiece": _voyage.WreckPieceForTest(); break;
+            case "enterport": if (_voyage.Data.Cities.Find(c => c.Id == (int)Number()) is { } harbour) { _voyage.Teleport(harbour.SeaX, harbour.SeaY); _voyage.EnterPort(); } break;      // 대본: 그 도시 앞바다로 옮겨 입항 처리까지
+            case "wreckgo": _voyage.WreckGoForTest(); break;
             case "wreckhere": _voyage.WreckHereForTest(); break;
             case "salvage": _voyage.Salvage(); break;
             case "tow": _voyage.TowForTest(); break;
@@ -1802,6 +1848,9 @@ internal sealed class GameWindow : IDisposable
             case "flee": _voyage.Flee(); break;
             case "modwindow": _hud.OpenMod(); break;
             case "library": _voyage.Dialog = Dialog.Library; break;
+            case "saveroundtrip": _voyage.SaveRoundTripForTest(); break;      // 대본: 저장 꼴로 바꿨다 되읽기(파일에는 안 적는다)
+            case "fishfind": _voyage.FishFindForTest((int)Number()); break;      // 대본: 낚시 발견물 N 번째 자리로 가서 낚는다(음수면 세는 글만)
+            case "mapread": _voyage.MapReadForTest((int)Number()); break;      // 대본: 이 도시 서고의 N 번째 지도를 얻은 것으로(음수면 세는 글만)
             case "giveitem": _voyage.AddItem((int)Number(), 5); break;
             case "ordersheet": if (_voyage.GoodsHere().ElementAtOrDefault((int)Number()) is { } restock) _voyage.UseOrderSheet(restock); break;
             case "transkit": _voyage.TransmuteKitForTest(); break;

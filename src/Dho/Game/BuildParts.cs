@@ -99,6 +99,8 @@ internal sealed partial class Voyage
     {
         if (Data.ShipDetail(Ship.Name)?.Skills.Find(s => s.Name == skill.Name) is { Parts.Count: > 0 } real)
             return real.Parts.Select(name => Data.BuildParts.Find(b => b.Name == name)?.Id ?? Data.Papers.Find(p => p.Name == name && p.Id is >= ShipItems and < ShipItems + 100_000)?.Id ?? 0).Where(id => id > 0).ToList();
+        if (Data.ShipCombos.Where(c => c.Ship == Ship.Name && c.Skill == skill.Name).OrderBy(c => c.Parts.Count).FirstOrDefault() is { } told)
+            return told.Parts.Select(name => Data.BuildParts.Find(b => b.Name == name)?.Id ?? 0).Where(id => id > 0).ToList();
         return new[] { skill.PartA, skill.PartB }.Select(BuildItemOfOld).Where(id => id > 0).ToList();
     }
 
@@ -126,19 +128,26 @@ internal sealed partial class Voyage
                 if (!real.Parts.All(left.Remove)) continue;
                 if (Data.OptionSkills.Find(s => s.Name == real.Name) is { } found && !Work.Skills.Contains(found.SkillId) && found.SkillId != Work.Dedicated) return found;
             }
+        // gvdb 의 이용자 보고 — 그 배에 그 재료들로 그 스킬이 붙었다는 기록(배 상세에 없는 배 · 스킬을 메운다)
+        foreach (var combo in Data.ShipCombos.Where(c => c.Ship == Ship.Name).OrderByDescending(c => c.Parts.Count))
+        {
+            var left = new List<string>(names);
+            if (!combo.Parts.All(left.Remove)) continue;
+            if (Data.OptionSkills.Find(s => s.Name == combo.Skill) is { } found && !Work.Skills.Contains(found.SkillId) && found.SkillId != Work.Dedicated) return found;
+        }
         return OptionFrom(BuildPartsAsOld(list));
     }
 
     /// <summary>
     /// 초과 강화 — 강화 횟수를 다 쓴 뒤에도 끝없이 더 강화할 수 있고, 할수록 성공률만 낮아진다. 캐시 재료를 넣으면 꼭 된다(사용자, 2026-10-08).
-    /// 성공률은 자료가 없어 지은 값: 60% 에서 초과 한 번마다 −15%p, 조선 랭크마다 +1%p, 모드의 「초과 강화 성공률」을 더한다(5% 아래로는 안 내려간다).
+    /// 성공률: **70%** 에서 시작해 횟수가 늘수록 내려간다(나무위키 조선 문서 — 「70%의 확률로 성공하며 강화 횟수가 늘어날수록 확률이 내려가게 된다」). 한 번에 얼마씩 내리는지는 글에 없어 −15%p(지은 값), 모드의 「초과 강화 성공률」을 더한다(5% 아래로는 안 내려간다).
     /// 실패하면 넣은 재료만 사라지고 횟수는 안 준다(이것도 지은 것).
     /// </summary>
     public bool OverWork => Work.Times >= MaxTimesOf(Ship);
     /// <summary>초과 강화의 성공률(%) — 캐시 재료가 하나라도 들어가면 100.</summary>
     public int OverWorkChance(IEnumerable<int>? items = null) =>
         items != null && items.Any(i => BuildPartOf(i)?.Cash == true) ? 100
-        : Math.Clamp(60 - 15 * Math.Max(0, Work.Times - MaxTimesOf(Ship)) + ShipbuildingRank + Data.Settings.ModOverWorkBonus, 5, 95);
+        : Math.Clamp(70 - 15 * Math.Max(0, Work.Times - MaxTimesOf(Ship)) + Data.Settings.ModOverWorkBonus, 5, 95);
 
     public string? BuildBlocker(IReadOnlyList<int> items, int wood = 0)
     {
@@ -173,7 +182,7 @@ internal sealed partial class Voyage
             if (--Items[item] <= 0) Items.Remove(item);
         Work.Skills.Add(given.SkillId);
         Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
-        TrainEffect("Shipbuilding", 60);
+        TrainEffect("Shipbuilding", ShipbuildingExp(Ship));
         Cues.Enqueue("Part");
         Say($"{Ship.Name}에 옵션 스킬 「{given.Name}」을(를) 부여했다." + (OptionValid(given) ? "" : $" 옵션 스킬의 유효 조건을 충족하지 않습니다({OptionNeedLine(given)})."));
     }
@@ -195,8 +204,10 @@ internal sealed partial class Voyage
         // 강화의 둘째 화면(원본: 「최대적재량 변경」)에서 고친 적재 — 조선 랭크가 차야 바뀐다
         if (load is { } newLoad && newLoad != ShipLoad && ShipbuildingRank >= LoadRank)
         {
-            ShipLoad = Math.Clamp(newLoad, -25, 25);
-            gained.Add($"최대적재량 {LoadTotal(ShipLoad)}.");
+            int was = ShipLoad;
+            ShipLoad = Math.Clamp(newLoad, -LoadReach, LoadReach);
+            Work.Over = OverAfter(Work.Over, was, ShipLoad);
+            gained.Add($"최대적재량 {LoadTotal(ShipLoad)}." + (Math.Abs(ShipLoad) > LoadProper ? $" 적정 범위(±{LoadProper}%)를 넘겨 돛 · 내파가 깎였다." : ""));
         }
         if (wood > 0 && WoodOf(wood) is { } timber)
         {
@@ -243,7 +254,7 @@ internal sealed partial class Voyage
         double worn = Stats.Durability - Durability;
         Stats = Worked(plain, Work, Ship);
         Durability = Math.Max(1, Stats.Durability - worn);
-        TrainEffect("Shipbuilding", 60);
+        TrainEffect("Shipbuilding", ShipbuildingExp(Ship));
         Cues.Enqueue("Part");
         Say($"{Ship.Name}을(를) 강화했다. ({Work.Times}/{MaxTimesOf(Ship)}) " + string.Join(" · ", gained));
     }

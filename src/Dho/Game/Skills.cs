@@ -24,7 +24,42 @@ internal sealed partial class Voyage
     public void SkillUpForTest(int skillId) => SkillUpNotice = (skillId, Math.Max(1, Rank(skillId)), Clock);
 
     /// <summary>랭크 — 내 직업의 전문 스킬이면 +1 이 붙는다(익힌 것만).</summary>
-    public int Rank(int skillId) => Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) + BoostRank(skillId, state.Rank) + GearRank(skillId) + (state.Refined ? RefineBoost : 0) : 0;
+    public int Rank(int skillId) => Math.Max(skillId == _lentSkill || Battle is { Result: null } fought && fought.Lent.Contains(skillId) ? 1 : 0,
+        Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) + BoostRank(skillId, state.Rank) + GearRank(skillId) + (state.Refined ? RefineBoost : 0) : 0);
+
+    // 스킬 대신 쓰는 도구(포획망 · 간이 인양 로프)를 쓰는 동안 그 스킬 — 랭크 1 로 친다(랭크는 자료가 없어 낚시밥처럼 1 로 본 것, 짐작)
+    private int _lentSkill;
+
+    /// <summary>
+    /// 스킬 대신 쓰는 도구를 쓴다 — 그 스킬이 없어도 한 번 한다(gvdb 의 「消耗品（スキル発動）」: 捕獲網 「使うと生態調査ができる」 · 簡易サルベージロープ).
+    /// 썼으면 true(도구가 하나 준다). 쓸 자리가 아니거나 랭크가 모자라 못 찾았으면 false(안 준다 — 원본이 그때 도구를 깎는지는 모른다).
+    /// </summary>
+    public bool UseSkillTool(int skillId, string tool)
+    {
+        if (Data.SkillRules.Find(r => r.SkillId == skillId) is not { } rule) return false;
+        _lentSkill = skillId;
+        try
+        {
+            if (rule.Effect == "Salvage")
+            {
+                if (!WreckInReach) { Say("끌어올릴 침몰선이 가까이 없다."); Cues.Enqueue("Error"); return false; }
+                double before = Vigour;
+                Salvage();
+                return Vigour != before;
+            }
+            if (rule.Effect == "Find")
+            {
+                if (QuestStage != QuestStage.Accepted || QuestDiscovery is not { } found || !rule.Targets.Contains(found.Kind)) { Say($"{tool}(으)로 찾을 것이 없다."); Cues.Enqueue("Error"); return false; }
+                if (Dialog == Dialog.Landing) Search();
+                else if (CitySiteHere) SearchInCity();
+                else if (SeaSiteInReach()) SearchAtSea();
+                else { Say($"{tool}(으)로 찾을 것이 가까이 없다."); Cues.Enqueue("Error"); return false; }
+                return QuestStage == QuestStage.Discovered;
+            }
+            return false;
+        }
+        finally { _lentSkill = 0; }
+    }
 
     /// <summary>우대 스킬(노란 별) — 내 직업이 우대하는 스킬. 조건 없이 배운다.</summary>
     public bool IsFavored(int skillId) =>
@@ -59,27 +94,59 @@ internal sealed partial class Voyage
             .Select(r => Data.Skills.Find(s => s.Id == r.SkillId)).OfType<SkillData>();
 
     /// <summary>
-    /// 조합 마스터가 가르쳐 주는 스킬 — **내 직업의 우대 스킬만** 배운다(원본의 「우대 스킬 : 습득조건면제」).
+    /// 조합 마스터가 가르쳐 주는 스킬 — 내 직업의 우대 스킬(조건 면제 — 원본의 「우대 스킬 : 습득조건면제」)과, 그 조합 갈래의 스킬 가운데 배우는 조건(레벨)이 알려진 것.
+    /// 원본은 도시마다 조합 마스터가 가르치는 스킬이 다르다 — 그 자료가 없어 갈래로 묶었다(지은 것).
     /// 직업의 우대 스킬 자료가 없으면(직업이 없거나 자료 파일이 없으면) 그 조합 갈래의, 하는 일이 정해진 스킬로 대신한다.
     /// </summary>
     public List<SkillData> SkillsTaught()
     {
+        // 그 조합 갈래의 스킬(하는 일이 정해진 것) — 우대 스킬이 아니면 배우는 조건(레벨, gvdb)을 채워야 한다
+        var guild = Data.Skills.Where(s => (s.Group == Teacher || (s.Group == 3 && Teacher == 0)) && Data.SkillRules.Exists(r => r.SkillId == s.Id)).ToList();
         if (Data.JobFacts.Find(f => f.Name == JobName) is { } job)
-            return job.Skills.Select(name => Data.Skills.Find(s => s.Name == name)).OfType<SkillData>().ToList();
+        {
+            // 우대 스킬(조건 면제)을 앞에, 그 뒤에 그 조합이 가르치는 나머지 — 전에는 우대 스킬만 가르쳤다(조건 자료가 없어서). 조건이 gvdb 에 적힌 스킬만 더한다
+            var favored = job.Skills.Select(name => Data.Skills.Find(s => s.Name == name)).OfType<SkillData>().ToList();
+            return favored.Concat(guild.Where(s => !favored.Contains(s) && Data.SkillLearn.ContainsKey(s.Id))).ToList();
+        }
         return Data.Skills.Where(s => (s.Group == Teacher || (s.Group == 3 && Teacher == 0)) && Data.SkillRules.Exists(r => r.SkillId == s.Id)).ToList();      // 언어(갈래 3)는 모험가조합이 가르친다(지은 것)
     }
 
     public bool CanLearn(SkillData skill) => Teacher >= 0 && SkillsTaught().Contains(skill);
 
+    /// <summary>
+    /// 배우는 조건(레벨)을 못 채웠으면 그 글 — 채웠거나 조건이 없으면 null. 조건은 gvdb 의 「習得条件：모험/교역/전투/合計」(레벨), 우대 스킬은 조건이 면제된다(원본 화면의 「우대 스킬 : 습득조건면제」).
+    /// </summary>
+    public string? LearnNeed(SkillData skill)
+    {
+        if (!Data.SkillLearn.TryGetValue(skill.Id, out var need) || need.Length < 4 || IsFavored(skill.Id)) return null;
+        int adventure = LevelOf(AdventureExp).Level, trade = LevelOf(TradeExp).Level, battle = LevelOf(BattleExp).Level;
+        var lacks = new List<string>();
+        if (adventure < need[0]) lacks.Add($"모험 레벨 {need[0]}");
+        if (trade < need[1]) lacks.Add($"교역 레벨 {need[1]}");
+        if (battle < need[2]) lacks.Add($"전투 레벨 {need[2]}");
+        if (adventure + trade + battle < need[3]) lacks.Add($"레벨 합계 {need[3]}");
+        return lacks.Count == 0 ? null : string.Join(" · ", lacks) + " 필요";
+    }
+
+    /// <summary>배우는 조건을 적은 글(창에 보인다) — 「모험 7 · 합계 5」. 조건이 없으면 빈 글.</summary>
+    public string LearnNeedText(SkillData skill) =>
+        Data.SkillLearn.TryGetValue(skill.Id, out var need) && need.Length >= 4
+            ? string.Join(" · ", new[] { need[0] > 0 ? $"모험 {need[0]}" : "", need[1] > 0 ? $"교역 {need[1]}" : "", need[2] > 0 ? $"전투 {need[2]}" : "", need[3] > 0 ? $"합계 {need[3]}" : "" }.Where(t => t != ""))
+            : "";
+
     /// <param name="taught">가르치는 사람을 따지지 않는다(대본 · 개발용).</param>
     /// <summary>대본용: 스킬의 랭크를 바로 정한다.</summary>
     public void SetRankForTest(int skillId, int rank) => Skills[skillId] = new SkillState { Rank = rank };
+    /// <summary>대본용 — 그 스킬을 연성한 것으로(랭크는 그대로) · 행동력을 정한다.</summary>
+    public void RefinedForTest(int skillId) { if (Skills.TryGetValue(skillId, out var state)) state.Refined = true; }
+    public void VigourForTest(double value) => _vigour = value;
 
     public void Learn(SkillData skill, bool taught = false)
     {
         if (Mode != Mode.Port || Rank(skill.Id) > 0 || Money < skill.Cost) return;
         // 스킬은 그 갈래의 조합 마스터에게 배운다 — 모험가조합 · 상인조합 · 해양조합
         if (!taught && !CanLearn(skill)) return;
+        if (!taught && LearnNeed(skill) is { } lacking) { Say($"{skill.Name} — {lacking}."); Cues.Enqueue("Error"); return; }
         Money -= skill.Cost;
         Skills[skill.Id] = new SkillState();
         Say($"{skill.Name} 스킬을 익혔다. ({skill.Cost:N0} 두캇)");
@@ -106,7 +173,7 @@ internal sealed partial class Voyage
     private void Train(int skillId, double exp)
     {
         if (!Skills.TryGetValue(skillId, out var state) || state.Rank >= Settings.MaxSkillRank) return;
-        exp *= GainFactor;
+        exp *= GainFactor * CharmFactor;      // 번개 시리즈를 쓴 동안 숙련도 +100%
         state.Exp += exp;
         // 숙련도가 오르면 기록에 알린다. 항해 중에 조금씩 오르는 것은 모아서 20 마다 한 번
         double gained = _gained[skillId] = _gained.GetValueOrDefault(skillId) + exp;

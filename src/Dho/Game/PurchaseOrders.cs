@@ -5,14 +5,14 @@ namespace Dho.Game;
 /// <summary>
 /// 구입 발주서 — 교역소에서 쓰면 그 갈래 교역품의 구입 가능량이 원래대로 돌아온다(아이템 설명 그대로: 「식료품의 구입 가능량을 원래대로 되돌리는 것이 가능하다」).
 /// 갈래별 발주서 스무 가지(아이템 1500205 ~ 1500224 — 이름이 「○○구입 발주서」)와 카테고리 발주서 넷(1500228 ~ 1500231 — 설명 글에 갈래 이름이 적혀 있다)이 클라이언트에 있다.
-/// 어느 발주서가 어느 갈래인지는 이름 · 설명 글의 갈래 이름으로 맞춘다. 얻는 길은 아직 없다 — 「아이템 추가」로 넣는다.
+/// 어느 발주서가 어느 갈래인지는 이름 · 설명 글의 갈래 이름으로 맞춘다. 얻는 길: 교역 의뢰의 보상(gvdb 의 보상 칸 — 카테고리 발주서 1 ~ 4 가 340건쯤에 붙어 있다) · 「아이템 추가」.
 /// </summary>
 internal sealed partial class Voyage
 {
     private static readonly int[] OrderSheets = [.. Enumerable.Range(1500205, 20), .. Enumerable.Range(1500228, 4)];
 
     /// <summary>「아이템 추가」의 증서 목록에 더 세우는 것 — 구입 발주서(카테고리 1 ~ 4) · 특별발주증서 · 천만 수표 · 변성연금의 책 둘 · 재봉도구 · 특별 위임 항해 허가증.</summary>
-    public static readonly int[] ExtraPapers = [.. Enumerable.Range(1500228, 4), OrderPaper, Check10M, OuroborosBook, UnicornBook, 1500052, SpecialPermit];
+    public static readonly int[] ExtraPapers = [.. Enumerable.Range(1500228, 4), OrderPaper, Check10M, OuroborosBook, UnicornBook, 1500052, SpecialPermit, .. Enumerable.Range(1510681, 6)];
 
     private string ItemText(int id) =>
         Data.Papers.Find(p => p.Id == id) is { } paper ? paper.Name + " " + paper.Description : ItemName(id);

@@ -697,7 +697,9 @@
   "OutputCount": 1,
   "Inputs": "1600558:4",
   "Skill": "공예 10",
-  "Facility": ""
+  "Facility": "",
+  "GreatOutput": 1600619,
+  "GreatCount": 1
  },
  {
   "RecipeId": 72,
@@ -727,7 +729,9 @@
   "OutputCount": 1,
   "Inputs": "1600559:4",
   "Skill": "공예 10",
-  "Facility": ""
+  "Facility": "",
+  "GreatOutput": 1600607,
+  "GreatCount": 1
  },
  {
   "RecipeId": 75,
@@ -757,7 +761,9 @@
   "OutputCount": 1,
   "Inputs": "1600560:4",
   "Skill": "공예 10",
-  "Facility": ""
+  "Facility": "",
+  "GreatOutput": 1600602,
+  "GreatCount": 1
  },
  {
   "RecipeId": 78,
@@ -777,7 +783,9 @@
   "OutputCount": 1,
   "Inputs": "1600560:4",
   "Skill": "공예 14",
-  "Facility": ""
+  "Facility": "",
+  "GreatOutput": 1600602,
+  "GreatCount": 1
  },
  {
   "RecipeId": 80,
@@ -3080,6 +3088,17 @@
   "Facility": ""
  },
  {
+  "RecipeId": 313,
+  "Name": "궁극 장검 연성법",
+  "Output": 0,
+  "OutputItem": 400304,
+  "OutputCount": 1,
+  "Inputs": "1600908:10,1600915:10,400304:1",
+  "Skill": "주조 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 314,
   "Name": "궁극의 강철 창 제작법",
   "Output": 0,
@@ -3090,6 +3109,933 @@
   "Facility": ""
  },
  {
+  "RecipeId": 316,
+  "Name": "궁극 지팡이 연성법",
+  "Output": 0,
+  "OutputItem": 400904,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600610:10,400904:1",
+  "Skill": "주조 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 317,
+  "Name": "궁극 단검 연성법",
+  "Output": 0,
+  "OutputItem": 400204,
+  "OutputCount": 1,
+  "Inputs": "1600908:10,1600915:8,400204:1",
+  "Skill": "주조 11",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 318,
+  "Name": "궁극 군도 연성법",
+  "Output": 0,
+  "OutputItem": 400404,
+  "OutputCount": 1,
+  "Inputs": "1600908:10,1600915:12,400404:1",
+  "Skill": "주조 13",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 319,
+  "Name": "궁극 곡도 연성법",
+  "Output": 0,
+  "OutputItem": 400604,
+  "OutputCount": 1,
+  "Inputs": "1600908:10,1600915:12,400604:1",
+  "Skill": "주조 13",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 320,
+  "Name": "궁극 레이피어 연성법",
+  "Output": 0,
+  "OutputItem": 400504,
+  "OutputCount": 1,
+  "Inputs": "1600908:10,1600915:15,400504:1",
+  "Skill": "주조 13",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 321,
+  "Name": "궁극 전사의 창 연성법",
+  "Output": 0,
+  "OutputItem": 401004,
+  "OutputCount": 1,
+  "Inputs": "1600917:10,1600915:10,401004:1",
+  "Skill": "주조 13",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 322,
+  "Name": "궁극 나무지팡이 연성법",
+  "Output": 0,
+  "OutputItem": 401104,
+  "OutputCount": 1,
+  "Inputs": "1600917:10,1600610:10,401104:1",
+  "Skill": "주조 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 323,
+  "Name": "보닛 봉제",
+  "Output": 0,
+  "OutputItem": 600100,
+  "OutputCount": 1,
+  "Inputs": "1600451:20,1600917:20",
+  "Skill": "봉제 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 324,
+  "Name": "삼각돛 봉제",
+  "Output": 0,
+  "OutputItem": 600210,
+  "OutputCount": 1,
+  "Inputs": "1600451:2,1600917:1",
+  "Skill": "봉제 2",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 325,
+  "Name": "2개의 삼각돛 봉제",
+  "Output": 0,
+  "OutputItem": 600300,
+  "OutputCount": 1,
+  "Inputs": "1600451:20,1600917:10",
+  "Skill": "봉제 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 326,
+  "Name": "3개의 삼각돛 봉제",
+  "Output": 0,
+  "OutputItem": 600400,
+  "OutputCount": 1,
+  "Inputs": "1600451:40,1600917:25",
+  "Skill": "봉제 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 327,
+  "Name": "스테이 세일 봉제",
+  "Output": 0,
+  "OutputItem": 600510,
+  "OutputCount": 1,
+  "Inputs": "1600451:10,1600917:5",
+  "Skill": "봉제 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 328,
+  "Name": "세일 봉제",
+  "Output": 0,
+  "OutputItem": 600610,
+  "OutputCount": 1,
+  "Inputs": "1600451:5,1600917:2",
+  "Skill": "봉제 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 329,
+  "Name": "2개의 스테이 세일 봉제",
+  "Output": 0,
+  "OutputItem": 600710,
+  "OutputCount": 1,
+  "Inputs": "1600451:35,1600917:10",
+  "Skill": "봉제 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 330,
+  "Name": "보닛＆세일 재봉",
+  "Output": 0,
+  "OutputItem": 600810,
+  "OutputCount": 1,
+  "Inputs": "1600451:50,1600912:30,1600917:30",
+  "Skill": "봉제 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 331,
+  "Name": "스테이 세일&세일 봉제",
+  "Output": 0,
+  "OutputItem": 600910,
+  "OutputCount": 1,
+  "Inputs": "1600451:25,1600912:1,1600917:2",
+  "Skill": "봉제 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 332,
+  "Name": "2개의 세일 재봉",
+  "Output": 0,
+  "OutputItem": 601020,
+  "OutputCount": 1,
+  "Inputs": "1600451:15,1600917:10",
+  "Skill": "봉제 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 333,
+  "Name": "3개의 스테이 세일 봉제",
+  "Output": 0,
+  "OutputItem": 601120,
+  "OutputCount": 1,
+  "Inputs": "1600451:50,1600917:30",
+  "Skill": "봉제 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 334,
+  "Name": "스테이 세일＆2개의 세일 재봉",
+  "Output": 0,
+  "OutputItem": 601210,
+  "OutputCount": 1,
+  "Inputs": "1600451:30,1600912:10,1600917:8",
+  "Skill": "봉제 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 335,
+  "Name": "풀 리그드 세일 봉제법",
+  "Output": 0,
+  "OutputItem": 601310,
+  "OutputCount": 1,
+  "Inputs": "1600451:60,1600912:40,1600917:40",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 336,
+  "Name": "포어 풀 리그드 조립",
+  "Output": 0,
+  "OutputItem": 601300,
+  "OutputCount": 1,
+  "Inputs": "600100:1,601000:1,601100:1",
+  "Skill": "봉제 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 337,
+  "Name": "미즌 풀 리그드 조립",
+  "Output": 0,
+  "OutputItem": 601310,
+  "OutputCount": 1,
+  "Inputs": "601010:1,600100:1,601110:1",
+  "Skill": "봉제 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 338,
+  "Name": "메인 풀 리그드 조립법",
+  "Output": 0,
+  "OutputItem": 601320,
+  "OutputCount": 1,
+  "Inputs": "600100:1,601020:1,601120:1",
+  "Skill": "봉제 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 339,
+  "Name": "삼나무판 제조",
+  "Output": 0,
+  "OutputItem": 800110,
+  "OutputCount": 1,
+  "Inputs": "1600912:1,1600917:1",
+  "Skill": "공예 1",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 340,
+  "Name": "붉은 소나무 판 제조",
+  "Output": 0,
+  "OutputItem": 800210,
+  "OutputCount": 1,
+  "Inputs": "1600912:1,1600917:3",
+  "Skill": "공예 2",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 341,
+  "Name": "너도밤나무판 제조",
+  "Output": 0,
+  "OutputItem": 800310,
+  "OutputCount": 1,
+  "Inputs": "1600912:2,1600917:7",
+  "Skill": "공예 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 342,
+  "Name": "느릅나무판 제조",
+  "Output": 0,
+  "OutputItem": 800410,
+  "OutputCount": 1,
+  "Inputs": "1600912:2,1600917:15",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 343,
+  "Name": "티크판 제조",
+  "Output": 0,
+  "OutputItem": 800510,
+  "OutputCount": 1,
+  "Inputs": "1600912:2,1600917:20",
+  "Skill": "공예 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 344,
+  "Name": "떡갈나무 판 제조",
+  "Output": 0,
+  "OutputItem": 800610,
+  "OutputCount": 1,
+  "Inputs": "1600912:3,1600917:25",
+  "Skill": "공예 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 345,
+  "Name": "마호가니판 제조",
+  "Output": 0,
+  "OutputItem": 800710,
+  "OutputCount": 1,
+  "Inputs": "1600912:10,1600917:30",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 346,
+  "Name": "동판 제조",
+  "Output": 0,
+  "OutputItem": 800810,
+  "OutputCount": 1,
+  "Inputs": "1600912:10,1600913:35",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 347,
+  "Name": "로즈우드판 제조",
+  "Output": 0,
+  "OutputItem": 800910,
+  "OutputCount": 1,
+  "Inputs": "1600912:25,1600917:50",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 348,
+  "Name": "철판 제조",
+  "Output": 0,
+  "OutputItem": 801010,
+  "OutputCount": 1,
+  "Inputs": "1600912:95",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 349,
+  "Name": "삼나무판 경량화",
+  "Output": 0,
+  "OutputItem": 800120,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800110:1",
+  "Skill": "공예 2",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 350,
+  "Name": "붉은 소나무 판 경량화",
+  "Output": 0,
+  "OutputItem": 800220,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800210:1",
+  "Skill": "공예 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 351,
+  "Name": "너도밤나무판 경량화",
+  "Output": 0,
+  "OutputItem": 800320,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800310:1",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 352,
+  "Name": "느릅나무판 경량화",
+  "Output": 0,
+  "OutputItem": 800420,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800410:1",
+  "Skill": "공예 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 353,
+  "Name": "티크판 경량화",
+  "Output": 0,
+  "OutputItem": 800520,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800510:1",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 354,
+  "Name": "떡갈나무 판 경량화",
+  "Output": 0,
+  "OutputItem": 800620,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800610:1",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 355,
+  "Name": "마호가니판 경량화",
+  "Output": 0,
+  "OutputItem": 800720,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800710:1",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 356,
+  "Name": "동판 경량화",
+  "Output": 0,
+  "OutputItem": 800820,
+  "OutputCount": 1,
+  "Inputs": "800810:1,1600913:1",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 357,
+  "Name": "로즈우드판 경량화",
+  "Output": 0,
+  "OutputItem": 800920,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800910:1",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 358,
+  "Name": "철판 경량화",
+  "Output": 0,
+  "OutputItem": 801020,
+  "OutputCount": 1,
+  "Inputs": "1600912:1,801010:1",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 359,
+  "Name": "삼나무판 강화",
+  "Output": 0,
+  "OutputItem": 800140,
+  "OutputCount": 1,
+  "Inputs": "800110:1,1600908:1",
+  "Skill": "공예 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 360,
+  "Name": "붉은 소나무 판 강화",
+  "Output": 0,
+  "OutputItem": 800240,
+  "OutputCount": 1,
+  "Inputs": "800210:1,1600908:2",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 361,
+  "Name": "너도밤나무판 강화",
+  "Output": 0,
+  "OutputItem": 800340,
+  "OutputCount": 1,
+  "Inputs": "800310:1,1600908:3",
+  "Skill": "공예 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 362,
+  "Name": "느릅나무판 강화",
+  "Output": 0,
+  "OutputItem": 800440,
+  "OutputCount": 1,
+  "Inputs": "800410:1,1600908:5",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 363,
+  "Name": "티크판 강화",
+  "Output": 0,
+  "OutputItem": 800540,
+  "OutputCount": 1,
+  "Inputs": "1600908:6,800510:1",
+  "Skill": "공예 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 364,
+  "Name": "떡갈나무 판 강화",
+  "Output": 0,
+  "OutputItem": 800640,
+  "OutputCount": 1,
+  "Inputs": "800610:1,1600908:7",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 365,
+  "Name": "마호가니판 강화",
+  "Output": 0,
+  "OutputItem": 800740,
+  "OutputCount": 1,
+  "Inputs": "1600908:8,800710:1",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 366,
+  "Name": "동판 강화",
+  "Output": 0,
+  "OutputItem": 800840,
+  "OutputCount": 1,
+  "Inputs": "800810:1,1600915:8",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 367,
+  "Name": "로즈우드판 강화",
+  "Output": 0,
+  "OutputItem": 800940,
+  "OutputCount": 1,
+  "Inputs": "1600908:10,800910:1",
+  "Skill": "공예 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 368,
+  "Name": "철판 강화",
+  "Output": 0,
+  "OutputItem": 801040,
+  "OutputCount": 1,
+  "Inputs": "1600915:10,801010:1",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 369,
+  "Name": "충각 제조",
+  "Output": 0,
+  "OutputItem": 900010,
+  "OutputCount": 1,
+  "Inputs": "1600912:2,1600917:5",
+  "Skill": "주조 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 370,
+  "Name": "조교 제조",
+  "Output": 0,
+  "OutputItem": 900110,
+  "OutputCount": 1,
+  "Inputs": "1600912:5,1600917:10",
+  "Skill": "주조 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 371,
+  "Name": "선수루 건조",
+  "Output": 0,
+  "OutputItem": 900200,
+  "OutputCount": 1,
+  "Inputs": "1600912:10,1600917:10",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 372,
+  "Name": "추가 스프릿 재봉",
+  "Output": 0,
+  "OutputItem": 900300,
+  "OutputCount": 1,
+  "Inputs": "1600451:30,1600917:20",
+  "Skill": "봉제 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 373,
+  "Name": "선미루 건조",
+  "Output": 0,
+  "OutputItem": 900400,
+  "OutputCount": 1,
+  "Inputs": "1600912:50,1600917:50",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 374,
+  "Name": "추가 스팽커 재봉",
+  "Output": 0,
+  "OutputItem": 900500,
+  "OutputCount": 1,
+  "Inputs": "1600451:40,1600917:25",
+  "Skill": "봉제 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 375,
+  "Name": "대형 충각 제조",
+  "Output": 0,
+  "OutputItem": 900030,
+  "OutputCount": 1,
+  "Inputs": "1600912:50,1600917:50",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 376,
+  "Name": "대형 조교 제조",
+  "Output": 0,
+  "OutputItem": 900120,
+  "OutputCount": 1,
+  "Inputs": "1600912:60,1600917:70",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 377,
+  "Name": "대형 선수루 건조",
+  "Output": 0,
+  "OutputItem": 900220,
+  "OutputCount": 1,
+  "Inputs": "1600912:30,1600917:30",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 378,
+  "Name": "추가 대 스프릿 재봉",
+  "Output": 0,
+  "OutputItem": 900310,
+  "OutputCount": 1,
+  "Inputs": "1600451:90,1600917:60,1600661:30",
+  "Skill": "봉제 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 379,
+  "Name": "대형 선미루 건조",
+  "Output": 0,
+  "OutputItem": 900420,
+  "OutputCount": 1,
+  "Inputs": "1600912:60,1600917:90",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 380,
+  "Name": "추가 대 스팽커 재봉",
+  "Output": 0,
+  "OutputItem": 900510,
+  "OutputCount": 1,
+  "Inputs": "1600451:95,1600917:70,1600661:30",
+  "Skill": "봉제 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 381,
+  "Name": "솔개상의 조각술 1",
+  "Output": 0,
+  "OutputItem": 1000100,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,1600915:1",
+  "Skill": "공예 2",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 382,
+  "Name": "매상의 조각술 1",
+  "Output": 0,
+  "OutputItem": 1000200,
+  "OutputCount": 1,
+  "Inputs": "1600912:1,1600917:2",
+  "Skill": "공예 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 383,
+  "Name": "매 조각술 1",
+  "Output": 0,
+  "OutputItem": 1000300,
+  "OutputCount": 1,
+  "Inputs": "1600917:3,1600913:1",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 384,
+  "Name": "독수리상 조각술 1",
+  "Output": 0,
+  "OutputItem": 1000400,
+  "OutputCount": 1,
+  "Inputs": "1600912:5,1600917:20",
+  "Skill": "공예 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 385,
+  "Name": "처녀상 조각술",
+  "Output": 0,
+  "OutputItem": 1000500,
+  "OutputCount": 1,
+  "Inputs": "1600917:10,1600915:1",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 386,
+  "Name": "용사상 조각술",
+  "Output": 0,
+  "OutputItem": 1000600,
+  "OutputCount": 1,
+  "Inputs": "1600907:20,1600917:20,1600915:5",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 387,
+  "Name": "위인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000700,
+  "OutputCount": 1,
+  "Inputs": "1600912:18,1600917:20,1600915:5",
+  "Skill": "공예 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 388,
+  "Name": "왕자상 조각술",
+  "Output": 0,
+  "OutputItem": 1000800,
+  "OutputCount": 1,
+  "Inputs": "1600917:20,1600915:5,1600913:15",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 389,
+  "Name": "성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000900,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600917:25,1600915:15",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 390,
+  "Name": "성모상 조각술",
+  "Output": 0,
+  "OutputItem": 1001000,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600917:25,1600915:5",
+  "Skill": "공예 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 391,
+  "Name": "바다의 신 조각술",
+  "Output": 0,
+  "OutputItem": 1001101,
+  "OutputCount": 1,
+  "Inputs": "1600911:8,1600608:10,1600917:30",
+  "Skill": "공예 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 392,
+  "Name": "여신상 조각술",
+  "Output": 0,
+  "OutputItem": 1001200,
+  "OutputCount": 1,
+  "Inputs": "1600911:5,1600907:15,1600917:25",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 393,
+  "Name": "천사상 조각술",
+  "Output": 0,
+  "OutputItem": 1001301,
+  "OutputCount": 1,
+  "Inputs": "1600617:5,1600907:8,1600917:20",
+  "Skill": "공예 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 394,
+  "Name": "돌고래상 조각술",
+  "Output": 0,
+  "OutputItem": 1001400,
+  "OutputCount": 1,
+  "Inputs": "1600906:1,1600917:1",
+  "Skill": "공예 2",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 395,
+  "Name": "범고래상 조각술",
+  "Output": 0,
+  "OutputItem": 1001500,
+  "OutputCount": 1,
+  "Inputs": "1600917:5,1600913:2",
+  "Skill": "공예 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 396,
+  "Name": "상어상 조각술",
+  "Output": 0,
+  "OutputItem": 1001600,
+  "OutputCount": 1,
+  "Inputs": "1600907:3,1600917:5",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 397,
+  "Name": "고래상 조각술",
+  "Output": 0,
+  "OutputItem": 1001700,
+  "OutputCount": 1,
+  "Inputs": "1600911:1,1600917:8",
+  "Skill": "공예 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 398,
+  "Name": "바다거북 조각술",
+  "Output": 0,
+  "OutputItem": 1001800,
+  "OutputCount": 1,
+  "Inputs": "1600906:1,1600917:1",
+  "Skill": "공예 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 399,
+  "Name": "사자상 조각술",
+  "Output": 0,
+  "OutputItem": 1001900,
+  "OutputCount": 1,
+  "Inputs": "1600917:5,1600913:2",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 400,
+  "Name": "호랑이상 조각술",
+  "Output": 0,
+  "OutputItem": 1002000,
+  "OutputCount": 1,
+  "Inputs": "1600912:5,1600917:8",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 401,
+  "Name": "바다괴물 조각술",
+  "Output": 0,
+  "OutputItem": 1002103,
+  "OutputCount": 1,
+  "Inputs": "1600917:35,1600913:20,1600612:10",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 402,
+  "Name": "천룡상 조각술",
+  "Output": 0,
+  "OutputItem": 1002202,
+  "OutputCount": 1,
+  "Inputs": "1600906:20,1600917:30,1600603:5",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 403,
+  "Name": "불사신상 조각술",
+  "Output": 0,
+  "OutputItem": 1002300,
+  "OutputCount": 1,
+  "Inputs": "1600911:7,1600917:15,1600619:5",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 404,
+  "Name": "천사상 조각술",
+  "Output": 0,
+  "OutputItem": 1001302,
+  "OutputCount": 1,
+  "Inputs": "1600617:2,1600907:5,1600917:20",
+  "Skill": "공예 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 405,
+  "Name": "미녀상 조각술 1",
+  "Output": 0,
+  "OutputItem": 1000503,
+  "OutputCount": 1,
+  "Inputs": "1600912:1,1600917:25,1600604:1",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 406,
+  "Name": "괴수상 조각술",
+  "Output": 0,
+  "OutputItem": 1000405,
+  "OutputCount": 1,
+  "Inputs": "1600917:30,1600501:10,1600913:10",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 407,
+  "Name": "달의 여신 조각술",
+  "Output": 0,
+  "OutputItem": 1000501,
+  "OutputCount": 1,
+  "Inputs": "1600917:30,1600913:10,1600618:15",
+  "Skill": "공예 12",
+  "Facility": ""
+ },
+ {
   "RecipeId": 408,
   "Name": "로프 제작법(아마)",
   "Output": 0,
@@ -3097,6 +4043,826 @@
   "OutputCount": 1,
   "Inputs": "1600301:1",
   "Skill": "봉제 1",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 409,
+  "Name": "최고 여신상 조각술",
+  "Output": 0,
+  "OutputItem": 1001001,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600917:38,1600613:5",
+  "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 410,
+  "Name": "바다의 신 조각술",
+  "Output": 0,
+  "OutputItem": 1001102,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600608:10,1600917:30",
+  "Skill": "공예 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 411,
+  "Name": "천사상 조각술",
+  "Output": 0,
+  "OutputItem": 1001300,
+  "OutputCount": 1,
+  "Inputs": "1600907:5,1600917:10",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 412,
+  "Name": "괴수상 조각술",
+  "Output": 0,
+  "OutputItem": 1000405,
+  "OutputCount": 1,
+  "Inputs": "1600917:20,1600501:10,1600913:8",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 413,
+  "Name": "달의 여신 조각술",
+  "Output": 0,
+  "OutputItem": 1000502,
+  "OutputCount": 1,
+  "Inputs": "1600917:25,1600913:10,1600618:15",
+  "Skill": "공예 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 414,
+  "Name": "미의 여신상 조각술",
+  "Output": 0,
+  "OutputItem": 1001203,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600917:30,1600609:10",
+  "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 415,
+  "Name": "최고 여신상 조각술",
+  "Output": 0,
+  "OutputItem": 1001003,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600917:38,1600613:5",
+  "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 416,
+  "Name": "바다의 신 조각술",
+  "Output": 0,
+  "OutputItem": 1001100,
+  "OutputCount": 1,
+  "Inputs": "1600911:5,1600907:10,1600917:30",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 417,
+  "Name": "천룡상 조각술",
+  "Output": 0,
+  "OutputItem": 1002205,
+  "OutputCount": 1,
+  "Inputs": "1600906:10,1600917:30,1600606:15",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 418,
+  "Name": "바다괴물 조각술",
+  "Output": 0,
+  "OutputItem": 1002107,
+  "OutputCount": 1,
+  "Inputs": "1600917:35,1600913:20,1600612:10",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 419,
+  "Name": "사자모습을 한 괴물상 조각술",
+  "Output": 0,
+  "OutputItem": 1001902,
+  "OutputCount": 1,
+  "Inputs": "1600912:10,1600917:35,1600614:10",
+  "Skill": "공예 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 420,
+  "Name": "미의 여신상 조각술",
+  "Output": 0,
+  "OutputItem": 1001204,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600917:40,1600616:10",
+  "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 421,
+  "Name": "바다괴물 조각술",
+  "Output": 0,
+  "OutputItem": 1002100,
+  "OutputCount": 1,
+  "Inputs": "1600911:7,1600917:15,1600607:5",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 422,
+  "Name": "천룡상 조각술",
+  "Output": 0,
+  "OutputItem": 1002200,
+  "OutputCount": 1,
+  "Inputs": "1600911:7,1600917:15,1600602:5",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 423,
+  "Name": "사자모습을 한 괴물상 조각술",
+  "Output": 0,
+  "OutputItem": 1001901,
+  "OutputCount": 1,
+  "Inputs": "1600911:15,1600917:38,1600610:15",
+  "Skill": "공예 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 424,
+  "Name": "학문의 여신상 조각술",
+  "Output": 0,
+  "OutputItem": 1000508,
+  "OutputCount": 1,
+  "Inputs": "1600917:30,1600607:5,1600601:10",
+  "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 425,
+  "Name": "행운의 여신상 조각술",
+  "Output": 0,
+  "OutputItem": 1001205,
+  "OutputCount": 1,
+  "Inputs": "1600917:30,1600601:10,1600602:5",
+  "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 427,
+  "Name": "괴조의상 조각술",
+  "Output": 0,
+  "OutputItem": 1000404,
+  "OutputCount": 1,
+  "Inputs": "1600917:30,1600913:15,1600604:10",
+  "Skill": "공예 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 428,
+  "Name": "미니온포 4문",
+  "Output": 0,
+  "OutputItem": 700600,
+  "OutputCount": 1,
+  "Inputs": "1600906:3",
+  "Skill": "주조 2",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 429,
+  "Name": "미니온포 6문",
+  "Output": 0,
+  "OutputItem": 700700,
+  "OutputCount": 1,
+  "Inputs": "1600906:7",
+  "Skill": "주조 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 430,
+  "Name": "미니온포 8문",
+  "Output": 0,
+  "OutputItem": 700800,
+  "OutputCount": 1,
+  "Inputs": "1600906:10,1600855:2",
+  "Skill": "주조 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 431,
+  "Name": "미니온포 10문",
+  "Output": 0,
+  "OutputItem": 700900,
+  "OutputCount": 1,
+  "Inputs": "1600906:13,1600855:4",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 432,
+  "Name": "세이커포 4문",
+  "Output": 0,
+  "OutputItem": 701100,
+  "OutputCount": 1,
+  "Inputs": "1600906:4,1600855:2",
+  "Skill": "주조 3",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 433,
+  "Name": "세이커포 6문",
+  "Output": 0,
+  "OutputItem": 701200,
+  "OutputCount": 1,
+  "Inputs": "1600906:6,1600855:6",
+  "Skill": "주조 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 434,
+  "Name": "세이커포 8문",
+  "Output": 0,
+  "OutputItem": 701300,
+  "OutputCount": 1,
+  "Inputs": "1600906:12,1600855:10",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 435,
+  "Name": "세이커포 10문",
+  "Output": 0,
+  "OutputItem": 701400,
+  "OutputCount": 1,
+  "Inputs": "1600906:16,1600855:16",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 436,
+  "Name": "래피드 파이어포 6문",
+  "Output": 0,
+  "OutputItem": 704800,
+  "OutputCount": 1,
+  "Inputs": "1600906:12,1600855:8",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 437,
+  "Name": "래피드 파이어포 8문",
+  "Output": 0,
+  "OutputItem": 704900,
+  "OutputCount": 1,
+  "Inputs": "1600906:18,1600855:16",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 438,
+  "Name": "래피드 파이어포 10문",
+  "Output": 0,
+  "OutputItem": 705000,
+  "OutputCount": 1,
+  "Inputs": "1600906:30,1600855:24",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 439,
+  "Name": "캘버린포 4문",
+  "Output": 0,
+  "OutputItem": 702100,
+  "OutputCount": 1,
+  "Inputs": "1600906:4,1600855:4,1600912:4",
+  "Skill": "주조 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 440,
+  "Name": "캘버린포 6문",
+  "Output": 0,
+  "OutputItem": 702200,
+  "OutputCount": 1,
+  "Inputs": "1600906:12,1600855:6,1600912:8",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 441,
+  "Name": "캘버린포 8문",
+  "Output": 0,
+  "OutputItem": 702300,
+  "OutputCount": 1,
+  "Inputs": "1600906:18,1600855:10,1600912:18",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 442,
+  "Name": "캘버린포 10문",
+  "Output": 0,
+  "OutputItem": 702400,
+  "OutputCount": 1,
+  "Inputs": "1600906:28,1600855:16,1600912:28",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 443,
+  "Name": "캘버린포 12문",
+  "Output": 0,
+  "OutputItem": 702500,
+  "OutputCount": 1,
+  "Inputs": "1600906:40,1600855:20,1600912:48",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 444,
+  "Name": "곡사포 6문",
+  "Output": 0,
+  "OutputItem": 703800,
+  "OutputCount": 1,
+  "Inputs": "1600906:20,1600855:6,1600912:20",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 445,
+  "Name": "곡사포 8문",
+  "Output": 0,
+  "OutputItem": 703900,
+  "OutputCount": 1,
+  "Inputs": "1600906:32,1600855:12,1600912:38",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 446,
+  "Name": "곡사포 10문",
+  "Output": 0,
+  "OutputItem": 704000,
+  "OutputCount": 1,
+  "Inputs": "1600906:48,1600855:24,1600912:48",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 447,
+  "Name": "데미캐논포 4문",
+  "Output": 0,
+  "OutputItem": 706000,
+  "OutputCount": 1,
+  "Inputs": "1600906:2,1600855:1,1600912:1",
+  "Skill": "주조 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 448,
+  "Name": "데미캐논포 6문",
+  "Output": 0,
+  "OutputItem": 706100,
+  "OutputCount": 1,
+  "Inputs": "1600906:4,1600855:2,1600912:8",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 449,
+  "Name": "데미캐논포 8문",
+  "Output": 0,
+  "OutputItem": 706200,
+  "OutputCount": 1,
+  "Inputs": "1600906:12,1600855:4,1600912:16",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 450,
+  "Name": "데미캐논포 10문",
+  "Output": 0,
+  "OutputItem": 706300,
+  "OutputCount": 1,
+  "Inputs": "1600906:20,1600855:8,1600912:28",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 451,
+  "Name": "데미캐논포 12문",
+  "Output": 0,
+  "OutputItem": 706400,
+  "OutputCount": 1,
+  "Inputs": "1600906:32,1600855:16,1600912:36",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 452,
+  "Name": "벨리에포 6문",
+  "Output": 0,
+  "OutputItem": 706600,
+  "OutputCount": 1,
+  "Inputs": "1600906:6,1600855:6,1600915:6",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 453,
+  "Name": "벨리에포 8문",
+  "Output": 0,
+  "OutputItem": 706700,
+  "OutputCount": 1,
+  "Inputs": "1600906:16,1600855:8,1600915:16",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 454,
+  "Name": "벨리에포 10문",
+  "Output": 0,
+  "OutputItem": 706800,
+  "OutputCount": 1,
+  "Inputs": "1600906:40,1600855:16,1600915:32",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 455,
+  "Name": "벨리에포 12문",
+  "Output": 0,
+  "OutputItem": 706900,
+  "OutputCount": 1,
+  "Inputs": "1600906:48,1600855:20,1600915:40",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 456,
+  "Name": "캐논포 6문",
+  "Output": 0,
+  "OutputItem": 707100,
+  "OutputCount": 1,
+  "Inputs": "1600906:24,1600855:8,1600915:16",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 457,
+  "Name": "캐논포 8문",
+  "Output": 0,
+  "OutputItem": 707200,
+  "OutputCount": 1,
+  "Inputs": "1600906:44,1600855:16,1600915:32",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 458,
+  "Name": "캐논포 10문",
+  "Output": 0,
+  "OutputItem": 707300,
+  "OutputCount": 1,
+  "Inputs": "1600906:48,1600855:24,1600915:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 459,
+  "Name": "캐논포 12문",
+  "Output": 0,
+  "OutputItem": 707400,
+  "OutputCount": 1,
+  "Inputs": "1600906:56,1600855:36,1600915:56",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 460,
+  "Name": "칼로네이드포 6문",
+  "Output": 0,
+  "OutputItem": 707600,
+  "OutputCount": 1,
+  "Inputs": "1600906:18,1600855:6,1600915:12",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 461,
+  "Name": "칼로네이드포 8문",
+  "Output": 0,
+  "OutputItem": 707700,
+  "OutputCount": 1,
+  "Inputs": "1600906:34,1600855:8,1600915:24",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 462,
+  "Name": "칼로네이드포 10문",
+  "Output": 0,
+  "OutputItem": 707800,
+  "OutputCount": 1,
+  "Inputs": "1600906:44,1600855:20,1600915:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 463,
+  "Name": "칼로네이드포 12문",
+  "Output": 0,
+  "OutputItem": 707900,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:40,1600915:70",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 464,
+  "Name": "파일로포 8문",
+  "Output": 0,
+  "OutputItem": 708200,
+  "OutputCount": 1,
+  "Inputs": "1600906:12,1600855:8,1600915:12",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 465,
+  "Name": "파일로포 10문",
+  "Output": 0,
+  "OutputItem": 708300,
+  "OutputCount": 1,
+  "Inputs": "1600906:20,1600855:10,1600915:24",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 466,
+  "Name": "파일로포 12문",
+  "Output": 0,
+  "OutputItem": 708400,
+  "OutputCount": 1,
+  "Inputs": "1600906:26,1600855:12,1600915:28",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 467,
+  "Name": "앙페르포 8문",
+  "Output": 0,
+  "OutputItem": 709200,
+  "OutputCount": 1,
+  "Inputs": "1600906:32,1600855:12,1600915:30",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 468,
+  "Name": "앙페르포 10문",
+  "Output": 0,
+  "OutputItem": 709300,
+  "OutputCount": 1,
+  "Inputs": "1600906:45,1600855:20,1600915:45",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 469,
+  "Name": "앙페르포 12문",
+  "Output": 0,
+  "OutputItem": 709400,
+  "OutputCount": 1,
+  "Inputs": "1600906:54,1600855:30,1600915:54",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 470,
+  "Name": "선미 팰콘포",
+  "Output": 0,
+  "OutputItem": 740100,
+  "OutputCount": 1,
+  "Inputs": "1600906:2,1600917:1",
+  "Skill": "주조 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 471,
+  "Name": "선미 미니온포",
+  "Output": 0,
+  "OutputItem": 740200,
+  "OutputCount": 1,
+  "Inputs": "1600906:3,1600917:2",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 472,
+  "Name": "선미 세이커포",
+  "Output": 0,
+  "OutputItem": 740300,
+  "OutputCount": 1,
+  "Inputs": "1600906:3,1600855:1,1600917:2",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 473,
+  "Name": "선미 데미 캘버린포",
+  "Output": 0,
+  "OutputItem": 740400,
+  "OutputCount": 1,
+  "Inputs": "1600906:10,1600855:1,1600917:10",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 474,
+  "Name": "선미 캘버린포",
+  "Output": 0,
+  "OutputItem": 740500,
+  "OutputCount": 1,
+  "Inputs": "1600906:14,1600855:2,1600917:16",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 475,
+  "Name": "선미 캐논페드로포",
+  "Output": 0,
+  "OutputItem": 740600,
+  "OutputCount": 1,
+  "Inputs": "1600906:18,1600855:4,1600917:20",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 476,
+  "Name": "선미 칼로네이드포",
+  "Output": 0,
+  "OutputItem": 740700,
+  "OutputCount": 1,
+  "Inputs": "1600906:24,1600855:6,1600917:24",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 477,
+  "Name": "트렌치포 4문",
+  "Output": 0,
+  "OutputItem": 703200,
+  "OutputCount": 1,
+  "Inputs": "1600906:6,1600855:2,1600915:4",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 478,
+  "Name": "트렌치포 6문",
+  "Output": 0,
+  "OutputItem": 703300,
+  "OutputCount": 1,
+  "Inputs": "1600906:18,1600855:6,1600915:12",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 479,
+  "Name": "트렌치포 8문",
+  "Output": 0,
+  "OutputItem": 703400,
+  "OutputCount": 1,
+  "Inputs": "1600906:32,1600855:8,1600915:24",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 480,
+  "Name": "트렌치포 10문",
+  "Output": 0,
+  "OutputItem": 703500,
+  "OutputCount": 1,
+  "Inputs": "1600906:48,1600855:12,1600915:40",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 481,
+  "Name": "엔젤포 4문",
+  "Output": 0,
+  "OutputItem": 704200,
+  "OutputCount": 1,
+  "Inputs": "1600906:12,1600855:4,1600915:8",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 482,
+  "Name": "엔젤포 6문",
+  "Output": 0,
+  "OutputItem": 704300,
+  "OutputCount": 1,
+  "Inputs": "1600906:24,1600855:10,1600915:24",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 483,
+  "Name": "엔젤포 8문",
+  "Output": 0,
+  "OutputItem": 704400,
+  "OutputCount": 1,
+  "Inputs": "1600906:40,1600855:16,1600915:30",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 484,
+  "Name": "엔젤포 10문",
+  "Output": 0,
+  "OutputItem": 704500,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:24,1600915:50",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 485,
+  "Name": "엑스플로더포 6문",
+  "Output": 0,
+  "OutputItem": 705300,
+  "OutputCount": 1,
+  "Inputs": "1600906:16,1600855:6,1600915:12",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 486,
+  "Name": "엑스플로더포 8문",
+  "Output": 0,
+  "OutputItem": 705400,
+  "OutputCount": 1,
+  "Inputs": "1600906:32,1600855:16,1600915:24",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 487,
+  "Name": "엑스플로더 10문",
+  "Output": 0,
+  "OutputItem": 705500,
+  "OutputCount": 1,
+  "Inputs": "1600906:48,1600855:24,1600915:36",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 488,
+  "Name": "선수 팰콘포",
+  "Output": 0,
+  "OutputItem": 730100,
+  "OutputCount": 1,
+  "Inputs": "1600906:1,1600917:1",
+  "Skill": "주조 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 489,
+  "Name": "선수 미니온포",
+  "Output": 0,
+  "OutputItem": 730200,
+  "OutputCount": 1,
+  "Inputs": "1600906:2,1600917:1",
+  "Skill": "주조 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 490,
+  "Name": "선수 세이커포",
+  "Output": 0,
+  "OutputItem": 730300,
+  "OutputCount": 1,
+  "Inputs": "1600906:3,1600855:1,1600917:2",
+  "Skill": "주조 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 491,
+  "Name": "선수 데미 캘버린포",
+  "Output": 0,
+  "OutputItem": 730400,
+  "OutputCount": 1,
+  "Inputs": "1600906:5,1600855:1,1600917:3",
+  "Skill": "주조 7",
   "Facility": ""
  },
  {
@@ -3280,6 +5046,107 @@
   "Facility": ""
  },
  {
+  "RecipeId": 515,
+  "Name": "사슴가죽 장식 페티코트의 봉제법",
+  "Output": 0,
+  "OutputItem": 2907,
+  "OutputCount": 1,
+  "Inputs": "1600309:15,1600661:5,2900:1",
+  "Skill": "봉제 3",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 522,
+  "Name": "선수 캘버린포",
+  "Output": 0,
+  "OutputItem": 730500,
+  "OutputCount": 1,
+  "Inputs": "1600906:6,1600855:2,1600917:4",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 523,
+  "Name": "선수 캐논페드로포",
+  "Output": 0,
+  "OutputItem": 730600,
+  "OutputCount": 1,
+  "Inputs": "1600906:8,1600855:4,1600917:6",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 524,
+  "Name": "선수 칼로네이드포",
+  "Output": 0,
+  "OutputItem": 730700,
+  "OutputCount": 1,
+  "Inputs": "1600906:12,1600855:8,1600917:10",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 525,
+  "Name": "프랑고포 8문",
+  "Output": 0,
+  "OutputItem": 709700,
+  "OutputCount": 1,
+  "Inputs": "1600906:16,1600855:8,1600915:12",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 526,
+  "Name": "프랑고포 10문",
+  "Output": 0,
+  "OutputItem": 709800,
+  "OutputCount": 1,
+  "Inputs": "1600906:22,1600855:10,1600915:24",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 527,
+  "Name": "프랑고포 12문",
+  "Output": 0,
+  "OutputItem": 709900,
+  "OutputCount": 1,
+  "Inputs": "1600906:28,1600855:12,1600915:28",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 528,
+  "Name": "메테오라포 8문",
+  "Output": 0,
+  "OutputItem": 710700,
+  "OutputCount": 1,
+  "Inputs": "1600906:24,1600855:16,1600915:30",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 529,
+  "Name": "메테오라포 10문",
+  "Output": 0,
+  "OutputItem": 710800,
+  "OutputCount": 1,
+  "Inputs": "1600906:40,1600855:24,1600915:45",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 530,
+  "Name": "메테오라포 12문",
+  "Output": 0,
+  "OutputItem": 710900,
+  "OutputCount": 1,
+  "Inputs": "1600906:50,1600855:36,1600915:54",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
   "RecipeId": 531,
   "Name": "악톤 수선",
   "Output": 0,
@@ -3408,6 +5275,17 @@
   "Inputs": "1600565:3",
   "Skill": "공예 2",
   "Facility": ""
+ },
+ {
+  "RecipeId": 579,
+  "Name": "항해자의 모피코트 수선하기",
+  "Output": 0,
+  "OutputItem": 1906,
+  "OutputCount": 1,
+  "Inputs": "1901:1,1600661:20,1600457:1",
+  "Skill": "봉제 6",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 583,
@@ -3697,6 +5575,426 @@
   "OutputCount": 1,
   "Inputs": "104500:1,1600658:5,1600662:10",
   "Skill": "봉제 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 686,
+  "Name": "건국 용사상 조각술",
+  "Output": 0,
+  "OutputItem": 1000603,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600907:30,1600917:30",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 687,
+  "Name": "철학자상 조각술 1",
+  "Output": 0,
+  "OutputItem": 1000701,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600912:30,1600917:30",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 688,
+  "Name": "철학자상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1000704,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600912:30,1600917:30",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 689,
+  "Name": "황제상 조각술 1",
+  "Output": 0,
+  "OutputItem": 1000804,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600917:30,1600913:30",
+  "Skill": "공예 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 690,
+  "Name": "황제상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1000805,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600917:30,1600913:30",
+  "Skill": "공예 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 691,
+  "Name": "바빌로니아의 괴수상 조각술",
+  "Output": 0,
+  "OutputItem": 1002101,
+  "OutputCount": 1,
+  "Inputs": "1600917:25,1600609:5,1600913:20",
+  "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 692,
+  "Name": "페르시아의 괴수상 조각술",
+  "Output": 0,
+  "OutputItem": 1002102,
+  "OutputCount": 1,
+  "Inputs": "1600917:25,1600601:10,1600913:25",
+  "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 693,
+  "Name": "마야의 괴수상 조각술",
+  "Output": 0,
+  "OutputItem": 1002104,
+  "OutputCount": 1,
+  "Inputs": "1600917:30,1600611:10,1600913:20",
+  "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 694,
+  "Name": "아스텍의 괴수상 조각술",
+  "Output": 0,
+  "OutputItem": 1002105,
+  "OutputCount": 1,
+  "Inputs": "1600917:25,1600613:5,1600913:25",
+  "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 695,
+  "Name": "솔개상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1000101,
+  "OutputCount": 1,
+  "Inputs": "1600917:5,1600915:4",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 696,
+  "Name": "송골매상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1000201,
+  "OutputCount": 1,
+  "Inputs": "1600912:15,1600917:15",
+  "Skill": "공예 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 697,
+  "Name": "송골매상 조각술 3",
+  "Output": 0,
+  "OutputItem": 1000202,
+  "OutputCount": 1,
+  "Inputs": "1600912:10,1600917:20",
+  "Skill": "공예 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 698,
+  "Name": "매상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1000301,
+  "OutputCount": 1,
+  "Inputs": "1600917:15,1600913:15",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 699,
+  "Name": "매상 조각술 3",
+  "Output": 0,
+  "OutputItem": 1000302,
+  "OutputCount": 1,
+  "Inputs": "1600917:18,1600913:10",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 700,
+  "Name": "매상 조각술 4",
+  "Output": 0,
+  "OutputItem": 1000303,
+  "OutputCount": 1,
+  "Inputs": "1600917:15,1600913:12",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 701,
+  "Name": "독수리상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1000401,
+  "OutputCount": 1,
+  "Inputs": "1600912:17,1600917:15",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 702,
+  "Name": "독수리상 조각술 3",
+  "Output": 0,
+  "OutputItem": 1000402,
+  "OutputCount": 1,
+  "Inputs": "1600912:15,1600917:18",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 703,
+  "Name": "독수리상 조각술 4",
+  "Output": 0,
+  "OutputItem": 1000403,
+  "OutputCount": 1,
+  "Inputs": "1600912:16,1600917:17",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 704,
+  "Name": "미녀상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1000504,
+  "OutputCount": 1,
+  "Inputs": "1600912:1,1600917:25,1600609:1",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 705,
+  "Name": "바다의 미녀 조각술",
+  "Output": 0,
+  "OutputItem": 1000510,
+  "OutputCount": 1,
+  "Inputs": "1600608:1,1600912:1,1600917:10",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 706,
+  "Name": "돌고래상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1001401,
+  "OutputCount": 1,
+  "Inputs": "1600906:6,1600917:10",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 707,
+  "Name": "돌고래상 조각술 3",
+  "Output": 0,
+  "OutputItem": 1001402,
+  "OutputCount": 1,
+  "Inputs": "1600906:8,1600917:8",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 708,
+  "Name": "돌고래상 조각술 4",
+  "Output": 0,
+  "OutputItem": 1001501,
+  "OutputCount": 1,
+  "Inputs": "1600906:4,1600917:8",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 709,
+  "Name": "상어상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1001601,
+  "OutputCount": 1,
+  "Inputs": "1600907:20,1600917:16",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 710,
+  "Name": "상어상 조각술 3",
+  "Output": 0,
+  "OutputItem": 1001602,
+  "OutputCount": 1,
+  "Inputs": "1600907:20,1600917:23",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 711,
+  "Name": "상어상 조각술 4",
+  "Output": 0,
+  "OutputItem": 1001603,
+  "OutputCount": 1,
+  "Inputs": "1600907:25,1600917:25",
+  "Skill": "공예 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 712,
+  "Name": "고래상 조각술 2",
+  "Output": 0,
+  "OutputItem": 1001701,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600917:20",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 713,
+  "Name": "고래상 조각술 3",
+  "Output": 0,
+  "OutputItem": 1001704,
+  "OutputCount": 1,
+  "Inputs": "1600911:8,1600917:12",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 714,
+  "Name": "고래상 조각술 4",
+  "Output": 0,
+  "OutputItem": 1001705,
+  "OutputCount": 1,
+  "Inputs": "1600911:10,1600917:10",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 715,
+  "Name": "표범상 조각술",
+  "Output": 0,
+  "OutputItem": 1002001,
+  "OutputCount": 1,
+  "Inputs": "1600912:5,1600917:7",
+  "Skill": "공예 4",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 716,
+  "Name": "캘버린포 14문",
+  "Output": 0,
+  "OutputItem": 702502,
+  "OutputCount": 1,
+  "Inputs": "1600853:20,1600855:36,1600915:30",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 717,
+  "Name": "트렌치포 12문",
+  "Output": 0,
+  "OutputItem": 703502,
+  "OutputCount": 1,
+  "Inputs": "1600853:16,1600855:36,1600915:24",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 718,
+  "Name": "곡사포 12문",
+  "Output": 0,
+  "OutputItem": 704002,
+  "OutputCount": 1,
+  "Inputs": "1600853:20,1600855:42,1600915:30",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 719,
+  "Name": "엔젤포 12문",
+  "Output": 0,
+  "OutputItem": 704502,
+  "OutputCount": 1,
+  "Inputs": "1600853:24,1600855:42,1600915:32",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 720,
+  "Name": "엑스플로더포 12문",
+  "Output": 0,
+  "OutputItem": 705502,
+  "OutputCount": 1,
+  "Inputs": "1600853:20,1600855:36,1600915:24",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 721,
+  "Name": "데미 캐논포 14문",
+  "Output": 0,
+  "OutputItem": 706402,
+  "OutputCount": 1,
+  "Inputs": "1600853:22,1600855:35,1600915:20",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 722,
+  "Name": "벨리에포 14문",
+  "Output": 0,
+  "OutputItem": 706902,
+  "OutputCount": 1,
+  "Inputs": "1600853:28,1600855:35,1600915:22",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 723,
+  "Name": "캐논포 14문",
+  "Output": 0,
+  "OutputItem": 707402,
+  "OutputCount": 1,
+  "Inputs": "1600853:36,1600855:40,1600915:36",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 724,
+  "Name": "칼로네이드포 14문",
+  "Output": 0,
+  "OutputItem": 707902,
+  "OutputCount": 1,
+  "Inputs": "1600853:42,1600855:44,1600915:42",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 725,
+  "Name": "앙페르포 14문",
+  "Output": 0,
+  "OutputItem": 709402,
+  "OutputCount": 1,
+  "Inputs": "1600853:30,1600855:38,1600915:36",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 726,
+  "Name": "프랑고포 14문",
+  "Output": 0,
+  "OutputItem": 709902,
+  "OutputCount": 1,
+  "Inputs": "1600853:20,1600855:28,1600915:20",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 727,
+  "Name": "메테오라포 14문",
+  "Output": 0,
+  "OutputItem": 710902,
+  "OutputCount": 1,
+  "Inputs": "1600853:35,1600855:36,1600915:32",
+  "Skill": "주조 14",
   "Facility": ""
  },
  {
@@ -4220,6 +6518,146 @@
   "Facility": ""
  },
  {
+  "RecipeId": 793,
+  "Name": "캘버린포 16문",
+  "Output": 0,
+  "OutputItem": 702504,
+  "OutputCount": 1,
+  "Inputs": "1600906:48,1600855:52,1600912:40",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 794,
+  "Name": "캐논페드로포 16문",
+  "Output": 0,
+  "OutputItem": 703004,
+  "OutputCount": 1,
+  "Inputs": "1600906:40,1600855:40,1600912:28",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 795,
+  "Name": "곡사포 14문",
+  "Output": 0,
+  "OutputItem": 704004,
+  "OutputCount": 1,
+  "Inputs": "1600906:55,1600855:55,1600912:45",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 796,
+  "Name": "곡사포 16문",
+  "Output": 0,
+  "OutputItem": 704006,
+  "OutputCount": 1,
+  "Inputs": "1600906:52,1600855:48,1600912:40",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 797,
+  "Name": "엔젤포 14문",
+  "Output": 0,
+  "OutputItem": 704504,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:65,1600915:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 798,
+  "Name": "엔젤포 16문",
+  "Output": 0,
+  "OutputItem": 704506,
+  "OutputCount": 1,
+  "Inputs": "1600906:56,1600855:56,1600912:40",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 799,
+  "Name": "래피드파이어포 12문",
+  "Output": 0,
+  "OutputItem": 705002,
+  "OutputCount": 1,
+  "Inputs": "1600906:38,1600855:26,1600912:26",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 800,
+  "Name": "래피드파이어포 14문",
+  "Output": 0,
+  "OutputItem": 705004,
+  "OutputCount": 1,
+  "Inputs": "1600906:45,1600855:40,1600912:30",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 801,
+  "Name": "래피드파이어포 16문",
+  "Output": 0,
+  "OutputItem": 705006,
+  "OutputCount": 1,
+  "Inputs": "1600906:44,1600855:40,1600912:28",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 802,
+  "Name": "모터포 12문",
+  "Output": 0,
+  "OutputItem": 705904,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:60,1600912:40",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 803,
+  "Name": "모터포 14문",
+  "Output": 0,
+  "OutputItem": 705906,
+  "OutputCount": 1,
+  "Inputs": "1600906:65,1600855:65,1600912:40",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 804,
+  "Name": "모터포 16문",
+  "Output": 0,
+  "OutputItem": 705908,
+  "OutputCount": 1,
+  "Inputs": "1600906:44,1600855:40,1600912:28",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 805,
+  "Name": "드래코니스포 16문",
+  "Output": 0,
+  "OutputItem": 708904,
+  "OutputCount": 1,
+  "Inputs": "1600906:27,1600855:40,1600912:28",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 806,
+  "Name": "카플리스포 16문",
+  "Output": 0,
+  "OutputItem": 710404,
+  "OutputCount": 1,
+  "Inputs": "1600906:24,1600855:36,1600912:22",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
   "RecipeId": 807,
   "Name": "카카우아틀 제조법",
   "Output": 0,
@@ -4680,6 +7118,16 @@
   "Facility": ""
  },
  {
+  "RecipeId": 867,
+  "Name": "특수 제작 만능 충각 제조법",
+  "Output": 0,
+  "OutputItem": 2200050,
+  "OutputCount": 1,
+  "Inputs": "1600912:10,2200072:1,900040:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
   "RecipeId": 868,
   "Name": "개량형 소형 포문 제조법",
   "Output": 0,
@@ -4717,6 +7165,16 @@
   "OutputCount": 1,
   "Inputs": "1500043:5,1600912:20,2200072:1",
   "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 872,
+  "Name": "선미회랑 제조법",
+  "Output": 0,
+  "OutputItem": 2200055,
+  "OutputCount": 1,
+  "Inputs": "900420:1,2200072:1,2200073:1",
+  "Skill": "공예 13",
   "Facility": ""
  },
  {
@@ -5400,6 +7858,17 @@
   "Facility": ""
  },
  {
+  "RecipeId": 944,
+  "Name": "궁극 개조단검 연성법",
+  "Output": 0,
+  "OutputItem": 400209,
+  "OutputCount": 1,
+  "Inputs": "1600908:10,1600915:15,400209:1",
+  "Skill": "주조 13",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 945,
   "Name": "총기개조 입문",
   "Output": 0,
@@ -5530,6 +7999,126 @@
   "Facility": ""
  },
  {
+  "RecipeId": 964,
+  "Name": "캐논페드로포 14문",
+  "Output": 0,
+  "OutputItem": 703002,
+  "OutputCount": 1,
+  "Inputs": "1600906:50,1600855:55,1600912:40",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 965,
+  "Name": "모터포 10문",
+  "Output": 0,
+  "OutputItem": 705902,
+  "OutputCount": 1,
+  "Inputs": "1600906:50,1600855:50,1600912:35",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 966,
+  "Name": "드래코니스포 14문",
+  "Output": 0,
+  "OutputItem": 708902,
+  "OutputCount": 1,
+  "Inputs": "1600906:40,1600855:45,1600915:30",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 967,
+  "Name": "카플리스포 14문",
+  "Output": 0,
+  "OutputItem": 710402,
+  "OutputCount": 1,
+  "Inputs": "1600906:45,1600855:40,1600915:30",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 969,
+  "Name": "항해의 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000902,
+  "OutputCount": 1,
+  "Inputs": "1600917:35,1600501:10,1600612:15",
+  "Skill": "공예 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 970,
+  "Name": "무인의 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000903,
+  "OutputCount": 1,
+  "Inputs": "1600917:35,1600606:15,1600501:10",
+  "Skill": "공예 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 971,
+  "Name": "어부의 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000904,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600917:35,1600616:15",
+  "Skill": "공예 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 972,
+  "Name": "대장장이의 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000905,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600917:35,1600614:15",
+  "Skill": "공예 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 973,
+  "Name": "상인의 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000906,
+  "OutputCount": 1,
+  "Inputs": "1600917:35,1600501:10,1600607:12",
+  "Skill": "공예 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 974,
+  "Name": "뱃사람의 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000908,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600917:35,1600622:15",
+  "Skill": "공예 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 975,
+  "Name": "포수의 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1001006,
+  "OutputCount": 1,
+  "Inputs": "1600917:30,1600501:12,1600619:12",
+  "Skill": "공예 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 976,
+  "Name": "성녀상 조각술",
+  "Output": 0,
+  "OutputItem": 1001007,
+  "OutputCount": 1,
+  "Inputs": "1600917:30,1600501:12,1600609:8",
+  "Skill": "공예 17",
+  "Facility": ""
+ },
+ {
   "RecipeId": 978,
   "Name": "색실무늬 운크 봉제법",
   "Output": 0,
@@ -5618,6 +8207,17 @@
   "Inputs": "1600303:30,1600351:20,1600363:20",
   "Skill": "봉제 12",
   "Facility": ""
+ },
+ {
+  "RecipeId": 987,
+  "Name": "큰 새깃털 머리장식 제조법",
+  "Output": 0,
+  "OutputItem": 130400,
+  "OutputCount": 1,
+  "Inputs": "1600303:30,1600351:20,1601063:20",
+  "Skill": "봉제 13",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 988,
@@ -5717,6 +8317,56 @@
   "OutputCount": 2,
   "Inputs": "1600917:5,1600501:5",
   "Skill": "보관 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 998,
+  "Name": "엑스플로더포 14문",
+  "Output": 0,
+  "OutputItem": 705507,
+  "OutputCount": 1,
+  "Inputs": "1600853:26,1600855:42,1600915:28",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 999,
+  "Name": "엑스플로더포 16문",
+  "Output": 0,
+  "OutputItem": 705509,
+  "OutputCount": 1,
+  "Inputs": "1600853:56,1600855:56,1600915:36",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1000,
+  "Name": "데미캐논포 16문",
+  "Output": 0,
+  "OutputItem": 706404,
+  "OutputCount": 1,
+  "Inputs": "1600853:40,1600855:44,1600915:28",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1001,
+  "Name": "앙페르포 16문",
+  "Output": 0,
+  "OutputItem": 709407,
+  "OutputCount": 1,
+  "Inputs": "1600906:64,1600855:44,1600915:64",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1002,
+  "Name": "메테오라포 16문",
+  "Output": 0,
+  "OutputItem": 710907,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:49,1600915:64",
+  "Skill": "주조 17",
   "Facility": ""
  },
  {
@@ -6060,6 +8710,39 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1050,
+  "Name": "인도쪽으로 염색한 와스트라 봉제법",
+  "Output": 0,
+  "OutputItem": 32100,
+  "OutputCount": 1,
+  "Inputs": "1600352:20,1600453:20,1600663:20",
+  "Skill": "봉제 15",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 1051,
+  "Name": "잎으로 염색한 와스트라 봉제법",
+  "Output": 0,
+  "OutputItem": 32100,
+  "OutputCount": 1,
+  "Inputs": "1600453:20,1600663:20,1601064:40",
+  "Skill": "봉제 15",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 1052,
+  "Name": "꼭두서니로 염색한 와스트라 봉제법",
+  "Output": 0,
+  "OutputItem": 32100,
+  "OutputCount": 1,
+  "Inputs": "1600453:20,1600663:20,1600353:20",
+  "Skill": "봉제 15",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 1053,
   "Name": "다야쿠 깃털모자 만드는 법",
   "Output": 0,
@@ -6217,6 +8900,36 @@
   "OutputCount": 2,
   "Inputs": "1600902:5,1600913:10,1600754:5",
   "Skill": "연금술 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1070,
+  "Name": "아누비스 선수상의 생산",
+  "Output": 0,
+  "OutputItem": 1002500,
+  "OutputCount": 1,
+  "Inputs": "1600501:40,1000700:1,1500095:1",
+  "Skill": "연금술 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1071,
+  "Name": "라 선수상의 생산",
+  "Output": 0,
+  "OutputItem": 1002600,
+  "OutputCount": 1,
+  "Inputs": "1600501:40,1000700:1,1500088:1",
+  "Skill": "연금술 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1072,
+  "Name": "미다스왕의 선수상 생산",
+  "Output": 0,
+  "OutputItem": 1002700,
+  "OutputCount": 1,
+  "Inputs": "1600501:40,1000800:1,300502:1",
+  "Skill": "연금술 8",
   "Facility": ""
  },
  {
@@ -6570,6 +9283,26 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1151,
+  "Name": "뱃사람의 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1000907,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600917:35,1600603:15",
+  "Skill": "공예 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1152,
+  "Name": "화재예방을 위한 성인상 조각술",
+  "Output": 0,
+  "OutputItem": 1001008,
+  "OutputCount": 1,
+  "Inputs": "1600911:20,1600917:35,1600619:15",
+  "Skill": "공예 17",
+  "Facility": ""
+ },
+ {
   "RecipeId": 1153,
   "Name": "흑태자 갑옷의 재생법",
   "Output": 0,
@@ -6637,6 +9370,186 @@
   "OutputCount": 1,
   "Inputs": "1407:1,1600284:8,526801:1",
   "Skill": "연금술 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1160,
+  "Name": "세라핌포 6문",
+  "Output": 0,
+  "OutputItem": 704513,
+  "OutputCount": 1,
+  "Inputs": "1600906:18,1600855:12,1600915:18",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1161,
+  "Name": "세라핌포 8문",
+  "Output": 0,
+  "OutputItem": 704515,
+  "OutputCount": 1,
+  "Inputs": "1600906:32,1600855:18,1600915:30",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1162,
+  "Name": "세라핌포 10문",
+  "Output": 0,
+  "OutputItem": 704517,
+  "OutputCount": 1,
+  "Inputs": "1600906:50,1600855:26,1600915:48",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1163,
+  "Name": "세라핌포 12문",
+  "Output": 0,
+  "OutputItem": 704519,
+  "OutputCount": 1,
+  "Inputs": "1600906:62,1600855:34,1600915:60",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1164,
+  "Name": "세라핌포 14문",
+  "Output": 0,
+  "OutputItem": 704521,
+  "OutputCount": 1,
+  "Inputs": "1600906:74,1600855:40,1600915:72",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1165,
+  "Name": "하이페리에포 6문",
+  "Output": 0,
+  "OutputItem": 706912,
+  "OutputCount": 1,
+  "Inputs": "1600906:6,1600855:8,1600915:6",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1166,
+  "Name": "하이페리에포 8문",
+  "Output": 0,
+  "OutputItem": 706914,
+  "OutputCount": 1,
+  "Inputs": "1600906:18,1600855:12,1600915:18",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1167,
+  "Name": "하이페리에포 10문",
+  "Output": 0,
+  "OutputItem": 706916,
+  "OutputCount": 1,
+  "Inputs": "1600906:36,1600855:22,1600915:36",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1168,
+  "Name": "하이페리에포 12문",
+  "Output": 0,
+  "OutputItem": 706918,
+  "OutputCount": 1,
+  "Inputs": "1600906:54,1600855:26,1600915:54",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1169,
+  "Name": "하이페리에포 14문",
+  "Output": 0,
+  "OutputItem": 706920,
+  "OutputCount": 1,
+  "Inputs": "1600906:62,1600855:32,1600915:62",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1170,
+  "Name": "발칸포 8문",
+  "Output": 0,
+  "OutputItem": 709413,
+  "OutputCount": 1,
+  "Inputs": "1600906:36,1600855:16,1600915:36",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1171,
+  "Name": "발칸포 10문",
+  "Output": 0,
+  "OutputItem": 709415,
+  "OutputCount": 1,
+  "Inputs": "1600906:52,1600855:24,1600915:52",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1172,
+  "Name": "발칸포 12문",
+  "Output": 0,
+  "OutputItem": 709417,
+  "OutputCount": 1,
+  "Inputs": "1600906:62,1600855:36,1600915:62",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1173,
+  "Name": "발칸포 14문",
+  "Output": 0,
+  "OutputItem": 709419,
+  "OutputCount": 1,
+  "Inputs": "1600906:74,1600855:42,1600915:74",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1174,
+  "Name": "슈미네포 8문",
+  "Output": 0,
+  "OutputItem": 710913,
+  "OutputCount": 1,
+  "Inputs": "1600906:36,1600855:16,1600915:36",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1175,
+  "Name": "슈미네포 10문",
+  "Output": 0,
+  "OutputItem": 710915,
+  "OutputCount": 1,
+  "Inputs": "1600906:52,1600855:24,1600915:52",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1176,
+  "Name": "슈미네포 12문",
+  "Output": 0,
+  "OutputItem": 710917,
+  "OutputCount": 1,
+  "Inputs": "1600906:62,1600855:36,1600915:62",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1177,
+  "Name": "슈미네포 14문",
+  "Output": 0,
+  "OutputItem": 710919,
+  "OutputCount": 1,
+  "Inputs": "1600906:74,1600855:42,1600915:74",
+  "Skill": "주조 15",
   "Facility": ""
  },
  {
@@ -6810,6 +9723,46 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1197,
+  "Name": "신선도 보존 방법(쥐)",
+  "Output": 0,
+  "OutputItem": 1506013,
+  "OutputCount": 8,
+  "Inputs": "1600068:2",
+  "Skill": "보관 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1198,
+  "Name": "신선도 보존 방법(귀뚜라미)",
+  "Output": 0,
+  "OutputItem": 1506014,
+  "OutputCount": 8,
+  "Inputs": "1600069:2",
+  "Skill": "보관 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1199,
+  "Name": "신선도 보존 방법(개미)",
+  "Output": 0,
+  "OutputItem": 1506015,
+  "OutputCount": 1,
+  "Inputs": "1600288:2",
+  "Skill": "보관 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1200,
+  "Name": "신선도 보존 방법(지렁이)",
+  "Output": 0,
+  "OutputItem": 1506016,
+  "OutputCount": 1,
+  "Inputs": "1600289:2",
+  "Skill": "보관 7",
+  "Facility": ""
+ },
+ {
   "RecipeId": 1201,
   "Name": "먹이용 잎 제조법",
   "Output": 0,
@@ -6817,6 +9770,16 @@
   "OutputCount": 1,
   "Inputs": "1600008:5,1600070:2,1506010:1",
   "Skill": "보관 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1202,
+  "Name": "양질의 잎 선별법(유칼리)",
+  "Output": 0,
+  "OutputItem": 1506018,
+  "OutputCount": 8,
+  "Inputs": "1600427:3",
+  "Skill": "보관 9",
   "Facility": ""
  },
  {
@@ -7180,6 +10143,105 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1248,
+  "Name": "철재의 대량생산",
+  "Output": 1600912,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600552:50",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1249,
+  "Name": "올리브유의 대량생산",
+  "Output": 1600102,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600005:50",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1250,
+  "Name": "어육의 대량생산",
+  "Output": 1600010,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1601013:50",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1251,
+  "Name": "목재의 대량생산",
+  "Output": 1600917,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600925:150",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1252,
+  "Name": "깃털의 대량생산",
+  "Output": 1600303,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600032:150",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1253,
+  "Name": "양모의 대량생산",
+  "Output": 1600314,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600037:150",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1254,
+  "Name": "피혁의 대량생산",
+  "Output": 1600309,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600030:50",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1255,
+  "Name": "설탕의 대량생산",
+  "Output": 1600103,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600013:150",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1256,
+  "Name": "청동의 대량생산",
+  "Output": 1600906,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600554:25,1600553:25",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
   "RecipeId": 1257,
   "Name": "치즈의 대량생산",
   "Output": 1600020,
@@ -7230,14 +10292,312 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1262,
+  "Name": "브랜디의 대량생산",
+  "Output": 1600057,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600061:100",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1263,
+  "Name": "와인의 대량생산",
+  "Output": 1600061,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600167:50",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1264,
+  "Name": "모피의 대량생산",
+  "Output": 1600307,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600036:50",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1265,
+  "Name": "면 원단의 대량생산",
+  "Output": 1600467,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600310:150",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1266,
+  "Name": "비단 원단의 대량생산",
+  "Output": 1600453,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600306:150",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1267,
+  "Name": "모직 원단의 대량생산",
+  "Output": 1600454,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600314:100",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1268,
+  "Name": "가죽끈의 대량생산",
+  "Output": 1600661,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600309:50",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1269,
+  "Name": "마 원단의 대량생산",
+  "Output": 1600451,
+  "OutputItem": 0,
+  "OutputCount": 1,
+  "Inputs": "1600318:150",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1270,
+  "Name": "강철의 대량생산",
+  "Output": 1600915,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600909:50,1600552:50",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1271,
+  "Name": "포탄의 대량생산",
+  "Output": 1600855,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600912:100,1600908:100",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1272,
+  "Name": "대포의 대량생산",
+  "Output": 1600853,
+  "OutputItem": 0,
+  "OutputCount": 20,
+  "Inputs": "1600912:80,1600908:80",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1273,
+  "Name": "건포도의 대량생산",
+  "Output": 1600167,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600040:100",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1274,
+  "Name": "카라바인총의 제조법",
+  "Output": 0,
+  "OutputItem": 402118,
+  "OutputCount": 1,
+  "Inputs": "1600852:20,1600915:10,1600561:10",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1275,
+  "Name": "탐색용 곡괭이의 제조법",
+  "Output": 0,
+  "OutputItem": 402000,
+  "OutputCount": 1,
+  "Inputs": "1600912:30,1600917:30,1500314:10",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1276,
+  "Name": "염료정제 빨강",
+  "Output": 0,
+  "OutputItem": 1500196,
+  "OutputCount": 1,
+  "Inputs": "1600358:10,1601064:30,1500311:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1277,
+  "Name": "염료정제 파랑",
+  "Output": 0,
+  "OutputItem": 1500197,
+  "OutputCount": 1,
+  "Inputs": "1600352:10,1601064:30,1500311:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1278,
+  "Name": "염료정제 회색",
+  "Output": 0,
+  "OutputItem": 1500198,
+  "OutputCount": 1,
+  "Inputs": "1601064:30,1600361:10,1500311:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1279,
+  "Name": "도료정제 2권",
+  "Output": 0,
+  "OutputItem": 1500168,
+  "OutputCount": 1,
+  "Inputs": "1500305:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1280,
+  "Name": "도료정제 3권",
+  "Output": 0,
+  "OutputItem": 1500169,
+  "OutputCount": 1,
+  "Inputs": "1500305:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1281,
+  "Name": "도료정제 4권",
+  "Output": 0,
+  "OutputItem": 1500170,
+  "OutputCount": 1,
+  "Inputs": "1500305:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1282,
+  "Name": "도료정제 5권",
+  "Output": 0,
+  "OutputItem": 1500171,
+  "OutputCount": 1,
+  "Inputs": "1500305:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1283,
+  "Name": "도료정제 6권",
+  "Output": 0,
+  "OutputItem": 1500172,
+  "OutputCount": 1,
+  "Inputs": "1500305:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1284,
+  "Name": "도료정제 7권",
+  "Output": 0,
+  "OutputItem": 1500173,
+  "OutputCount": 1,
+  "Inputs": "1500305:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1285,
+  "Name": "도료정제 8권",
+  "Output": 0,
+  "OutputItem": 1500174,
+  "OutputCount": 1,
+  "Inputs": "1500305:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1286,
+  "Name": "도료정제 9권",
+  "Output": 0,
+  "OutputItem": 1500175,
+  "OutputCount": 1,
+  "Inputs": "1500305:20",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
   "RecipeId": 1291,
   "Name": "버핑가죽의 제조법",
   "Output": 0,
   "OutputItem": 1500314,
   "OutputCount": 1,
   "Inputs": "1600309:20,1500313:20",
-  "Skill": "보관 8",
-  "Facility": ""
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1293,
+  "Name": "고급벨벳의 제조법",
+  "Output": 0,
+  "OutputItem": 1500299,
+  "OutputCount": 1,
+  "Inputs": "1600306:30,1600662:10",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1294,
+  "Name": "최고급벨벳의 제조법",
+  "Output": 0,
+  "OutputItem": 1500300,
+  "OutputCount": 1,
+  "Inputs": "1600306:45,1600662:15",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
  },
  {
   "RecipeId": 1295,
@@ -7250,14 +10610,136 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1296,
+  "Name": "강화 철 판금의 제조법",
+  "Output": 0,
+  "OutputItem": 1500302,
+  "OutputCount": 1,
+  "Inputs": "1600552:30,1600560:30",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1297,
+  "Name": "고급모피의 제조법",
+  "Output": 0,
+  "OutputItem": 1500303,
+  "OutputCount": 1,
+  "Inputs": "1600036:30,1600924:30",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1298,
+  "Name": "최고급모피의 제조법",
+  "Output": 0,
+  "OutputItem": 1500304,
+  "OutputCount": 1,
+  "Inputs": "1600924:30,1600035:50",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
   "RecipeId": 1299,
   "Name": "고급염료의 제조법",
   "Output": 0,
   "OutputItem": 1500305,
   "OutputCount": 1,
   "Inputs": "1601064:30",
-  "Skill": "보관 10",
-  "Facility": ""
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1300,
+  "Name": "최고급염료의 제조법",
+  "Output": 0,
+  "OutputItem": 1500306,
+  "OutputCount": 1,
+  "Inputs": "1601064:50",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1301,
+  "Name": "양질의 깃털세공 제조법",
+  "Output": 0,
+  "OutputItem": 1500307,
+  "OutputCount": 1,
+  "Inputs": "1600319:30",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1302,
+  "Name": "최고품 깃털세공 제조법",
+  "Output": 0,
+  "OutputItem": 1500308,
+  "OutputCount": 1,
+  "Inputs": "1600319:50",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1303,
+  "Name": "고급루비 제조법",
+  "Output": 0,
+  "OutputItem": 1500309,
+  "OutputCount": 1,
+  "Inputs": "1600558:30",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1304,
+  "Name": "최고급루비 제조법",
+  "Output": 0,
+  "OutputItem": 1500310,
+  "OutputCount": 1,
+  "Inputs": "1600558:50",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1306,
+  "Name": "장인의 대장공도구 제조법",
+  "Output": 0,
+  "OutputItem": 1500014,
+  "OutputCount": 1,
+  "Inputs": "1600559:20,1601065:20,1500311:30",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1307,
+  "Name": "공작깃털 채집법",
+  "Output": 1600319,
+  "OutputItem": 0,
+  "OutputCount": 10,
+  "Inputs": "1600075:10",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1308,
+  "Name": "식물성기름의 대량생산",
+  "Output": 1600924,
+  "OutputItem": 0,
+  "OutputCount": 10,
+  "Inputs": "1600369:100",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
  },
  {
   "RecipeId": 1309,
@@ -7470,6 +10952,50 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1337,
+  "Name": "강화 인양 로프 제조법",
+  "Output": 0,
+  "OutputItem": 1500293,
+  "OutputCount": 1,
+  "Inputs": "1600318:30,1500314:5,1500301:1",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1338,
+  "Name": "강화 예항보조로프 제조법",
+  "Output": 0,
+  "OutputItem": 1500297,
+  "OutputCount": 2,
+  "Inputs": "1600318:30,1500314:5,1500302:1",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1339,
+  "Name": "철쇄의 제조법",
+  "Output": 0,
+  "OutputItem": 1500106,
+  "OutputCount": 2,
+  "Inputs": "1600912:1,1600661:1,1600564:1",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1340,
+  "Name": "캥거루 문장의 제조법",
+  "Output": 0,
+  "OutputItem": 1100064,
+  "OutputCount": 1,
+  "Inputs": "1600356:50,1600361:50,1600360:50",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
   "RecipeId": 1341,
   "Name": "고급해적모자　2권",
   "Output": 0,
@@ -7657,6 +11183,126 @@
   "OutputCount": 1,
   "Inputs": "1600912:10,1500009:10,2200072:1",
   "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1366,
+  "Name": "상급 보닛＆세일",
+  "Output": 0,
+  "OutputItem": 600820,
+  "OutputCount": 1,
+  "Inputs": "1600451:41,1600912:25,1600917:25",
+  "Skill": "봉제 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1367,
+  "Name": "특급 보닛＆세일",
+  "Output": 0,
+  "OutputItem": 600800,
+  "OutputCount": 1,
+  "Inputs": "1600451:45,1600912:27,1600917:27",
+  "Skill": "봉제 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1368,
+  "Name": "상급 스테이 세일＆세일",
+  "Output": 0,
+  "OutputItem": 600920,
+  "OutputCount": 1,
+  "Inputs": "1600451:21,1600912:1,1600917:1",
+  "Skill": "봉제 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1369,
+  "Name": "특급 스테이 세일＆세일",
+  "Output": 0,
+  "OutputItem": 600910,
+  "OutputCount": 1,
+  "Inputs": "1600451:23,1600912:1,1600917:2",
+  "Skill": "봉제 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1370,
+  "Name": "상급 풀 리그드 세일",
+  "Output": 0,
+  "OutputItem": 601310,
+  "OutputCount": 1,
+  "Inputs": "1600451:49,1600912:32,1600917:32",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1371,
+  "Name": "특급 풀 리그드 세일",
+  "Output": 0,
+  "OutputItem": 601310,
+  "OutputCount": 1,
+  "Inputs": "1600451:54,1600912:36,1600917:36",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1372,
+  "Name": "철판을 강화하는 고등기술",
+  "Output": 0,
+  "OutputItem": 801040,
+  "OutputCount": 1,
+  "Inputs": "1600915:8,801010:1",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1373,
+  "Name": "철판을 강화하는 최상기술",
+  "Output": 0,
+  "OutputItem": 801040,
+  "OutputCount": 1,
+  "Inputs": "1600915:9,801010:1",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1374,
+  "Name": "상급 칼로네이드포 14문",
+  "Output": 0,
+  "OutputItem": 707902,
+  "OutputCount": 1,
+  "Inputs": "1600853:34,1600855:36,1600915:34",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1375,
+  "Name": "특급 칼로네이드포 14문",
+  "Output": 0,
+  "OutputItem": 707902,
+  "OutputCount": 1,
+  "Inputs": "1600853:38,1600855:40,1600915:38",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1376,
+  "Name": "상급 캐논포 14문",
+  "Output": 0,
+  "OutputItem": 707402,
+  "OutputCount": 1,
+  "Inputs": "1600853:29,1600855:32,1600915:29",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1377,
+  "Name": "특급 캐논포 14문",
+  "Output": 0,
+  "OutputItem": 707402,
+  "OutputCount": 1,
+  "Inputs": "1600853:32,1600855:36,1600915:32",
+  "Skill": "주조 13",
   "Facility": ""
  },
  {
@@ -9310,6 +12956,39 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1552,
+  "Name": "내륙부 한복(서민)",
+  "Output": 0,
+  "OutputItem": 41000,
+  "OutputCount": 1,
+  "Inputs": "1600467:15,1600310:15,1600369:15",
+  "Skill": "봉제 8",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 1553,
+  "Name": "내륙부 한복(문관)",
+  "Output": 0,
+  "OutputItem": 41100,
+  "OutputCount": 1,
+  "Inputs": "1600324:2,1600473:2,1600366:2",
+  "Skill": "봉제 14",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 1554,
+  "Name": "내륙부 한복(여성)",
+  "Output": 0,
+  "OutputItem": 41200,
+  "OutputCount": 1,
+  "Inputs": "1600324:2,1600473:2,1600366:2",
+  "Skill": "봉제 14",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 1555,
   "Name": "일본식 관모 제작법",
   "Output": 0,
@@ -9570,6 +13249,106 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1592,
+  "Name": "삼나무 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200078,
+  "OutputCount": 1,
+  "Inputs": "1600917:10,1500044:1,800140:1",
+  "Skill": "공예 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1593,
+  "Name": "붉은 소나무 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200079,
+  "OutputCount": 1,
+  "Inputs": "1600917:10,1500044:1,800240:1",
+  "Skill": "공예 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1594,
+  "Name": "너도밤나무 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200080,
+  "OutputCount": 1,
+  "Inputs": "1600917:10,1500044:1,800340:1",
+  "Skill": "공예 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1595,
+  "Name": "느릅나무 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200081,
+  "OutputCount": 1,
+  "Inputs": "1600917:15,1500044:2,800440:1",
+  "Skill": "공예 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1596,
+  "Name": "티크 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200082,
+  "OutputCount": 1,
+  "Inputs": "1500044:2,800540:1,2200066:1",
+  "Skill": "공예 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1597,
+  "Name": "떡갈나무 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200083,
+  "OutputCount": 1,
+  "Inputs": "800640:1,402200:1,2200066:1",
+  "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1598,
+  "Name": "마호가니 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200084,
+  "OutputCount": 1,
+  "Inputs": "800740:1,402200:1,2200066:1",
+  "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1599,
+  "Name": "동판 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200085,
+  "OutputCount": 1,
+  "Inputs": "1600913:30,1500014:5,800850:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1600,
+  "Name": "로즈우드 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200086,
+  "OutputCount": 1,
+  "Inputs": "800940:1,402200:1,1500306:6",
+  "Skill": "공예 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1601,
+  "Name": "철판 선박재료 제조법",
+  "Output": 0,
+  "OutputItem": 2200087,
+  "OutputCount": 1,
+  "Inputs": "1500301:5,1500014:2,801050:1",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
   "RecipeId": 1610,
   "Name": "극동의 중형 선체 제조법",
   "Output": 0,
@@ -9667,6 +13446,66 @@
   "OutputCount": 1,
   "Inputs": "2200072:1,2200062:1,1500487:2",
   "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1623,
+  "Name": "공용 2층 갑판형 대형선체",
+  "Output": 0,
+  "OutputItem": 2201005,
+  "OutputCount": 1,
+  "Inputs": "2200005:1,900430:1,1500302:5",
+  "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1624,
+  "Name": "공용 3층 갑판형 대형선체",
+  "Output": 0,
+  "OutputItem": 2201008,
+  "OutputCount": 1,
+  "Inputs": "900430:1,2200008:1,1500302:6",
+  "Skill": "공예 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1625,
+  "Name": "공용 대형 도선",
+  "Output": 0,
+  "OutputItem": 2201011,
+  "OutputCount": 1,
+  "Inputs": "900430:1,1500302:4,2200011:1",
+  "Skill": "공예 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1626,
+  "Name": "공용 대형 2층 도선",
+  "Output": 0,
+  "OutputItem": 2201014,
+  "OutputCount": 1,
+  "Inputs": "2200014:1,900430:1,1500302:5",
+  "Skill": "공예 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1627,
+  "Name": "공용 대형 3층 도선",
+  "Output": 0,
+  "OutputItem": 2201017,
+  "OutputCount": 1,
+  "Inputs": "2200017:1,900430:1,1500302:6",
+  "Skill": "공예 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1628,
+  "Name": "좋은 잎 선별법(대나무)",
+  "Output": 0,
+  "OutputItem": 1506021,
+  "OutputCount": 15,
+  "Inputs": "1600922:1",
+  "Skill": "보관 14",
   "Facility": ""
  },
  {
@@ -10200,6 +14039,146 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1692,
+  "Name": "세라핌포 16문",
+  "Output": 0,
+  "OutputItem": 704523,
+  "OutputCount": 1,
+  "Inputs": "1600906:99,1600855:54,1600915:97",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1693,
+  "Name": "벨리에포 16문",
+  "Output": 0,
+  "OutputItem": 706904,
+  "OutputCount": 1,
+  "Inputs": "1600853:37,1600855:47,1600915:29",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1694,
+  "Name": "하이페리에포 16문",
+  "Output": 0,
+  "OutputItem": 706925,
+  "OutputCount": 1,
+  "Inputs": "1600906:83,1600855:43,1600915:83",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1695,
+  "Name": "캐논포 16문",
+  "Output": 0,
+  "OutputItem": 707408,
+  "OutputCount": 1,
+  "Inputs": "1600853:48,1600855:54,1600915:48",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1696,
+  "Name": "칼로네이드포 16문",
+  "Output": 0,
+  "OutputItem": 707908,
+  "OutputCount": 1,
+  "Inputs": "1600853:56,1600855:59,1600915:56",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1697,
+  "Name": "발칸포 16문",
+  "Output": 0,
+  "OutputItem": 709421,
+  "OutputCount": 1,
+  "Inputs": "1600906:99,1600855:56,1600915:99",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1698,
+  "Name": "슈미네포 16문",
+  "Output": 0,
+  "OutputItem": 710921,
+  "OutputCount": 1,
+  "Inputs": "1600906:99,1600855:56,1600915:99",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1699,
+  "Name": "세라핌포 16문",
+  "Output": 0,
+  "OutputItem": 704523,
+  "OutputCount": 1,
+  "Inputs": "1600906:88,1600855:48,1600915:86",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1700,
+  "Name": "벨리에포 16문",
+  "Output": 0,
+  "OutputItem": 706904,
+  "OutputCount": 1,
+  "Inputs": "1600853:33,1600855:42,1600915:26",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1701,
+  "Name": "하이페리에포 16문",
+  "Output": 0,
+  "OutputItem": 706925,
+  "OutputCount": 1,
+  "Inputs": "1600906:74,1600855:38,1600915:74",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1702,
+  "Name": "캐논포 16문",
+  "Output": 0,
+  "OutputItem": 707408,
+  "OutputCount": 1,
+  "Inputs": "1600853:43,1600855:48,1600915:43",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1703,
+  "Name": "칼로네이드포 16문",
+  "Output": 0,
+  "OutputItem": 707908,
+  "OutputCount": 1,
+  "Inputs": "1600853:50,1600855:52,1600915:50",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1704,
+  "Name": "발칸포 16문",
+  "Output": 0,
+  "OutputItem": 709421,
+  "OutputCount": 1,
+  "Inputs": "1600906:88,1600855:50,1600915:88",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1705,
+  "Name": "슈미네포 16문",
+  "Output": 0,
+  "OutputItem": 710921,
+  "OutputCount": 1,
+  "Inputs": "1600906:88,1600855:50,1600915:88",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
   "RecipeId": 1710,
   "Name": "장관용 평갑판형 중형선체",
   "Output": 0,
@@ -10318,6 +14297,17 @@
   "Inputs": "1600453:30,1500306:10,1600320:50",
   "Skill": "봉제 12",
   "Facility": ""
+ },
+ {
+  "RecipeId": 1722,
+  "Name": "칩차 족장의 명품 장신구 제법",
+  "Output": 0,
+  "OutputItem": 130104,
+  "OutputCount": 1,
+  "Inputs": "1600501:50,1600663:30,1500310:10",
+  "Skill": "봉제 11",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 1723,
@@ -10650,6 +14640,28 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1784,
+  "Name": "남성용 피혁 의상 제작법",
+  "Output": 0,
+  "OutputItem": 44300,
+  "OutputCount": 1,
+  "Inputs": "1600661:50,1600659:40,1600372:20",
+  "Skill": "봉제 14",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 1785,
+  "Name": "여성용 피혁 의상 제작법",
+  "Output": 0,
+  "OutputItem": 44400,
+  "OutputCount": 1,
+  "Inputs": "1600661:50,1600659:40,1600372:20",
+  "Skill": "봉제 14",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 1786,
   "Name": "깃털장식 옷 제작법",
   "Output": 0,
@@ -10957,6 +14969,26 @@
   "OutputCount": 1,
   "Inputs": "1600908:30,1600915:40,400703:1",
   "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1843,
+  "Name": "라이브오크 판 경량화",
+  "Output": 0,
+  "OutputItem": 800663,
+  "OutputCount": 1,
+  "Inputs": "1600917:1,800661:1",
+  "Skill": "공예 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1844,
+  "Name": "라이브오크 판 강화",
+  "Output": 0,
+  "OutputItem": 800664,
+  "OutputCount": 1,
+  "Inputs": "1600908:9,800661:1",
+  "Skill": "공예 10",
   "Facility": ""
  },
  {
@@ -11348,6 +15380,17 @@
   "Inputs": "1600463:25,1600605:20,1500301:10",
   "Skill": "봉제 10",
   "Facility": ""
+ },
+ {
+  "RecipeId": 1894,
+  "Name": "포르투갈 길드복 봉제법",
+  "Output": 0,
+  "OutputItem": 47101,
+  "OutputCount": 1,
+  "Inputs": "1600657:5,1600455:25,1500305:10",
+  "Skill": "봉제 10",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 1895,
@@ -11800,6 +15843,137 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1945,
+  "Name": "캐논페드로포 16문",
+  "Output": 0,
+  "OutputItem": 703004,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:65,1600912:50",
+  "Skill": "주조 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1946,
+  "Name": "캘버린포 16문",
+  "Output": 0,
+  "OutputItem": 702504,
+  "OutputCount": 1,
+  "Inputs": "1600906:50,1600855:50,1600912:35",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1947,
+  "Name": "곡사포 16문",
+  "Output": 0,
+  "OutputItem": 704006,
+  "OutputCount": 1,
+  "Inputs": "1600906:65,1600855:60,1600912:50",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1948,
+  "Name": "엔젤포 16문",
+  "Output": 0,
+  "OutputItem": 704506,
+  "OutputCount": 1,
+  "Inputs": "1600906:70,1600855:70,1600915:50",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1949,
+  "Name": "래피드파이어포 16문",
+  "Output": 0,
+  "OutputItem": 705006,
+  "OutputCount": 1,
+  "Inputs": "1600906:55,1600855:50,1600912:35",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1950,
+  "Name": "엑스플로더포 16문",
+  "Output": 0,
+  "OutputItem": 705509,
+  "OutputCount": 1,
+  "Inputs": "1600853:34,1600855:50,1600915:36",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1951,
+  "Name": "데미캐논포 16문",
+  "Output": 0,
+  "OutputItem": 706404,
+  "OutputCount": 1,
+  "Inputs": "1600853:30,1600855:45,1600915:28",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1952,
+  "Name": "모터포 16문",
+  "Output": 0,
+  "OutputItem": 705908,
+  "OutputCount": 1,
+  "Inputs": "1600906:70,1600855:70,1600912:45",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1953,
+  "Name": "드래코니스포 16문",
+  "Output": 0,
+  "OutputItem": 708904,
+  "OutputCount": 1,
+  "Inputs": "1600906:50,1600855:55,1600915:35",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1954,
+  "Name": "카플리스포 16문",
+  "Output": 0,
+  "OutputItem": 710404,
+  "OutputCount": 1,
+  "Inputs": "1600906:55,1600855:50,1600915:35",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1955,
+  "Name": "앙페르포 16문",
+  "Output": 0,
+  "OutputItem": 709407,
+  "OutputCount": 1,
+  "Inputs": "1600906:80,1600855:56,1600915:80",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1956,
+  "Name": "메테오라포 16문",
+  "Output": 0,
+  "OutputItem": 710907,
+  "OutputCount": 1,
+  "Inputs": "1600906:76,1600855:62,1600915:80",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1957,
+  "Name": "왕실 남성용 의복 봉제법",
+  "Output": 0,
+  "OutputItem": 47905,
+  "OutputCount": 1,
+  "Inputs": "1600658:45,1600459:40,1500300:25",
+  "Skill": "봉제 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 1958,
   "Name": "왕실 여성용 의복 봉제법",
   "Output": 0,
@@ -11860,6 +16034,206 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1964,
+  "Name": "특수 세라핌포 16문",
+  "Output": 0,
+  "OutputItem": 704525,
+  "OutputCount": 1,
+  "Inputs": "1600906:99,1600915:99,2200049:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1965,
+  "Name": "특수 엑스플로더포 16문",
+  "Output": 0,
+  "OutputItem": 705511,
+  "OutputCount": 1,
+  "Inputs": "1600853:65,1600915:55,2200049:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1966,
+  "Name": "특수 하이페리에포 16문",
+  "Output": 0,
+  "OutputItem": 706927,
+  "OutputCount": 1,
+  "Inputs": "1600906:99,1600915:99,2200049:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1967,
+  "Name": "특수 캐논포 16문",
+  "Output": 0,
+  "OutputItem": 707411,
+  "OutputCount": 1,
+  "Inputs": "1600853:75,1600915:75,2200049:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1968,
+  "Name": "특수 칼로네이드포 16문",
+  "Output": 0,
+  "OutputItem": 707912,
+  "OutputCount": 1,
+  "Inputs": "1600853:70,1600915:70,2200049:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1969,
+  "Name": "특수 발칸포 16문",
+  "Output": 0,
+  "OutputItem": 709424,
+  "OutputCount": 1,
+  "Inputs": "1600906:99,1600915:99,2200049:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1970,
+  "Name": "특수 슈미네포 16문",
+  "Output": 0,
+  "OutputItem": 710923,
+  "OutputCount": 1,
+  "Inputs": "1600906:99,1600915:99,2200049:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1971,
+  "Name": "명품 로얄 스테이 세일",
+  "Output": 0,
+  "OutputItem": 601140,
+  "OutputCount": 1,
+  "Inputs": "601120:1,2200096:1,1500634:5",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1972,
+  "Name": "명품 톱 로얄 세일",
+  "Output": 0,
+  "OutputItem": 601240,
+  "OutputCount": 1,
+  "Inputs": "601220:1,2200096:1,1500634:5",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1973,
+  "Name": "명품 풀 리그드 세일",
+  "Output": 0,
+  "OutputItem": 601390,
+  "OutputCount": 1,
+  "Inputs": "601320:1,2200096:1,1500634:5",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1974,
+  "Name": "특수 강철판 제조",
+  "Output": 0,
+  "OutputItem": 801090,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,1500302:1,1500635:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1975,
+  "Name": "특수 압연철판 제조",
+  "Output": 0,
+  "OutputItem": 801091,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1500635:3,801090:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1976,
+  "Name": "특수 강화 강철판 제조",
+  "Output": 0,
+  "OutputItem": 801092,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1500635:2,801090:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1977,
+  "Name": "특수 세라핌포 16문",
+  "Output": 0,
+  "OutputItem": 704525,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,704517:1,1500633:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1978,
+  "Name": "특수 엑스플로더포 16문",
+  "Output": 0,
+  "OutputItem": 705511,
+  "OutputCount": 1,
+  "Inputs": "705400:1,2200069:1,1500633:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1979,
+  "Name": "특수 하이페리에포 16문",
+  "Output": 0,
+  "OutputItem": 706927,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,706914:1,1500633:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1980,
+  "Name": "특수 캐논포 16문",
+  "Output": 0,
+  "OutputItem": 707411,
+  "OutputCount": 1,
+  "Inputs": "707000:1,2200069:1,1500633:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1981,
+  "Name": "특수 칼로네이드포 16문",
+  "Output": 0,
+  "OutputItem": 707912,
+  "OutputCount": 1,
+  "Inputs": "707500:1,2200069:1,1500633:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1982,
+  "Name": "특수 발칸포 16문",
+  "Output": 0,
+  "OutputItem": 709424,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,709411:1,1500633:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 1983,
+  "Name": "특수 슈미네포 16문",
+  "Output": 0,
+  "OutputItem": 710923,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,710911:1,1500633:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
   "RecipeId": 1984,
   "Name": "특수 가공 도구 제작법",
   "Output": 0,
@@ -11880,6 +16254,105 @@
   "Facility": ""
  },
  {
+  "RecipeId": 1986,
+  "Name": "구운 과자와 샤베트",
+  "Output": 0,
+  "OutputItem": 1505198,
+  "OutputCount": 1,
+  "Inputs": "1505066:2,1505187:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1987,
+  "Name": "향초 풍미의 빵",
+  "Output": 0,
+  "OutputItem": 1505199,
+  "OutputCount": 1,
+  "Inputs": "1600102:1,1600226:2,1600043:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1988,
+  "Name": "과일 빵(사과)",
+  "Output": 0,
+  "OutputItem": 1505200,
+  "OutputCount": 1,
+  "Inputs": "1600106:2,1600169:2,1600043:3",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1989,
+  "Name": "과일 빵(말린 자두)",
+  "Output": 0,
+  "OutputItem": 1505201,
+  "OutputCount": 1,
+  "Inputs": "1600106:2,1600162:2,1600043:3",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1990,
+  "Name": "과일 빵(살구)",
+  "Output": 0,
+  "OutputItem": 1505202,
+  "OutputCount": 1,
+  "Inputs": "1600106:2,1600164:2,1600043:3",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1991,
+  "Name": "베이컨 피자",
+  "Output": 0,
+  "OutputItem": 1505203,
+  "OutputCount": 1,
+  "Inputs": "1600020:1,1600026:1,1600043:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1992,
+  "Name": "과일 치즈 케이크",
+  "Output": 0,
+  "OutputItem": 1505204,
+  "OutputCount": 1,
+  "Inputs": "1505067:1,1600137:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1995,
+  "Name": "해초 튀김빵",
+  "Output": 0,
+  "OutputItem": 1505207,
+  "OutputCount": 1,
+  "Inputs": "1600102:1,1600043:2,1601059:2",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1996,
+  "Name": "제사용 브리오시",
+  "Output": 0,
+  "OutputItem": 1505208,
+  "OutputCount": 1,
+  "Inputs": "1600165:1,1505068:1,1505069:2",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
   "RecipeId": 1997,
   "Name": "과일 소스 만드는 법",
   "Output": 1600137,
@@ -11888,6 +16361,50 @@
   "Inputs": "1600061:1,1600107:2,1600162:2",
   "Skill": "공예 10",
   "Facility": ""
+ },
+ {
+  "RecipeId": 1998,
+  "Name": "귀족의 로브 봉제법",
+  "Output": 0,
+  "OutputItem": 48700,
+  "OutputCount": 1,
+  "Inputs": "1600467:40,1500303:10,1500300:10",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 1999,
+  "Name": "의적풍 의상 봉제법",
+  "Output": 0,
+  "OutputItem": 48800,
+  "OutputCount": 1,
+  "Inputs": "1600467:20,1600457:30,1500314:20",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2000,
+  "Name": "푸르푸앵 개량",
+  "Output": 0,
+  "OutputItem": 48900,
+  "OutputCount": 1,
+  "Inputs": "1901:1,1600663:10,1500299:5",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2001,
+  "Name": "원통형 장식 달린 모자",
+  "Output": 0,
+  "OutputItem": 145000,
+  "OutputCount": 1,
+  "Inputs": "1600658:5,1600661:15,1500304:10",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
  },
  {
   "RecipeId": 2002,
@@ -11908,6 +16425,17 @@
   "Inputs": "1600469:20,1600467:20,1600661:20",
   "Skill": "봉제 14",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2004,
+  "Name": "뾰족한 쁠렌느 제작법",
+  "Output": 0,
+  "OutputItem": 242200,
+  "OutputCount": 1,
+  "Inputs": "1600309:10,1600924:10,1600662:10",
+  "Skill": "공예 10",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 2005,
@@ -11970,6 +16498,17 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2011,
+  "Name": "운반업자의 평상복 봉제법",
+  "Output": 0,
+  "OutputItem": 47404,
+  "OutputCount": 1,
+  "Inputs": "1600301:72,1600470:90,1500314:50",
+  "Skill": "봉제 16",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 2012,
   "Name": "북미 개척용 작업복 봉제법",
   "Output": 0,
@@ -12008,6 +16547,193 @@
   "Inputs": "1600917:10,1600915:10,1500044:5",
   "Skill": "주조 15",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2016,
+  "Name": "혀가자미 버터구이 요리법",
+  "Output": 0,
+  "OutputItem": 1505211,
+  "OutputCount": 3,
+  "Inputs": "1600106:1,1601049:1,1600043:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2017,
+  "Name": "전갱이 버터구이 요리법",
+  "Output": 0,
+  "OutputItem": 1505212,
+  "OutputCount": 3,
+  "Inputs": "1600106:1,1601020:1,1600043:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2018,
+  "Name": "연어 파이",
+  "Output": 0,
+  "OutputItem": 1505213,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1601019:1,1600045:2",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2019,
+  "Name": "농어 파이",
+  "Output": 0,
+  "OutputItem": 1505214,
+  "OutputCount": 2,
+  "Inputs": "1600106:1,1600045:2,1601011:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2020,
+  "Name": "빵이 든 양파 수프 요리법",
+  "Output": 0,
+  "OutputItem": 1505215,
+  "OutputCount": 2,
+  "Inputs": "1600020:2,1505080:1,1505052:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2021,
+  "Name": "따뜻한 디저트 요리법",
+  "Output": 0,
+  "OutputItem": 1505216,
+  "OutputCount": 2,
+  "Inputs": "1600167:3,1600034:2,1600042:2",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2022,
+  "Name": "속을 채운 파스타 요리법",
+  "Output": 0,
+  "OutputItem": 1505217,
+  "OutputCount": 3,
+  "Inputs": "1600020:2,1600043:1,1600044:3",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2023,
+  "Name": "터키의 쌈 요리법",
+  "Output": 0,
+  "OutputItem": 1505218,
+  "OutputCount": 2,
+  "Inputs": "1600018:2,1600102:1,1600172:5",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2024,
+  "Name": "누에콩 튀김 요리법",
+  "Output": 0,
+  "OutputItem": 1505219,
+  "OutputCount": 4,
+  "Inputs": "1600017:5,1600043:2,1600924:2",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2025,
+  "Name": "아라비아 디저트 요리법",
+  "Output": 0,
+  "OutputItem": 1505220,
+  "OutputCount": 3,
+  "Inputs": "1600107:2,1600043:3,1600172:2",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2026,
+  "Name": "십자군 의상 봉제법",
+  "Output": 0,
+  "OutputItem": 49500,
+  "OutputCount": 1,
+  "Inputs": "1600309:5,1600661:10,1500301:15",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2027,
+  "Name": "의적풍 모자 봉제법",
+  "Output": 0,
+  "OutputItem": 145500,
+  "OutputCount": 1,
+  "Inputs": "1500134:1,1600454:10,1600662:10",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2028,
+  "Name": "삼각형 모자 봉제법",
+  "Output": 0,
+  "OutputItem": 145700,
+  "OutputCount": 1,
+  "Inputs": "1600463:10,1600467:10,1500303:5",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2029,
+  "Name": "원통형 투구 제작법",
+  "Output": 0,
+  "OutputItem": 145800,
+  "OutputCount": 1,
+  "Inputs": "1600915:5,1500301:10",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2030,
+  "Name": "무도화 제작법",
+  "Output": 0,
+  "OutputItem": 242400,
+  "OutputCount": 1,
+  "Inputs": "1600309:10,1600467:10,1600661:10",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2031,
+  "Name": "의적풍 장갑 봉제법",
+  "Output": 0,
+  "OutputItem": 331100,
+  "OutputCount": 1,
+  "Inputs": "1600309:20,1600915:1,1600661:5",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2032,
+  "Name": "기사용 단검 제작법",
+  "Output": 0,
+  "OutputItem": 415800,
+  "OutputCount": 1,
+  "Inputs": "1600908:4,1600915:6,400208:1",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
  },
  {
   "RecipeId": 2033,
@@ -12108,6 +16834,215 @@
   "Inputs": "1500684:100",
   "Skill": "공예 1",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2043,
+  "Name": "자수실 대량생산",
+  "Output": 1600662,
+  "OutputItem": 0,
+  "OutputCount": 250,
+  "Inputs": "1500052:50,1600306:200",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2044,
+  "Name": "코르덴 대량생산",
+  "Output": 1600455,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600314:50,1600310:50",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2045,
+  "Name": "머스켓총 대량생산",
+  "Output": 1600856,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600912:150,1600908:100,1600915:50",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2046,
+  "Name": "동 대량생산",
+  "Output": 1600913,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600553:50",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2047,
+  "Name": "서양 서적 대량생산",
+  "Output": 1600752,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600903:100",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2048,
+  "Name": "종이 대량생산(삼)",
+  "Output": 1600903,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600318:150",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2049,
+  "Name": "종이 대량생산(사이잘마)",
+  "Output": 1600903,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600316:200",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2050,
+  "Name": "명인 목수의 목공도구 대량생산",
+  "Output": 0,
+  "OutputItem": 1500044,
+  "OutputCount": 50,
+  "Inputs": "1600912:50,1600917:50,1600562:50",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2051,
+  "Name": "다랑어 스테이크 대량생산",
+  "Output": 0,
+  "OutputItem": 1505043,
+  "OutputCount": 100,
+  "Inputs": "1600104:50,1600102:50,1601001:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2052,
+  "Name": "생선과 나무열매 요리 대량생산",
+  "Output": 0,
+  "OutputItem": 1505128,
+  "OutputCount": 150,
+  "Inputs": "1600010:150,1600040:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2053,
+  "Name": "항해장용 요리 대량생산",
+  "Output": 0,
+  "OutputItem": 1505800,
+  "OutputCount": 50,
+  "Inputs": "1505032:50,1505019:50,1505058:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2054,
+  "Name": "감시담당자용 요리 대량생산",
+  "Output": 0,
+  "OutputItem": 1505810,
+  "OutputCount": 50,
+  "Inputs": "1505060:50,1505045:50,1505004:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2055,
+  "Name": "회계사용 요리 대량생산",
+  "Output": 0,
+  "OutputItem": 1505820,
+  "OutputCount": 50,
+  "Inputs": "1505053:50,1505062:50,1505000:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2056,
+  "Name": "창고당번용 요리 대량생산",
+  "Output": 0,
+  "OutputItem": 1505830,
+  "OutputCount": 50,
+  "Inputs": "1505018:50,1505039:50,1505075:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2057,
+  "Name": "부함장용 요리 대량생산",
+  "Output": 0,
+  "OutputItem": 1505840,
+  "OutputCount": 50,
+  "Inputs": "1505053:50,1505045:50,1505009:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2058,
+  "Name": "선의용 요리 대량생산",
+  "Output": 0,
+  "OutputItem": 1505850,
+  "OutputCount": 50,
+  "Inputs": "1505080:50,1505055:50,1505079:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2060,
+  "Name": "정전 협정서 대량생산",
+  "Output": 0,
+  "OutputItem": 1500050,
+  "OutputCount": 100,
+  "Inputs": "1600909:50,1600918:50",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2063,
+  "Name": "럼주 대량생산",
+  "Output": 1600059,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600013:200",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2064,
+  "Name": "쉐리 대량생산",
+  "Output": 1600062,
+  "OutputItem": 0,
+  "OutputCount": 150,
+  "Inputs": "1600057:50,1600167:50",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
  },
  {
   "RecipeId": 2065,
@@ -12740,6 +17675,106 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2134,
+  "Name": "감자 케이크",
+  "Output": 0,
+  "OutputItem": 1505226,
+  "OutputCount": 4,
+  "Inputs": "1600034:2,1600014:3,1600043:2",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2135,
+  "Name": "소시지 그라탕",
+  "Output": 0,
+  "OutputItem": 1505227,
+  "OutputCount": 3,
+  "Inputs": "1600020:2,1600016:3,1600042:2",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2136,
+  "Name": "향초와 연어 그라탕",
+  "Output": 0,
+  "OutputItem": 1505228,
+  "OutputCount": 3,
+  "Inputs": "1600020:2,1600219:2,1601019:1",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2137,
+  "Name": "올리브 파이",
+  "Output": 0,
+  "OutputItem": 1505229,
+  "OutputCount": 4,
+  "Inputs": "1600106:2,1600005:4,1600045:3",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2138,
+  "Name": "북유럽 치즈 케이크",
+  "Output": 0,
+  "OutputItem": 1505230,
+  "OutputCount": 3,
+  "Inputs": "1600020:3,1600151:2,1600043:3",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2139,
+  "Name": "경기병용 갑옷 제작법",
+  "Output": 0,
+  "OutputItem": 50300,
+  "OutputCount": 1,
+  "Inputs": "1600915:20,1500314:20,1500301:5",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2140,
+  "Name": "깃털 장식 투구 제작법",
+  "Output": 0,
+  "OutputItem": 146000,
+  "OutputCount": 1,
+  "Inputs": "1500134:6,1600915:10,1500301:5",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true,
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2141,
+  "Name": "경기병용 투구 제작법",
+  "Output": 0,
+  "OutputItem": 146200,
+  "OutputCount": 1,
+  "Inputs": "1600915:10,1600501:5,1500301:3",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2142,
+  "Name": "서양풍 터번 제작법",
+  "Output": 0,
+  "OutputItem": 146300,
+  "OutputCount": 1,
+  "Inputs": "1600469:10,1600467:10,1600453:5",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
   "RecipeId": 2153,
   "Name": "콩과 돼지고기 찜",
   "Output": 0,
@@ -12797,6 +17832,103 @@
   "OutputCount": 2,
   "Inputs": "1600018:1,1600022:1,1600232:1",
   "Skill": "조리 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2159,
+  "Name": "밀가루의 대량생산",
+  "Output": 1600043,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600011:25",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2169,
+  "Name": "치즈의 대량생산",
+  "Output": 1600020,
+  "OutputItem": 0,
+  "OutputCount": 45,
+  "Inputs": "1600104:15,1600042:15",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2170,
+  "Name": "우유의 대량생산",
+  "Output": 1600042,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600030:25",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2171,
+  "Name": "닭고기의 대량생산",
+  "Output": 1600022,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600032:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2172,
+  "Name": "쇠고기의 대량생산",
+  "Output": 1600009,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600030:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2173,
+  "Name": "돼지고기의 대량생산",
+  "Output": 1600025,
+  "OutputItem": 0,
+  "OutputCount": 50,
+  "Inputs": "1600031:50",
+  "Skill": "조리 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2196,
+  "Name": "버핑가죽의 제조법",
+  "Output": 0,
+  "OutputItem": 1500314,
+  "OutputCount": 1,
+  "Inputs": "1600309:20,1500313:20",
+  "Skill": "보관 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2199,
+  "Name": "순철 판금의 제조법",
+  "Output": 0,
+  "OutputItem": 1500301,
+  "OutputCount": 1,
+  "Inputs": "1600552:50,1600908:25",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2203,
+  "Name": "고급염료의 제조법",
+  "Output": 0,
+  "OutputItem": 1500305,
+  "OutputCount": 1,
+  "Inputs": "1601064:30",
+  "Skill": "보관 10",
   "Facility": ""
  },
  {
@@ -12858,6 +17990,116 @@
   "Inputs": "1600455:30,1600662:20,1500305:5",
   "Skill": "봉제 10",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2219,
+  "Name": "제례용 목제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200150,
+  "OutputCount": 1,
+  "Inputs": "800540:1,1500306:50,1500014:20",
+  "Skill": "공예 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2220,
+  "Name": "의전용 목제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200152,
+  "OutputCount": 1,
+  "Inputs": "800540:1,1500306:50,1500014:20",
+  "Skill": "공예 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2221,
+  "Name": "귀빈용 목제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200154,
+  "OutputCount": 1,
+  "Inputs": "800540:1,1500306:50,1500014:20",
+  "Skill": "공예 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2222,
+  "Name": "축전용 목제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200156,
+  "OutputCount": 1,
+  "Inputs": "800540:1,1500306:50,1500014:20",
+  "Skill": "공예 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2223,
+  "Name": "야전용 목제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200159,
+  "OutputCount": 1,
+  "Inputs": "800540:1,1500306:50,1500014:20",
+  "Skill": "공예 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2224,
+  "Name": "제례용 금속제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200151,
+  "OutputCount": 1,
+  "Inputs": "1500302:50,1500014:20,801050:1",
+  "Skill": "주조 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2225,
+  "Name": "의전용 금속제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200153,
+  "OutputCount": 1,
+  "Inputs": "1500302:50,1500014:20,801050:1",
+  "Skill": "주조 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2226,
+  "Name": "귀빈용 금속제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200155,
+  "OutputCount": 1,
+  "Inputs": "1500302:50,1500014:20,801050:1",
+  "Skill": "주조 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2227,
+  "Name": "축전용 금속제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200157,
+  "OutputCount": 1,
+  "Inputs": "1500302:50,1500014:20,801050:1",
+  "Skill": "주조 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2228,
+  "Name": "야전용 금속제 선박재료 제작법",
+  "Output": 0,
+  "OutputItem": 2200160,
+  "OutputCount": 1,
+  "Inputs": "1500302:50,1500014:20,801050:1",
+  "Skill": "주조 12",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 2232,
@@ -13110,6 +18352,16 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2257,
+  "Name": "추가 대 스팽커 재봉",
+  "Output": 0,
+  "OutputItem": 900510,
+  "OutputCount": 1,
+  "Inputs": "1600451:95,1600917:70,1600661:30",
+  "Skill": "봉제 9",
+  "Facility": ""
+ },
+ {
   "RecipeId": 2258,
   "Name": "명인 목수의 목공도구 제조법",
   "Output": 0,
@@ -13137,6 +18389,66 @@
   "OutputCount": 1,
   "Inputs": "1500052:10,1500486:10",
   "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2261,
+  "Name": "특급 보닛＆세일",
+  "Output": 0,
+  "OutputItem": 600830,
+  "OutputCount": 1,
+  "Inputs": "1600451:45,1600912:27,1600917:27",
+  "Skill": "봉제 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2262,
+  "Name": "특급 스테이 세일＆세일",
+  "Output": 0,
+  "OutputItem": 600910,
+  "OutputCount": 1,
+  "Inputs": "1600451:23,1600912:1,1600917:2",
+  "Skill": "봉제 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2263,
+  "Name": "특급 풀 리그드 세일",
+  "Output": 0,
+  "OutputItem": 601310,
+  "OutputCount": 1,
+  "Inputs": "1600451:54,1600912:36,1600917:36",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2264,
+  "Name": "철판을 강화하는 최상기술",
+  "Output": 0,
+  "OutputItem": 801040,
+  "OutputCount": 1,
+  "Inputs": "1600915:9,801010:1",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2265,
+  "Name": "특급 칼로네이드포 14문",
+  "Output": 0,
+  "OutputItem": 707902,
+  "OutputCount": 1,
+  "Inputs": "1600853:38,1600855:40,1600915:38",
+  "Skill": "주조 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2266,
+  "Name": "특급 캐논포 14문",
+  "Output": 0,
+  "OutputItem": 707402,
+  "OutputCount": 1,
+  "Inputs": "1600853:32,1600855:36,1600915:32",
+  "Skill": "주조 13",
   "Facility": ""
  },
  {
@@ -13218,6 +18530,17 @@
   "Inputs": "1600009:50,1600043:50,1600924:50",
   "Skill": "조리 6",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2276,
+  "Name": "보르츠 레시피",
+  "Output": 0,
+  "OutputItem": 1505248,
+  "OutputCount": 100,
+  "Inputs": "1600009:50",
+  "Skill": "조리 3",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 2277,
@@ -13496,8 +18819,42 @@
   "OutputItem": 1500314,
   "OutputCount": 10,
   "Inputs": "1600309:200,1500313:200",
-  "Skill": "보관 11",
-  "Facility": ""
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2305,
+  "Name": "고급벨벳 대량생산",
+  "Output": 0,
+  "OutputItem": 1500299,
+  "OutputCount": 5,
+  "Inputs": "1600306:150,1600662:50",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2306,
+  "Name": "최고급벨벳 대량생산",
+  "Output": 0,
+  "OutputItem": 1500300,
+  "OutputCount": 5,
+  "Inputs": "1600306:225,1600662:75",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2307,
+  "Name": "순철의 판금 대량생산",
+  "Output": 0,
+  "OutputItem": 1500301,
+  "OutputCount": 5,
+  "Inputs": "1600552:250,1600908:125",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
  },
  {
   "RecipeId": 2308,
@@ -13508,6 +18865,127 @@
   "Inputs": "1600552:150,1600560:150",
   "Skill": "주조 10",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2309,
+  "Name": "고급모피 대량생산",
+  "Output": 0,
+  "OutputItem": 1500303,
+  "OutputCount": 5,
+  "Inputs": "1600036:150,1600924:150",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2310,
+  "Name": "최고급모피 대량생산",
+  "Output": 0,
+  "OutputItem": 1500304,
+  "OutputCount": 5,
+  "Inputs": "1600924:150,1600035:250",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2311,
+  "Name": "고급염료 대량생산",
+  "Output": 0,
+  "OutputItem": 1500305,
+  "OutputCount": 5,
+  "Inputs": "1601064:150",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2312,
+  "Name": "최고급염료 대량생산",
+  "Output": 0,
+  "OutputItem": 1500306,
+  "OutputCount": 5,
+  "Inputs": "1601064:250",
+  "Skill": "보관 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2313,
+  "Name": "양질의 깃털세공 대량생산",
+  "Output": 0,
+  "OutputItem": 1500307,
+  "OutputCount": 5,
+  "Inputs": "1600319:150",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2314,
+  "Name": "최고품 깃털세공 대량생산",
+  "Output": 0,
+  "OutputItem": 1500308,
+  "OutputCount": 5,
+  "Inputs": "1600319:250",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2315,
+  "Name": "고급루비 대량생산",
+  "Output": 0,
+  "OutputItem": 1500309,
+  "OutputCount": 5,
+  "Inputs": "1600558:150",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2316,
+  "Name": "최고급루비 대량생산",
+  "Output": 0,
+  "OutputItem": 1500310,
+  "OutputCount": 5,
+  "Inputs": "1600558:250",
+  "Skill": "공예 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2317,
+  "Name": "장인의 대장공도구 대량생산",
+  "Output": 0,
+  "OutputItem": 1500014,
+  "OutputCount": 5,
+  "Inputs": "1600559:100,1601065:100,1500311:150",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2318,
+  "Name": "공작깃털 대량채집",
+  "Output": 1600319,
+  "OutputItem": 0,
+  "OutputCount": 100,
+  "Inputs": "1600075:100",
+  "Skill": "봉제 1",
+  "Facility": "",
+  "RankGuessed": true
+ },
+ {
+  "RecipeId": 2320,
+  "Name": "거장의 목공도구 대량생산",
+  "Output": 0,
+  "OutputItem": 1500674,
+  "OutputCount": 20,
+  "Inputs": "1600917:200,1600915:200,1500044:100",
+  "Skill": "주조 1",
+  "Facility": "",
+  "RankGuessed": true
  },
  {
   "RecipeId": 2321,
@@ -13537,6 +19015,36 @@
   "OutputCount": 8,
   "Inputs": "1600154:10,1505090:10,1505185:10",
   "Skill": "조리 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2324,
+  "Name": "부관용 모험 일지 작성",
+  "Output": 0,
+  "OutputItem": 1500759,
+  "OutputCount": 1,
+  "Inputs": "1500754:3",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2325,
+  "Name": "부관용 교역 일지 작성",
+  "Output": 0,
+  "OutputItem": 1500760,
+  "OutputCount": 1,
+  "Inputs": "1500755:3",
+  "Skill": "공예 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2326,
+  "Name": "부관용 전투 일지 작성",
+  "Output": 0,
+  "OutputItem": 1500761,
+  "OutputCount": 1,
+  "Inputs": "1500756:3",
+  "Skill": "공예 7",
   "Facility": ""
  },
  {
@@ -13960,6 +19468,17 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2437,
+  "Name": "바빌로니아 신발 제작법",
+  "Output": 0,
+  "OutputItem": 243800,
+  "OutputCount": 1,
+  "Inputs": "1600309:25,1600661:15,1600662:5",
+  "Skill": "공예 6",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 2438,
   "Name": "바빌로니아 군복 제작법",
   "Output": 0,
@@ -14058,6 +19577,28 @@
   "Inputs": "1600422:30,1600460:25,1500309:10",
   "Skill": "봉제 10",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2448,
+  "Name": "흑고래 함대 대장복 봉제법",
+  "Output": 0,
+  "OutputItem": 47005,
+  "OutputCount": 1,
+  "Inputs": "1600463:90,1600605:36,1500301:50",
+  "Skill": "봉제 16",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2449,
+  "Name": "살미엔트 상회복 봉제법",
+  "Output": 0,
+  "OutputItem": 47105,
+  "OutputCount": 1,
+  "Inputs": "1600657:9,1600455:90,1500305:50",
+  "Skill": "봉제 16",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 2450,
@@ -14260,6 +19801,17 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2470,
+  "Name": "고대 크레타 여성 의류 봉제법",
+  "Output": 0,
+  "OutputItem": 55100,
+  "OutputCount": 1,
+  "Inputs": "1600467:10,1600663:5,1500305:10",
+  "Skill": "봉제 9",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 2471,
   "Name": "고대 크레타 왕족관 제작법",
   "Output": 0,
@@ -14408,6 +19960,17 @@
   "Inputs": "1600459:25,1500314:10,1500299:10",
   "Skill": "봉제 10",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2489,
+  "Name": "구전하는 자의 드레스 봉제법",
+  "Output": 0,
+  "OutputItem": 49004,
+  "OutputCount": 1,
+  "Inputs": "1600653:45,1600458:90,1500305:50",
+  "Skill": "봉제 16",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 2490,
@@ -14700,6 +20263,76 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2525,
+  "Name": "선측용 연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901200,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600933:50,1600934:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2526,
+  "Name": "선수용 연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901210,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600933:50,1600934:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2527,
+  "Name": "선미용 연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901220,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600933:50,1600934:50",
+  "Skill": "관리기술 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2528,
+  "Name": "선측용 화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901300,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600934:50,1600935:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2529,
+  "Name": "선수용 화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901310,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600934:50,1600935:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2530,
+  "Name": "선미용 화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901320,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600934:50,1600935:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2531,
+  "Name": "일반 방벽의 제작법",
+  "Output": 0,
+  "OutputItem": 901400,
+  "OutputCount": 1,
+  "Inputs": "1600559:50,1500302:3,1500983:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
   "RecipeId": 2532,
   "Name": "공장노동자복 봉제법",
   "Output": 0,
@@ -14980,6 +20613,177 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2577,
+  "Name": "선측용 연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901200,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600933:50,1600934:50",
+  "Skill": "관리기술 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2578,
+  "Name": "선측용 광역연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901201,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600933:60,1600934:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2579,
+  "Name": "선측용 집중연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901202,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600933:60,1600934:60",
+  "Skill": "관리기술 8",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2580,
+  "Name": "선수용 연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901210,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600933:50,1600934:50",
+  "Skill": "관리기술 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2581,
+  "Name": "선수용 광역연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901211,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600933:60,1600934:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2582,
+  "Name": "선수용 집중연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901212,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600933:60,1600934:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2584,
+  "Name": "선미용 광역연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901221,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600933:60,1600934:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2585,
+  "Name": "선미용 집중연사기관포 제작법",
+  "Output": 0,
+  "OutputItem": 901225,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600933:60,1600934:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2586,
+  "Name": "선측용 화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901300,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600934:50,1600935:50",
+  "Skill": "관리기술 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2587,
+  "Name": "선측용 광역화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901301,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600934:60,1600935:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2588,
+  "Name": "선측용 집중화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901302,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600934:60,1600935:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2589,
+  "Name": "선수용 화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901310,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600934:50,1600935:50",
+  "Skill": "관리기술 6",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2590,
+  "Name": "선수용 광역화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901311,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600934:60,1600935:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2591,
+  "Name": "선수용 집중화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901312,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600934:60,1600935:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2593,
+  "Name": "선미용 광역화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901321,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600934:60,1600935:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2594,
+  "Name": "선미용 집중화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901322,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1600934:60,1600935:60",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2595,
+  "Name": "일반 방벽의 제작법",
+  "Output": 0,
+  "OutputItem": 901400,
+  "OutputCount": 1,
+  "Inputs": "1600559:50,1500302:3,1500983:50",
+  "Skill": "주조 10",
+  "Facility": ""
+ },
+ {
   "RecipeId": 2596,
   "Name": "북미 특제복 봉제법",
   "Output": 0,
@@ -15180,6 +20984,236 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2622,
+  "Name": "데미 캘버린 18문",
+  "Output": 0,
+  "OutputItem": 702006,
+  "OutputCount": 1,
+  "Inputs": "1600906:48,1600855:60,1600912:36",
+  "Skill": "주조 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2623,
+  "Name": "캘버린포 18문",
+  "Output": 0,
+  "OutputItem": 702509,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:60,1600912:42",
+  "Skill": "주조 11",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2624,
+  "Name": "캐논 페드로포 18문",
+  "Output": 0,
+  "OutputItem": 703006,
+  "OutputCount": 1,
+  "Inputs": "1600906:72,1600855:78,1600912:60",
+  "Skill": "주조 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2625,
+  "Name": "호이차포 18문",
+  "Output": 0,
+  "OutputItem": 704008,
+  "OutputCount": 1,
+  "Inputs": "1600906:78,1600855:72,1600912:60",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2626,
+  "Name": "래피드 파이어포 18문",
+  "Output": 0,
+  "OutputItem": 705009,
+  "OutputCount": 1,
+  "Inputs": "1600906:66,1600855:60,1600912:42",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2627,
+  "Name": "모터포 18문",
+  "Output": 0,
+  "OutputItem": 705910,
+  "OutputCount": 1,
+  "Inputs": "1600906:84,1600855:84,1600912:54",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2628,
+  "Name": "데미 캐논포 18문",
+  "Output": 0,
+  "OutputItem": 706406,
+  "OutputCount": 1,
+  "Inputs": "1600853:36,1600855:54,1600915:34",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2629,
+  "Name": "카프리스포 18문",
+  "Output": 0,
+  "OutputItem": 710406,
+  "OutputCount": 1,
+  "Inputs": "1600906:66,1600855:60,1600912:42",
+  "Skill": "주조 18",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2630,
+  "Name": "익스플로더포 18문",
+  "Output": 0,
+  "OutputItem": 705518,
+  "OutputCount": 1,
+  "Inputs": "1600853:41,1600855:60,1600915:44",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2631,
+  "Name": "드라코니스포 18문",
+  "Output": 0,
+  "OutputItem": 708906,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:66,1600912:42",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2632,
+  "Name": "앙페르포 18문",
+  "Output": 0,
+  "OutputItem": 709432,
+  "OutputCount": 1,
+  "Inputs": "1600906:96,1600855:68,1600915:96",
+  "Skill": "주조 18",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2633,
+  "Name": "메테오라포 18문",
+  "Output": 0,
+  "OutputItem": 710930,
+  "OutputCount": 1,
+  "Inputs": "1600906:92,1600855:75,1600915:96",
+  "Skill": "주조 18",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2635,
+  "Name": "캘버린포 18문",
+  "Output": 0,
+  "OutputItem": 702509,
+  "OutputCount": 1,
+  "Inputs": "1600906:50,1600855:50,1600912:35",
+  "Skill": "관리기술 7",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2636,
+  "Name": "캐논 페드로포 18문",
+  "Output": 0,
+  "OutputItem": 703006,
+  "OutputCount": 1,
+  "Inputs": "1600906:60,1600855:65,1600912:50",
+  "Skill": "관리기술 5",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2637,
+  "Name": "호이차포 18문",
+  "Output": 0,
+  "OutputItem": 704008,
+  "OutputCount": 1,
+  "Inputs": "1600906:65,1600855:60,1600912:50",
+  "Skill": "관리기술 8",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2638,
+  "Name": "래피드 파이어포 18문",
+  "Output": 0,
+  "OutputItem": 705009,
+  "OutputCount": 1,
+  "Inputs": "1600906:55,1600855:50,1600912:35",
+  "Skill": "관리기술 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2639,
+  "Name": "모터포 18문",
+  "Output": 0,
+  "OutputItem": 705910,
+  "OutputCount": 1,
+  "Inputs": "1600906:70,1600855:70,1600912:45",
+  "Skill": "관리기술 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2640,
+  "Name": "데미 캐논포 18문",
+  "Output": 0,
+  "OutputItem": 706406,
+  "OutputCount": 1,
+  "Inputs": "1600853:30,1600855:45,1600915:28",
+  "Skill": "관리기술 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2641,
+  "Name": "카프리스포 18문",
+  "Output": 0,
+  "OutputItem": 710406,
+  "OutputCount": 1,
+  "Inputs": "1600906:55,1600855:50,1600912:35",
+  "Skill": "관리기술 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2642,
+  "Name": "익스플로더포 18문",
+  "Output": 0,
+  "OutputItem": 705518,
+  "OutputCount": 1,
+  "Inputs": "1600853:34,1600855:50,1600915:36",
+  "Skill": "관리기술 9",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2643,
+  "Name": "드라코니스포 18문",
+  "Output": 0,
+  "OutputItem": 708906,
+  "OutputCount": 1,
+  "Inputs": "1600906:50,1600855:55,1600912:35",
+  "Skill": "관리기술 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2644,
+  "Name": "앙페르포 18문",
+  "Output": 0,
+  "OutputItem": 709432,
+  "OutputCount": 1,
+  "Inputs": "1600906:80,1600855:56,1600915:80",
+  "Skill": "관리기술 14",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2645,
+  "Name": "메테오라포 18문",
+  "Output": 0,
+  "OutputItem": 710930,
+  "OutputCount": 1,
+  "Inputs": "1600906:76,1600855:62,1600915:80",
+  "Skill": "관리기술 14",
+  "Facility": ""
+ },
+ {
   "RecipeId": 2646,
   "Name": "거대한 마원단 짜는 법",
   "Output": 0,
@@ -15238,6 +21272,17 @@
   "Inputs": "1600469:7,1600459:10,1500299:1",
   "Skill": "봉제 10",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2653,
+  "Name": "여성급사용 머리장식의 제작법",
+  "Output": 0,
+  "OutputItem": 151701,
+  "OutputCount": 1,
+  "Inputs": "1600469:5,1600662:5,1500305:1",
+  "Skill": "봉제 10",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 2656,
@@ -15450,6 +21495,76 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2700,
+  "Name": "세라핌포 18문",
+  "Output": 0,
+  "OutputItem": 704532,
+  "OutputCount": 1,
+  "Inputs": "1600906:118,1600855:64,1600915:116",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2701,
+  "Name": "페리에포 18문",
+  "Output": 0,
+  "OutputItem": 706906,
+  "OutputCount": 1,
+  "Inputs": "1600853:44,1600855:56,1600915:34",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2702,
+  "Name": "하이페리에포 18문",
+  "Output": 0,
+  "OutputItem": 706932,
+  "OutputCount": 1,
+  "Inputs": "1600906:99,1600855:51,1600915:99",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2703,
+  "Name": "캐논포 18문",
+  "Output": 0,
+  "OutputItem": 707418,
+  "OutputCount": 1,
+  "Inputs": "1600853:57,1600855:64,1600915:57",
+  "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2704,
+  "Name": "칼로네이드포 18문",
+  "Output": 0,
+  "OutputItem": 707916,
+  "OutputCount": 1,
+  "Inputs": "1600853:67,1600855:70,1600915:67",
+  "Skill": "주조 17",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2705,
+  "Name": "발칸포 18문",
+  "Output": 0,
+  "OutputItem": 709430,
+  "OutputCount": 1,
+  "Inputs": "1600906:118,1600855:67,1600915:118",
+  "Skill": "주조 18",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2706,
+  "Name": "슈미네포 18문",
+  "Output": 0,
+  "OutputItem": 710928,
+  "OutputCount": 1,
+  "Inputs": "1600906:118,1600855:67,1600915:118",
+  "Skill": "주조 18",
+  "Facility": ""
+ },
+ {
   "RecipeId": 2708,
   "Name": "계란 토스트 만드는 방법",
   "Output": 0,
@@ -15497,6 +21612,47 @@
   "OutputCount": 1,
   "Inputs": "1505047:105,1500974:10",
   "Skill": "보관 10",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2728,
+  "Name": "선미용 중화염방사기 제작법",
+  "Output": 0,
+  "OutputItem": 901320,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1600934:50,1600935:50",
+  "Skill": "관리기술 6",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
+  "RecipeId": 2731,
+  "Name": "개량 방벽의 제조법",
+  "Output": 0,
+  "OutputItem": 901401,
+  "OutputCount": 1,
+  "Inputs": "1600559:60,1500302:3,1500983:60",
+  "Skill": "주조 12",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2732,
+  "Name": "내탄방벽의 제조법",
+  "Output": 0,
+  "OutputItem": 901402,
+  "OutputCount": 1,
+  "Inputs": "1600559:70,1500302:3,1500983:70",
+  "Skill": "주조 13",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2733,
+  "Name": "내화방벽의 제조법",
+  "Output": 0,
+  "OutputItem": 901403,
+  "OutputCount": 1,
+  "Inputs": "1600559:70,1500302:3,1500983:70",
+  "Skill": "주조 13",
   "Facility": ""
  },
  {
@@ -15890,6 +22046,17 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2799,
+  "Name": "고위 한족 남성 모자 제작법",
+  "Output": 0,
+  "OutputItem": 140800,
+  "OutputCount": 1,
+  "Inputs": "1600904:2,1600609:2,1600453:10",
+  "Skill": "봉제 12",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 2800,
   "Name": "서민 한족의 옷 제작법",
   "Output": 0,
@@ -16108,6 +22275,17 @@
   "Inputs": "1504007:5,1504010:10,1504004:3",
   "Skill": "공예 17",
   "Facility": ""
+ },
+ {
+  "RecipeId": 2856,
+  "Name": "백금제 브로치 제작법",
+  "Output": 0,
+  "OutputItem": 527035,
+  "OutputCount": 1,
+  "Inputs": "1600501:3,1504010:15,1504011:5",
+  "Skill": "공예 17",
+  "Facility": "",
+  "NameGuessed": true
  },
  {
   "RecipeId": 2857,
@@ -16350,6 +22528,17 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2889,
+  "Name": "특별 주문 해적 구두 봉제법",
+  "Output": 0,
+  "OutputItem": 243305,
+  "OutputCount": 1,
+  "Inputs": "1600661:15,1600662:15,1500314:10",
+  "Skill": "봉제 15",
+  "Facility": "",
+  "NameGuessed": true
+ },
+ {
   "RecipeId": 2895,
   "Name": "남성 귀족의 가운 봉제법",
   "Output": 0,
@@ -16560,6 +22749,256 @@
   "Facility": ""
  },
  {
+  "RecipeId": 2988,
+  "Name": "특수 세라핌포 18문",
+  "Output": 0,
+  "OutputItem": 704536,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,704519:1,1500704:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2990,
+  "Name": "특수 하이페리에포 18문",
+  "Output": 0,
+  "OutputItem": 706936,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,706916:1,1500704:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2991,
+  "Name": "특수 캐논포 18문",
+  "Output": 0,
+  "OutputItem": 707423,
+  "OutputCount": 1,
+  "Inputs": "707100:1,2200069:1,1500704:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2992,
+  "Name": "특수 칼로네이드포 18문",
+  "Output": 0,
+  "OutputItem": 707918,
+  "OutputCount": 1,
+  "Inputs": "707600:1,2200069:1,1500704:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2993,
+  "Name": "특수 발칸포 18문",
+  "Output": 0,
+  "OutputItem": 709437,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,709413:1,1500704:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2994,
+  "Name": "특수 슈미네포 18문",
+  "Output": 0,
+  "OutputItem": 710934,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,710913:1,1500704:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2995,
+  "Name": "우등 스테이 세일 봉제",
+  "Output": 0,
+  "OutputItem": 601141,
+  "OutputCount": 1,
+  "Inputs": "601120:1,2200096:1,1500705:5",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2996,
+  "Name": "명예 세일 봉제",
+  "Output": 0,
+  "OutputItem": 601241,
+  "OutputCount": 1,
+  "Inputs": "601220:1,2200096:1,1500705:5",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2997,
+  "Name": "우등 풀 리그드 세일 봉제법",
+  "Output": 0,
+  "OutputItem": 601391,
+  "OutputCount": 1,
+  "Inputs": "601320:1,2200096:1,1500705:5",
+  "Skill": "봉제 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2998,
+  "Name": "특별 강철판 제조",
+  "Output": 0,
+  "OutputItem": 801094,
+  "OutputCount": 1,
+  "Inputs": "2200069:1,1500302:1,1500706:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 2999,
+  "Name": "특별 압연 철판 제조",
+  "Output": 0,
+  "OutputItem": 801095,
+  "OutputCount": 1,
+  "Inputs": "1500302:2,1500706:3,801094:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3000,
+  "Name": "특별 강화 강철판 제조",
+  "Output": 0,
+  "OutputItem": 801096,
+  "OutputCount": 1,
+  "Inputs": "1500302:3,1500706:4,801094:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3001,
+  "Name": "강화 화염방사기·개량제조법",
+  "Output": 0,
+  "OutputItem": 901308,
+  "OutputCount": 1,
+  "Inputs": "1600934:80,1600935:80,1500707:5",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3047,
+  "Name": "특대 충각·개량제조법",
+  "Output": 0,
+  "OutputItem": 900041,
+  "OutputCount": 1,
+  "Inputs": "900040:1,1500706:5,1500709:5",
+  "Skill": "공예 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3048,
+  "Name": "선수 세이커포·개량제조법",
+  "Output": 0,
+  "OutputItem": 730301,
+  "OutputCount": 1,
+  "Inputs": "730300:1,1500704:4,1500707:4",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3049,
+  "Name": "선수 칼로네이드포·개량제조법",
+  "Output": 0,
+  "OutputItem": 730701,
+  "OutputCount": 1,
+  "Inputs": "730700:1,1500704:4,1500707:4",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3050,
+  "Name": "선수 메테오라포·개량제조법",
+  "Output": 0,
+  "OutputItem": 730801,
+  "OutputCount": 1,
+  "Inputs": "1500704:4,1500707:4,730800:1",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3051,
+  "Name": "선수 엔젤포·개량제조법",
+  "Output": 0,
+  "OutputItem": 730901,
+  "OutputCount": 1,
+  "Inputs": "730900:1,1500704:4,1500707:4",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3052,
+  "Name": "선미 세이커포·개량제조법",
+  "Output": 0,
+  "OutputItem": 740301,
+  "OutputCount": 1,
+  "Inputs": "740300:1,1500704:4,1500707:4",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3053,
+  "Name": "선미 칼로네이드포·개량제조법",
+  "Output": 0,
+  "OutputItem": 740701,
+  "OutputCount": 1,
+  "Inputs": "740700:1,1500704:4,1500707:4",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3054,
+  "Name": "선미 메테오라포·개량제조법",
+  "Output": 0,
+  "OutputItem": 740801,
+  "OutputCount": 1,
+  "Inputs": "740800:1,1500704:4,1500707:4",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3055,
+  "Name": "선미 엔젤포·개량제조법",
+  "Output": 0,
+  "OutputItem": 740901,
+  "OutputCount": 1,
+  "Inputs": "740900:1,1500704:4,1500707:4",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3056,
+  "Name": "특별 강철판·개량제조법",
+  "Output": 0,
+  "OutputItem": 801097,
+  "OutputCount": 1,
+  "Inputs": "1500706:1,801094:1,1500709:3",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3057,
+  "Name": "특별 압연 철판·개량제조법",
+  "Output": 0,
+  "OutputItem": 801098,
+  "OutputCount": 1,
+  "Inputs": "1500706:1,801095:1,1500709:3",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3058,
+  "Name": "특별 강화 강철판·개량제조법",
+  "Output": 0,
+  "OutputItem": 801099,
+  "OutputCount": 1,
+  "Inputs": "1500706:1,801096:1,1500709:3",
+  "Skill": "주조 15",
+  "Facility": ""
+ },
+ {
   "RecipeId": 3059,
   "Name": "투사의 너클 가드 제조법",
   "Output": 0,
@@ -16627,6 +23066,26 @@
   "OutputCount": 1,
   "Inputs": "1600915:50,1600584:4,1503089:7",
   "Skill": "주조 16",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3152,
+  "Name": "캐논포 20문",
+  "Output": 0,
+  "OutputItem": 707424,
+  "OutputCount": 1,
+  "Inputs": "1600855:70,1600915:130,1504114:1",
+  "Skill": "주조 18",
+  "Facility": ""
+ },
+ {
+  "RecipeId": 3153,
+  "Name": "칼로네이드포·개",
+  "Output": 0,
+  "OutputItem": 707919,
+  "OutputCount": 1,
+  "Inputs": "1600855:70,1600915:130,1504114:1",
+  "Skill": "주조 18",
   "Facility": ""
  },
  {

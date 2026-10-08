@@ -32,6 +32,15 @@ internal sealed partial class Voyage
         WreckPieces++;
         Say($"{from} 침몰선의 조각지도를 얻었다. ({Text(1325, "분석조각지도수")} {WreckPieces} / {WreckPiecesNeeded})");
         if (WreckPieces < WreckPiecesNeeded) return;
+        // 원본의 침몰선 자리(gvdb 「沈没船（発見物）」 35건 — 발견물과 좌표)가 남아 있으면 아직 못 찾은 것 가운데 가장 가까운 것을 가리킨다.
+        // 다 찾았거나 자료가 없으면 아래의 지은 자리(지금 자리에서 15 ~ 40 떨어진 바다)
+        if (Data.WreckFinds.Where(w => !Found.Contains(w.DiscoveryId)).MinBy(w => Math.Pow(WorldMap.DeltaX(ShipX, w.X), 2) + Math.Pow(w.Y - ShipY, 2)) is { } real)
+        {
+            (WreckAt, WreckPieces, WreckRaised, WreckFails) = ((real.X, real.Y), 0, 0, 0);
+            Cues.Enqueue("Done");
+            Say($"조각지도를 맞춰 침몰선의 자리를 알아냈다 — {WreckNote()}");
+            return;
+        }
         // 지금 자리에서 15 ~ 40 떨어진 바다 한 곳
         for (int tries = 0; tries < 60; tries++)
         {
@@ -49,6 +58,8 @@ internal sealed partial class Voyage
     /// <summary>대본용: 조각지도를 한 장 얻는다 / 침몰선을 바로 곁에 둔다.</summary>
     public void WreckPieceForTest() => FindWreckPiece("(개발)");
     public void WreckHereForTest() => (WreckAt, WreckRaised, WreckFails) = ((ShipX, ShipY), 0, 0);
+    /// <summary>대본용: 알아낸 침몰선의 자리로 배를 옮긴다.</summary>
+    public void WreckGoForTest() { if (WreckAt is { } at) { Teleport(at.X, at.Y); Say($"(시험) 침몰선 자리 ({at.X:0}, {at.Y:0}) — 원본 침몰선 {Data.WreckFinds.Count}건"); } }
 
     public double WreckFar => WreckAt is { } at ? Math.Sqrt(Math.Pow(WorldMap.DeltaX(ShipX, at.X), 2) + Math.Pow(at.Y - ShipY, 2)) : double.MaxValue;
 
@@ -92,6 +103,16 @@ internal sealed partial class Voyage
         if (WreckRaised < 100) { Say(Fill(Text(3346, "%s의 침몰선이 올라왔습니다. 현재 %d％까지 올라와 있습니다！"), PlayerName, $"{WreckRaised}")); return; }
         // 다 올렸다 — 이제 항구까지 끌고 가야 값을 받는다(예항)
         TowValue = 20_000 + rank * 10_000 + _random.Next(20_000);
+        // 원본의 침몰선 자리였으면 그 침몰선을 발견한다(발견물 표의 침몰선 — 인양에 성공하면 발견)
+        if (WreckAt is { } raisedAt && Data.WreckFinds.Find(w => Math.Abs(w.X - raisedAt.X) < 1 && Math.Abs(w.Y - raisedAt.Y) < 1) is { } wreck
+            && Data.Discoveries.Find(d => d.Id == wreck.DiscoveryId) is { } ship && Found.Add(ship.Id))
+        {
+            _towWreck = ship.Id;
+            Cues.Enqueue("Discover");
+            Say($"{ship.Name}을(를) 발견했다! ({Data.DiscoveryKinds.Find(k => k.Id == ship.Kind)?.Name} {DiscoveryStars(ship)}, 모험 경험 {ship.Exp} · 명성 {ship.Fame})");
+            GainExp(0, ship.Exp, ship.Fame);
+            (Discovered, DiscoveredAt) = (ship, Clock);
+        }
         WreckAt = null;
         Cues.Enqueue("Done");
         Say($"{Fill(Text(3348, "%s가 침몰선의 인양에 성공했습니다!"), PlayerName)} 가까운 항구까지 끌고 가자(예항 — 배가 느려진다).");
@@ -105,6 +126,8 @@ internal sealed partial class Voyage
 
     /// <summary>끌고 가는 침몰선의 값 — 0 이면 끄는 것이 없다.</summary>
     public int TowValue { get; private set; }
+    // 끌고 있는 원본 침몰선(발견물 번호) — 항구에 넘길 때 그 침몰선의 인양품 하나를 받는다
+    private int _towWreck;
     public bool TowFrayed { get; private set; }
     public double TowSpeed => TowValue > 0 ? Math.Min(1, 0.7 + Option("Tow")) : 1;      // 「예항 보조」: 안정된 예항
 
@@ -121,7 +144,7 @@ internal sealed partial class Voyage
                 Cues.Enqueue("Alarm");
                 continue;
             }
-            (TowValue, TowFrayed) = (0, false);
+            (TowValue, TowFrayed, _towWreck) = (0, false, 0);
             Say(Text(3428, "선장님！ 예항로프가 끊어져 버렸습니다！"));
             Say(Text(3182, "예항 중인 침몰선이 다시 바다속으로 가라앉아 버렸습니다…"));
             Cues.Enqueue("Error");
@@ -136,7 +159,10 @@ internal sealed partial class Voyage
         WrecksSalvaged++;
         Say($"끌고 온 침몰선을 넘겼다 — {TowValue:N0} 두캇. ({Text(619, "누적인양수").Split('%')[0].Trim()} {WrecksSalvaged})");
         GainExp(0, 50, 10);
-        (TowValue, TowFrayed) = (0, false);
+        // 원본 침몰선이면 그 침몰선의 인양품(gvdb 의 보상 칸에 적힌 것들) 가운데 하나를 받는다 — 무엇이 몇 개 나오는지는 자료가 없어 「아무것 하나」로 지었다
+        if (_towWreck > 0 && Data.WreckFinds.Find(w => w.DiscoveryId == _towWreck) is { Gifts.Count: > 0 } hauled)
+            GiveGifts([hauled.Gifts[_random.Next(hauled.Gifts.Count)]]);
+        (TowValue, TowFrayed, _towWreck) = (0, false, 0);
         Cues.Enqueue("Done");
     }
 

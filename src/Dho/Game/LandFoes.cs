@@ -11,6 +11,8 @@ internal sealed class LandBattle
     public bool Human;
     public int Round = 1;
     public bool Guarding;
+    /// <summary>강장제를 썼다 — 이 싸움이 끝날 때까지 공격력 2배 · 방어력 1/4(gvdb 「狂戦士」. 원본은 시간이 지나면 풀리지만 여기서는 싸움이 끝날 때까지).</summary>
+    public bool Berserk;
     public readonly List<string> Log = [];
     public string? Result;
     public bool Won;
@@ -117,15 +119,29 @@ internal sealed partial class Voyage
     /// <summary>
     /// 채집(스킬 설명: 「여러 가지 재료와 물품을 채집할 수 있다」) — 한 번 오른 뭍에서 세 번까지, 한 번에 피로 +5.
     /// 원본은 상륙지마다 나는 것이 정해져 있다(클라이언트 표 106 · 107 의 채집 지점 — 무엇이 나는지는 못 풀었다).
-    /// 여기서는 식료품 · 조미료 · 의약품 · 섬유 갈래의 교역품 가운데 아무것이나 1 + 랭크 ÷ 3 개(지은 값).
+    /// 무엇이 나는지 아는 상륙지(<see cref="KnownGather"/> — 사용자가 준 공예 랭작 글의 채집지)에서는 그것과 풀이 난다.
+    /// 그 밖의 상륙지는 식료품 · 조미료 · 의약품 · 섬유 갈래의 교역품 가운데 아무것이나(지은 것). 수는 1 + 랭크 ÷ 3 개(지은 값).
     /// </summary>
+    // 상륙지 번호(클라이언트 표 11) → 거기서 채집되는 교역품. 사용자가 준 글(2026-10-08)의 것:
+    // 꿀벌 집 = 살로니카 남서쪽 · 폰페이 섬 남쪽 해안 · 오스트레일리아 북서해안 · 왕가누이 서쪽 · 호바트 북쪽(글의 올림피아 지방 · 캄파니아 지방 · 시엠레아브 근교는 이 게임에 없는 도시 교외라 뺐다),
+    // 색 광석 다섯 = 「실론 외곽」 — 상륙지 표의 실론은 「실론 동쪽」뿐이라 거기로 봤다(짐작). 풀(1600369)은 글의 「상륙지 채집이나 탐색」 — 아는 곳에는 같이 둔다
+    private static readonly Dictionary<int, int[]> KnownGather = new()
+    {
+        [1009] = [1600041, 1600369], [1087] = [1600041, 1600369], [1082] = [1600041, 1600369], [1084] = [1600041, 1600369], [1083] = [1600041, 1600369],
+        [1032] = [1600558, 1600559, 1600560, 1600561, 1600562, 1600369],
+    };
+
+    /// <summary>이 상륙지에서 나는 것으로 아는 교역품의 이름들 — 모르면 빈 글.</summary>
+    public string GatherKnownText => Ashore is { } site && KnownGather.TryGetValue(site.Id, out var known) ? string.Join(" · ", known.Select(id => Good(id)?.Name).OfType<string>()) : "";
+
     public void Gather()
     {
         if (Dialog != Dialog.Ashore || !CanGather || _gathered >= GatherTimes) return;
         if (HoldFree <= 0) { Say("창고가 가득 찼다."); return; }
         _gathered++;
         Fatigue = Math.Min(100, Fatigue + 5 * (1 - March));
-        var wild = Data.Goods.Where(g => g.Kind is 0 or 1 or 5 or 6).ToList();
+        var wild = Ashore is { } here && KnownGather.TryGetValue(here.Id, out var known) && known.Select(Good).OfType<Dho.Data.GoodData>().ToList() is { Count: > 0 } real ? real
+            : Data.Goods.Where(g => g.Kind is 0 or 1 or 5 or 6).ToList();
         if (wild.Count == 0) return;
         var good = wild[_random.Next(wild.Count)];
         int count = Math.Min(HoldFree, 1 + (int)Bonus("Gather") / 3 + _random.Next(2));
@@ -143,8 +159,8 @@ internal sealed partial class Voyage
     private int WornStat(int stat) =>
         Equipped.Where(id => id > 0 && Items.GetValueOrDefault(id) > 0).Sum(id => GearOf(id) is { } gear && gear.Stats.Count > stat ? gear.Stats[stat] + ForgedOf(id, stat) : 0);
     // 검술 · 응용검술 · 돌격(Melee)과 방어(MeleeGuard) 스킬이 육상전에도 듣는다 — 그 비율만큼
-    public int LandAttack => (int)((12 + WornStat(0) + LevelOf(BattleExp).Level + Study("LandAttack") + Study("LandBoth")) * (1 + Bonus("Melee") + Bonus("LandRanged")));      // 저격술 · 던지기 기술 · 활 쏘기 — 육상전에 무기 갈래가 없어 공격력에 그대로 더한다(지은 값)
-    public int LandDefense => (int)((WornStat(1) + Study("LandBoth")) * (1 + Bonus("MeleeGuard")));
+    public int LandAttack => (LandFight is { Berserk: true, Result: null } ? 2 : 1) * (int)((12 + WornStat(0) + LevelOf(BattleExp).Level + Study("LandAttack") + Study("LandBoth")) * (1 + Bonus("Melee") + Bonus("LandRanged")));      // 저격술 · 던지기 기술 · 활 쏘기 — 육상전에 무기 갈래가 없어 공격력에 그대로 더한다(지은 값)
+    public int LandDefense => (int)((LandFight is { Berserk: true, Result: null } ? 0.25 : 1) * (WornStat(1) + Study("LandBoth")) * (1 + Bonus("MeleeGuard")));
 
     private static readonly (string Name, bool Human, double Tough)[] LandFoeKinds =
     [
@@ -183,7 +199,21 @@ internal sealed partial class Voyage
 
     private static double Hit(double attack, double defense, double roll) => Math.Max(1, attack * (0.8 + roll * 0.4) - defense * 0.5);
 
-    /// <summary>kind: 0 공격 · 1 테크닉(행동력 10) · 2 방어 · 3 도망.</summary>
+    private Dho.Data.ItemData? _healWith;
+
+    /// <summary>가진 치료약 가운데 가장 약한 것(육상전 창의 「약」 단추).</summary>
+    public Dho.Data.ItemData? HealItem => Data.Items.Where(i => i.Effect == "LandHeal" && Items.GetValueOrDefault(i.Id) > 0).OrderBy(i => i.Amount).FirstOrDefault();
+
+    /// <summary>육상전에서 쓸 수 있는 가진 아이템 — 약(LandHeal) · 던지는 것(LandThrow, Amount = 원본의 랭크 3 · 6 · 9) · 강장제(LandBerserk).</summary>
+    public List<Dho.Data.ItemData> LandItems() => Data.Items.Where(i => i.Effect is "LandHeal" or "LandThrow" or "LandBerserk" && Items.GetValueOrDefault(i.Id) > 0).ToList();
+
+    /// <summary>육상전에서 아이템 하나를 쓴다 — 한 합을 쓴다.</summary>
+    public void UseLandItem(Dho.Data.ItemData item) { _healWith = item; LandAct(4); }
+
+    // 약이 고치는 양 — 생명력의 Amount %. 원본은 「효과 · 소 / 중」과 랭크(5 · 10 · 15 · 20)만 적혀 있다 — 랭크 × 5%(25 · 50 · 75 · 100%)는 지은 값
+    private void HealLife(Dho.Data.ItemData drug) => Life = Math.Min(MaxLife, Life + MaxLife * drug.Amount / 100);
+
+    /// <summary>kind: 0 공격 · 1 테크닉(행동력 10) · 2 방어 · 3 도망 · 4 약(치료약 하나를 쓴다).</summary>
     public void LandAct(int kind)
     {
         if (LandFight is not { Result: null } fight) return;
@@ -203,6 +233,33 @@ internal sealed partial class Voyage
             fight.Life -= hit;
             string technique = Data.Npcs.Techniques.Count > 0 ? Data.Npcs.Techniques[_random.Next(Math.Min(12, Data.Npcs.Techniques.Count))] : "테크닉";
             fight.Log.Add($"{fight.Round}합: 「{technique}」 — {fight.Name}에게 {hit:0}");
+        }
+        else if (kind == 4)
+        {
+            var drug = _healWith ?? HealItem;
+            _healWith = null;
+            if (drug == null || Items.GetValueOrDefault(drug.Id) <= 0) { fight.Log.Add("쓸 약이 없다."); return; }
+            if (drug.Effect == "LandHeal" && Life >= MaxLife) { fight.Log.Add("다친 데가 없다."); return; }
+            if (drug.Effect == "LandBerserk" && fight.Berserk) { fight.Log.Add("이미 강장제가 돌고 있다."); return; }
+            if (--Items[drug.Id] <= 0) Items.Remove(drug.Id);
+            if (drug.Effect == "LandThrow")
+            {
+                // 던지는 것 — 원본은 「효과 · 소 / 중 / 대」(랭크 3 · 6 · 9)라고만 적혀 있다. 피해는 지은 값: 공격력 × (1 + 랭크 × 0.25) — 소가 테크닉(1.8배)쯤
+                double hit = Hit(LandAttack * (1 + drug.Amount * 0.25), fight.Defense, _random.NextDouble());
+                fight.Life -= hit;
+                fight.Log.Add($"{fight.Round}합: {drug.Name} — {fight.Name}에게 {hit:0}");
+            }
+            else if (drug.Effect == "LandBerserk")
+            {
+                fight.Berserk = true;
+                fight.Log.Add($"{fight.Round}합: {drug.Name} — 공격력 2배, 방어력 1/4");
+            }
+            else
+            {
+                HealLife(drug);
+                Cues.Enqueue("Eat");
+                fight.Log.Add($"{fight.Round}합: {drug.Name} — 생명력 {Life:0}");
+            }
         }
         else if (kind == 2)
         {

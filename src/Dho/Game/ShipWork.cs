@@ -18,6 +18,11 @@ internal sealed class ShipWork
     public double Cabin { get; set; }
     public double Guns { get; set; }
     public double Rowing { get; set; }
+    /// <summary>
+    /// 적재 「오버」의 덤 불이익(%p) — 조선 랭크 % 를 넘겨 적재를 바꾼 폭 가운데, 배의 기본 셈(|적재| − 20 을 넘는 만큼)에 아직 안 든 몫. 거듭 오버하면 쌓인다
+    /// (나무위키 조선 문서: 「(조선 랭크)% 이상으로 적재 조절을 시도할 경우 돛 수치가 떨어지고 내파가 떨어지는 등의 페널티 … 중첩된다」). 1%p 에 돛 · 내파 · 속도 −2%(지은 크기).
+    /// </summary>
+    public int Over { get; set; }
     public List<int> Skills { get; } = [];
     /// <summary>그레이드(0 ~ 8) · 그레이드 경험치(0 ~ 100) · 조타 숙련도 · 그레이드 보너스(<see cref="Voyage.GradeBonuses"/> 의 차례).</summary>
     public int Grade { get; set; }
@@ -34,6 +39,8 @@ internal sealed class ShipWork
     public int Dedicated { get; set; }
     // 선체 특수효과 도료(1 ~ 15)로 입힌 효과 — 배 주위에 일렁이는 빛. 없으면 0
     public int HullEffect { get; set; }
+    // 선박용 도료로 칠한 선체 빛깔 — 그 빛깔을 가진 재질 줄의 번호(클라이언트 재질 표). 안 칠했으면 0
+    public int HullPaint { get; set; }
 
     // 스킬 번호 뒤에 그레이드 쪽 값을 큰 수로 덧붙여 적는다(옛 저장과 맞게): 1e6 + 그레이드, 2e6 + 경험치, 3e6 + 숙련도, 5e6 + 전용함 스킬, 6e6 + 보너스(표 90 의 번호), 7e6 + 선박 형식, 8e6 + 형식 × 100 + 스며든 횟수. 4e6 + n 은 옛 저장의 보너스(지어낸 목록의 차례)라 읽을 때 옮긴다
     public double[] ToArray() => [Times, Durability, Sail, Turn, Wave, Hold, .. Skills.Select(s => (double)s),
@@ -42,6 +49,8 @@ internal sealed class ShipWork
                                   .. Form > 0 ? [7_000_000.0 + Form] : Array.Empty<double>(), .. BonusSkills.Select(s => 9_000_000.0 + s),
                                   .. HullEffect > 0 ? [10_000_000.0 + HullEffect] : Array.Empty<double>(),
                                   // 11e6 ~ 16e6: 세로돛 · 가로돛 · 장갑 · 선실 · 포실 · 조력(음수가 있어 500,000 을 더해 적는다)
+                                  .. Over > 0 ? [17_000_000.0 + Over] : Array.Empty<double>(),
+                                  .. HullPaint > 0 ? [18_000_000.0 + HullPaint] : Array.Empty<double>(),
                                   .. new[] { Vertical, Horizontal, Armor, Cabin, Guns, Rowing }.Select((v, k) => (v, k)).Where(p => p.v != 0).Select(p => (11 + p.k) * 1_000_000.0 + 500_000 + Math.Round(p.v))];
 
     // 옛 저장의 보너스 차례(스킬추가 · 가속강화 · 스킬계승 · 내구력 · 세로돛 · 가로돛 · 선회 · 내파 · 장갑 · 선실 · 포실 · 창고) → 표 90 의 번호
@@ -80,6 +89,8 @@ internal sealed class ShipWork
             else if (kind == 14) work.Cabin = rest - 500_000;
             else if (kind == 15) work.Guns = rest - 500_000;
             else if (kind == 16) work.Rowing = rest - 500_000;
+            else if (kind == 17) work.Over = rest;
+            else if (kind == 18) work.HullPaint = rest;
         }
         return work;
     }
@@ -136,6 +147,12 @@ internal sealed partial class Voyage
     /// <summary>강화와 옵션 스킬을 입힌 능력치.</summary>
     public ShipStats Worked(ShipStats stats, ShipWork work, ShipData ship)
     {
+        if (work.Over > 0)
+        {
+            // 적재 오버의 덤 불이익 — 돛 · 내파 · 속도가 깎인다
+            double over = Math.Max(0.2, 1 - work.Over * 0.02);
+            stats = stats with { VerticalSail = (int)(stats.VerticalSail * over), HorizontalSail = (int)(stats.HorizontalSail * over), WaveResist = (int)Math.Round(stats.WaveResist * over), Knots = stats.Knots * over };
+        }
         if (work.Times == 0 && work.Skills.Count == 0 && work.Bonuses.Count == 0 && work.Dedicated == 0 && work.Grade == 0 && work.Vertical == 0 && work.Horizontal == 0) return stats;
         double sails = Math.Max(1, stats.VerticalSail + stats.HorizontalSail);
         double holdBonus = OptionAmount(work, "Hold");
@@ -316,10 +333,12 @@ internal sealed partial class Voyage
     /// <summary>
     /// 선박 조합에 쓰는 책들(아이템 표 14) — 소지품에서 쓰면 다음 조합 한 번에 듣는다.
     /// 함선 개장 기법서 +25% · 지도서 +30% · 지침서 +50%(설명 글의 값). 개장 특별대우 지시서는 「선박 조합을 실행하면 효과가 사라진다」뿐이라
-    /// 무엇을 하는지 글에 없다 — 실패했을 때 대실패(강등)를 막는 것으로 지었다.
+    /// 무엇을 하는지 클라이언트 글에는 없다 — 대실패(강등)를 막는다(나무위키 조선 문서: 「개장 특별대우 지시서라는 아이템을 이용하여 대실패를 방지할 수 있다」, 대실패는 4G → 5G 부터).
     /// </summary>
     public static readonly (int Item, string Name, int Bonus)[] RefitBooks = [(1510029, "함선 개장 기법서", 25), (1510061, "함선 개장 지도서", 30), (1510062, "함선 개장 지침서", 50)];
     public const int RefitGuardItem = 1510030;
+    /// <summary>보통은 6G 까지 — 그 위(7G · 8G)는 상트페테르부르크에서 함선 개장 비전서(아이템 1510035)를 한 권 써야 한다(나무위키 조선 문서).</summary>
+    public const int HighGrade = 6, HighGradeBook = 1510035;
 
     /// <summary>써 둔 개장 책(다음 조합에 듣는다)과 특별대우.</summary>
     public (int Item, string Name, int Bonus)? RefitBook { get; private set; }
@@ -392,8 +411,12 @@ internal sealed partial class Voyage
         : _aboard = new DockedShip { Ship = Ship, Material = ShipMaterialId, Load = ShipLoad, Work = Work, Durability = Stats.Durability, Parts = [.. Parts] };
     private bool Held(DockedShip ship) => Dock.Contains(ship) || Data.Settings.ModCombineOnBoard && ship == _aboard && ship.Work == Work;
 
+    /// <summary>
+    /// 선박 조합(그레이드)의 성공 확률(%). 나무위키 조선 문서에서 온 것: 0G 의 바탕 29%(조선소 랭크 덤 +25% 를 받은 것이 「최대 54%」, +20% 가 49%) ·
+    /// 같은 배(이름 · 수식어까지 같은)끼리 +11%. 그레이드마다 −9 · 제물배 그레이드마다 +10 · 그레이드 경험치 ÷ 4 는 지은 값(글에는 「영향을 준다」뿐이다). 조선소 랭크의 덤(+10 · +20 · +25)은 아직 없다.
+    /// </summary>
     public int CombineChance(DockedShip main, DockedShip material) =>
-        Math.Clamp(Math.Clamp(38 - 9 * main.Work.Grade + 10 * material.Work.Grade + (main.Ship.Id == material.Ship.Id ? 10 : 0) + main.Work.GradeExp / 4, 3, 100) + Math.Clamp(Data.Settings.ModCombineBonus, 0, 50) + (RefitBook?.Bonus ?? 0), 0, 100);
+        Math.Clamp(Math.Clamp(29 - 9 * main.Work.Grade + 10 * material.Work.Grade + (main.Ship.Name == material.Ship.Name ? 11 : 0) + main.Work.GradeExp / 4, 3, 100) + Math.Clamp(Data.Settings.ModCombineBonus, 0, 50) + (RefitBook?.Bonus ?? 0), 0, 100);
 
     // 조합에 성공한 뒤의 강화 상태 — 배는 건드리지 않는다(조합 창의 미리 보기). Combine 의 성공 쪽과 같은 차례다
     public ShipWork Combined(DockedShip main, DockedShip material, int bonus, int inherit)
@@ -418,6 +441,9 @@ internal sealed partial class Voyage
         if (main == material) return "같은 배다";
         if (!Dock.Contains(material)) return "타고 있는 배는 재료가 못 된다";
         if (main.Work.Grade >= MaxGrade) return "그레이드가 최대치다";
+        // 7G · 8G 는 상트페테르부르크의 조선소에서만, 함선 개장 비전서를 한 권 써서(나무위키 조선 문서)
+        if (main.Work.Grade >= HighGrade && City.Id != RefineCity) return $"그레이드 {HighGrade + 1} 부터는 {CityName(RefineCity)}의 조선소에서만 한다";
+        if (main.Work.Grade >= HighGrade && Items.GetValueOrDefault(HighGradeBook) <= 0) return $"그레이드 {HighGrade + 1} 부터는 함선 개장 비전서가 든다";
         // 크기가 같은 배만 재료가 된다 — 소형끼리 · 중형끼리 · 대형끼리. 대형1 과 대형2 는 그냥 대형이고 서로 먹일 수 있다(사용자 확인, 2026-10-06)
         if (SizeGroup(main.Ship) != SizeGroup(material.Ship)) return "크기가 같은 배만 재료가 된다 (소형 · 중형 · 대형)";
         if (Money < CombineCost(main)) return "돈이 모자라다";
@@ -441,6 +467,7 @@ internal sealed partial class Voyage
         bool guarded = RefitGuard;
         (RefitBook, RefitGuard) = (null, false);       // 책과 지시서는 조합 한 번에 듣고 사라진다
         Money -= CombineCost(main);
+        if (main.Work.Grade >= HighGrade && --Items[HighGradeBook] <= 0) Items.Remove(HighGradeBook);      // 7G · 8G 는 비전서 한 권
         Dock.Remove(material);
         var work = main.Work;
         if (_random.Next(100) >= chance)
@@ -593,7 +620,8 @@ internal sealed partial class Voyage
 
     /// <summary>이 부품들을 넣으면 붙을 옵션 스킬 — 조합이 맞고, 아직 없고, 칸이 남았을 때.</summary>
     /// <summary>이 배에 붙일 수 있는 옵션 스킬인가 — 배 상세(ssjoy)를 모은 배는 거기 적힌 스킬만, 못 모은 배는 무엇이든.</summary>
-    public bool ShipAllows(OptionSkill skill) => Data.ShipDetail(Ship.Name) is not { Skills.Count: > 0 } detail || detail.Skills.Exists(s => s.Name == skill.Name);
+    public bool ShipAllows(OptionSkill skill) => Data.ShipDetail(Ship.Name) is not { Skills.Count: > 0 } detail || detail.Skills.Exists(s => s.Name == skill.Name)
+        || Data.ShipCombos.Exists(c => c.Ship == Ship.Name && c.Skill == skill.Name);      // gvdb 에 그 배에 붙였다는 보고가 있는 스킬도 된다
 
     // ── 진짜 재료 조합으로 옵션 스킬 붙이기 ──
     // 배 상세에 그 스킬의 재료 조합이 적혀 있으면(위키의 「スキル付加例」) 그 조빌 아이템들을 실제로 가지고 있어야 하고, 붙이면 든다.
@@ -624,7 +652,7 @@ internal sealed partial class Voyage
             if (--Items[item] <= 0) Items.Remove(item);
         Work.Skills.Add(skill.SkillId);
         Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
-        TrainEffect("Shipbuilding", 60);
+        TrainEffect("Shipbuilding", ShipbuildingExp(Ship));
         Cues.Enqueue("Done");
         Say($"{Ship.Name}에 옵션 스킬 「{skill.Name}」을(를) 붙였다. (재료: {string.Join(" · ", items.Select(ItemName))})");
     }
@@ -700,6 +728,22 @@ internal sealed partial class Voyage
         return Items.GetValueOrDefault(DismantleBook) <= 0 ? "특수조선 해체 기법서가 없다" : null;
     }
 
+    /// <summary>조선으로 붙인 옵션 스킬(그레이드 보너스의 스킬 · 전용함 스킬은 뺀다).</summary>
+    public List<int> ClearableSkills(ShipWork work) => work.Skills.Where(s => !work.BonusSkills.Contains(s) && s != work.Dedicated && s is not (>= 2900 and <= 2904)).ToList();
+
+    /// <summary>
+    /// 스킬만 초기화 — 조건 없이(책 없이) 그 배에 붙인 옵션 스킬만 지운다. 강화치 · 강화 횟수 · 전용함 스킬 · 그레이드 보너스는 그대로
+    /// (나무위키 조선 문서: 「선박 스킬만 초기화 … 아무 조건 없이 그냥 선박에 달린 옵션 스킬만 삭제해 준다. 강화나 강화 횟수는 그대로」).
+    /// </summary>
+    public void ClearOptionSkills()
+    {
+        if (Mode != Mode.Port || ClearableSkills(Work) is not { Count: > 0 } gone) return;
+        Work.Skills.RemoveAll(gone.Contains);
+        Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
+        Cues.Enqueue("Part");
+        Say($"{Ship.Name}의 옵션 스킬을 지웠다: {string.Join(" · ", gone.Select(OptionName))}. 강화치와 강화 횟수는 그대로다.");
+    }
+
     /// <summary>성능초기화 — 타고 있는 배의 강화치를 모두 0 으로(재질은 남는다). 되돌릴 수 없다.</summary>
     public void ResetWork()
     {
@@ -762,7 +806,7 @@ internal sealed partial class Voyage
                 if (--Items[PartItem(owned)] <= 0) Items.Remove(PartItem(owned));
             Work.Skills.Add(given.SkillId);
             Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
-            TrainEffect("Shipbuilding", 60);
+            TrainEffect("Shipbuilding", ShipbuildingExp(Ship));
             Say($"{Ship.Name}에 옵션 스킬 「{given.Name}」을(를) 부여했다." + (OptionValid(given) ? "" : $" 옵션 스킬의 유효 조건을 충족하지 않습니다({OptionNeedLine(given)})."));
             return;
         }
@@ -802,7 +846,7 @@ internal sealed partial class Voyage
         double worn = Stats.Durability - Durability;
         Stats = Worked(plain, Work, Ship);
         Durability = Math.Max(1, Stats.Durability - worn);
-        TrainEffect("Shipbuilding", 60);
+        TrainEffect("Shipbuilding", ShipbuildingExp(Ship));
         Say($"{Ship.Name}을(를) 강화했다. ({Work.Times}/{MaxTimesOf(Ship)}) " + string.Join(" ", gained));
     }
 

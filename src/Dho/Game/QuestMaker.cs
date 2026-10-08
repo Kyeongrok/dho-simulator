@@ -3,7 +3,8 @@ using Dho.Data;
 namespace Dho.Game;
 
 /// <summary>
-/// 조합의 의뢰를 발견물마다 하나씩 지어낸다.
+/// 조합의 의뢰를 만든다 — 먼저 **진짜 의뢰**(gvdb 의 의뢰 목록 quest-facts.json: 내는 도시 · 찾는 자리 · 필요 스킬 · 보수 · 받는 아이템 · 선행 의뢰, 번호 200000 ~)를 넣고,
+/// 진짜 의뢰가 없는 발견물에만 아래처럼 하나씩 지어낸다(번호 100000 ~). 아래 글은 그 지어내는 쪽의 이야기다.
 /// 클라이언트에는 의뢰 목록도, 발견물이 어디에 있는지도 없다(분석 6 · 작업 w-353) — 그래서 **어느 발견물을 어디서 찾는가는 모두 지은 것**이다:
 /// 「항구-마을」(갈래 15)을 뺀 발견물마다 자리를 아는 상륙지 하나를 붙인다. 이름 · 설명 글에 지방을 가리키는 말(이집트 · 그리스 · 로마 …)이 있으면
 /// 그 문화권의 상륙지 가운데서, 없으면 모든 상륙지 가운데서 번호로 고른다(늘 같은 자리). 의뢰는 그 상륙지가 딸린 도시의 조합이 낸다.
@@ -68,7 +69,7 @@ internal sealed partial class Voyage
     public List<QuestData> MadeQuests => _madeQuests ??= MakeQuests();
 
     /// <summary>번호로 의뢰를 찾는다 — 손으로 지은 것과 지어낸 것 모두.</summary>
-    public QuestData? QuestById(int id) => id >= MadeQuestBase ? MadeQuests.Find(q => q.Id == id) : Data.Quests.Find(q => q.Id == id);
+    public QuestData? QuestById(int id) => id >= MapQuestBase ? MapQuests.Find(q => q.Id == id) : id >= MadeQuestBase ? MadeQuests.Find(q => q.Id == id) : Data.Quests.Find(q => q.Id == id);
 
     private List<QuestData> MakeQuests()
     {
@@ -104,6 +105,7 @@ internal sealed partial class Voyage
         }
         // 진짜 의뢰(大航海時代DB) — 내는 도시들 · 필요 스킬 랭크 · 보수 · 선금 · 바다의 좌표가 그쪽 값이다. 제목과 의뢰 글은 일본어라 우리말 틀로 지었다.
         // 좌표가 있는 것만 넣는다(차례 가운데의 사람 찾아가기는 건너뛰고 그 자리로 바로 간다). 도시마다 한 건씩 — 번호 200000 + 차례 × 32 + 도시 차례
+        var factDiscovery = Data.QuestFacts.GroupBy(f => f.Id).ToDictionary(g => g.Key, g => g.First().DiscoveryId);
         for (int n = 0; n < Data.QuestFacts.Count; n++)
         {
             var real = Data.QuestFacts[n];
@@ -120,6 +122,8 @@ internal sealed partial class Voyage
             int study = real.Skills.Where(s => s.Name is not ("視認" or "探索" or "生態調査" or "開錠") && !s.Name.EndsWith('語')).Select(s => s.Rank).DefaultIfEmpty(Math.Max(1, real.Difficulty)).Max();
             int look = real.Skills.Where(s => s.Name is "視認" or "探索" or "生態調査").Select(s => s.Rank).DefaultIfEmpty(0).Max();
             var tongues = real.Skills.Select(s => QuestTongues.GetValueOrDefault(s.Name)).OfType<string>().Select(name => Data.Skills.Find(s => s.Name == name)?.Id ?? 0).Where(id => id > 0).Distinct().ToList();
+            // 선행 의뢰 — 이 게임에 있는 의뢰(발견물이 있는 것)만 센다. 여럿이면 모두 끝내야 한다(사용자 확인, 2026-10-08)
+            var after = real.Requires.Select(id => factDiscovery.GetValueOrDefault(id)).Where(d => d > 0 && d != real.DiscoveryId).Distinct().ToList();
             int pay = real.Reward > 0 ? real.Reward : (5000 + target.Exp * 40) / 100 * 100;      // 보수는 도시별 쪽에서 본 것만 그쪽 값, 나머지는 지은 식
             for (int k = 0; k < Math.Min(real.Cities.Count, 32); k++)
             {
@@ -135,7 +139,7 @@ internal sealed partial class Voyage
                             : $"{where} ({real.X}, {real.Y}) 부근을 조사해 달라는 의뢰가 들어와 있네. 가서 확인하고 돌아와 주게.",
                     Hint = site != null ? $"{where}에 상륙해 주변을 탐색한다." : town != null ? $"{where}에 입항해 「의뢰 탐색」을 한다." : zoneId > 0 ? $"{where}에 나가 둘레를 살핀다(F)." + (real.Night ? " 밤에, 날씨가 거칠지 않을 때만 보인다." : "") : $"{where} ({real.X}, {real.Y}) 부근에서 둘레를 살핀다(F).",
                     LandingText = site != null ? $"{where}에 올랐다.\n소문으로 듣던 자리를 찾아 둘레를 살핀다." : "",
-                    Advance = real.Advance, Reward = pay,
+                    Advance = real.Advance, Reward = pay, RewardItem = real.ItemId, RewardItemCount = Math.Max(1, real.ItemCount), AfterDiscoveries = after,
                 });
             }
             taken.Add(real.DiscoveryId);
@@ -199,6 +203,41 @@ internal sealed partial class Voyage
     };
 
     /// <summary>이 도시가 낼 지어낸 의뢰 — 아직 못 찾은 것 가운데 랭크가 낮은 것부터 여섯.</summary>
-    private IEnumerable<QuestData> MadeQuestsHere() =>
-        MadeQuests.Where(q => q.CityId == City.Id && !_done.Contains(q.Id) && !Found.Contains(q.DiscoveryId) && q != Quest).OrderBy(q => q.Id >= RealQuestBase ? 0 : 1).ThenBy(q => q.Rank).ThenBy(q => q.Id).Take(8);      // 진짜 의뢰가 먼저
+    private IEnumerable<QuestData> MadeQuestsHere()
+    {
+        var able = MadeQuests.Where(q => q.CityId == City.Id && !_done.Contains(q.Id) && !Found.Contains(q.DiscoveryId) && q != Quest && q.AfterDiscoveries.All(Found.Contains));
+        // 의뢰 알선서를 쓴 도시는 낼 수 있는 것 가운데 아무 여덟을 새로 낸다(쓸 때마다 달라진다), 안 썼으면 랭크 낮은 여덟
+        return _questRolls.TryGetValue(City.Id, out int roll)
+            ? able.OrderBy(q => unchecked((uint)(q.Id * 2654435761u + roll * 40503u)) % 100003).Take(8).OrderBy(q => q.Rank).ThenBy(q => q.Id)
+            : able.OrderBy(q => q.Id >= RealQuestBase ? 0 : 1).ThenBy(q => q.Rank).ThenBy(q => q.Id).Take(8);      // 진짜 의뢰가 먼저
+    }
+
+    /// <summary>의뢰 알선서(아이템 1500232 — 원본 설명 「조합의 의뢰를 새롭게 제시받을 수 있다」).</summary>
+    public const int QuestPermit = 1500232;
+    private readonly Dictionary<int, int> _questRolls = [];
+    public int QuestPermits => Items.GetValueOrDefault(QuestPermit);
+
+    /// <summary>의뢰 알선서 한 장을 써서 이 도시 조합의 의뢰를 새로 제시받는다. 한 번에 몇 건이 뜨는지는 자료가 없어 여덟 그대로(지은 값).</summary>
+    public void UseQuestPermit()
+    {
+        if (Mode != Mode.Port || QuestPermits <= 0) return;
+        if (--Items[QuestPermit] <= 0) Items.Remove(QuestPermit);
+        _questRolls[City.Id] = _questRolls.GetValueOrDefault(City.Id) + 1;
+        Offered = null;
+        Cues.Enqueue("Buy");
+        Say($"의뢰 알선서를 썼다. 조합이 의뢰를 새로 내놓았다. (남은 알선서 {QuestPermits}장)");
+    }
+
+    /// <summary>대본용 — 이 도시에서 선행 의뢰 때문에 안 나오는 의뢰를 세고, 그 가운데 하나의 선행 발견물을 찾은 것으로 해 나오는지 본다.</summary>
+    public void PrereqForTest()
+    {
+        var gated = MadeQuests.Where(q => q.CityId == City.Id && !Found.Contains(q.DiscoveryId) && !q.AfterDiscoveries.All(Found.Contains)).ToList();
+        int all = MadeQuests.Count(q => q.AfterDiscoveries.Count > 0), here = MadeQuests.Count(q => q.CityId == City.Id);
+        Say($"(시험) 선행 의뢰가 있는 의뢰 {all}건(전체 {MadeQuests.Count}) · {City.Name}: {here}건 가운데 {gated.Count}건이 가려짐 — {string.Join(" · ", gated.Take(4).Select(q => q.Title))}");
+        if (gated.Count == 0) return;
+        var one = gated[0];
+        bool before = QuestsHere().Contains(one);
+        foreach (int need in one.AfterDiscoveries) Found.Add(need);
+        Say($"(시험) 「{one.Title}」 선행 발견물 {string.Join(", ", one.AfterDiscoveries.Select(d => Data.Discoveries.Find(x => x.Id == d)?.Name))} — 찾기 전: {(before ? "나옴" : "안 나옴")} → 찾은 뒤: {(QuestsHere().Contains(one) ? "나옴" : "안 나옴")} (조합은 랭크 낮은 여덟만 낸다 — 이 의뢰는 낼 수 있는 것 가운데 {1 + MadeQuests.Where(q => q.CityId == City.Id && !Found.Contains(q.DiscoveryId) && q.AfterDiscoveries.All(Found.Contains)).OrderBy(q => q.Id >= RealQuestBase ? 0 : 1).ThenBy(q => q.Rank).ThenBy(q => q.Id).ToList().IndexOf(one)}번째, 랭크 {one.Rank})");
+    }
 }

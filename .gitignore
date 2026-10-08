@@ -29,6 +29,18 @@ data/extracted/*
 !data/extracted/conversions.json
 !data/extracted/ship-parts-gvdb.json
 !data/extracted/gear-effects-gvdb.json
+!data/extracted/ship-combos-gvdb.json
+!data/extracted/discovery-ranks-gvdb.json
+!data/extracted/shipyard-gvdb.json
+!data/extracted/partshops-gvdb.json
+!data/extracted/town-facts-gvdb.json
+!data/extracted/trade-quests-gvdb.json
+!data/extracted/sea-quests-gvdb.json
+!data/extracted/fish-finds-gvdb.json
+!data/extracted/wreck-finds-gvdb.json
+!data/extracted/map-facts-gvdb.json
+!data/extracted/food-effects-gvdb.json
+!data/extracted/skill-learn-gvdb.json
 
 # Python
 __pycache__/

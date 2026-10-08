@@ -11,6 +11,8 @@ import json
 import os
 import re
 import struct
+import difflib
+import unicodedata
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -33,7 +35,8 @@ def names(lang, table, tail):
 
 
 def squeeze(s):
-    return re.sub(r"[\s　・･]", "", s)
+    # 전각 · 반각(괄호 · 숫자 · 영문)이 섞여 적힌 이름도 같게 본다 — 「副官の航海日誌(交易)」 = 「…（交易）」
+    return re.sub(r"[\s　・･]", "", unicodedata.normalize("NFKC", s))
 
 
 def pairs(cell):
@@ -59,6 +62,12 @@ def main():
     for rid, name in ja_recipes.items():
         recipe_by.setdefault(squeeze(name), []).append(rid)
     good_by = {squeeze(n): i for i, n in ja_goods.items()}
+    # gvdb 쪽에 제 이름 그대로 적힌 레시피 — 비슷한 이름으로 이을 때 이것들의 번호는 건드리지 않는다
+    exact_titles = set()
+    for path in glob.glob(os.path.join(ROOT, "gvdb", "recipe_*.html")):
+        for cell in re.findall(r"<tr><td><a href=\"[^\"]*RecipeShow\?id=\d+\">([\s\S]*?)</a>", open(path, encoding="utf-8").read()):
+            exact_titles.add(squeeze(html.unescape(re.sub(r"<[^>]+>", "", cell)).strip()))
+    recipe_keys = [k for k in recipe_by if k not in exact_titles]
     # 스킬 이름(일본어 → 우리말) — 표 6
     try:
         import skills as skill_table
@@ -81,6 +90,15 @@ def main():
             item_by.setdefault(squeeze(gname), gid)
     except Exception as e:
         print("gear names:", e)
+    # 선박 부품(돛 25 · 장갑 23 · 선수상 27 · 문장 26 · 대포 22 · 특수장비 24)도 생산물 · 재료가 된다 — 번호가 부품 표의 것이라 게임이 부품 창고로 넣고 뺀다.
+    # 이름이 아이템 · 장비와 겹치면 그쪽이 먼저(줄 꼬리 길이는 DataTables.cs 의 읽는 법과 같다)
+    for table, tail in ((25, 16), (23, 8), (27, 20), (26, 0), (22, 40), (24, 22)):
+        try:
+            for pid, pname in names(gvo.LANG_JA, table, tail).items():
+                if pname and not pname.startswith("※"):
+                    item_by.setdefault(squeeze(pname), pid)
+        except Exception as e:
+            print("part table", table, e)
     prices = {}
     csv_path = os.path.join(ROOT, "gvdb", "items.csv")
     if os.path.exists(csv_path):
@@ -112,6 +130,14 @@ def main():
             stats["rows"] += 1
             title = html.unescape(re.sub(r"<[^>]+>", "", cells[0])).strip()
             ids = recipe_by.get(squeeze(title), [])
+            near = False
+            if not ids:
+                # gvdb 쪽의 오타 · 조사 차이(「練成法」 ↔ 「錬成法」 · 「装材製法」 ↔ 「装材の製法」)로 안 맞는 이름 — 수가 같은 가장 비슷한 이름 하나(0.85 이상)에 잇고 NameGuessed 로 알린다
+                key = squeeze(title)
+                for cand in difflib.get_close_matches(key, recipe_keys, n=3, cutoff=0.85):
+                    if re.findall(r"\d+", cand) == re.findall(r"\d+", key):
+                        ids, near = recipe_by[cand], True
+                        break
             if not ids:
                 stats["no_recipe"] += 1
                 continue
@@ -121,11 +147,19 @@ def main():
                 booked.add(in_book)
                 books[book]["Recipes"].append(in_book)
             skills = [(skill_by.get(squeeze(html.unescape(n)), ""), int(r)) for n, r in re.findall(r">([^<]+)</a>\((\d+)\)", cells[1])]
+            # 랭크가 안 적힌 줄(135건 — 「調理」뿐)은 스킬만 잇고 랭크는 1 로 둔다(모르는 값 — RankGuessed 로 알린다)
+            guessed = not skills
+            if guessed:
+                skills = [(skill_by.get(squeeze(n), ""), 1) for n in re.split(r"[\s,、]+", html.unescape(re.sub(r"<[^>]+>", " ", cells[1])).strip()) if n]
             made, used = pairs(cells[2]), pairs(cells[3])
             if not made or not used:
                 stats["no_output"] += 1
                 continue
             # 생산물이 교역품이 아니라 아이템(요리 · 도구 …)이면 OutputItem 으로 적는다 — 재료는 여전히 교역품뿐이어야 한다
+            if len(made) > 1:
+                stats["multi"] = stats.get("multi", 0) + 1
+                if "--multi" in sys.argv:
+                    print("여럿:", title, "|", made, "|", used, "|", [s for s in skills])
             made_key = squeeze(made[0][0])
             # 재료에 아이템(재봉도구 · 자수실 …)이 끼는 레시피도 적는다 — 번호가 교역품(16…)이 아니면 게임이 소지품에서 뺀다
             if any(squeeze(n) not in good_by and squeeze(n) not in item_by for n, _ in used) or (made_key not in good_by and made_key not in item_by):
@@ -145,7 +179,10 @@ def main():
                 RecipeId=rid, Name=ko_recipes.get(rid, title),
                 Output=good_by.get(made_key, 0), OutputItem=0 if made_key in good_by else item_by[made_key], OutputCount=made[0][1],
                 Inputs=",".join(f"{good_by.get(squeeze(n)) or item_by[squeeze(n)]}:{c}" for n, c in used),
-                Skill=" ".join(f"{n} {r}" for n, r in skills[:1] if n), Facility=facility))
+                Skill=" ".join(f"{n} {r}" for n, r in skills[:1] if n), Facility=facility, **({"RankGuessed": True} if guessed else {}), **({"NameGuessed": True} if near else {}),
+                # 생산물이 둘 적힌 줄(72건 — 「キャノン砲12門 / 名匠キャノン砲12門」 · 「ガーネット / ルビー」 · 「高級ガーネット×5 / 最高級ガーネット×1」)의 둘째 = 대성공 때 나오는 것(짐작 —
+                # gvdb 의 다른 줄에 「成功１　大成功２」가 있고 둘째가 늘 윗급이다). 교역품끼리일 때만 싣는다
+                **({"GreatOutput": good_by[squeeze(made[1][0])], "GreatCount": made[1][1]} if len(made) > 1 and made_key in good_by and squeeze(made[1][0]) in good_by else {})))
     out.sort(key=lambda r: r["RecipeId"])
     print(stats, "→", len(out))
     for r in out[:12]:

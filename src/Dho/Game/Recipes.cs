@@ -18,6 +18,16 @@ internal sealed partial class Voyage
     /// <summary>교역품 번호인가(1600001 ~) — 아니면 소지품의 아이템.</summary>
     public static bool IsGoodId(int id) => id is >= 1_600_000 and < 1_700_000;
 
+    // 선박 부품(대포 · 돛 · 장갑 · 선수상 · 특수장비)도 레시피의 생산물 · 재료가 된다 — 부품은 소지품이 아니라 「소유 선박부품」에 하나씩 든다
+    /// <summary>장비 연성 레시피인가 — 재료의 장비가 생산물과 같고 설명에 「실패하면 … 소실」이 있는 것. 올리는 칸(0 공격력 · 1 방어력), 아니면 −1.</summary>
+    public int TemperStat(RecipeRule rule) =>
+        rule.OutputItem > 0 && rule.InputList().Any(i => i.Good == rule.OutputItem) && Data.Recipes.Find(r => r.Id == rule.RecipeId)?.Description is { } text && (text.Contains("소실") || text.Contains("사라진다"))
+            ? (text.Contains("방어력") ? 1 : 0) : -1;
+
+    private HashSet<int>? _partIds;
+    public bool IsPartId(int id) => (_partIds ??= Data.ShipParts.Select(p => p.Id).ToHashSet()).Contains(id);
+    public int HaveInput(int id) => IsGoodId(id) ? (Cargo.TryGetValue(id, out var item) ? item.Count : 0) : IsPartId(id) ? PartStock.Count(p => p.Id == id) : Items.GetValueOrDefault(id);
+
     // ── 레시피 책 ──
     // 책에 든 레시피는 그 책을 가져야 열린다(사용자, 2026-10-07: 「레시피 책을 사야만 열리게」). 어느 책에도 없는 레시피(아직 책 자료를 못 받은 갈래)만 낱개로 가진다.
     // 책과 든 레시피, 도구점 값은 이용자 사이트(gvdb)의 것. 어느 도시의 도구점이 어느 책을 파는가는 모른다 — 값을 아는 책은 모든 도구점에 선다(지은 것).
@@ -50,9 +60,24 @@ internal sealed partial class Voyage
 
     public RecipeBook? RecipeBookOf(int item) => Data.RecipeBooks.Find(b => b.ItemId == item);
 
-    /// <summary>이 도시의 도구점이 그 아이템을 파는가 — 레시피 책은 실제로 파는 도시(gvdb)에서만. 다른 아이템은 어디서나(지은 것).</summary>
+    /// <summary>
+    /// 이 도시의 도구점이 그 아이템을 파는가 — gvdb 에 파는 도시가 적힌 아이템은 그 도시에서만(레시피 책은 적힌 도시가 없으면 안 판다).
+    /// 원본은 도구점 주인 · 행상인 · 거래 상인 · 공방 장인이 따로 팔지만 여기서는 모두 도구점에 모았다(줄인 것).
+    /// 파는 도시가 하나도 안 적힌 아이템(원본에서는 생산 · 행사로 얻는 돛 도료 2 ~ 19 따위)은 어디서나 판다(지은 것).
+    /// </summary>
+    /// <summary>대본용 — 이 도시의 도구점이 파는 것을 한 줄로.</summary>
+    public void ShopListForTest() =>
+        Say($"(시험) {City.Name} 도구점 {Data.Items.Count(ShopSells)}가지: " + string.Join(" · ", Data.Items.Where(ShopSells).Where(i => i.Effect != "SailPaint" || i.SoldAs > 0).Select(i => i.Effect == "RecipeBook" ? "[책]" + i.Name : i.Name)));
+
+    /// <summary>대본용 — 내구 · 생명력을 그 값으로(음수면 그대로).</summary>
+    public void HurtForTest(double hull, double life)
+    {
+        if (hull >= 0) Durability = hull;
+        if (life >= 0) Life = life;
+    }
+
     public bool ShopSells(ItemData item) =>
-        item.Price > 0 && (item.Effect != "RecipeBook" || Data.MarketFacts.Count == 0 || (Data.MarketFacts.Find(f => f.CityId == City.Id)?.Items.Exists(i => i[0] == item.Id) ?? false));
+        item.Price > 0 && (Data.ItemTowns.TryGetValue(item.SoldAs > 0 ? item.SoldAs : item.Id, out var towns) ? towns.Contains(City.Id) : item.Effect != "RecipeBook" || Data.MarketFacts.Count == 0);
 
     public void AddRecipe(RecipeData recipe)
     {
@@ -67,7 +92,7 @@ internal sealed partial class Voyage
         int times = int.MaxValue;
         // 재료의 번호가 교역품(창고)이 아니면 소지품의 아이템이다(재봉도구 따위)
         foreach (var (good, count) in rule.InputList())
-            times = Math.Min(times, (IsGoodId(good) ? (Cargo.TryGetValue(good, out var item) ? item.Count : 0) : Items.GetValueOrDefault(good)) / Math.Max(1, count));
+            times = Math.Min(times, HaveInput(good) / Math.Max(1, count));
         foreach (int tool in rule.ConsumeList()) times = Math.Min(times, Items.GetValueOrDefault(tool));
         return times == int.MaxValue ? 0 : times;
     }
@@ -112,7 +137,7 @@ internal sealed partial class Voyage
 
     /// <summary>
     /// 생산 한 번에 오르는 숙련도 — 사용자가 준 원본의 식(2026-10-07):
-    /// 성공 = (레시피 요구 랭크 + 1 − 내 스킬 랭크) × 2, 0 이하면 1. 대성공 = (레시피 요구 랭크 + 2) × 2(내 랭크와 상관없다).
+    /// 성공 = (레시피 요구 랭크 + 1 − 내 스킬 랭크) × 2, 0 이하면 1. 대성공 = (레시피 요구 랭크 + 2) × 2(내 랭크와 상관없다). 내 랭크가 요구 랭크보다 열 이상 높으면 0.
     /// 내 랭크는 부스트를 뺀 제 랭크로 본다(부스트로 제 랭크보다 높은 레시피를 만들면 많이 오른다).
     /// 원본의 「랭크마다 필요한 숙련도」 표를 몰라 이쪽 표(기준값 × 랭크²)에 맞추려고 12.5 를 곱한다 — 같은 랭크 레시피가 전처럼 25 가 되게. 이 곱은 지은 값.
     /// </summary>
@@ -122,6 +147,8 @@ internal sealed partial class Voyage
     {
         if (RecipeSkill(rule) is not { } need) return 0;
         int mine = Skills.TryGetValue(need.SkillId, out var state) ? state.Rank : 0;
+        // 내 랭크가 요구 랭크보다 열 이상 높으면 숙련도가 안 오른다(사용자, 2026-10-08 — 인벤 글: 「조리 13랭부터는 돼지→돼지고기(요구 3랭)를 통한 숙련도를 얻을 수 없다」). 대성공도 같이 0 으로 본다(글에 가른 말이 없다 — 짐작)
+        if (mine - need.Rank >= 10) return 0;
         int raw = great ? (need.Rank + 2) * 2 : Math.Max(1, (need.Rank + 1 - mine) * 2);
         return (int)Math.Round(raw * ProduceExpScale);
     }
@@ -136,6 +163,7 @@ internal sealed partial class Voyage
         if (CanProduce(rule) < times) return "재료가 모자라다";
         int used = rule.InputList().Where(i => IsGoodId(i.Good)).Sum(i => i.Count) * times, made = rule.OutputCount * times;
         if (rule.OutputItem == 0 && HoldFree + used < made) return "창고가 모자라다";
+        if (IsPartId(rule.OutputItem) && PartStock.Count - rule.InputList().Where(i => IsPartId(i.Good)).Sum(i => i.Count) * times + made > PartStockLimit) return "부품을 더 가질 수 없다";
         if (Vigour < ProduceVigourOf(rule, times)) return $"행동력이 모자라다 — 한 번에 {ProduceVigourOf(rule)}";
         return null;
     }
@@ -146,13 +174,17 @@ internal sealed partial class Voyage
         times = Math.Min(times, CanProduce(rule));
         if (times <= 0 || ProduceBlocker(rule, times) != null) return;
         long cost = 0;
-        SpendVigour(ProduceVigourOf(rule, times));
+        // 헤파이스토스의 가호 — 랭크에 따른 확률로 그 번의 행동력이 안 든다
+        int blessed = VigourFreeTimes(times);
+        SpendVigour(ProduceVigourOf(rule, times) * (times - blessed) / times);
+        if (blessed > 0) Say($"헤파이스토스의 가호 — 행동력을 {blessed}번 아꼈다.");
         foreach (int tool in rule.ConsumeList()) SpendItem(tool, times);
         // 연성한 생산 스킬은 재료를 아껴 준다 — 한 번마다 10%로 그 번의 재료가 안 든다(지은 값)
         int spared = RecipeSkill(rule) is { } craft && Refined(craft.SkillId) ? Enumerable.Range(0, times).Count(_ => _random.Next(100) < 10) : 0;
         if (spared > 0) Say($"연성한 솜씨로 재료를 {spared}번 아꼈다.");
         foreach (var (good, count) in rule.InputList())
         {
+            if (IsPartId(good)) { for (int k = 0; k < count * (times - spared); k++) PartStock.RemoveAt(PartStock.FindIndex(p => p.Id == good)); continue; }
             if (!IsGoodId(good)) { SpendItem(good, count * (times - spared)); continue; }
             var item = Cargo[good];
             long share = item.Cost * (count * (times - spared)) / Math.Max(1, item.Count);
@@ -169,28 +201,64 @@ internal sealed partial class Voyage
         if (done < times) Say(done == 0 ? "생산에 실패했습니다." : $"실험 {times}번 가운데 {times - done}번은 실패했다.");
         // 대성공 — 원본의 글 16503 「생산 대성공!!」. 대성공한 번은 생산물이 곱절로 나온다(1개 만들 것이 2개 — 사용자, 2026-10-07; gvdb 의 「成功１　大成功２」).
         // 확률은 클라이언트에 없다 — 지은 값: 10% + (스킬 랭크 − 필요 랭크) × 2%, 30%까지. 연금술 실험(설비)은 뺀다
-        int great = 0;
+        int great = 0, refinedMore = 0;
         if (rule.Facility == "")
         {
             double chance = Math.Min(0.30, 0.10 + (RecipeSkill(rule) is { } skilled ? Math.Max(0, Rank(skilled.SkillId) - skilled.Rank) * 0.02 : 0));
             for (int k = 0; k < done; k++) if (_random.NextDouble() < chance) great++;
             if (GreatForTest) (great, GreatForTest) = (done, false);
+            // 연성한 생산 스킬은 대성공 때 수량이 더 나온다(사용자가 준 글: 「연성하실 경우 대성공시 수량이 추가되며 재료가 일부 환급됩니다」) — 얼마인지는 자료가 없다.
+            // 지은 값: 대성공한 번마다 한 번 몫을 더(곱절 → 세 곱). 대성공품이 따로 나오는 레시피에는 안 붙는다
+            if (great > 0 && rule.GreatOutput == 0 && RecipeSkill(rule) is { } refined && Refined(refined.SkillId)) refinedMore = great;
         }
-        if (rule.OutputItem > 0)
+        if (rule.OutputItem > 0 && Data.ShipParts.Find(p => p.Id == rule.OutputItem) is { } carved)
         {
-            if (done > 0) Items[rule.OutputItem] = Items.GetValueOrDefault(rule.OutputItem) + rule.OutputCount * (done + great);
+            // 생산물이 선박 부품(선수상 — 조각상 레시피)이면 부품 창고로 간다. 대성공의 곱절은 없다(부품은 하나씩)
+            for (int k = 0; k < rule.OutputCount * done; k++) GivePart(carved);
+        }
+        else if (TemperStat(rule) is >= 0 and var stat)
+        {
+            // 장비 연성(「○○ 연성법」 — 재료의 장비가 그대로 생산물이다. 클라이언트 설명: 「공격력을 높이는 기법. 실패하면 장비물품은 소실된다」):
+            // 성공하면 그 장비가 돌아오고 대장장이 단련과 같은 칸(Forged)이 하나 오른다, 실패하면 장비가 사라진다. 실패 확률 20% · 한 번에 +1 · 단련 한도까지는 지은 값(자료에 수가 없다)
+            int kept = 0, raised = 0;
+            for (int k = 0; k < done; k++)
+            {
+                if (_random.Next(100) < 20 && !GreatForTest) continue;
+                kept++;
+                if (GearOf(rule.OutputItem) is not { } gear || ForgedOf(gear.Id, stat) >= ForgeLimit(gear.Stats.ElementAtOrDefault(stat))) continue;
+                if (!Forged.TryGetValue(gear.Id, out var added)) Forged[gear.Id] = added = [0, 0];
+                added[stat]++;
+                raised++;
+            }
+            if (kept > 0) Items[rule.OutputItem] = Items.GetValueOrDefault(rule.OutputItem) + kept;
+            if (done > kept) Say($"연성에 실패해 {ItemName(rule.OutputItem)} {done - kept}개가 소실되었다.");
+            if (raised > 0) Say($"{ItemName(rule.OutputItem)}의 {(stat == 0 ? "공격력" : "방어력")}이 {raised} 올랐다(+{ForgedOf(rule.OutputItem, stat)}).");
+            else if (kept > 0) Say($"{ItemName(rule.OutputItem)} — 더는 오르지 않는다(단련 한도).");
+            (done, great) = (kept, 0);
+        }
+        else if (rule.OutputItem > 0)
+        {
+            if (done > 0) Items[rule.OutputItem] = Items.GetValueOrDefault(rule.OutputItem) + rule.OutputCount * (done + great + refinedMore);
         }
         else if (done > 0)
         {
             if (!Cargo.TryGetValue(rule.Output, out var made)) Cargo[rule.Output] = made = new CargoItem();
-            made.Count += Math.Min(rule.OutputCount * (done + great), rule.OutputCount * done + Math.Max(0, HoldFree));      // 대성공의 덤은 선창에 들어가는 만큼만
+            // 대성공품이 따로 있는 레시피(gvdb 의 둘째 생산물 — 석류석 → 루비)는 대성공한 번에 곱절 대신 그것이 나온다(짐작). 선창에 들어가는 만큼만
+            bool other = rule.GreatOutput > 0 && great > 0 && Good(rule.GreatOutput) != null;
+            made.Count += other ? rule.OutputCount * done : Math.Min(rule.OutputCount * (done + great + refinedMore), rule.OutputCount * done + Math.Max(0, HoldFree));      // 대성공의 덤은 선창에 들어가는 만큼만
             made.Cost += cost;
+            if (other && Math.Min(rule.GreatCount * great, Math.Max(0, HoldFree)) is > 0 and var bonus)
+            {
+                GiveGood(Good(rule.GreatOutput)!, bonus);
+                Say($"대성공 — {Good(rule.GreatOutput)!.Name} {bonus}개가 나왔다.");
+            }
         }
         Fatigue = Math.Min(100, Fatigue + 0.5 * times);
         if (RecipeSkill(rule) is { } used) Train(used.SkillId, ProduceExp(rule) * (times - great) + ProduceExp(rule, true) * great);      // 실패한 번도 성공만큼 오른다(실패 때의 양은 모른다)
         Studied("Produce", times);
         GainMastery();
         if (great > 0) { Say(Text(16503, "생산 대성공!!") + (times > 1 ? $" ({great}번)" : "")); Cues.Enqueue("Done"); }
-        if (done > 0) Say($"{(rule.OutputItem > 0 ? ItemName(rule.OutputItem) : Good(rule.Output)?.Name ?? "물건")} {rule.OutputCount * (done + great)}개를 만들었다.");
+        string madeName = Data.ShipParts.Find(p => p.Id == rule.OutputItem)?.Name ?? (rule.OutputItem > 0 ? ItemName(rule.OutputItem) : Good(rule.Output)?.Name ?? "물건");
+        if (done > 0) Say($"{madeName} {rule.OutputCount * (done + (rule.GreatOutput > 0 && rule.OutputItem == 0 ? 0 : IsPartId(rule.OutputItem) ? 0 : great + refinedMore))}개를 만들었다.");
     }
 }

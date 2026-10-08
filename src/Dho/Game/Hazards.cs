@@ -40,6 +40,8 @@ internal sealed partial class Voyage
     private int _rationDay = -1;
     public double Food { get; private set; }
     public double Fatigue { get; private set; }
+    /// <summary>대본용 — 피로를 정한다.</summary>
+    public void SetFatigueForTest(double value) => Fatigue = Math.Clamp(value, 0, 100);
     public Dictionary<int, int> Supplies { get; } = new();
     public List<ActiveDisaster> Disasters { get; } = [];
     public Weather Weather { get; private set; } = Weather.Clear;
@@ -227,7 +229,7 @@ internal sealed partial class Voyage
         if (!starving) _starvingSaid = false;
 
         double fatigueBefore = Fatigue;
-        Fatigue = Math.Min(100, Fatigue + (Rules.FatiguePerDay + (starving ? Rules.FatigueWhenStarving : 0)) * days * AideFatigue * (PrayerOn(1) ? 0.7 : 1));
+        Fatigue = Math.Min(100, Fatigue + (Rules.FatiguePerDay + (starving ? Rules.FatigueWhenStarving : 0)) * days * AideFatigue * PartFatigue * (PrayerOn(1) ? 0.7 : 1));
         if (starving)
         {
             Crew -= Crew * 0.04 * days * loss;

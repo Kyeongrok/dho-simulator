@@ -19,6 +19,9 @@ import gvo
 import wiki_discovery
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "data", "extracted")
+# --maps: 의뢰가 아니라 서고의 지도(학문 갈래 일곱 — 「○○の地図」: 지도가 나오는 서고 도시 · 필요 스킬 · 발견물 · 자리)를 같은 꼴로 뽑아 map-facts-gvdb.json 에 적는다
+MAPS = "--maps" in sys.argv
+KINDS = ("生物学", "地理学", "考古学", "財宝鑑定", "天文学", "宗教学", "美術") if MAPS else ("冒険クエスト",)
 LOOK = ("視認", "探索", "生態調査")
 
 
@@ -79,12 +82,29 @@ def main():
     city_by_len = sorted((n for n in ja_city if len(n) >= 2), key=len, reverse=True)
     landing_by_len = sorted((n for n in ja_landing if len(n) >= 3), key=len, reverse=True)
     ja_sea = names(8, gvo.LANG_JA)
-    sea_by_len = sorted((n for n in ja_sea if len(n) >= 3), key=len, reverse=True)
+    sea_by_len = sorted((n for n in ja_sea if len(n) >= 3 or (len(n) == 2 and n.endswith("海"))), key=len, reverse=True)      # 「北海」 · 「黒海」 · 「紅海」도
     paid = rewards()
+    # 入手アイテム — 「アルヴィダの兜(耐久30 正装5 …)」처럼 이름 뒤에 설명이 붙는다: 클라이언트의 아이템 · 장비 이름 가운데 그 글의 앞머리와 맞는 가장 긴 것
+    import gvdb_recipes, wiki_gear
+    things = {}
+    for rid, name in list(wiki_gear.gear_names(gvo.LANG_JA).items()) + list(gvdb_recipes.names(gvo.LANG_JA, 14, 0).items()):
+        if name and len(name) >= 2:
+            things.setdefault(gvdb_recipes.squeeze(name), rid)
+    thing_names = sorted(things, key=len, reverse=True)
+
+    def item_of(note):
+        """(아이템 번호, 수) — 수는 이름 바로 뒤의 숫자(「依頼斡旋書×6」 · 「依頼斡旋書７枚」), 없으면 1. 여럿이 적혔으면 첫 것만."""
+        import unicodedata
+        head = unicodedata.normalize("NFKC", gvdb_recipes.squeeze(note))
+        for n in thing_names:
+            if head.startswith(unicodedata.normalize("NFKC", n)):
+                m = re.match(r"[^0-9(（、,]{0,2}(\d{1,2})(?!\d)", head[len(unicodedata.normalize("NFKC", n)):])
+                return things[n], int(m.group(1)) if m else 1
+        return 0, 1
     raw = open(os.path.join(ROOT, "gvdb", "quests.csv"), "rb").read().decode("cp932", "replace")
     quests, lost, places = [], 0, [0, 0, 0, 0, 0]
     for r in list(csv.reader(io.StringIO(raw), delimiter="\t"))[1:]:
-        if len(r) < 11 or r[4] != "冒険クエスト" or not r[8]:
+        if len(r) < 11 or r[4] not in KINDS or not r[8]:
             continue
         if r[8] not in discoveries:
             lost += 1
@@ -92,7 +112,7 @@ def main():
         steps = "\n".join(text(line) for line in re.split(r"<br\s*/?>", r[10])).strip()
         lines = [line for line in steps.split("\n") if re.match(r"\s*\d+[\.．]", line)]
         last = lines[-1] if lines else steps.split("\n")[0] if steps else ""
-        spot = re.search(r"(\d{3,5})\s*[\.,，、]\s*(\d{3,5})", steps)
+        spot = re.search(r"(\d{3,5})\s*[\.,，、．]\s*(\d{3,5})", steps)
         x = y = landing = town = zone = 0
         place = 0
         if spot:
@@ -128,22 +148,28 @@ def main():
         skills = re.findall(r"([^\s,()（）]+?)\((\d+)\)", r[6])
         reward, advance = paid.get(r[1], (0, 0))
         quests.append({
-            "Id": int(r[0]), "Title": r[1], "Kind": r[7], "DiscoveryId": discoveries[r[8]], "Discovery": r[8],
+            "Id": int(r[0]), "Title": r[1], "Kind": r[7], "Field": r[4] if MAPS else "", "DiscoveryId": discoveries[r[8]], "Discovery": r[8],
             "Difficulty": int(r[2] or 0), "Cities": [ja_city[t] for t in r[5].split(",") if t in ja_city],
             "Skills": [{"Name": s, "Rank": int(k)} for s, k in skills],
             "Reward": reward, "Advance": advance, "Place": place, "X": x, "Y": y, "LandingId": landing, "TownId": town, "SeaZone": zone,
             "Night": bool(re.search(r"荒天以外の夜|夜のみ|夜間のみ|夜\(曇り可\)|夜（曇り可）", steps)),
-            "Item": r[9], "Steps": steps,
+            "Item": r[9], "ItemId": item_of(r[9])[0] if r[9] else 0, "ItemCount": item_of(r[9])[1] if r[9] else 0, "Steps": steps,
+            # 선행 의뢰(前提クエスト — 「6526:優れた改良望遠鏡,2811:古代の道具の地図」)의 번호들
+            "Requires": [int(n) for n in re.findall(r"(?:^|[,、])\s*(\d+):", r[14])] if len(r) > 14 else [],
         })
     print(len(quests), "건(발견물을 못 이은 것", lost, ") — 자리: 못 읽음", places[0], "· 바다", places[1], "· 상륙지", places[2], "· 도시", places[3], "· 해역", places[4], "· 보수를 아는 것", sum(1 for q in quests if q["Reward"]))
+    print("받는 아이템이 적힌 것", sum(1 for q in quests if q["Item"]), "· 번호에 이은 것", sum(1 for q in quests if q["ItemId"]), "· 못 이은 보기", [q["Item"][:24] for q in quests if q["Item"] and not q["ItemId"]][:12])
+    have = {q["Id"] for q in quests}
+    print("선행 의뢰가 적힌 것", sum(1 for q in quests if q["Requires"]), "· 그 선행 의뢰가 이 목록에 있는 것", sum(1 for q in quests if any(n in have for n in q["Requires"])))
     kinds = {}
     for q in quests:
         kinds[q["Kind"]] = kinds.get(q["Kind"], 0) + 1
     print(kinds)
     if "--write" in sys.argv:
-        with open(os.path.join(ROOT, "quest-facts.json"), "w", encoding="utf-8") as out:
+        target = "map-facts-gvdb.json" if MAPS else "quest-facts.json"
+        with open(os.path.join(ROOT, target), "w", encoding="utf-8") as out:
             json.dump(quests, out, ensure_ascii=False, indent=1)
-        print("quest-facts.json 에 적었다.")
+        print(target, "에 적었다.")
 
 
 if __name__ == "__main__":

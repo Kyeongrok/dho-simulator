@@ -2,30 +2,30 @@
   {
     "Id": 1500192,
     "Name": "상처용 약",
-    "Effect": "Fatigue",
-    "Amount": 15,
-    "Price": 400
+    "Effect": "LandHeal",
+    "Amount": 25,
+    "Price": 150
   },
   {
     "Id": 1500186,
     "Name": "치료약",
-    "Effect": "Fatigue",
-    "Amount": 35,
-    "Price": 900
+    "Effect": "LandHeal",
+    "Amount": 50,
+    "Price": 300
   },
   {
     "Id": 1500188,
     "Name": "의신의 신약",
-    "Effect": "Fatigue",
+    "Effect": "LandHeal",
     "Amount": 100,
-    "Price": 3000
+    "Price": 0
   },
   {
     "Id": 1500511,
     "Name": "비축물자:자재",
-    "Effect": "Repair",
-    "Amount": 15,
-    "Price": 1200
+    "Effect": "Stock",
+    "Amount": 100,
+    "Price": 0
   },
   {
     "Id": 1500007,
@@ -49,6 +49,76 @@
     "Price": 300
   },
   {
+    "Id": 1500151,
+    "Name": "망향의 카리욘벨",
+    "Effect": "Cure",
+    "Amount": 8,
+    "Price": 200
+  },
+  {
+    "Id": 1500036,
+    "Name": "전염병 특효약",
+    "Effect": "Cure",
+    "Amount": 10,
+    "Price": 500
+  },
+  {
+    "Id": 1500041,
+    "Name": "면으로 만든 귀마개",
+    "Effect": "Cure",
+    "Amount": 12,
+    "Price": 0
+  },
+  {
+    "Id": 1500108,
+    "Name": "갑판 청소용 브러시",
+    "Effect": "Cure",
+    "Amount": 14,
+    "Price": 0
+  },
+  {
+    "Id": 1500109,
+    "Name": "숙면을 취할 수 있는 해먹",
+    "Effect": "Cure",
+    "Amount": 16,
+    "Price": 0
+  },
+  {
+    "Id": 1500152,
+    "Name": "뱃노래의 악보",
+    "Effect": "Cure",
+    "Amount": 17,
+    "Price": 200
+  },
+  {
+    "Id": 1500021,
+    "Name": "기분 전환용 술통",
+    "Effect": "Cure",
+    "Amount": 18,
+    "Price": 1440
+  },
+  {
+    "Id": 1500072,
+    "Name": "징벌의 로프",
+    "Effect": "Cure",
+    "Amount": 19,
+    "Price": 0
+  },
+  {
+    "Id": 1500081,
+    "Name": "거대 상어를 물리치는 성각",
+    "Effect": "Cure",
+    "Amount": 7,
+    "Price": 0
+  },
+  {
+    "Id": 1500080,
+    "Name": "거대 문어를 물리치는 성각",
+    "Effect": "Cure",
+    "Amount": 13,
+    "Price": 0
+  },
+  {
     "Id": 1500002,
     "Name": "구명도구",
     "Effect": "Lifebuoy",
@@ -56,11 +126,285 @@
     "Price": 5000
   },
   {
+    "Id": 1500003,
+    "Name": "낚시밥",
+    "Effect": "Bait",
+    "Amount": 1,
+    "Price": 10
+  },
+  {
+    "Id": 1500187,
+    "Name": "비밀 치료약",
+    "Effect": "LandHeal",
+    "Amount": 75,
+    "Price": 600
+  },
+  {
+    "Id": 1500054,
+    "Name": "투석",
+    "Effect": "LandThrow",
+    "Amount": 3,
+    "Price": 30
+  },
+  {
+    "Id": 1500055,
+    "Name": "던지는 화살",
+    "Effect": "LandThrow",
+    "Amount": 3,
+    "Price": 50
+  },
+  {
+    "Id": 1500057,
+    "Name": "던지는 나이프",
+    "Effect": "LandThrow",
+    "Amount": 6,
+    "Price": 150
+  },
+  {
+    "Id": 1500059,
+    "Name": "부메랑",
+    "Effect": "LandThrow",
+    "Amount": 6,
+    "Price": 150
+  },
+  {
+    "Id": 1500058,
+    "Name": "재블린",
+    "Effect": "LandThrow",
+    "Amount": 9,
+    "Price": 300
+  },
+  {
+    "Id": 1500070,
+    "Name": "투척용 횃불",
+    "Effect": "LandThrow",
+    "Amount": 3,
+    "Price": 150
+  },
+  {
+    "Id": 1500148,
+    "Name": "지옥의 횃불",
+    "Effect": "LandThrow",
+    "Amount": 6,
+    "Price": 300
+  },
+  {
+    "Id": 1500023,
+    "Name": "열화약",
+    "Effect": "LandThrow",
+    "Amount": 3,
+    "Price": 150
+  },
+  {
+    "Id": 1500026,
+    "Name": "작렬약",
+    "Effect": "LandThrow",
+    "Amount": 6,
+    "Price": 300
+  },
+  {
+    "Id": 1500251,
+    "Name": "강장제",
+    "Effect": "LandBerserk",
+    "Amount": 0,
+    "Price": 300
+  },
+  {
+    "Id": 1500011,
+    "Name": "통",
+    "Effect": "Cure",
+    "Amount": 2,
+    "Price": 0
+  },
+  {
+    "Id": 1500053,
+    "Name": "명의의 비약",
+    "Effect": "Fatigue",
+    "Amount": 40,
+    "Price": 0
+  },
+  {
+    "Id": 1500009,
+    "Name": "목공도구",
+    "Effect": "RepairFlat",
+    "Amount": 50,
+    "Price": 0
+  },
+  {
+    "Id": 1500044,
+    "Name": "명인 목수의 목공도구",
+    "Effect": "RepairFlat",
+    "Amount": 100,
+    "Price": 0
+  },
+  {
+    "Id": 1500674,
+    "Name": "거장의 목공도구",
+    "Effect": "RepairFlat",
+    "Amount": 500,
+    "Price": 0
+  },
+  {
+    "Id": 1500154,
+    "Name": "포획망",
+    "Effect": "SkillTool",
+    "Amount": 10,
+    "Price": 300
+  },
+  {
+    "Id": 1500291,
+    "Name": "간이 인양 로프",
+    "Effect": "SkillTool",
+    "Amount": 43,
+    "Price": 500
+  },
+  {
+    "Id": 1500746,
+    "Name": "고급 낚시밥",
+    "Effect": "Bait",
+    "Amount": 10,
+    "Price": 0
+  },
+  {
+    "Id": 1500082,
+    "Name": "선박용 도료",
+    "Effect": "HullPaint",
+    "Amount": 0,
+    "Price": 500
+  },
+  {
+    "Id": 1500279,
+    "Name": "게르만어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500280,
+    "Name": "로망어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500281,
+    "Name": "동유럽어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500283,
+    "Name": "아프리카어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500284,
+    "Name": "아프로아시아어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500285,
+    "Name": "알타이어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500286,
+    "Name": "인도양어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500287,
+    "Name": "아메리카어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500288,
+    "Name": "남방어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 2700
+  },
+  {
+    "Id": 1500289,
+    "Name": "동방어족 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500290,
+    "Name": "독립어족 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500993,
+    "Name": "북극어 번역메모",
+    "Effect": "Memo",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500292,
+    "Name": "인양 로프",
+    "Effect": "SkillTool",
+    "Amount": 43,
+    "Price": 0
+  },
+  {
+    "Id": 1500050,
+    "Name": "정전 협정서",
+    "Effect": "Truce",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1500105,
+    "Name": "철수의 종",
+    "Effect": "Bell",
+    "Amount": 0,
+    "Price": 3000
+  },
+  {
+    "Id": 1500001,
+    "Name": "원군요청서",
+    "Effect": "BattleSkill",
+    "Amount": 133,
+    "Price": 0
+  },
+  {
+    "Id": 1500008,
+    "Name": "돌격의 군기",
+    "Effect": "BattleSkill",
+    "Amount": 109,
+    "Price": 5000
+  },
+  {
+    "Id": 1500006,
+    "Name": "강철포탄",
+    "Effect": "BattleSkill",
+    "Amount": 117,
+    "Price": 5000
+  },
+  {
     "Id": 9100001,
     "Name": "돛 도료",
     "Effect": "SailPaint",
     "Amount": 1,
-    "Price": 3000
+    "Price": 500,
+    "SoldAs": 1500083
   },
   {
     "Id": 9100002,
@@ -193,7 +537,8 @@
     "Name": "돛 도료 20",
     "Effect": "SailPaint",
     "Amount": 20,
-    "Price": 3000
+    "Price": 500000,
+    "SoldAs": 1500664
   },
   {
     "Id": 9100021,
@@ -235,42 +580,48 @@
     "Name": "특수 돛 도료 3",
     "Effect": "SailPaint",
     "Amount": 103,
-    "Price": 30000
+    "Price": 1500,
+    "SoldAs": 1500178
   },
   {
     "Id": 9100104,
     "Name": "특수 돛 도료 4",
     "Effect": "SailPaint",
     "Amount": 104,
-    "Price": 30000
+    "Price": 1500,
+    "SoldAs": 1500179
   },
   {
     "Id": 9100105,
     "Name": "특수 돛 도료 5",
     "Effect": "SailPaint",
     "Amount": 105,
-    "Price": 30000
+    "Price": 1500,
+    "SoldAs": 1500180
   },
   {
     "Id": 9100106,
     "Name": "특수 돛 도료 6",
     "Effect": "SailPaint",
     "Amount": 106,
-    "Price": 30000
+    "Price": 1500,
+    "SoldAs": 1500181
   },
   {
     "Id": 9100107,
     "Name": "특수 돛 도료 7",
     "Effect": "SailPaint",
     "Amount": 107,
-    "Price": 30000
+    "Price": 1500,
+    "SoldAs": 1500182
   },
   {
     "Id": 9100108,
     "Name": "특수 돛 도료 8",
     "Effect": "SailPaint",
     "Amount": 108,
-    "Price": 30000
+    "Price": 1500,
+    "SoldAs": 1500183
   },
   {
     "Id": 9100109,
@@ -354,6 +705,97 @@
     "Name": "연금술 복합시설",
     "Effect": "Lab",
     "Amount": 30,
+    "Price": 0
+  },
+  {
+    "Id": 1510681,
+    "Name": "번개의 부적(1시간)",
+    "Effect": "ExpCharm",
+    "Amount": 1,
+    "Price": 0
+  },
+  {
+    "Id": 1510682,
+    "Name": "번개의 팬던트(5시간)",
+    "Effect": "ExpCharm",
+    "Amount": 5,
+    "Price": 0
+  },
+  {
+    "Id": 1510683,
+    "Name": "번개의 강화 팬던트(1일)",
+    "Effect": "ExpCharm",
+    "Amount": 24,
+    "Price": 0
+  },
+  {
+    "Id": 1510684,
+    "Name": "번개의 호부(7일)",
+    "Effect": "ExpCharm",
+    "Amount": 168,
+    "Price": 0
+  },
+  {
+    "Id": 1510685,
+    "Name": "번개의 아뮬렛(15일)",
+    "Effect": "ExpCharm",
+    "Amount": 360,
+    "Price": 0
+  },
+  {
+    "Id": 1510686,
+    "Name": "번개의 보석(30일)",
+    "Effect": "ExpCharm",
+    "Amount": 720,
+    "Price": 0
+  },
+  {
+    "Id": 1500261,
+    "Name": "위장약",
+    "Effect": "Digest",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1505800,
+    "Name": "어부의 간단한 식사 셋트",
+    "Effect": "AideMeal",
+    "Amount": 0,
+    "Price": 0
+  },
+  {
+    "Id": 1505820,
+    "Name": "해물마리네와 두종류의 빵",
+    "Effect": "AideMeal",
+    "Amount": 2,
+    "Price": 0
+  },
+  {
+    "Id": 1505830,
+    "Name": "파이와 큰 접시의 과일 셋트",
+    "Effect": "AideMeal",
+    "Amount": 3,
+    "Price": 0
+  },
+  {
+    "Id": 1505850,
+    "Name": "몸에 좋은 가정요리 셋트",
+    "Effect": "AideMeal",
+    "Amount": 5,
+    "Price": 0
+  },
+  {
+    "Id": 1505860,
+    "Name": "오후의 티세트",
+    "Effect": "AideMeal",
+    "Amount": 8,
+    "Price": 0
+  },
+  {
+    "Id": 1505871,
+    "Name": "세계의 코스 요리",
+    "Effect": "AideMeal",
+    "Amount": 9,
     "Price": 0
   }
 ]

@@ -147,24 +147,30 @@ public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCre
 
     /// <summary>
     /// 커스텀설정 조선으로 지은 배의 능력치 — 재질의 배율과 적재 변경을 입힌다.
-    /// 적재 변경 x%: **최대적재량**(선실 + 포실 + 창고)이 x% 늘고 준다 — 원본의 「최대적재량 변경」 화면(1000 에 가능 범위 750 ~ 1250, 적정 범위 800 ~ 1209).
-    /// 는 몫은 창고에 붙고 선실 · 포실은 그대로 둔다(원본에서 선실 · 포실이 어떻게 되는지는 화면에 없다 — 짐작. 전에는 창고를 늘리고 선실 · 포실을 줄였다).
+    /// 적재 변경 x%(창고 쪽이 +): 창고가 x% 늘고 선실이 그만큼(반은 포실 몫) 준다 — 줄이면 거꾸로 선실 · 포실이 는다.
+    /// 원본은 「최대적재량」 값을 정하고 줄이면 선회 · 속도를 얻는다(화면의 글) — 그 크기를 몰라, 한때(2026-10-08 새벽) 최대적재량을 늘리고 줄이게 바꿨다가
+    /// 줄인 배가 창고만 잃고 얻는 것이 없어 되돌렸다. 크기를 알면 그때 원본대로 바꾼다.
     /// 20% 까지는 손해가 없고 그 너머는 넘은 1% 마다 돛과 내파가 2% 깎인다(원본 규칙 — 풀이 글).
     /// </summary>
     public ShipStats Built(ShipMaterial? material, int load, ShipRules rules)
     {
         double durability = material?.Durability ?? 1, sail = material?.Sail ?? 1;
         double penalty = 1 - Math.Max(0, Math.Abs(load) - 20) * 0.02;
-        int moved = (int)Math.Round((MaxCrew + Guns + Hold) * load / 100.0);
+        int moved = (int)Math.Round(Hold * load / 100.0);
         int vertical = (int)(VerticalSail * sail * penalty), horizontal = (int)(HorizontalSail * sail * penalty);
         int price = (int)(Price * (material?.Price ?? 1));
         return this with
         {
             Durability = Math.Max(1, (int)Math.Round(Durability * durability)),
             Hold = Math.Max(1, Hold + moved),
-            Knots = Knots * sail * penalty,
+            MaxCrew = Math.Max(MinCrew, MaxCrew - moved / 2),
+            // 최대 적재량이 적을수록 빠르다 — 「25적다와 25적업은 약 30% 의 속도 차」(나무위키 조선 문서)에서: ±25% 에서 ×1.13 / ×0.87
+            Knots = Knots * sail * penalty * (1 - load * 0.0052),
+            // 적재를 늘리면 선회가 「극소량」 준다(같은 문서) — 크기는 지은 값: ±13% 를 넘으면 1
+            Turn = Math.Max(1, Turn - (load >= 13 ? 1 : 0) + (load <= -13 ? 1 : 0)),
             VerticalSail = vertical, HorizontalSail = horizontal,
             WaveResist = Math.Max(0, (int)Math.Round(WaveResist * penalty)),
+            Guns = Math.Max(0, Guns - moved / 20),
             Price = price, SellPrice = (int)(price * rules.SellRate),
         };
     }

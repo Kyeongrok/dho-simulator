@@ -49,7 +49,15 @@ internal sealed partial class Voyage
         Money -= amount;
         _investedAt = (City.Id, (int)(Clock / Settings.SecondsPerDay));
         int growth = GrowthOf(City);
-        Invested[City.Id] = InvestedIn(City) + amount;
+        long before = InvestedIn(City);
+        Invested[City.Id] = before + amount;
+        // 투자 보수(gvdb 도시 쪽의 「投資報酬 … 必要投資額」) — 쌓인 투자가 그 금액을 넘는 순간 한 번 받는다
+        if (Data.TownFacts.TryGetValue(City.Id, out var fact) && fact is { InvestReward: > 0, InvestNeed: > 0 } && before < fact.InvestNeed && before + amount >= fact.InvestNeed)
+        {
+            AddItem(fact.InvestReward, 1);
+            Say($"{City.Name}에 {fact.InvestNeed:N0} 두캇을 투자한 보답으로 「{ItemName(fact.InvestReward)}」을(를) 받았다.");
+            Cues.Enqueue("Done");
+        }
         int merit = (int)(InvestMerit(amount) * (1 + HonorEffect("Invest")));
         Merit += merit;
         Cues.Enqueue("Buy");

@@ -88,6 +88,16 @@ internal sealed partial class Voyage
         : Data.ShipMaterials.Find(m => m.Name.Contains("특별 주문 도료") && m.Name.Contains("하얀 달") && m.Name.Contains(ship.Name.Contains("전열함") ? "금속" : "목재"))?.Id ?? 0;
 
     /// <summary>그 배의 선체 빛깔 — 재질이 정해져 있으면 그것, 아니면 타고난 재질의 것.</summary>
+    /// <summary>맡긴 배의 선체 빛깔 — 선박용 도료로 칠했으면 그 빛깔.</summary>
+    public int HullColorOf(DockedShip docked) => docked.Work.HullPaint > 0 ? HullColor(docked.Work.HullPaint) : HullColorOf(docked.Ship, docked.Material);
+
+    /// <summary>대본용 — 칠한 빛깔이 저장 꼴(숫자 줄)을 오가도 남는가.</summary>
+    public void PaintRoundTripForTest()
+    {
+        var back = ShipWork.From(Work.ToArray());
+        Say($"(시험) 선체 도료 {Work.HullPaint} → 저장 꼴 → {back.HullPaint} · 그레이드 {Work.Grade} → {back.Grade} · 오버 {Work.Over} → {back.Over} · 스킬 {Work.Skills.Count} → {back.Skills.Count}");
+    }
+
     public int HullColorOf(ShipData ship, int material) => HullColor(material != 0 ? material : NativeMaterial(ship));
 
     /// <summary>
@@ -141,7 +151,32 @@ internal sealed partial class Voyage
     public int ShipbuildingRank => Data.SkillRules.Where(r => r.Effect == "Shipbuilding").Select(r => Rank(r.SkillId)).DefaultIfEmpty(0).Max();
 
     /// <summary>적재를 바꿀 수 있는 조선 랭크(원본은 20 — 이 게임의 랭크 상한에 맞춰 줄였다).</summary>
-    public const int LoadRank = 5;
+    /// <summary>
+    /// 커스텀조선(건조 · 강화 · 옵션 스킬 부여) 한 번에 오르는 조선 숙련도 — 원본의 식 「0.52 × 조선 랭크 × 건조 일수」(나무위키 조선 문서; 랭크는 부스터 뺀 순수 랭크).
+    /// 생산처럼 이 게임의 숙련도 곡선에 맞추는 곱(<see cref="ProduceExpScale"/> — 지은 곱)을 곱한다.
+    /// </summary>
+    public double ShipbuildingExp(ShipData ship)
+    {
+        int pure = Data.SkillRules.Where(r => r.Effect == "Shipbuilding").Select(r => Skills.TryGetValue(r.SkillId, out var state) ? state.Rank : 0).DefaultIfEmpty(0).Max();
+        return 0.52 * Math.Max(1, pure) * BuildDays(ship) * ProduceExpScale;
+    }
+
+    /// <summary>
+    /// 적재를 oldLoad 에서 newLoad 로 바꿨을 때 그 배에 쌓일 오버의 덤 불이익 — 지금의 조선 랭크 % 를 넘긴 만큼이 쌓이고(거듭하면 겹친다),
+    /// 배의 기본 셈(|적재| − 20)에 이미 든 몫은 뺀다. 조선 20랭크면 전과 같다(20% 를 넘는 만큼만).
+    /// </summary>
+    public int OverAfter(int over, int oldLoad, int newLoad)
+    {
+        int built(int load) => Math.Max(0, Math.Abs(load) - 20);
+        int sum = over + built(oldLoad) + Math.Max(0, Math.Abs(newLoad) - LoadProper);
+        return Math.Max(0, sum - built(newLoad));
+    }
+
+    public const int LoadRank = 1;
+    /// <summary>적재를 바꿀 수 있는 폭(%) — (조선 랭크 + 5)%, 25% 까지(나무위키 조선 문서: 「(조선 랭크 + 5)%만큼 올리거나 내릴 수 있다」 · 20랭크면 25%).</summary>
+    public int LoadReach => Math.Clamp(ShipbuildingRank + 5, 0, 25);
+    /// <summary>불이익 없이 바꾸는 폭(%) — 조선 랭크 %(그 위는 「오버」: 돛 · 내파가 깎인다). 게임의 불이익은 아직 20% 를 넘을 때로 박혀 있다(만든 이의 랭크를 배에 안 적는다).</summary>
+    public int LoadProper => Math.Clamp(ShipbuildingRank, 0, 20);
 
     /// <summary>지금 랭크로 고를 수 있는 재질.</summary>
     /// 나무 여섯 가지(1 ~ 6)는 조선 랭크로 열리고, 그 밖의 재질(나라별 · 제독 재료 · 특수 도장 …)은 **그 재질 아이템을 가지고 있어야** 고른다.
@@ -173,7 +208,7 @@ internal sealed partial class Voyage
     public static readonly Dictionary<string, int> RealBuildDays = [];
 
     /// <summary>맡기는 값 — 조선소에서 사는 것보다 싸다.</summary>
-    public int BuildCost(ShipData ship, int material) => (int)(ShipStats.Of(ship, Settings.Ships).Price * (MaterialOf(material)?.Price ?? 1) * 0.8);
+    public int BuildCost(ShipData ship, int material) => (int)(ShipCost(ship) * (MaterialOf(material)?.Price ?? 1) * 0.8);
 
     public string? BuildBlocker(ShipData ship, int material, int load)
     {
@@ -189,12 +224,12 @@ internal sealed partial class Voyage
     /// <summary>건조를 맡긴다. 날이 차면 어느 조선소에서나 받는다.</summary>
     public void OrderShip(ShipData ship, int material, int load)
     {
-        load = Math.Clamp(load, -25, 25);
+        load = Math.Clamp(load, -LoadReach, LoadReach);
         if (Mode != Mode.Port || BuildBlocker(ship, material, load) != null) return;
         Money -= BuildCost(ship, material);
         if (IsSpecial(material) && WoodItemOwned(material) is > 0 and var wood && --Items[wood] <= 0) Items.Remove(wood);
         Ordered = new ShipOrder { Ship = ship, Material = material, Load = load, DaysLeft = BuildDays(ship) };
-        TrainEffect("Shipbuilding", 40 + ship.SizeClass * 30);
+        TrainEffect("Shipbuilding", ShipbuildingExp(ship));
         Studied("Build");
         Say($"{ship.Name}의 건조를 맡겼다. 재질 {MaterialOf(material)?.Name}, 건조일수 {BuildDays(ship)}일.");
     }
@@ -266,7 +301,7 @@ internal sealed partial class Voyage
         foreach (int used in materials.Append(plan.HullItem))
             if (--Items[used] <= 0) Items.Remove(used);
         Ordered = new ShipOrder { Ship = plan.Ship, Material = plan.Material, Load = 0, DaysLeft = BuildDays(plan.Ship), Skills = skill == null ? [] : [skill.SkillId] };
-        TrainEffect("Shipbuilding", 40 + plan.Ship.SizeClass * 30);
+        TrainEffect("Shipbuilding", ShipbuildingExp(plan.Ship));
         Studied("Build");
         Say($"{plan.Hull}(으)로 {plan.Ship.Name}의 특수 조선을 맡겼다. 재질 {plan.MaterialName}, 건조일수 {BuildDays(plan.Ship)}일." + (skill == null ? "" : $" 옵션 스킬 「{skill.Name}」이(가) 붙는다."));
     }
@@ -279,7 +314,7 @@ internal sealed partial class Voyage
         if (Mode != Mode.Port || ReceiveBlocker != null || Ordered is not { } order) return;
         Cues.Enqueue("Bank");                 // 맡긴 배를 받을 때도 은행 저금과 같은 소리(0:14)
         var stats = StatsOf(order.Ship, order.Material, order.Load);
-        var work = new ShipWork();
+        var work = new ShipWork { Over = OverAfter(0, 0, order.Load) };      // 건조 때 조선 랭크 % 를 넘겨 적재를 바꿨으면 오버
         work.Skills.AddRange(order.Skills);
         Dock.Add(new DockedShip { Ship = order.Ship, Durability = stats.Durability, Material = order.Material, Load = order.Load, Work = work });
         Ordered = null;
@@ -314,15 +349,38 @@ internal sealed partial class Voyage
         Stats = ShipStats.Of(Ship, Settings.Ships);
     }
 
-    /// <summary>이 도시의 조선소가 파는 배 — 도시가 클수록 큰 배까지 판다.</summary>
+    /// <summary>
+    /// 이 도시의 조선소가 파는 배 — gvdb 에 그 도시의 목록이 있으면 그대로(원본의 판매 목록, 95 도시).
+    /// 목록이 없는 도시는 지은 규칙: **가장 가까운, 목록이 있는 도시의 목록을 빌려 쓴다**(같은 문화권이 있으면 그 가운데서).
+    /// 전에는 「도시가 클수록 큰 배」였는데 gvdb 어느 조선소도 안 파는 배(특주 · 특별주문 …)까지 떴다. 자료가 아예 없을 때만 그 옛 규칙.
+    /// </summary>
     public List<ShipData> ShipsForSale()
     {
         var rules = Settings.Ships;
+        if (Data.Shipyards.TryGetValue(City.Id, out var sold) || (NearestListed(Data.Shipyards.Keys) is { } lender && Data.Shipyards.TryGetValue(lender, out sold)))
+            return Data.Ships.Where(s => s.Kind == 0 && sold.ContainsKey(s.Name)).GroupBy(s => s.Name).Select(g => g.First()).OrderBy(ShipCost).ToList();
         int maxClass = City.Kind switch { 0 => rules.CapitalMaxClass, 1 => rules.TerritoryMaxClass, _ => rules.OtherMaxClass };
         // 이름이 같은 줄만 하나로 줄인다 — 모형이 같아도 다른 배다(대형 카락과 탐험용 대형 카락). 타고 있는 배와 같은 것도 또 살 수 있다
         return Data.Ships.Where(s => s.Kind == 0 && s.SizeClass <= maxClass && !GameData.ShipVariants.Any(s.Name.Contains))
             .GroupBy(s => s.Name).Select(g => g.First())
             .OrderBy(s => ShipStats.Of(s, rules).Price).ToList();
+    }
+
+    /// <summary>
+    /// 목록(조선소 · 부품)이 없는 도시가 빌려 쓸 도시 — 목록이 있는 도시 가운데 같은 문화권에서 가장 가까운 곳, 같은 문화권에 없으면 그냥 가장 가까운 곳. 지은 규칙.
+    /// 거리는 세계 지도의 도시 자리로 잰다(동서로는 이어져 있다).
+    /// </summary>
+    public int? NearestListed(IEnumerable<int> listed)
+    {
+        double Far(CityData other)
+        {
+            double dx = Math.Abs(other.X - City.X);
+            dx = Math.Min(dx, WorldMap.Width - dx);
+            return dx * dx + (double)(other.Y - City.Y) * (other.Y - City.Y);
+        }
+        var have = listed.Select(id => _cities.GetValueOrDefault(id)).OfType<CityData>().Where(c => c.Id != City.Id).ToList();
+        if (have.Count == 0) return null;
+        return (have.Where(c => c.Culture == City.Culture).OrderBy(Far).FirstOrDefault() ?? have.OrderBy(Far).First()).Id;
     }
 
     /// <summary>부두에 둘 수 있는 배의 수(타고 있는 배는 빼고).</summary>
@@ -340,7 +398,8 @@ internal sealed partial class Voyage
     /// <summary>타고 있지 않은 내 배들. 어느 항구에서나 불러낸다(원본은 맡긴 항구에 있다 — 줄였다).</summary>
     public List<DockedShip> Dock { get; } = [];
 
-    public int ShipCost(ShipData ship) => ShipStats.Of(ship, Settings.Ships).Price;
+    /// <summary>배 값 — gvdb 의 조선소 값(도시마다 같다)이 있으면 그것, 없는 배는 제 식(지은 값).</summary>
+    public int ShipCost(ShipData ship) => Data.ShipPrices.TryGetValue(ship.Name, out int price) ? price : ShipStats.Of(ship, Settings.Ships).Price;
 
     public string? ShipBlocker(ShipData ship)
     {
@@ -425,5 +484,15 @@ internal sealed partial class Voyage
         var work = new ShipWork { Grade = grade };
         Dock.Add(new DockedShip { Ship = ship, Durability = Worked(StatsOf(ship, 0, 0), work, ship).Durability, Work = work });
         Say($"{ship.Name}" + (grade > 0 ? $"(그레이드 {grade})" : "") + "을(를) 사서 부두에 매어 두었다. 선박교환에서 갈아탄다.");
+    }
+
+    /// <summary>대본용 — gvdb 값이 있는 배에서 「gvdb 값 ÷ 제 식의 값」을 재 본다(값이 없는 배의 식을 맞추는 데 쓴다).</summary>
+    public void ShipPricesForTest()
+    {
+        var both = Data.Ships.Where(s => s.Kind == 0).GroupBy(s => s.Name).Select(g => g.First()).Where(s => Data.ShipPrices.ContainsKey(s.Name))
+            .Select(s => (s.Name, s.SizeClass, Real: Data.ShipPrices[s.Name], Mine: ShipStats.Of(s, Settings.Ships).Price)).Where(p => p.Mine > 0).ToList();
+        string Mid(IEnumerable<double> v) { var a = v.OrderBy(x => x).ToList(); return a.Count == 0 ? "-" : $"{a[a.Count / 2]:0.0}"; }
+        int none = Data.Ships.Where(s => s.Kind == 0).GroupBy(s => s.Name).Count(g => !Data.ShipPrices.ContainsKey(g.Key));
+        Say($"(시험) 둘 다 있는 배 {both.Count} · 값 없는 배 {none} — 비(gvdb ÷ 식)의 가운데 값: 소형 {Mid(both.Where(p => p.SizeClass == 0).Select(p => (double)p.Real / p.Mine))} · 중형 {Mid(both.Where(p => p.SizeClass == 1).Select(p => (double)p.Real / p.Mine))} · 대형 {Mid(both.Where(p => p.SizeClass >= 2).Select(p => (double)p.Real / p.Mine))} · 보기 {string.Join(" / ", both.Take(5).Select(p => $"{p.Name} {p.Real:N0}:{p.Mine:N0}"))}");
     }
 }

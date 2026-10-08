@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile, Library, FoundList, Delegate, Chart, Nav }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile, Library, FoundList, Delegate, Chart, Nav, TradeGuild, Broker, HullPaint, SeaGuild }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -88,8 +88,8 @@ internal sealed partial class Voyage
         (string[] Words, string Host, Dialog Opens)? kind = place switch
         {
             1 => (["모험가조합"], "조합 마스터", Dialog.Guild),
-            2 => (["상인조합"], "상인조합 마스터", Dialog.None),
-            3 => (["해양조합"], "해양조합 마스터", Dialog.None),
+            2 => (["상인조합"], "상인조합 마스터", Dialog.TradeGuild),
+            3 => (["해양조합"], "해양조합 마스터", Dialog.SeaGuild),
             13 => (["주점"], "주점 주인", Dialog.Tavern),
             29 => (["양성학교", "학교"], "교수", Dialog.University),
             16 => (["서고"], "학자", Dialog.Library),
@@ -221,6 +221,10 @@ internal sealed partial class Voyage
     public DiscoveryData? QuestDiscovery => Quest != null && _discoveries.TryGetValue(Quest.DiscoveryId, out var d) ? d : null;
     public LandingData? QuestLanding => Quest != null && _landings.TryGetValue(Quest.LandingId, out var l) ? l : null;
     public string DiscoveryKind(int kind) => Data.DiscoveryKinds.Find(k => k.Id == kind)?.Name ?? "발견물";
+
+    /// <summary>발견물의 랭크와 난이도 글 — 「★★★ 난이도 7」. 별은 gvdb 의 랭크(1 ~ 5), 난이도는 클라이언트 표의 값(전에는 이것을 별로 그렸다). 랭크를 모르면 난이도만.</summary>
+    public string DiscoveryStars(DiscoveryData found) =>
+        (Data.DiscoveryRanks.TryGetValue(found.Id, out int rank) ? new string('★', rank) + " " : "") + $"난이도 {found.Stars}";
     /// <summary>도시가 어떤 곳인가 — 나라와 소속 갈래, 교역소가 파는 것.</summary>
     public string CityFacts(CityData city)
     {
@@ -273,10 +277,12 @@ internal sealed partial class Voyage
 
     /// <summary>건물 안의 사람과 출구에 붙이는 가짜 장소 번호.</summary>
     public const int InsideMaster = 9001, InsideExit = 9002, InsideMaid = 9003, InsideSailor = 9004;
+    /// <summary>의뢰 중개인 — 항구 앞에 서서 조합의 의뢰를 이어 준다(사용자, 2026-10-08: 「항구 앞에 의뢰 중계인을 둬」). 원본에서도 조합이 없는 도시는 중개인이 의뢰를 낸다(gvdb 도시 쪽의 「仲介人」).</summary>
+    public const int Broker = 9005;
     /// <summary>주점에 여급이 있는 도시 — 원본은 도시마다 다른 여급이 있고 없는 곳도 있다. 어느 도시인지 자료가 없어 본거지에만 둔다.</summary>
     public bool HasMaid => City.Kind == 0;
 
-    public string PlaceName(int place) => place == InsideMaster ? InteriorHost : place == InsideMaid ? "여급" : place == InsideSailor ? "뱃사람" : place == InsideExit ? "출구" : Data.Places.Find(p => p.Id == place)?.Name ?? (place > 1000 ? "저택" : $"장소 {place}");
+    public string PlaceName(int place) => place == Broker ? "의뢰 중개인" : place == InsideMaster ? InteriorHost : place == InsideMaid ? "여급" : place == InsideSailor ? "뱃사람" : place == InsideExit ? "출구" : Data.Places.Find(p => p.Id == place)?.Name ?? (place > 1000 ? "저택" : $"장소 {place}");
 
     /// <summary>시내에서 그 시설에 닿았을 때 — 하는 일이 있는 곳이면 창을 연다.</summary>
     public void Visit(TownMark mark)
@@ -290,6 +296,7 @@ internal sealed partial class Voyage
             return;
         }
         if (mark.Place == InsideExit) { LeaveInterior(); return; }
+        if (mark.Place == Broker) { Dialog = Dialog.Broker; return; }
         if (mark.Place == InsideSailor) { Dialog = Dialog.Recruit; return; }
         if (mark.Place == InsideMaid) { Say("여급: 「어서 오세요! 오늘은 무엇을 드릴까요?」"); return; }
         if (mark.Place is 4 or 5) TownView = false;                          // 항구 · 항구(항구 앞) → 부두로
@@ -299,6 +306,7 @@ internal sealed partial class Voyage
         else if (mark.Place == 1) EnterGuild();
         else if (mark.Place is 11 or 31 or 12) { ItemShopOpen = true; Dialog = Dialog.Items; }       // 12 대장간 — 돛 도료를 판다
         else if (mark.Place == 13) { if (!EnterPlace(13)) Dialog = Dialog.Tavern; }
+        else if (mark.Place == 3) { if (!EnterPlace(3)) Dialog = Dialog.SeaGuild; }      // 해양조합 — 방이 없는 도시는 창을 바로 연다
         else EnterPlace(mark.Place);
     }
 
@@ -387,10 +395,11 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Port || Money < DishPrice(dish)) return;
         if (Vigour >= MaxVigour && (dish.Kind != 0 || Fatigue <= 0)) { Say($"{dish.Name} — 지금은 배가 부르다."); Cues.Enqueue("Error"); return; }
+        if (Stuffed && dish.Kind == 1) { Say($"{dish.Name} — 만복 상태라 더 먹을 수 없다(남은 시간 {LeftText(StuffedLeft)} · 위장약으로 푼다)."); Cues.Enqueue("Error"); return; }
         Money -= DishPrice(dish);
         if (dish.Kind == 0) Fatigue = Math.Max(0, Fatigue - 15);
         GainVigour(dish.Kind switch { 0 => 20, 1 => 60, _ => 25 } * (1 + Study("FoodGain")));
-        if (dish.Kind == 1) Studied("Course");
+        if (dish.Kind == 1) { Studied("Course"); MaybeStuffed(); }
         Cues.Enqueue(dish.Kind == 0 ? "Drunk" : "Eat");
         Say($"{dish.Name}을(를) {(dish.Kind == 1 ? "먹었다" : "마셨다")}. ({DishPrice(dish):N0} 두캇)");
     }
@@ -455,6 +464,7 @@ internal sealed partial class Voyage
 
     public void Depart()
     {
+        _translated.Clear();      // 번역메모는 떠나면 끝난다
         if (Mode != Mode.Port) return;
         TownView = false;
         (Interior, InteriorName) = (0, "");
@@ -518,6 +528,22 @@ internal sealed partial class Voyage
         Say($"의뢰 「{Quest.Title}」을(를) 받았다. 선금 {Quest.Advance:N0} 두캇.");
         Say(Quest.Hint);
         if (Quest.SeaZone == 0 && Quest.SeaX == 0 && Quest.SearchCity == 0 && QuestLanding is not { X: not 0 }) Say("※ 이 의뢰의 상륙지 자리가 아직 없다. 개발도구에서 찍어야 한다.");
+    }
+
+    /// <summary>대본용 — 생태 조사로 찾는(생물 갈래) 의뢰 가운데 찾는 랭크가 most 이하이고 상륙지 자리가 있는 첫 의뢰를 받은 것으로 한다.</summary>
+    public void TakeBeastQuestForTest(int most)
+    {
+        foreach (var quest in Data.Quests.Concat(MadeQuests))
+        {
+            (Quest, QuestStage) = (quest, QuestStage.Accepted);
+            if (QuestDiscovery is { Kind: >= 7 and <= 14 } && (quest.FindRank > 0 ? quest.FindRank : quest.Rank) - 2 <= most && quest.Rank > 0 && (QuestLanding is { X: not 0 } || quest.SeaX > 0 || quest.SearchCity > 0))
+            {
+                Say($"(시험) 의뢰 「{quest.Title}」 — {QuestDiscovery.Name}(갈래 {QuestDiscovery.Kind}), 필요 랭크 {quest.Rank} · 찾는 랭크 {quest.FindRank}");
+                return;
+            }
+        }
+        (Quest, QuestStage) = (null, QuestStage.None);
+        Say($"(시험) 맞는 의뢰가 없다 — 의뢰 {Data.Quests.Count} + {MadeQuests.Count}건, 생물 갈래 {MadeQuests.Count(q => Data.Discoveries.Find(d => d.Id == q.DiscoveryId) is { Kind: >= 7 and <= 14 })}건, 그 가운데 찾는 랭크가 맞는 것 {MadeQuests.Count(q => Data.Discoveries.Find(d => d.Id == q.DiscoveryId) is { Kind: >= 7 and <= 14 } && (q.FindRank > 0 ? q.FindRank : q.Rank) - 2 <= most)}건");
     }
 
     public bool SiteInReach()
@@ -631,6 +657,12 @@ internal sealed partial class Voyage
         OrderOnReport();
         Studied("Discover");
         Say($"의뢰 「{Quest.Title}」을(를) 보고했다. 보수 {Quest.Reward:N0} 두캇.");
+        // 의뢰마다 받는 아이템(gvdb 의 「入手アイテム」 — 거의 의뢰 알선서 몇 장)
+        if (Quest.RewardItem > 0)
+        {
+            Items[Quest.RewardItem] = Items.GetValueOrDefault(Quest.RewardItem) + Quest.RewardItemCount;
+            Say($"{ItemName(Quest.RewardItem)} {Quest.RewardItemCount}개를 받았다.");
+        }
         Quest = null;
         QuestStage = QuestStage.None;
         Dialog = Dialog.Report;
@@ -678,6 +710,7 @@ internal sealed partial class Voyage
     public void Update(double dt, double steer)
     {
         if (!Created || Paused) return;
+        FinishMapIfFound();
         dt *= TimeScale;
         Clock += dt;
         SkyPhase = (SkyPhase + dt / Settings.SecondsPerSkyCycle) % 1;

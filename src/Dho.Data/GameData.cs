@@ -8,6 +8,8 @@ namespace Dho.Data;
 /// <summary>모험 의뢰 한 건. 조합 의뢰 목록은 클라이언트 자료에 없어서(서버가 내려 주던 것) 직접 짓는다.</summary>
 public sealed class QuestData
 {
+    /// <summary>서고의 지도이면 그 지도를 읽는 학문 스킬 — 의뢰는 0. 지도는 보고 없이 발견으로 끝난다.</summary>
+    public int MapSkill { get; set; }
     public int Id { get; set; }
     public string Title { get; set; } = "";
     public string Client { get; set; } = "모험가 조합";
@@ -33,6 +35,11 @@ public sealed class QuestData
     /// <summary>의뢰를 받는 데 필요한 언어(스킬 번호) — 진짜 의뢰의 값.</summary>
     public List<int> Languages { get; set; } = [];
     /// <summary>밤에만, 폭풍이 아닐 때 찾는다(별 따위) — 진짜 의뢰의 값.</summary>
+    /// <summary>보고하면 받는 아이템(번호)과 수 — gvdb 의 의뢰 자료에서. 없으면 0.</summary>
+    /// <summary>선행 의뢰들의 발견물 — 이것들을 다 찾은 뒤에야 조합이 이 의뢰를 낸다(gvdb 의 「前提クエスト」).</summary>
+    public List<int> AfterDiscoveries { get; set; } = [];
+    public int RewardItem { get; set; }
+    public int RewardItemCount { get; set; }
     public bool NightOnly { get; set; }
     /// <summary>상륙했을 때 나오는 글.</summary>
     public string LandingText { get; set; } = "";
@@ -92,6 +99,10 @@ public sealed class LandingData
 /// <summary>大航海時代DB 의 모험 의뢰 한 건 — 이름 · 글은 일본어 그대로다.</summary>
 public sealed class QuestFact
 {
+    /// <summary>서고의 지도일 때 그 학문 갈래(gvdb 의 일본어 이름 — 「考古学」). 의뢰는 빈 글.</summary>
+    public string Field { get; set; } = "";
+    /// <summary>gvdb 의 원본 의뢰 번호.</summary>
+    public int Id { get; set; }
     public string Title { get; set; } = "";
     public int DiscoveryId { get; set; }
     /// <summary>의뢰를 내는 도시들(도시 표 id).</summary>
@@ -112,6 +123,11 @@ public sealed class QuestFact
     /// <summary>밤에만(거친 날씨가 아닐 때) 찾는다 — 차례 글의 「荒天以外の夜」.</summary>
     public bool Night { get; set; }
     public int Difficulty { get; set; }
+    /// <summary>의뢰를 끝내면 받는 아이템(gvdb 의 「入手アイテム」 — 거의 「의뢰 알선서」 몇 장)과 수. 없으면 0.</summary>
+    /// <summary>선행 의뢰(gvdb 의 원본 의뢰 번호들) — 이것들을 끝내야 이 의뢰가 나온다.</summary>
+    public List<int> Requires { get; set; } = [];
+    public int ItemId { get; set; }
+    public int ItemCount { get; set; }
 }
 
 public sealed class QuestSkill
@@ -127,6 +143,11 @@ public sealed class DiscoveryFact
     public string Japanese { get; set; } = "";
     /// <summary>難度 — 찾는 데 필요한 스킬 랭크.</summary>
     public int Difficulty { get; set; }
+    /// <summary>의뢰를 끝내면 받는 아이템(gvdb 의 「入手アイテム」 — 거의 「의뢰 알선서」 몇 장)과 수. 없으면 0.</summary>
+    /// <summary>선행 의뢰(gvdb 의 원본 의뢰 번호들) — 이것들을 끝내야 이 의뢰가 나온다.</summary>
+    public List<int> Requires { get; set; } = [];
+    public int ItemId { get; set; }
+    public int ItemCount { get; set; }
     /// <summary>発見方法 — 의뢰의 이름(일본어), 또는 「…の地図」.</summary>
     public string Method { get; set; } = "";
     /// <summary>서고의 지도로 찾는 것.</summary>
@@ -319,6 +340,8 @@ public sealed class MarketFact
     public List<int[]> Items { get; set; } = [];
     /// <summary>그 도시에 팔았을 때의 값(이용자들의 보고) — [교역품, 값].</summary>
     public List<int[]> Buys { get; set; } = [];
+    /// <summary>그 도시의 누군가(도구점 · 행상인 · 거래 상인 · 공방 장인)가 파는 아이템 — 값이 안 적힌 것도 든다.</summary>
+    public List<int> Sells { get; set; } = [];
 }
 
 /// <summary>교역 값 셈의 계수. 전부 지은 값이다.</summary>
@@ -409,6 +432,8 @@ public sealed class RecipeData
 /// <summary>레시피 책 한 권 — 아이템 번호 · 이름 · 도구점 값(모르면 0) · 든 레시피들.</summary>
 public sealed class RecipeBook
 {
+    /// <summary>선행 의뢰(gvdb 의 원본 의뢰 번호들) — 이것들을 끝내야 이 의뢰가 나온다.</summary>
+    public List<int> Requires { get; set; } = [];
     public int ItemId { get; set; }
     public string Name { get; set; } = "";
     public int Price { get; set; }
@@ -434,6 +459,11 @@ public sealed class RecipeRule
     public string Tools { get; set; } = "";
     /// <summary>생산물이 교역품이 아니라 아이템일 때 그 번호(이그니스의 원액 …). 0 이면 Output 의 교역품.</summary>
     public int OutputItem { get; set; }
+    /// <summary>대성공 때 나오는 다른 교역품과 수(gvdb 레시피 줄의 둘째 생산물 — 붉은색 광석 → 석류석, 대성공이면 루비). 0 이면 없다(대성공은 곱절).</summary>
+    public int GreatOutput { get; set; }
+    public int GreatCount { get; set; }
+    /// <summary>필요 랭크가 자료(gvdb)에 안 적혀 1 로 둔 레시피인가 — 화면에 「랭크 모름」이라고 알린다.</summary>
+    public bool RankGuessed { get; set; }
     /// <summary>한 번 만들 때마다 하나씩 닳는 아이템(번호를 쉼표로) — 재봉도구 따위.</summary>
     public string Consumes { get; set; } = "";
     public IEnumerable<int> ConsumeList() =>
@@ -615,6 +645,8 @@ public sealed class ItemData
     public string Effect { get; set; } = "";
     public double Amount { get; set; }
     public int Price { get; set; }
+    /// <summary>번호를 지어 붙인 아이템(돛 도료 91000xx)의 클라이언트 아이템 번호 — 파는 도시(gvdb)를 이 번호로 찾는다. 0 이면 Id 그대로.</summary>
+    public int SoldAs { get; set; }
 }
 
 /// <summary>칙명 하나. 전부 지은 것이다(클라이언트에는 「칙명청부」라는 차림 이름과 임명장 아이템뿐이다).</summary>
@@ -670,6 +702,17 @@ public sealed class SaveData
     public Dictionary<int, int> Supplies { get; set; } = new();
     public Dictionary<int, long[]> Cargo { get; set; } = new();       // id → [수, 산 값의 합]
     public List<int> DoneQuests { get; set; } = [];
+    /// <summary>교역 의뢰 — 맡은 것(gvdb 번호, 없으면 0) · 받은 도시 · 건넸는가 · 끝낸 것들.</summary>
+    public int TradeJob { get; set; }
+    public int TradeGiver { get; set; }
+    public bool TradeDelivered { get; set; }
+    public List<int> TradeDone { get; set; } = [];
+    /// <summary>해사 의뢰 — 맡은 것(gvdb 번호, 없으면 0) · 받은 도시 · 가라앉힌 수 · 가라앉힐 수 · 끝낸 것들.</summary>
+    public int SeaJob { get; set; }
+    public int SeaGiver { get; set; }
+    public int SeaSunk { get; set; }
+    public int SeaNeed { get; set; }
+    public List<int> SeaDone { get; set; } = [];
     /// <summary>소지품 — 아이템 번호 → 수.</summary>
     public Dictionary<int, int> Items { get; set; } = new();
     /// <summary>타고 있는 배의 [재질 번호, 적재 변경 %].</summary>
@@ -704,6 +747,11 @@ public sealed class SaveData
     public double WreckY { get; set; }
     public List<int> WreckState { get; set; } = [];
     public int TowValue { get; set; }
+    /// <summary>끌고 있는 것이 원본 침몰선이면 그 발견물 번호(인양품을 고르는 데 쓴다) — 아니면 0.</summary>
+    public int TowWreck { get; set; }
+    /// <summary>번개 시리즈(숙련도 +100%)와 만복의 남은 초.</summary>
+    public double CharmLeft { get; set; }
+    public double StuffedLeft { get; set; }
     /// <summary>기도 효과: 갈래(−1 없음)와 끝나는 날.</summary>
     public List<int> Prayer { get; set; } = [];
     /// <summary>나라의 정세: 나라, 갈래, 끝나는 날.</summary>
@@ -913,6 +961,8 @@ public sealed class GameData
     public List<RecipeBook> RecipeBooks { get; set; } = [];
     /// <summary>도시마다 실제로 파는 것(gvdb) — <c>data\extracted\market-facts.json</c>.</summary>
     public List<MarketFact> MarketFacts { get; set; } = [];
+    /// <summary>gvdb 에 파는 도시가 하나라도 적힌 아이템 → 그 도시들.</summary>
+    public Dictionary<int, HashSet<int>> ItemTowns { get; } = [];
     /// <summary>교역품의 실제 판매 값(파는 도시들의 가운데 값) — 있으면 갈래 기준값 대신 쓴다.</summary>
     public Dictionary<int, int> GoodPrices { get; } = [];
     /// <summary>(도시, 교역품) → 그 도시에 팔았을 때의 실제 값(gvdb 의 보고).</summary>
@@ -1076,8 +1126,13 @@ public sealed class GameData
     public List<DiscoveryFact> DiscoveryFacts { get; set; } = [];
     /// <summary>大航海時代DB(gvdb.mydns.jp)에서 채운 진짜 의뢰 — <c>data\extracted\quest-facts.json</c>(<c>tools\gvo\gvdb_quests.py</c>).</summary>
     public List<QuestFact> QuestFacts { get; set; } = [];
+    public List<QuestFact> MapFacts { get; set; } = [];
     /// <summary>시내 장소 이름(표 40).</summary>
     public List<NamedData> Places { get; set; } = [];
+    /// <summary>클라이언트 아이템 표의 이름(번호 → 이름).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public IReadOnlyDictionary<int, string> ItemNames { get; set; } = new Dictionary<int, string>();
+    public IReadOnlyDictionary<int, string> ItemNotes { get; set; } = new Dictionary<int, string>();
     public List<GoodData> Goods { get; set; } = [];
     public List<NamedData> GoodKinds { get; set; } = [];
     public List<MarketData> Markets { get; set; } = [];
@@ -1089,6 +1144,40 @@ public sealed class GameData
     /// <summary>장비 번호 → 장비 효과(이름 → 랭크) — gvdb 의 「装備効果」. 지금은 VigourSave(행동력 감소 억제)만.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public Dictionary<int, Dictionary<string, int>> GearEffects { get; set; } = [];
+    /// <summary>도시 번호 → 그 조선소가 파는 배(이름 → 값; 0 은 값을 모름) — gvdb 의 이용자 보고(95 도시 · 111척).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, Dictionary<string, int>> Shipyards { get; set; } = [];
+    /// <summary>배 이름 → 조선소 값(gvdb — 도시마다 같다; 여러 값이면 낮은 것).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<string, int> ShipPrices { get; set; } = [];
+    /// <summary>도시 번호 → 그 도시의 장인들이 파는 선박 부품(번호 → 값; 0 은 값을 모름) — gvdb 의 이용자 보고(87 도시 · 254가지).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, Dictionary<int, int>> PartShops { get; set; } = [];
+    /// <summary>부품 번호 → 값(gvdb — 거의 다 도시마다 같다; 여러 값이면 낮은 것).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, int> PartPrices { get; set; } = [];
+    /// <summary>도시 번호 → gvdb 도시 쪽의 사실(필요 언어 · 시설) — 쪽을 받아 둔 도시만.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, TownFact> TownFacts { get; set; } = [];
+    /// <summary>교역 의뢰(gvdb — 교역품 N개를 어느 도시에 건넨다가 읽힌 490건).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public List<TradeQuest> TradeQuests { get; set; } = [];
+    public List<FishFind> FishFinds { get; set; } = [];
+    /// <summary>인양으로 발견하는 침몰선(gvdb 「沈没船（発見物）」) — 발견물과 자리. FishFind 와 같은 꼴(Rank 는 안 쓴다).</summary>
+    public List<FishFind> WreckFinds { get; set; } = [];
+    public List<SeaQuest> SeaQuests { get; set; } = [];
+    /// <summary>요리 아이템 번호 → [행동력, 피로를 푸는 양] — gvdb 의 아이템 설명(「行動力：+20 / 疲労度：-12」, tools\gvo\gvdb_food.py). 241가지.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, int[]> FoodEffects { get; set; } = [];
+    /// <summary>스킬 번호 → 배우는 조건 [모험 · 교역 · 전투 레벨, 레벨 합계] — gvdb 아이템 목록의 「習得条件：1/0/0/合計10」. 92가지.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, int[]> SkillLearn { get; set; } = [];
+    /// <summary>발견물 번호 → 랭크(★ 1 ~ 5) — gvdb 의 발견물 목록(tools\gvo\gvdb_discovery.py). 클라이언트 표에는 난이도만 있다.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, int> DiscoveryRanks { get; set; } = [];
+    /// <summary>배마다의 옵션 스킬 재료 조합 — gvdb 의 이용자 보고(181척 · 897조합). 배 상세(ssjoy)에 없는 배 · 스킬을 메운다.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public List<ShipCombo> ShipCombos { get; set; } = [];
     /// <summary>조선 재료(조빌 아이템)의 강화 수치 — gvdb 의 아이템 목록에서(tools\gvo\gvdb_shipparts.py).</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public List<BuildPart> BuildParts { get; set; } = [];
@@ -1138,6 +1227,7 @@ public sealed class GameData
             data.DiscoveryKinds = Read<List<NamedData>>(Path.Combine(extracted, "discovery-kinds.json")) ?? [];
             data.Skills = Read<List<SkillData>>(Path.Combine(extracted, "skills.json")) ?? [];
             data.BuildParts = Read<List<BuildPart>>(Path.Combine(extracted, "ship-parts-gvdb.json")) ?? [];
+            data.ShipCombos = Read<List<ShipCombo>>(Path.Combine(extracted, "ship-combos-gvdb.json")) ?? [];
             // 익히는 스킬이 아닌 것들(선박 스킬 · 부관 스킬 · 효과)의 원본 설명 글 — tools\gvo\skills.py 의 표 6 에서 뽑아 둔다(없으면 빈 채)
             data.SkillNotes = (Read<Dictionary<string, string>>(Path.Combine(extracted, "skill-notes.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
             data.Ships = Read<List<ShipData>>(Path.Combine(extracted, "ships.json")) ?? [];
@@ -1165,6 +1255,39 @@ public sealed class GameData
         // 이용자 사이트(gvdb items.csv)의 보정이 바탕, 위키에서 뽑은 것이 그것을 덮는다
         data.GearBoosts = Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts-gvdb.json")) ?? [];
         data.GearEffects = Read<Dictionary<int, Dictionary<string, int>>>(Path.Combine(extracted, "gear-effects-gvdb.json")) ?? [];
+        data.DiscoveryRanks = Read<Dictionary<int, int>>(Path.Combine(extracted, "discovery-ranks-gvdb.json")) ?? [];
+        // 클라이언트 아이템 표(14)의 이름 — python 으로 뽑아 둔 것(저장소에는 안 올린다): gvdb_recipes.names(LANG_KO, 14, 0) → item-names.json
+        data.ItemNames = Read<Dictionary<int, string>>(Path.Combine(extracted, "item-names.json")) ?? new Dictionary<int, string>();
+        // 같은 표의 설명 글(둘째 글) — item-notes.json(저장소에는 안 올린다). 소지품 창의 「설명」 칸에 보인다
+        data.ItemNotes = Read<Dictionary<int, string>>(Path.Combine(extracted, "item-notes.json")) ?? new Dictionary<int, string>();
+        data.FoodEffects = Read<Dictionary<int, int[]>>(Path.Combine(extracted, "food-effects-gvdb.json")) ?? [];
+        data.SkillLearn = Read<Dictionary<int, int[]>>(Path.Combine(extracted, "skill-learn-gvdb.json")) ?? [];
+        data.TradeQuests = Read<List<TradeQuest>>(Path.Combine(extracted, "trade-quests-gvdb.json")) ?? [];
+        data.FishFinds = Read<List<FishFind>>(Path.Combine(extracted, "fish-finds-gvdb.json")) ?? [];
+        data.WreckFinds = Read<List<FishFind>>(Path.Combine(extracted, "wreck-finds-gvdb.json")) ?? [];
+        data.SeaQuests = Read<List<SeaQuest>>(Path.Combine(extracted, "sea-quests-gvdb.json")) ?? [];
+        data.TownFacts = (Read<List<TownFact>>(Path.Combine(extracted, "town-facts-gvdb.json")) ?? []).ToDictionary(f => f.CityId);
+        foreach (var shop in Read<List<PartShopStock>>(Path.Combine(extracted, "partshops-gvdb.json")) ?? [])
+        {
+            if (shop.Parts.Count == 0) continue;      // 조선 재료만 적힌 도시 — 부품 목록은 없는 것으로 본다
+            var sold = data.PartShops[shop.CityId] = [];
+            foreach (var row in shop.Parts.Where(r => r.Length >= 2))
+            {
+                sold[row[0]] = row[1];
+                if (row[1] > 0 && (!data.PartPrices.TryGetValue(row[0], out int known) || row[1] < known)) data.PartPrices[row[0]] = row[1];
+            }
+        }
+        foreach (var yard in Read<List<ShipyardStock>>(Path.Combine(extracted, "shipyard-gvdb.json")) ?? [])
+        {
+            var sold = yard.CityId > 0 ? data.Shipyards[yard.CityId] = [] : [];      // 도시 0 번은 값만 알리는 줄(gvdb 아이템 목록의 배 값)
+            foreach (var row in yard.Ships)
+            {
+                string name = row[0].GetString() ?? "";
+                int price = row[1].GetInt32();
+                sold[name] = price;
+                if (price > 0 && (!data.ShipPrices.TryGetValue(name, out int known) || price < known)) data.ShipPrices[name] = price;
+            }
+        }
         foreach (var (gearId, boosts) in Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(extracted, "gear-boosts.json")) ?? []) data.GearBoosts[gearId] = boosts;
         // 손으로 적어 넣은 것(위키에서 못 뽑은 장비 — 사용자의 기억 따위)이 뽑은 것을 덮는다. 도구가 extracted 의 파일을 새로 써도 남는다
         foreach (var (gearId, boosts) in Read<Dictionary<int, Dictionary<int, int>>>(Path.Combine(directory, "gear-boosts.json")) ?? []) data.GearBoosts[gearId] = boosts;
@@ -1182,6 +1305,7 @@ public sealed class GameData
         data.Pets = Read<List<NamedData>>(Path.Combine(extracted, "pets.json")) ?? [];
         data.DiscoveryFacts = Read<List<DiscoveryFact>>(Path.Combine(extracted, "discovery-facts.json")) ?? [];
         data.QuestFacts = Read<List<QuestFact>>(Path.Combine(extracted, "quest-facts.json")) ?? [];
+        data.MapFacts = Read<List<QuestFact>>(Path.Combine(extracted, "map-facts-gvdb.json")) ?? [];
         data.ShipParts = Read<List<ShipPart>>(Path.Combine(extracted, "ship-parts.json")) ?? [];
         }
         data.Decos = Read<List<ShipDeco>>(Path.Combine(extracted, "ship-decos.json")) ?? [];
@@ -1206,6 +1330,7 @@ public sealed class GameData
             if (data.RecipeRules.Find(r => r.RecipeId == real.RecipeId) is { } mine)
             {
                 (mine.Output, mine.OutputCount, mine.Inputs, mine.Skill, mine.OutputItem) = (real.Output, real.OutputCount, real.Inputs, real.Skill == "" ? mine.Skill : real.Skill, real.OutputItem);
+                (mine.GreatOutput, mine.GreatCount) = (real.GreatOutput, real.GreatCount);
                 if (real.Tools != "") mine.Tools = real.Tools;
                 mine.Consumes = "";      // 닳는 도구는 실제 재료 줄에 들어 있다
             }
@@ -1241,6 +1366,9 @@ public sealed class GameData
                 real.RealGoods = fact.Goods.Where(g => g.Length >= 2 && data.Goods.Exists(x => x.Id == g[0])).Select(g => g[0]).ToList();
                 foreach (var locked in fact.Goods.Where(g => g.Length >= 3 && g[2] != 0)) real.RealInvest[locked[0]] = locked[2];
             }
+        foreach (var fact in data.MarketFacts)
+            foreach (int item in fact.Sells.Concat(fact.Items.Where(i => i.Length > 0).Select(i => i[0])))
+                (data.ItemTowns.TryGetValue(item, out var sold) ? sold : data.ItemTowns[item] = []).Add(fact.CityId);
         data.Specialties = Read<Dictionary<int, int>>(Path.Combine(extracted, "specialties.json")) ?? [];
         data.Conversions = Read<Dictionary<int, int[]>>(Path.Combine(extracted, "conversions.json")) ?? [];
         foreach (var fact in data.MarketFacts)
@@ -1476,7 +1604,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-20";
+    private const string ExtractVersion = "extracted-21";
 
     public static string RoomsOf(byte[] sceneTable, int cityId)
     {

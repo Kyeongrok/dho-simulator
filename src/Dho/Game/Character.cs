@@ -122,7 +122,12 @@ internal sealed partial class Voyage
     public void Save()
     {
         if (_developer || _scratch || !Created || Mode is not (Mode.Port or Mode.Sea)) return;
-        Data.WriteSave(new SaveData
+        Data.WriteSave(Snapshot());
+    }
+
+    /// <summary>지금 상태의 저장 꼴.</summary>
+    private SaveData Snapshot() =>
+        new SaveData
         {
             Name = PlayerName, Male = Male, NationId = NationId, JobId = JobId, Money = Money,
             CityId = City.Id, ShipId = Ship.Id, Durability = Durability, Crew = Crew, Water = Water, Food = Food,
@@ -131,7 +136,7 @@ internal sealed partial class Voyage
             Skills = Skills.ToDictionary(s => s.Key, s => new[] { s.Value.Rank, s.Value.Exp, s.Value.Refined ? 1 : 0 }),
             Supplies = new Dictionary<int, int>(Supplies),
             Cargo = Cargo.ToDictionary(c => c.Key, c => new[] { c.Value.Count, c.Value.Cost }),
-            DoneQuests = _done.ToList(),
+            DoneQuests = _done.ToList(), TradeJob = TradeSave.Job, TradeGiver = TradeSave.Giver, TradeDelivered = TradeSave.Delivered, TradeDone = TradeSave.Done, SeaJob = SeaSave.Job, SeaGiver = SeaSave.Giver, SeaSunk = SeaSave.Sunk, SeaNeed = SeaSave.Need, SeaDone = SeaSave.Done,
             Items = new Dictionary<int, int>(Items),
             Parts = Parts.Select(p => p.Id).ToList(),
             PartStock = PartStock.Select(p => p.Id).ToList(),
@@ -149,14 +154,25 @@ internal sealed partial class Voyage
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
+            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
             Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp, a.Ship == null ? 0 : AllMoored.IndexOf(a.Ship) + 1, a.Trust }).ToList(),
             Dock = AllMoored.Select(d => new double[] { d.Ship.Id, d.Durability, d.Material, d.Load }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
             QuestId = Quest?.Id ?? 0, QuestStage = (int)QuestStage,
-        });
+        };
+
+    /// <summary>대본용 — 지금 상태를 저장 꼴(JSON 글)로 바꿨다가 되읽는다(파일에는 안 적는다). 오가도 남아야 하는 것들을 앞뒤로 적는다.</summary>
+    public void SaveRoundTripForTest()
+    {
+        string Line() => $"의뢰/지도 {Quest?.Id}({QuestStage}) · 교역 {TradeJob?.Id}(건넴 {TradeDelivered}, 끝낸 것 {_tradeDone.Count}) · 해사 {SeaJob?.Id}({SeaSunk}/{SeaNeed}, 끝낸 것 {_seaDone.Count}) · 선체 도료 {Work.HullPaint} · 발견물 {Found.Count} · 소지품 {Items.Count}가지";
+        string before = Line();
+        string json = System.Text.Json.JsonSerializer.Serialize(Snapshot());
+        if (System.Text.Json.JsonSerializer.Deserialize<SaveData>(json) is not { } back) { Say("(시험) 저장 꼴을 되읽지 못했다."); return; }
+        Restore(back);
+        Say($"(시험) 저장 꼴 {json.Length:N0}자 — 앞: {before}");
+        Say($"(시험) 되읽은 뒤: {Line()}{(before == Line() ? " — 같다" : " — 다르다!")}");
     }
 
     private void Restore(SaveData save)
@@ -182,6 +198,8 @@ internal sealed partial class Voyage
         foreach (var (id, count) in save.Supplies) Supplies[id] = count;
         foreach (var (id, item) in save.Cargo) Cargo[id] = new CargoItem { Count = (int)item[0], Cost = item[1] };
         foreach (int id in save.DoneQuests) _done.Add(id);
+        RestoreTrade(save.TradeJob, save.TradeGiver, save.TradeDelivered, save.TradeDone);
+        RestoreSea(save.SeaJob, save.SeaGiver, save.SeaSunk, save.SeaNeed, save.SeaDone);
         foreach (var (id, count) in save.Items)
         {
             // 옛 색깔별 돛 도료의 번호(9100002 ~ 8)는 이제 돛 도료 2 ~ 8 이다
@@ -220,7 +238,8 @@ internal sealed partial class Voyage
         ExileDay = save.ExileDay;
         Infamy = save.Infamy;
         WreckPieces = save.WreckPieces;
-        (TowValue, TowFrayed) = (save.TowValue, false);
+        (TowValue, TowFrayed, _towWreck) = (save.TowValue, false, save.TowWreck);
+        (_charmUntil, _stuffedUntil) = (save.CharmLeft > 0 ? Clock + save.CharmLeft : 0, save.StuffedLeft > 0 ? Clock + save.StuffedLeft : 0);
         (PetId, PetLove) = save.Pet is { Count: 2 } pet ? (pet[0], pet[1]) : (0, 0);
         Found.Clear();
         foreach (int id in save.Found ?? []) Found.Add(id);

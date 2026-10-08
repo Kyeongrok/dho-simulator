@@ -19,6 +19,29 @@ internal sealed partial class Voyage
     public int SailTint { get; private set; }
 
     /// <summary>고르는 동안 미리 보기(되돌릴 때도 쓴다).</summary>
+    /// <summary>
+    /// 선박용 도료(船塗料 — gvdb: 「使うと船体の色を変えられる」, 공방 장인 60곳 500)로 고를 수 있는 선체 빛깔 — 재질 줄의 번호들.
+    /// 원본이 어떤 빛깔을 고르게 하는지는 모른다 — 클라이언트 재질 표에서 「칠한 빛깔」로 적힌 열다섯 줄(특별 주문 도료들의 빛깔)을 쓴다(짐작).
+    /// </summary>
+    public List<int> HullPaints => _hullPaints ??= Data.MaterialColors.Where(c => c.Value >> 24 == 2).GroupBy(c => c.Value).Select(g => g.Min(c => c.Key)).OrderBy(id => id).ToList();
+    private List<int>? _hullPaints;
+
+    /// <summary>고르는 동안 미리 보는 빛깔(재질 줄 번호) — 0 이면 없음.</summary>
+    public int HullPaintTry { get; set; }
+
+    /// <summary>타고 있는 배의 선체 빛깔 — 도료로 칠했으면 그 빛깔, 아니면 재질의 것.</summary>
+    public int ShipHullColor => HullPaintTry > 0 ? HullColor(HullPaintTry) : Work.HullPaint > 0 ? HullColor(Work.HullPaint) : HullColorOf(Ship, ShipMaterialId);
+
+    public bool PaintHull(int paint)
+    {
+        if (Data.Items.Find(i => i.Effect == "HullPaint" && Items.GetValueOrDefault(i.Id) > 0) is not { } can || !HullPaints.Contains(paint) || paint == Work.HullPaint) return false;
+        if (--Items[can.Id] <= 0) Items.Remove(can.Id);
+        (Work.HullPaint, HullPaintTry) = (paint, 0);
+        Cues.Enqueue("Buy");
+        Say($"{can.Name}(으)로 선체를 칠했다.");
+        return true;
+    }
+
     public void ShowSail(int pattern, int tint) => (SailPattern, SailTint) = (pattern, tint);
 
     /// <summary>고른 대로 칠한다 — 돛 도료 하나가 든다.</summary>
@@ -130,6 +153,16 @@ internal sealed partial class Voyage
 
     private Dictionary<int, PaperItem>? _foods;
     /// <summary>행동력 음식(아이템 표의 원본) — 없으면 null.</summary>
+    /// <summary>음식을 먹으면 얻는 것 한 줄 — 「행동력 +40 · 피로 −8 · 괴혈병 회복」. 음식이 아니면 빈 글. (먹을 때의 셈과 같다)</summary>
+    public string FoodEffectText(int item)
+    {
+        if (FoodOf(item) is not { } food) return "";
+        int vigour = FoodVigour(food);
+        string text = food.Description.Replace(" ", "");
+        double relief = Data.FoodEffects.TryGetValue(item, out var effect) && effect.Length > 1 && effect[1] > 0 ? effect[1] : text.Contains("피로회복") ? vigour * 0.2 : 0;
+        return $"행동력 +{vigour}" + (relief > 0 ? $" · 피로 −{relief:0}" : "") + (text.Contains("괴혈병") ? " · 괴혈병 회복" : "");
+    }
+
     public PaperItem? FoodOf(int item) => (_foods ??= Data.Foods.ToDictionary(f => f.Id)).GetValueOrDefault(item);
 
     /// <summary>음식의 설명 글에 적힌 「행동력+n」의 n.</summary>
@@ -145,7 +178,9 @@ internal sealed partial class Voyage
         Data.Papers.Find(p => p.Id == item) is { } paper ? paper.Name :
         item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear ? gear.Name :
         item > MaterialItem && item < MaterialItem + 1000 && MaterialOf(item - MaterialItem) is { } wood ? wood.Name :
-        item >= JobPaper && Data.Jobs.Find(j => j.Id == item - JobPaper) is { } job ? $"{job.Name} 전직증" : $"아이템 {item}";
+        item >= JobPaper && Data.Jobs.Find(j => j.Id == item - JobPaper) is { } job ? $"{job.Name} 전직증" :
+        Data.ItemNames.TryGetValue(item, out string? plain) && plain.Length > 0 ? plain :
+        Data.ShipParts.Find(p => p.Id == item) is { } part ? part.Name : $"아이템 {item}";      // 그 밖의 것은 클라이언트 아이템 표의 이름
 
     /// <summary>입거나 찬 장비 — 갈래(0 옷 · 1 모자 · 2 신발 · 3 장갑 · 4 무기 · 5 장신구)마다 아이템 번호. 장비한 것은 소지품에 그대로 있다.</summary>
     public int[] Equipped { get; } = new int[6];
@@ -259,9 +294,21 @@ internal sealed partial class Voyage
             return known.Effect switch
             {
                 "Fatigue" => $"선원의 피로를 {known.Amount:0} 푼다.",
+                "LandThrow" => "육상전에서 적에게 던져 피해를 준다.",
+                "LandBerserk" => "육상전에서 쓰면 공격력이 2배, 방어력이 1/4 이 된다.",
+                "LandHeal" => $"육상전에서 입은 피해를 고친다(생명력의 {known.Amount:0}%).",
                 "Repair" => $"내구를 {known.Amount:0}% 고친다.",
+                "RepairFlat" => $"내구를 {known.Amount:0} 고친다(싸우는 중에는 못 쓴다).",
                 "Cure" => $"{Data.Disasters.Find(d => d.Id == (int)known.Amount)?.Name ?? "재해"}을(를) 가라앉힌다.",
                 "Lifebuoy" => "난파할 때 저절로 쓰여 한 번 버틴다.",
+                "Stock" => $"쓰면 자재 {known.Amount:0}개로 바뀐다(창고에 실린다).",
+                "Truce" => "해전 중에 쓰면 싸움이 끝난다(괴물에게는 안 통한다).",
+                "Bell" => "백병전 중에 쓰면 반드시 빠져나온다.",
+                "BattleSkill" => $"해전 중에 쓰면 그 싸움 동안 {SkillName((int)known.Amount)}이(가) 듣는다(랭크 1).",
+                "Memo" => TranslationMemos.TryGetValue(known.Id, out var tongues) ? $"쓰면 그 도시에 머무는 동안 말이 통한다: {string.Join(" · ", tongues.Select(SkillName))}." : "",
+                "HullPaint" => "쓰면 선체의 빛깔을 고르는 창이 뜬다.",
+                "Bait" => "쓰면 낚시 스킬이 없어도 한 번 낚는다(바다 · 항구).",
+                "SkillTool" => $"쓰면 {SkillName((int)known.Amount)} 스킬이 없어도 한 번 한다(랭크 1).",
                 "RecipeBook" when RecipeBookOf(known.Id) is { } book => $"레시피 책 — {book.Recipes.Count}가지: " + string.Join(" · ", book.Recipes.Take(6).Select(id => Data.Recipes.Find(r => r.Id == id)?.Name ?? "")) + (book.Recipes.Count > 6 ? " …" : ""),
                 "SailPaint" => "쓰면 돛의 무늬와 색을 고르는 창이 뜬다. 대장간 · 도구점에서 판다.",
                 "Paper" when known.Id == MedalPaper => $"{PermitCost}장을 본거지 왕궁의 서기관에게 가져가면 전용함 건조 허가증으로 바꿔 준다.",
@@ -312,10 +359,60 @@ internal sealed partial class Voyage
                     Say($"{known.Name}을(를) 썼다. 선원들이 기운을 차렸다.");
                     Cues.Enqueue("Eat");               // 음식을 먹는 소리
                     break;
+                case "LandHeal":
+                    // 치료약 갈래 — gvdb: 「陸戦治療（陸戦で、ターゲットのダメージを回復する）」 効果・小/中. 싸우는 중이면 한 합을 쓴다
+                    if (Life >= MaxLife) { Say($"{known.Name} — 다친 데가 없다."); Cues.Enqueue("Error"); return; }
+                    if (LandFight is { Result: null }) { _healWith = known; LandAct(4); return; }
+                    HealLife(known);
+                    Say($"{known.Name}을(를) 썼다. 생명력 {Life:0} / {MaxLife}.");
+                    break;
+                case "RepairFlat" when Durability < Stats.Durability && Battle is not { Result: null }:
+                    // 목공도구 갈래 — gvdb: 명인 목수의 목공도구 「耐久力を100回復」 · 거장의 목공도구 「500回復」 · 「戦闘中は使用不可」
+                    Durability = Math.Min(Stats.Durability, Durability + known.Amount);
+                    Say($"{known.Name}(으)로 배를 고쳤다. 내구 {Durability:0} / {Stats.Durability}.");
+                    break;
+                case "LandThrow" or "LandBerserk":
+                    if (LandFight is not { Result: null }) { Say($"{known.Name} — 육상전에서 쓴다."); Cues.Enqueue("Error"); return; }
+                    UseLandItem(known);
+                    return;
                 case "Repair" when Durability < Stats.Durability:
                     Durability = Math.Min(Stats.Durability, Durability + Stats.Durability * known.Amount / 100);
                     Say($"{known.Name}(으)로 배를 고쳤다.");
                     break;
+                case "Bait":
+                    // 낚시밥 — 낚시 스킬이 없어도 한 번 낚는다(클라이언트 설명: 「도시나 해상에서 낚시를 할 수 있는 미끼」 · gvdb: 쓰면 걸리는 효과 「釣り」)
+                    if (!FishWithBait((int)known.Amount)) return;
+                    break;
+                case "Truce" or "Bell" or "BattleSkill":
+                    if (!UseBattleItem(known)) return;
+                    break;
+                case "Stock":
+                    // 비축물자:자재 — 클라이언트 설명: 「대해전 중 도시에서 후원해준 비축물자. 자재 100개로 교환할 수 있다」. 창고가 허락하는 만큼만 받는다
+                    int stock = Math.Min((int)known.Amount, HoldFree);
+                    if (stock <= 0) { Say($"{known.Name} — 창고가 가득 찼다."); Cues.Enqueue("Error"); return; }
+                    Supplies[RepairSupply] = SupplyCount(RepairSupply) + stock;
+                    Say($"{known.Name}을(를) 풀었다. 자재 {stock}개를 실었다.");
+                    break;
+                case "ExpCharm":
+                    UseExpCharm(known);
+                    break;
+                case "Digest":
+                    if (!Stuffed) { Say($"{known.Name} — 만복 상태가 아니다."); Cues.Enqueue("Error"); return; }
+                    _stuffedUntil = 0;
+                    Say($"{known.Name}을(를) 먹었다. 만복이 풀렸다.");
+                    break;
+                case "AideMeal":
+                    if (!UseAideMeal(known)) return;
+                    break;
+                case "Memo":
+                    if (!UseTranslationMemo(known.Id)) return;
+                    break;
+                case "SkillTool":
+                    if (!UseSkillTool((int)known.Amount, known.Name)) return;
+                    break;
+                case "HullPaint":
+                    Dialog = Dialog.HullPaint;         // 빛깔을 고르는 창 — 「확인」을 눌러야 도료가 든다
+                    return;
                 case "SailPaint":
                     SailDye = (int)known.Amount;
                     Dialog = Dialog.Sail;              // 무늬와 색을 고르는 창 — 「확인」을 눌러야 도료가 든다
@@ -377,7 +474,8 @@ internal sealed partial class Voyage
         }
         else if (FoodOf(item) is { } food)
         {
-            // 행동력 음식 — 설명의 「행동력+n」만큼 행동력이 찬다. 「피로 회복」이 붙은 것은 선원의 피로도 풀고(n 의 절반 — 지은 값),
+            // 행동력 음식 — 설명의 「행동력+n」만큼 행동력이 찬다. 「피로 회복」이 붙은 것은 선원의 피로도 푼다 — 푸는 양은 gvdb 의 아이템 설명(「疲労度：-12」)의 값,
+            // 거기 없는 음식만 행동력의 1/5(gvdb 의 73가지에서 가장 흔한 비 — 지은 값. 전에는 절반이었다).
             // 「괴혈병 회복」이 붙은 것은 괴혈병도 가라앉힌다.
             int vigour = FoodVigour(food);
             string text = food.Description.Replace(" ", "");
@@ -385,9 +483,11 @@ internal sealed partial class Voyage
             var scurvy = text.Contains("괴혈병") ? Disasters.Find(d => d.Data.Name.Contains("괴혈병")) : null;
             if (Vigour >= MaxVigour && (!rests || Fatigue <= 0) && scurvy == null) { Say($"{food.Name} — 지금은 먹을 까닭이 없다."); Cues.Enqueue("Error"); return; }
             GainVigour(vigour * (1 + Study("FoodGain")));
-            if (rests) Fatigue = Math.Max(0, Fatigue - vigour * 0.5);
+            double relief = Data.FoodEffects.TryGetValue(item, out var effect) && effect.Length > 1 && effect[1] > 0 ? effect[1] : rests ? vigour * 0.2 : 0;
+            rests |= relief > 0;
+            if (rests) Fatigue = Math.Max(0, Fatigue - relief);
             if (scurvy != null) End(scurvy);
-            Say($"{food.Name}을(를) 먹었다. 행동력 +{vigour} ({Vigour:0}/{MaxVigour})" + (rests ? " · 피로가 풀렸다" : "") + (scurvy != null ? " · 괴혈병이 가라앉았다" : "") + ".");
+            Say($"{food.Name}을(를) 먹었다. 행동력 +{vigour} ({Vigour:0}/{MaxVigour})" + (rests ? $" · 피로 −{relief:0}" : "") + (scurvy != null ? " · 괴혈병이 가라앉았다" : "") + ".");
             Cues.Enqueue("Eat");
         }
         else return;

@@ -85,7 +85,8 @@ internal sealed partial class Voyage
     /// <summary>타고 있는 배에 단 부품.</summary>
     public List<ShipPart> Parts { get; private set; } = [];
 
-    public int PartPrice(ShipPart part) => part.Slot switch
+    /// <summary>부품 값 — gvdb 의 장인 값이 있으면 그것(254가지), 없는 부품은 아래의 식(지은 값).</summary>
+    public int PartPrice(ShipPart part) => Data.PartPrices.TryGetValue(part.Id, out int price) ? price : part.Slot switch
     {
         0 => 1500 + (part.A + part.B) * 400,
         1 => 2000 + part.A * 1500,
@@ -100,14 +101,20 @@ internal sealed partial class Voyage
         0 => $"가로돛 +{part.A} · 세로돛 +{part.B}",
         1 => $"장갑 {part.A} · 속도 −{part.B}%",
         3 => "돛에 그리는 문장(모양뿐이다)",
-        4 => $"{CannonSpots[SpotOf(part)]} {part.A}문 · 관통 {part.B} · 사정 {part.C} · {AmmoName(part.D / 10)}",
+        4 => $"{CannonSpots[SpotOf(part)].Replace("포", "")} 관통{part.B} 사정{part.C} 장전{part.Reload} {AmmoName(part.D / 10)}",
         5 => $"{GearKinds[Math.Clamp(part.A, 0, GearKinds.Length - 1)]}" + (part.B > 0 ? $" {part.B}" : "") + (GearNote(part) is { Length: > 0 } does ? $" — {does}" : ""),
-        _ => $"효과 {part.A}/{part.B}/{part.C}/{part.D}",
+        _ => $"재해 {part.A} · 피로 {part.B} · 장악 {part.C} · 회피 {part.D}",      // 재해 수호 · 피로 경감 · 선원 장악 · 포탄 회피
     };
 
-    /// <summary>이 도시의 조선소가 파는 부품 — 도시가 클수록 비싼 것까지.</summary>
+    /// <summary>
+    /// 이 도시에서 파는 부품 — gvdb 에 그 도시의 장인(무기 · 돛 · 조각 · 도장 · 제재) 목록이 있으면 그대로(원본의 판매 목록, 87 도시).
+    /// 원본은 장인마다 따로 팔지만 여기서는 조선소의 「선박부품」 한 곳에 모았다(줄인 것). 목록이 없는 도시는 지은 규칙: 가까운 도시의 목록을 빌린다(자료가 아예 없을 때만 「도시가 클수록 비싼 것까지」).
+    /// </summary>
     public List<ShipPart> PartsForSale()
     {
+        // 목록이 없는 도시는 가장 가까운(같은 문화권 먼저) 목록 있는 도시의 것을 빌려 쓴다 — 지은 규칙(Shipyard.cs 의 NearestListed)
+        if (Data.PartShops.TryGetValue(City.Id, out var sold) || (NearestListed(Data.PartShops.Keys) is { } lender && Data.PartShops.TryGetValue(lender, out sold)))
+            return Data.ShipParts.Where(p => sold.ContainsKey(p.Id)).OrderBy(p => p.Slot).ThenBy(PartPrice).ToList();
         int limit = City.Kind switch { 0 => int.MaxValue, 1 => 40000, _ => 15000 };
         return Data.ShipParts.Where(p => !p.Name.Contains("명품") && PartPrice(p) <= limit)
             .GroupBy(p => p.Name).Select(g => g.First())
@@ -145,6 +152,35 @@ internal sealed partial class Voyage
     /// <summary>장갑이 줄여 주는 내구 피해 배율.</summary>
     public double PartDamage => 1 - Math.Min(0.6, Parts.Where(p => p.Slot == 1).Sum(ArmorOf) * 0.02);
 
-    /// <summary>선수상이 줄여 주는 재해 확률 배율.</summary>
-    public double PartLuck => 1 - Math.Min(0.5, Parts.Where(p => p.Slot == 2).Sum(p => p.A + p.B + p.C + p.D) * 0.012);
+    // 선수상의 네 수치(클라이언트 표 27 의 A ~ D)는 gvdb 아이템 목록의 글과 값이 맞는다(팔바티상 5/6/1/4 = 「災害守護：5 疲労軽減：6 船員掌握：1 砲弾回避：4」):
+    // A 재해 수호 · B 피로 경감 · C 선원 장악 · D 포탄 회피. 수치 1 이 얼마의 효과인지는 자료가 없다 — 아래 곱(3% · 3% · 2%)은 지은 값.
+    // 선원 장악은 이 게임에 선원의 충성이 없어 쓰이지 않는다. 「使用時効果」(세이렌 격퇴 · 크라켄 격퇴 · 소화 …)도 아직 없다
+    /// <summary>선수상의 「재해 수호」가 줄여 주는 재해 확률 배율.</summary>
+    public double PartLuck => 1 - Math.Min(0.5, Parts.Where(p => p.Slot == 2).Sum(p => p.A) * 0.03);
+    /// <summary>선수상의 「피로 경감」이 줄여 주는 피로 배율.</summary>
+    public double PartFatigue => 1 - Math.Min(0.4, Parts.Where(p => p.Slot == 2).Sum(p => p.B) * 0.03);
+    /// <summary>
+    /// 단 대포의 「장전 속도」(클라이언트 대포 표의 값 1 ~ 9, gvdb 글 「装填速度」 — 클수록 빠르다)가 장전 시간에 곱하는 배율: 문 수로 고른 평균이 4(가장 흔한 값)면 1,
+    /// 하나 높을 때마다 5% 짧다(곱은 지은 값 — 수 1 이 몇 초인지는 자료가 없다). 탄속 · 폭발 범위는 아직 안 쓴다.
+    /// </summary>
+    public double CannonReload
+    {
+        get
+        {
+            var guns = Parts.Where(p => p.Slot == 4 && p.Reload > 0).ToList();
+            if (guns.Count == 0) return 1;
+            double mean = guns.Sum(p => (double)p.Reload * p.A) / Math.Max(1, guns.Sum(p => p.A));
+            return Math.Clamp(1 - (mean - 4) * 0.05, 0.7, 1.2);
+        }
+    }
+
+    private int _dodged;
+    /// <summary>대본용 — 적의 포격이 모두 빗나가게.</summary>
+    public bool DodgeAllForTest { get; set; }
+    /// <summary>대본용 — 부품이 주는 배율들과 이번 실행에서 빗나간 적 포격 수.</summary>
+    public void PartsReportForTest() =>
+        Say($"(시험) 장전 배율 {CannonReload:0.00} · 포탄 회피 {PartDodge:P0} · 재해 {PartLuck:0.00} · 피로 {PartFatigue:0.00} · 빗나간 적 포격 {_dodged}번 · 내구 {Durability:0}/{Stats.Durability}");
+
+    /// <summary>선수상의 「포탄 회피」 — 적의 한 번 포격이 빗나갈 확률.</summary>
+    public double PartDodge => DodgeAllForTest ? 1 : Math.Min(0.3, Parts.Where(p => p.Slot == 2).Sum(p => p.D) * 0.02);
 }

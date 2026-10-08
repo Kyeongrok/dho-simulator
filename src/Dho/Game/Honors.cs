@@ -56,5 +56,14 @@ internal sealed partial class Voyage
     private static readonly string[] MeisterSkills = ["", "조리", "주조", "봉제", "공예", "보관", "연금술"];
     public bool MeisterOf(int skillId) => Honor is >= 1 and <= 6 && Data.Skills.Find(s => s.Id == skillId)?.Name == MeisterSkills[Honor];
 
+    /// <summary>대본용 — 조리 레시피 하나의 생산 행동력을 호칭 없이 · 조리 마이스터 호칭(1)을 내걸고 견줘 말한다.</summary>
+    public void MeisterForTest()
+    {
+        if (Data.RecipeRules.Find(r => RecipeSkill(r) is { } c && Data.Skills.Find(k => k.Id == c.SkillId)?.Name == "조리") is not { } rule) { Say("조리 레시피가 없다"); return; }
+        int plain = ProduceVigourOf(rule), plain10 = ProduceVigourOf(rule, 10);
+        Honor = 1;
+        Say($"(시험) 호칭 없이 {plain} · 열 번 {plain10} → 「{HonorName}」 {ProduceVigourOf(rule)} · 열 번 {ProduceVigourOf(rule, 10)}");
+    }
+
     public static string HonorNote(int id) => id switch { >= 1 and <= 6 => "그 생산의 행동력 소모 −20%", 34 => "흥정 폭 +2%p", 35 => "받는 포격 −10%", 62 => "투자 공적 +20%", 63 => "투자 공적 +50%", _ => "" };
 }

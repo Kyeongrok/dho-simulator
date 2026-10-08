@@ -23,7 +23,6 @@ internal sealed partial class Voyage
     public const int MaxSkillsOn = 3;
     private const double OnSeconds = 180, TickSeconds = 15;
     private readonly Dictionary<int, (double Until, double Next)> _skillOn = new();
-    private static readonly string[] Fishes = ["고등어", "정어리", "전갱이", "청어", "대구", "도미", "청상아리", "가다랑어"];
 
     public bool SkillOn(int skillId) => _skillOn.ContainsKey(skillId);
 
@@ -92,21 +91,86 @@ internal sealed partial class Voyage
             Train(rule.SkillId, rain ? 25 : 8);
         }
     }
-    /// <summary>
-    /// 낚시 한 번 — 낚은 물고기는 식량이 아니라 **선창의 교역품**(물고기 갈래, 번호 1601000 ~)으로 실린다(사용자, 2026-10-07 — 원본도 그렇다).
-    /// 무엇이 낚이는가(이름 여덟 가지 가운데 아무거나)와 마릿수(1 ~ 3 + 랭크 몫, 배가 빠르면 반)는 지은 값이다.
-    /// </summary>
+    // ── 낚시 ──
+    // 규칙은 사용자가 가리킨 글(인벤 「낚시 만랭 해보자」, 2008 — 낚시 15랭 이용자의 정리)에서:
+    //  · 어종마다 랭크가 있다: 1 정어리 · 청어 · 고등어 · 꽁치 / 2 전갱이 · 참돔 / 3 대구 / 4 연어 / 5 가다랑어 / 8 다랑어 / 12 백상어 · 청상아리 · 청새치.
+    //  · 랭크가 3 오를 때마다 한 번에 낚이는 마릿수가 하나씩 는다(1랭 어종: 3랭 2마리 · 6랭 3 · 9랭 4 · 12랭 5 · 15랭 6; 다랑어: 12랭 2 · 15랭 3; 상어: 15랭 2).
+    //    부스터를 넣은 17랭에서도 다랑어 3 · 상어 2 그대로라 마릿수는 부스터 뺀 랭크로 센다.
+    //  · 제 랭크에 딱 맞는 어종은 떼가 감당 못 할 만큼 걸려 「놓쳤다」가 자주 나온다.
+    //  · 어장 하나에서 올라오는 어종은 셋이고, 랭크가 높을수록 그 가운데 높은 어종이 더 많이 올라온다(베르겐: 7랭 연어 6 : 청어 2 : 황어 2, 15랭 9 : 1).
+    //  · 1랭 어종은 어디서나, 전갱이는 지중해, 참돔은 서아프리카, 대구는 코펜하겐 ~ 오슬로, 연어는 베르겐 · 에딘버러,
+    //    가다랑어는 리스본 ~ 마데이라 · 타마타브, 다랑어는 마데이라 · 시라쿠사 · 세우타 · 소팔라 · 라스팔마스 · 산후안.
+    // 글의 「포인트」(해역 안의 한 자리)는 이 게임에 없어 해역 하나를 통째로 어장으로 본다(줄인 것).
+    private static readonly Dictionary<string, int> FishRanks = new()
+    {
+        ["정어리"] = 1, ["청어"] = 1, ["고등어"] = 1, ["꽁치"] = 1, ["황어"] = 1,      // 황어의 랭크는 글에 없다(짐작)
+        ["전갱이"] = 2, ["참돔"] = 2, ["대구"] = 3, ["연어"] = 4, ["가다랑어"] = 5, ["다랑어"] = 8,
+        ["백상어"] = 12, ["청상아리"] = 12, ["청새치"] = 12,
+    };
+    // 해역 → 올라오는 어종 셋(높은 것부터). 글에 셋이 다 적힌 곳은 베르겐 · 라스팔마스 · 산후안뿐이고, 나머지의 둘째 · 셋째는 짐작이다
+    private static readonly Dictionary<string, string[]> FishGrounds = new()
+    {
+        ["노르웨이 해"] = ["연어", "청어", "황어"], ["브리튼 섬 북부"] = ["연어", "청어", "꽁치"],
+        ["유틀란드 반도 앞바다"] = ["대구", "청어", "꽁치"],
+        ["카나리아 앞바다"] = ["청상아리", "다랑어", "고등어"], ["산후안 앞바다"] = ["백상어", "청상아리", "다랑어"],
+        ["마데이라 앞바다"] = ["다랑어", "가다랑어", "고등어"], ["리스본 앞바다"] = ["가다랑어", "정어리", "고등어"],
+        ["지브롤터 해협"] = ["다랑어", "전갱이", "고등어"], ["티레니아 해"] = ["다랑어", "전갱이", "정어리"], ["이오니아 해"] = ["다랑어", "전갱이", "정어리"],
+        ["발레아레스제도 앞바다"] = ["전갱이", "정어리", "고등어"], ["리그리아 해"] = ["전갱이", "정어리", "고등어"], ["아드리아 해"] = ["전갱이", "정어리", "고등어"],
+        ["동 지중해"] = ["전갱이", "정어리", "고등어"], ["흑해"] = ["전갱이", "정어리", "고등어"],
+        ["곡물해안 앞바다"] = ["참돔", "고등어", "정어리"], ["황금해안 앞바다"] = ["참돔", "고등어", "정어리"], ["기니 만"] = ["참돔", "고등어", "정어리"],
+        ["마다가스카르 앞바다"] = ["가다랑어", "고등어", "정어리"], ["모잠비크해협"] = ["다랑어", "청상아리", "고등어"],
+    };
+    private static readonly string[] CommonFish = ["정어리", "청어", "고등어", "꽁치"];
+
+    /// <summary>지금 있는 해역에서 올라오는 어종(높은 것부터) — 어장이 아니면 1랭 어종 넷.</summary>
+    public string[] FishHere => FishGrounds.TryGetValue(SeaName, out var ground) ? ground : CommonFish;
+
+    /// <summary>그 어종을 한 번에 몇 마리까지 낚는가 — 1 + (부스터 뺀 랭크 − 어종 랭크 + 1) ÷ 3. 글의 마릿수들에 맞춘 식이다(「12랭에 연어 5마리」만 4 로 어긋난다).</summary>
+    public int FishMost(int skillId, string fish) =>
+        FishRanks.TryGetValue(fish, out int need) && Math.Max(Rank(skillId), _baitRank) >= need ? 1 + Math.Max(0, Math.Max(Skills.TryGetValue(skillId, out var state) ? state.Rank : 0, _baitRank) - need + 1) / 3 : 0;
+
+    // 낚시밥으로 낚는 동안의 랭크(스킬이 없거나 낮아도 이 랭크로 낚는다) — 낚시밥 1, 고급 낚시밥은 「숙달된 낚시꾼에 필적」이라는 글뿐이라 10 으로 지었다
+    private int _baitRank;
+
+    /// <summary>낚시밥을 써서 한 번 낚는다 — 바다나 항구에서. 못 쓰면 false(밥이 안 준다).</summary>
+    public bool FishWithBait(int rank)
+    {
+        if (Data.SkillRules.Find(r => r.Effect == "Fish") is not { } rule) return false;
+        if (HoldFree <= 0) { Say("선창이 가득 차 낚은 것을 실을 수 없다."); Cues.Enqueue("Error"); return false; }
+        _baitRank = rank;
+        try { CatchFish(rule, "낚시밥을 던졌다. "); }
+        finally { _baitRank = 0; }
+        return true;
+    }
+
+    /// <summary>낚시 한 번 — 낚은 물고기는 식량이 아니라 **선창의 교역품**(물고기 갈래, 번호 1601000 ~)으로 실린다(사용자, 2026-10-07 — 원본도 그렇다).</summary>
     private void CatchFish(SkillRuleData rule, string lead)
     {
-        // 배가 빠르면 낚싯줄을 드리우기 어렵다
-        int count = (int)Math.Round((1 + _random.NextDouble() * 2 + Rank(rule.SkillId) * rule.PerRank) * (Knots > 8 ? 0.5 : 1));
-        count = Math.Min(count, HoldFree);
-        string fish = Fishes[_random.Next(Fishes.Length)];
-        var good = Data.Goods.Find(g => g.Name == fish && g.Id is >= 1_601_000 and < 1_602_000) ?? Data.Goods.Find(g => g.Id is >= 1_601_000 and < 1_602_000);
         if (HoldFree <= 0) { Say($"{lead}선창이 가득 차 낚은 것을 실을 수 없다."); return; }
-        if (count < 1 || good == null) { Say($"{lead}아무것도 낚지 못했다."); return; }
+        int rank = Math.Max(Rank(rule.SkillId), _baitRank);
+        if (TryFishFind(rank, lead)) { Train(rule.SkillId, 20 * rank); return; }      // 그 자리의 낚시 발견물 — 숙련도는 지은 값
+        // 내 랭크로 낚을 수 있는 어종만 — 가장 높은 것이 올라오는 몫은 랭크가 높을수록 크다(7랭 60% → 15랭 90% 를 곧게 이은 것, 그 밖의 랭크는 짐작)
+        var able = FishHere.Where(f => FishMost(rule.SkillId, f) > 0).ToList();
+        if (able.Count == 0) { Say($"{lead}아무것도 낚지 못했다."); return; }
+        double top = Math.Clamp(0.6 + 0.0375 * (rank - FishRanks[able[0]] - 3), 0.34, 0.9);
+        string fish = able.Count == 1 || _random.NextDouble() < top ? able[0] : able[1 + _random.Next(able.Count - 1)];
+        if (fish == "청상아리" && _random.Next(2) == 0) fish = "청새치";      // 청상아리와 청새치는 한 무리로 붙어 다닌다(글)
+        int most = FishMost(rule.SkillId, fish);
+        // 떼의 크기 — 1 ~ 감당할 수 있는 수 + 1 마리가 고르게 걸린다고 본다(지은 값). 감당 못 하면 줄이 끊긴다
+        int school = 1 + _random.Next(most + 1);
+        if (school > most) { Say($"{lead}{fish}을(를) 놓쳤다. 낚싯줄이 끊어졌다."); Train(rule.SkillId, 2); return; }
+        int count = Math.Min(school, HoldFree);
+        if (Data.Goods.Find(g => g.Name == fish && g.Id is >= 1_601_000 and < 1_602_000) is not { } good) { Say($"{lead}아무것도 낚지 못했다."); return; }
         GiveGood(good, count);              // 「○○ N개를 실었다」는 글은 그쪽이 낸다
-        Train(rule.SkillId, 20);
+        // 숙련도 — 글에는 차례만 있다(다랑어 2 > 연어 5, 다랑어 2 > 상어 1, 여러 마리 > 한 마리). 그 차례가 나오게 지은 값: 5 × 어종 랭크^1.7 × 마릿수
+        Train(rule.SkillId, 5 * Math.Pow(FishRanks[fish], 1.7) * count);
+    }
+    /// <summary>대본용 — 낚시를 여러 번 던진다.</summary>
+    public void FishForTest(int times)
+    {
+        if (Data.SkillRules.Find(r => r.Effect == "Fish") is not { } rule) return;
+        Say($"(시험) {SeaName} — {string.Join(" · ", FishHere.Select(f => $"{f} 최대 {FishMost(rule.SkillId, f)}"))}");
+        for (int i = 0; i < times; i++) CatchFish(rule, "");
     }
 
     // ── 전용: 선창의 교역품을 물 · 식량 · 자재로 돌린다 ──

@@ -1,0 +1,6063 @@
+[
+{
+"Id": 2168,
+"Title": "かけだし船乗り狩り",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"Ship": "전투용 바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 2,
+"Target": "イベリア海賊小艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4607,
+"Title": "アデンからの援軍要請",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"Ship": "무장 지벡",
+"CountMin": 10,
+"CountMax": 10,
+"X": 2317,
+"Y": 4271,
+"SeaZone": 41,
+"Target": "はオスマン旗付きムカラ海賊。",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500075,
+1
+],
+[
+1,
+1600415,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4605,
+"Title": "アデン航路確保",
+"Difficulty": 6,
+"Cities": [
+70
+],
+"Ship": "경 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 41,
+"Target": "クリアムリア海賊",
+"Durability": 0,
+"Crew": 30,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600612,
+10
+],
+[
+1,
+1600103,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 2123,
+"Title": "アフリカ沿岸偵察",
+"Difficulty": 3,
+"Cities": [
+51
+],
+"Ship": "캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 423,
+"Y": 4882,
+"SeaZone": 16,
+"Target": "ギニア湾沿岸海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 24000,
+"Advance": 4800,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4597,
+"Title": "アンダマン海確保",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"Ship": "갤리온",
+"CountMin": 10,
+"CountMax": 10,
+"X": 3900,
+"Y": 4500,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500031,
+1
+],
+[
+1,
+1600205,
+25
+],
+[
+1,
+1600609,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 4329,
+"Title": "アンデスの呼び声",
+"Difficulty": 10,
+"Cities": [
+151
+],
+"Ship": "장갑전열함",
+"CountMin": 5,
+"CountMax": 5,
+"X": 0,
+"Y": 0,
+"SeaZone": 69,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500328,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4596,
+"Title": "イオニア海の治安維持",
+"Difficulty": 3,
+"Cities": [
+40
+],
+"Ship": "경 갤리",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 25,
+"Target": "旧ハフス朝艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2222,
+"Title": "イスパニア監獄船",
+"Difficulty": 3,
+"Cities": [
+40,
+42,
+28
+],
+"Ship": "소형 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 118,
+"Y": 3197,
+"SeaZone": 0,
+"Target": "イスパニア監獄船",
+"Durability": 0,
+"Crew": 0,
+"Reward": 18000,
+"Advance": 3600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4592,
+"Title": "イスパニア賞金首討伐",
+"Difficulty": 7,
+"Cities": [
+77
+],
+"Ship": "갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 13601,
+"Y": 3991,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600055,
+10
+],
+[
+0,
+1500031,
+1
+],
+[
+1,
+1600608,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4590,
+"Title": "イスラム私掠船討伐",
+"Difficulty": 6,
+"Cities": [
+59
+],
+"Ship": "강습용 갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 41,
+"Target": "『イスラム私掠船』",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+1,
+1600024,
+15
+]
+],
+"Skills": []
+},
+{
+"Id": 4591,
+"Title": "イスラム艦隊迎撃指令",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "갤리스",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 44,
+"Target": "イスラム収奪艦隊",
+"Durability": 0,
+"Crew": 150,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4873,
+"Title": "イングランド海軍演習",
+"Difficulty": 1,
+"Cities": [
+6
+],
+"Ship": "소형바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 29,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700002,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4588,
+"Title": "インド東岸討伐遠征",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "대형갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 46,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600601,
+14
+],
+[
+0,
+1500101,
+1
+],
+[
+0,
+1500031,
+1
+],
+[
+1,
+1600416,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 2540,
+"Title": "オトラント奇襲",
+"Difficulty": 2,
+"Cities": [
+3
+],
+"Ship": "바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 787,
+"Y": 3057,
+"SeaZone": 0,
+"Target": "オトラント奇襲団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 7400,
+"Advance": 1480,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4233,
+"Title": "カテガット海峡の奇襲船団",
+"Difficulty": 7,
+"Cities": [
+5,
+6
+],
+"Ship": "핀네스",
+"CountMin": 4,
+"CountMax": 4,
+"X": 0,
+"Y": 0,
+"SeaZone": 34,
+"Target": "『カテガット奇襲船団』",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500067,
+1
+],
+[
+0,
+1500074,
+1
+],
+[
+1,
+1600653,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4583,
+"Title": "カリブ海の安全確保",
+"Difficulty": 8,
+"Cities": [
+77
+],
+"Ship": "갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 12876,
+"Y": 4006,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+1,
+1600311,
+10
+],
+[
+1,
+1600652,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 4237,
+"Title": "ガラパゴス諸島海域の治安維持",
+"Difficulty": 6,
+"Cities": [
+151
+],
+"Ship": "프리깃",
+"CountMin": 4,
+"CountMax": 4,
+"X": 12245,
+"Y": 5002,
+"SeaZone": 88,
+"Target": "",
+"Durability": 795,
+"Crew": 64,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500034,
+1
+],
+[
+0,
+1500101,
+1
+],
+[
+1,
+1600667,
+40
+]
+],
+"Skills": []
+},
+{
+"Id": 4581,
+"Title": "ガリナス海賊討伐依頼",
+"Difficulty": 8,
+"Cities": [
+77
+],
+"Ship": "전투용 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 13446,
+"Y": 4117,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500190,
+1
+],
+[
+1,
+1600157,
+25
+],
+[
+1,
+1600853,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4569,
+"Title": "ケープ略奪の危機",
+"Difficulty": 5,
+"Cities": [
+55
+],
+"Ship": "전투용 카락",
+"CountMin": 2,
+"CountMax": 3,
+"X": 922,
+"Y": 6105,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500036,
+1
+],
+[
+1,
+1600613,
+4
+],
+[
+0,
+1500101,
+1
+],
+[
+1,
+1600058,
+24
+]
+],
+"Skills": []
+},
+{
+"Id": 2213,
+"Title": "コルシカの残党",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"Ship": "소형 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 16334,
+"Y": 3149,
+"SeaZone": 0,
+"Target": "コルシカ海賊残党",
+"Durability": 84,
+"Crew": 15,
+"Reward": 25000,
+"Advance": 5000,
+"Gifts": [
+[
+0,
+1500009,
+1
+],
+[
+1,
+1600217,
+20
+],
+[
+0,
+1500011,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4330,
+"Title": "コンキスタドール・ピサロ",
+"Difficulty": 9,
+"Cities": [
+151
+],
+"Ship": "장갑전열함",
+"CountMin": 2,
+"CountMax": 2,
+"X": 12659,
+"Y": 4452,
+"SeaZone": 71,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500328,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 6533,
+"Title": "ゴアの海賊排除",
+"Difficulty": 6,
+"Cities": [
+2
+],
+"Ship": "군용 지벡",
+"CountMin": 4,
+"CountMax": 4,
+"X": 3200,
+"Y": 4119,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500106,
+1
+],
+[
+1,
+1600855,
+20
+]
+],
+"Skills": []
+},
+{
+"Id": 4567,
+"Title": "ゴア封鎖",
+"Difficulty": 10,
+"Cities": [
+70
+],
+"Ship": "슈퍼 프리깃",
+"CountMin": 5,
+"CountMax": 5,
+"X": 3267,
+"Y": 4118,
+"SeaZone": 0,
+"Target": "略奪団0/5",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500028,
+1
+],
+[
+0,
+1500013,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3478,
+"Title": "サラマンドラ海賊の補給船",
+"Difficulty": 3,
+"Cities": [
+38,
+42
+],
+"Ship": "수송용 갤리",
+"CountMin": 2,
+"CountMax": 3,
+"X": 1050,
+"Y": 3340,
+"SeaZone": 26,
+"Target": "サラマンドラ補給艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 18000,
+"Advance": 3600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3513,
+"Title": "サルデーニャ島偵察",
+"Difficulty": 4,
+"Cities": [
+40,
+42
+],
+"Ship": "소형 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 691,
+"Y": 3252,
+"SeaZone": 0,
+"Target": "サルデーニャ巡視艦隊",
+"Durability": 84,
+"Crew": 15,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4043,
+"Title": "シェラン収奪艦隊",
+"Difficulty": 7,
+"Cities": [
+5,
+6
+],
+"Ship": "전투용 핀네스",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 33,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+0,
+1500101,
+1
+],
+[
+0,
+1700010,
+1
+]
+],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 5
+}
+]
+},
+{
+"Id": 2171,
+"Title": "ジブラルタルのはぐれ虎",
+"Difficulty": 3,
+"Cities": [
+2
+],
+"Ship": "소형 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 15925,
+"Y": 3320,
+"SeaZone": 2,
+"Target": "サルデーニャ収奪団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2207,
+"Title": "ゾウの密猟者",
+"Difficulty": 5,
+"Cities": [
+55
+],
+"Ship": "상업용 삼부크",
+"CountMin": 2,
+"CountMax": 2,
+"X": 466,
+"Y": 4965,
+"SeaZone": 0,
+"Target": "「?",
+"Durability": 0,
+"Crew": 0,
+"Reward": 69000,
+"Advance": 13800,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4557,
+"Title": "タルタル収奪団",
+"Difficulty": 7,
+"Cities": [
+151
+],
+"Ship": "갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 13009,
+"Y": 5543,
+"SeaZone": 69,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2027,
+"Title": "チンボラソの戦い",
+"Difficulty": 6,
+"Cities": [
+151
+],
+"Ship": "장갑전열함",
+"CountMin": 1,
+"CountMax": 1,
+"X": 12517,
+"Y": 4671,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600856,
+5
+],
+[
+0,
+1500009,
+20
+]
+],
+"Skills": []
+},
+{
+"Id": 2157,
+"Title": "ティレニアの危機",
+"Difficulty": 4,
+"Cities": [
+24,
+23
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 250,
+"Y": 3213,
+"SeaZone": 0,
+"Target": "ランチェーレ艦隊",
+"Durability": 140,
+"Crew": 30,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500062,
+1
+],
+[
+1,
+1600356,
+2
+],
+[
+1,
+1600910,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4878,
+"Title": "ティレニア海での戦闘報告",
+"Difficulty": 3,
+"Cities": [
+24
+],
+"Ship": "개조 중 카락",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 23,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3286,
+"Title": "ディオイキティス",
+"Difficulty": 7,
+"Cities": [
+38,
+42
+],
+"Ship": "대형갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 1417,
+"Y": 3360,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700010,
+1
+]
+],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 5
+}
+]
+},
+{
+"Id": 4309,
+"Title": "ディヴ輸送船襲撃事件",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"Ship": "갤리스",
+"CountMin": 4,
+"CountMax": 6,
+"X": 2066,
+"Y": 4724,
+"SeaZone": 40,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600418,
+7
+],
+[
+1,
+1600803,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 3950,
+"Title": "バシリアス",
+"Difficulty": 10,
+"Cities": [
+38,
+42
+],
+"Ship": "갤리스",
+"CountMin": 10,
+"CountMax": 10,
+"X": 0,
+"Y": 0,
+"SeaZone": 25,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500064,
+1
+],
+[
+0,
+1700021,
+1
+]
+],
+"Skills": [
+{
+"Name": "弾道学",
+"Rank": 5
+},
+{
+"Name": "砲術",
+"Rank": 10
+}
+]
+},
+{
+"Id": 2279,
+"Title": "バルト海賊の進出",
+"Difficulty": 5,
+"Cities": [
+32
+],
+"Ship": "전투용 프류트",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 34,
+"Target": "バルト海賊先遣隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600052,
+25
+]
+],
+"Skills": [
+{
+"Name": "ノルド語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2521,
+"Title": "バルト海賊への反撃",
+"Difficulty": 9,
+"Cities": [
+5,
+6
+],
+"Ship": "전투용 갤리온",
+"CountMin": 10,
+"CountMax": 10,
+"X": 1063,
+"Y": 1995,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700021,
+1
+]
+],
+"Skills": [
+{
+"Name": "弾道学",
+"Rank": 5
+},
+{
+"Name": "砲術",
+"Rank": 10
+}
+]
+},
+{
+"Id": 4547,
+"Title": "パリニャス岬の略奪者",
+"Difficulty": 7,
+"Cities": [
+151
+],
+"Ship": "중 카락",
+"CountMin": 4,
+"CountMax": 6,
+"X": 12524,
+"Y": 4968,
+"SeaZone": 0,
+"Target": "パリニャス海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+],
+[
+0,
+1500105,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 6093,
+"Title": "パルマ南の海賊討伐",
+"Difficulty": 2,
+"Cities": [
+219
+],
+"Ship": "바바리언 갤리",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 21,
+"Target": "",
+"Durability": 300,
+"Crew": 75,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4545,
+"Title": "フィヨルドの穴熊",
+"Difficulty": 5,
+"Cities": [
+32
+],
+"Ship": "프류트",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 32,
+"Target": "ソグネ海賊",
+"Durability": 211,
+"Crew": 30,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600050,
+10
+],
+[
+0,
+1500074,
+1
+],
+[
+1,
+1600803,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 2166,
+"Title": "フィンランド湾封鎖",
+"Difficulty": 4,
+"Cities": [
+32
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 2,
+"CountMax": 2,
+"X": 1070,
+"Y": 1965,
+"SeaZone": 0,
+"Target": "フィンランド湾海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 30000,
+"Advance": 6000,
+"Gifts": [
+[
+1,
+1600309,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4943,
+"Title": "フランス海軍演習",
+"Difficulty": 1,
+"Cities": [
+4
+],
+"Ship": "소형바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 22,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700002,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 1384,
+"Title": "ブルターニュの私掠船団",
+"Difficulty": 5,
+"Cities": [
+5,
+6
+],
+"Ship": "중 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 28,
+"Target": "ブリュターニュ私掠艦隊",
+"Durability": 380,
+"Crew": 85,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4542,
+"Title": "ペルシャ交易船襲撃指令",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "수송용 대형갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 3130,
+"Y": 3924,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600465,
+20
+]
+],
+"Skills": []
+},
+{
+"Id": 3604,
+"Title": "ポートロイヤルからの依頼",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"Ship": "장갑전열함",
+"CountMin": 1,
+"CountMax": 1,
+"X": 12928,
+"Y": 3993,
+"SeaZone": 8,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4535,
+"Title": "マスカット間航路確保",
+"Difficulty": 8,
+"Cities": [
+62
+],
+"Ship": "갤리스",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 43,
+"Target": "グアダル海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500010,
+1
+],
+[
+1,
+1600605,
+1
+],
+[
+1,
+1600803,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 6164,
+"Title": "マディラの海賊排除",
+"Difficulty": 4,
+"Cities": [
+2
+],
+"Ship": "대형갤리",
+"CountMin": 1,
+"CountMax": 1,
+"X": 15375,
+"Y": 3447,
+"SeaZone": 0,
+"Target": "",
+"Durability": 442,
+"Crew": 120,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500674,
+2
+]
+],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4530,
+"Title": "マルペロ海賊の討伐",
+"Difficulty": 7,
+"Cities": [
+151
+],
+"Ship": "중 갤리온",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 71,
+"Target": "マルペロ海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500105,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4528,
+"Title": "メキシコ湾封鎖への布石",
+"Difficulty": 8,
+"Cities": [
+77
+],
+"Ship": "갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 12889,
+"Y": 3833,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500063,
+1
+],
+[
+1,
+1600657,
+20
+],
+[
+1,
+1600157,
+25
+]
+],
+"Skills": []
+},
+{
+"Id": 2533,
+"Title": "メッシナの城門",
+"Difficulty": 3,
+"Cities": [
+24,
+3
+],
+"Ship": "전투용 바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 25,
+"Target": "メッシナ収奪団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2211,
+"Title": "モロッコ航路の空き巣",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"Ship": "소형 캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 15644,
+"Y": 3436,
+"SeaZone": 1,
+"Target": "モロッコ収奪団",
+"Durability": 84,
+"Crew": 15,
+"Reward": 13000,
+"Advance": 2600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 6620,
+"Title": "モーガン一家の裏切り者",
+"Difficulty": 7,
+"Cities": [
+77
+],
+"Ship": "장갑전열함",
+"CountMin": 6,
+"CountMax": 6,
+"X": 12982,
+"Y": 3998,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4900,
+"Title": "モーガン一家入団試験",
+"Difficulty": 8,
+"Cities": [
+77
+],
+"Ship": "전열함",
+"CountMin": 3,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 8,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2184,
+"Title": "ヤツらの襲撃計画",
+"Difficulty": 3,
+"Cities": [
+2
+],
+"Ship": "캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 15993,
+"Y": 3321,
+"SeaZone": 2,
+"Target": "ナポリ海賊連絡船",
+"Durability": 122,
+"Crew": 28,
+"Reward": 17000,
+"Advance": 3400,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4526,
+"Title": "ラッカジブの拠点",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"Ship": "중 갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 3137,
+"Y": 4335,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 120,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600856,
+8
+],
+[
+0,
+1500013,
+1
+],
+[
+0,
+1500043,
+1
+],
+[
+1,
+1600803,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4525,
+"Title": "ラッカジブ諸島の海賊",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"Ship": "대형갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 2170,
+"Y": 4850,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 105,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500149,
+1
+],
+[
+1,
+1600009,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 2151,
+"Title": "ランチェーレ強襲団",
+"Difficulty": 3,
+"Cities": [
+24,
+23
+],
+"Ship": "전투용 바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 415,
+"Y": 3167,
+"SeaZone": 0,
+"Target": "ランチェーレ強襲団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 18000,
+"Advance": 3600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2237,
+"Title": "ランチェーレ海賊の根城",
+"Difficulty": 5,
+"Cities": [
+24,
+23
+],
+"Ship": "캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 244,
+"Y": 3096,
+"SeaZone": 0,
+"Target": "ランチェーレ補給船団",
+"Durability": 122,
+"Crew": 28,
+"Reward": 37500,
+"Advance": 7500,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 6165,
+"Title": "リオデジャネイロの海賊排除",
+"Difficulty": 8,
+"Cities": [
+2
+],
+"Ship": "장갑전열함",
+"CountMin": 6,
+"CountMax": 6,
+"X": 14621,
+"Y": 5718,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500757,
+6
+]
+],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4259,
+"Title": "リマ近海掃討作戦",
+"Difficulty": 6,
+"Cities": [
+151
+],
+"Ship": "전투용 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 12805,
+"Y": 5435,
+"SeaZone": 0,
+"Target": "パラカス海賊団10隻",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+],
+[
+0,
+1500265,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4521,
+"Title": "ルアンダ西の危険海域",
+"Difficulty": 7,
+"Cities": [
+55
+],
+"Ship": "프리깃",
+"CountMin": 4,
+"CountMax": 4,
+"X": 410,
+"Y": 5027,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500059,
+1
+],
+[
+1,
+1600605,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4520,
+"Title": "ロンドンからの討伐依頼",
+"Difficulty": 6,
+"Cities": [
+32
+],
+"Ship": "핀네스",
+"CountMin": 2,
+"CountMax": 2,
+"X": 16283,
+"Y": 1936,
+"SeaZone": 0,
+"Target": "『オークニー海賊』",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500005,
+1
+],
+[
+1,
+1600050,
+10
+],
+[
+0,
+1500061,
+1
+],
+[
+1,
+1600808,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 2217,
+"Title": "ロードス騎士団",
+"Difficulty": 3,
+"Cities": [
+40,
+42,
+28
+],
+"Ship": "경 갤리",
+"CountMin": 2,
+"CountMax": 3,
+"X": 1212,
+"Y": 3332,
+"SeaZone": 0,
+"Target": "ロードス騎士団",
+"Durability": 135,
+"Crew": 40,
+"Reward": 26000,
+"Advance": 5200,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 1414,
+"Title": "ヴァイキングの一味",
+"Difficulty": 3,
+"Cities": [
+5,
+6
+],
+"Ship": "무장 코그",
+"CountMin": 2,
+"CountMax": 3,
+"X": 220,
+"Y": 2388,
+"SeaZone": 0,
+"Target": "ヴァイキングの一味",
+"Durability": 0,
+"Crew": 0,
+"Reward": 28000,
+"Advance": 5600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4516,
+"Title": "ヴェネツィアの商船",
+"Difficulty": 6,
+"Cities": [
+28
+],
+"Ship": "대형갤리",
+"CountMin": 4,
+"CountMax": 4,
+"X": 0,
+"Y": 0,
+"SeaZone": 22,
+"Target": "ヴェネツィア交易船団",
+"Durability": 394,
+"Crew": 105,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+1,
+1600651,
+10
+],
+[
+1,
+1600207,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2147,
+"Title": "ヴェネツィア外交の危機",
+"Difficulty": 4,
+"Cities": [
+3
+],
+"Ship": "경 갤리",
+"CountMin": 2,
+"CountMax": 3,
+"X": 754,
+"Y": 3156,
+"SeaZone": 0,
+"Target": "タラント湾拠点守備艦隊",
+"Durability": 135,
+"Crew": 0,
+"Reward": 42000,
+"Advance": 8400,
+"Gifts": [
+[
+0,
+1500101,
+1
+],
+[
+1,
+1600802,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4398,
+"Title": "不可解な穴",
+"Difficulty": 9,
+"Cities": [
+123
+],
+"Ship": "중 갤리",
+"CountMin": 10,
+"CountMax": 10,
+"X": 14928,
+"Y": 5342,
+"SeaZone": 0,
+"Target": "ヴァレンサ突撃艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500027,
+1
+],
+[
+0,
+1500076,
+1
+],
+[
+1,
+1600917,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 2026,
+"Title": "不審船討伐",
+"Difficulty": 5,
+"Cities": [
+151
+],
+"Ship": "경 갤리온",
+"CountMin": 1,
+"CountMax": 1,
+"X": 12521,
+"Y": 5000,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600856,
+5
+],
+[
+0,
+1500009,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4400,
+"Title": "不穏な集結",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "대형갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 3506,
+"Y": 4510,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 105,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500076,
+1
+],
+[
+1,
+1600416,
+1
+],
+[
+1,
+1600803,
+11
+],
+[
+1,
+1600853,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 2165,
+"Title": "乱暴者",
+"Difficulty": 4,
+"Cities": [
+5
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 28,
+"Target": "アムステルダム賞金首",
+"Durability": 0,
+"Crew": 0,
+"Reward": 33000,
+"Advance": 6600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4478,
+"Title": "交易の命綱",
+"Difficulty": 4,
+"Cities": [
+40
+],
+"Ship": "수송용 갤리",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 26,
+"Target": "バニヤス海賊",
+"Durability": 286,
+"Crew": 66,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500105,
+1
+],
+[
+0,
+1500076,
+1
+],
+[
+1,
+1600310,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 2463,
+"Title": "交易路の開拓者",
+"Difficulty": 3,
+"Cities": [
+24
+],
+"Ship": "전투용 바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 2,
+"Target": "",
+"Durability": 33,
+"Crew": 7,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "イタリア語",
+"Rank": 1
+},
+{
+"Name": "スペイン語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2193,
+"Title": "倉庫荒らしの退治",
+"Difficulty": 2,
+"Cities": [
+1,
+2
+],
+"Ship": "상업용 바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 15767,
+"Y": 3266,
+"SeaZone": 0,
+"Target": "倉庫荒らし",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4486,
+"Title": "偽装の看破",
+"Difficulty": 7,
+"Cities": [
+172
+],
+"Ship": "중갤리스",
+"CountMin": 4,
+"CountMax": 6,
+"X": 5700,
+"Y": 4250,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4485,
+"Title": "偽装商船団",
+"Difficulty": 7,
+"Cities": [
+55
+],
+"Ship": "상업용 카락",
+"CountMin": 2,
+"CountMax": 2,
+"X": 834,
+"Y": 6019,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500174,
+1
+],
+[
+0,
+1500028,
+1
+],
+[
+1,
+1600553,
+17
+],
+[
+1,
+1600314,
+20
+]
+],
+"Skills": []
+},
+{
+"Id": 2473,
+"Title": "傷つけられたプライド",
+"Difficulty": 5,
+"Cities": [
+28
+],
+"Ship": "중 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 15224,
+"Y": 3445,
+"SeaZone": 0,
+"Target": "遠洋の海賊船団",
+"Durability": 380,
+"Crew": 80,
+"Reward": 80000,
+"Advance": 16000,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2152,
+"Title": "全力逃走",
+"Difficulty": 3,
+"Cities": [
+28
+],
+"Ship": "상업용 바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 3,
+"Target": "盗賊商船隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 16000,
+"Advance": 3200,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4461,
+"Title": "勝ち残った猛者",
+"Difficulty": 4,
+"Cities": [
+32
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 3,
+"CountMax": 3,
+"X": 1010,
+"Y": 2060,
+"SeaZone": 0,
+"Target": "",
+"Durability": 140,
+"Crew": 32,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500138,
+1
+],
+[
+0,
+1500068,
+1
+],
+[
+1,
+1600556,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4291,
+"Title": "北の私掠船を討て",
+"Difficulty": 7,
+"Cities": [
+77
+],
+"Ship": "전투용 핀네스",
+"CountMin": 4,
+"CountMax": 6,
+"X": 13503,
+"Y": 3939,
+"SeaZone": 0,
+"Target": "イングランド私掠艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500045,
+1
+],
+[
+0,
+1500105,
+1
+],
+[
+1,
+1600617,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4384,
+"Title": "北海の抗争",
+"Difficulty": 7,
+"Cities": [
+32
+],
+"Ship": "중 카락",
+"CountMin": 4,
+"CountMax": 4,
+"X": 211,
+"Y": 2072,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500060,
+1
+],
+[
+1,
+1600804,
+5
+],
+[
+1,
+1600853,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4411,
+"Title": "南の海を荒らす者",
+"Difficulty": 8,
+"Cities": [
+131
+],
+"Ship": "포격용 특수 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 75,
+"Target": "ティウィ海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+1,
+1600616,
+1
+],
+[
+1,
+1600309,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4409,
+"Title": "南下航路封鎖",
+"Difficulty": 7,
+"Cities": [
+123
+],
+"Ship": "군용 지벡",
+"CountMin": 4,
+"CountMax": 10,
+"X": 13620,
+"Y": 6245,
+"SeaZone": 0,
+"Target": "ストロエデル収奪艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500067,
+1
+],
+[
+1,
+1600155,
+30
+],
+[
+1,
+1600620,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4405,
+"Title": "南大西洋強襲隊",
+"Difficulty": 9,
+"Cities": [
+59
+],
+"Ship": "대형 갤리온",
+"CountMin": 3,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 20,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 7
+},
+{
+"Name": "貫通",
+"Rank": 5
+}
+]
+},
+{
+"Id": 4407,
+"Title": "南海の大海原",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "지벡",
+"CountMin": 4,
+"CountMax": 6,
+"X": 2600,
+"Y": 4900,
+"SeaZone": 0,
+"Target": "『ガルシア海賊』",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600058,
+30
+],
+[
+1,
+1600605,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4491,
+"Title": "危険な沿岸航路",
+"Difficulty": 2,
+"Cities": [
+4
+],
+"Ship": "바사",
+"CountMin": 3,
+"CountMax": 3,
+"X": 350,
+"Y": 2986,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500009,
+1
+],
+[
+0,
+1500011,
+1
+],
+[
+1,
+1600023,
+5
+],
+[
+1,
+1600053,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4490,
+"Title": "危険な赤い帆",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "대형 갤리온",
+"CountMin": 10,
+"CountMax": 10,
+"X": 3808,
+"Y": 4296,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500148,
+1
+],
+[
+1,
+1600453,
+1
+],
+[
+1,
+1600609,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 3504,
+"Title": "古美術品の罠",
+"Difficulty": 4,
+"Cities": [
+38
+],
+"Ship": "상업용 카락",
+"CountMin": 2,
+"CountMax": 3,
+"X": 1089,
+"Y": 3392,
+"SeaZone": 0,
+"Target": "悪徳商船隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 48600,
+"Advance": 9720,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2214,
+"Title": "哀切なる願い",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"Ship": "소형 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 16334,
+"Y": 3149,
+"SeaZone": 0,
+"Target": "コルシカ遊撃船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 24000,
+"Advance": 4800,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3467,
+"Title": "商船の防衛",
+"Difficulty": 2,
+"Cities": [
+1,
+2
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 2,
+"CountMax": 2,
+"X": 15802,
+"Y": 3298,
+"SeaZone": 0,
+"Target": "荒くれ者",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4460,
+"Title": "商船を悩ませる海賊船",
+"Difficulty": 6,
+"Cities": [
+172
+],
+"Ship": "대형 갤리온",
+"CountMin": 3,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 60,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2210,
+"Title": "商船隊からの増援要請",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"Ship": "경 갤리",
+"CountMin": 2,
+"CountMax": 3,
+"X": 16193,
+"Y": 4689,
+"SeaZone": 0,
+"Target": "ササンドラ収奪艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 44000,
+"Advance": 8800,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3966,
+"Title": "喜望という名の難所",
+"Difficulty": 7,
+"Cities": [
+55
+],
+"Ship": "중 캐러벨",
+"CountMin": 4,
+"CountMax": 6,
+"X": 919,
+"Y": 6088,
+"SeaZone": 18,
+"Target": "アガラス海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600613,
+5
+],
+[
+1,
+1600414,
+1
+],
+[
+0,
+1500033,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2153,
+"Title": "嘘っぽい貝殻",
+"Difficulty": 3,
+"Cities": [
+28
+],
+"Ship": "상업용 바사",
+"CountMin": 2,
+"CountMax": 2,
+"X": 15792,
+"Y": 3319,
+"SeaZone": 0,
+"Target": "サギ師の船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 19000,
+"Advance": 3800,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2276,
+"Title": "国家公認の海賊団",
+"Difficulty": 4,
+"Cities": [
+6
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 16134,
+"Y": 1913,
+"SeaZone": 0,
+"Target": "コルセール遠征艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 42000,
+"Advance": 8400,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4945,
+"Title": "国籍不明のスパイ",
+"Difficulty": 2,
+"Cities": [
+4
+],
+"Ship": "소형바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 22,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500172,
+1
+],
+[
+0,
+1500028,
+1
+],
+[
+1,
+1600854,
+5
+],
+[
+1,
+1600905,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 2192,
+"Title": "国籍不明の私掠船団",
+"Difficulty": 3,
+"Cities": [
+2
+],
+"Ship": "소형 캐러벨",
+"CountMin": 2,
+"CountMax": 2,
+"X": 15588,
+"Y": 3527,
+"SeaZone": 4,
+"Target": "国籍不明の私掠船",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+1,
+1600059,
+4
+],
+[
+1,
+1600608,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 2458,
+"Title": "地中海の狼",
+"Difficulty": 3,
+"Cities": [
+1,
+4,
+2
+],
+"Ship": "경 캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 16159,
+"Y": 3281,
+"SeaZone": 0,
+"Target": "",
+"Durability": 84,
+"Crew": 13,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "スペイン語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2110,
+"Title": "士官からの依頼",
+"Difficulty": 7,
+"Cities": [
+28
+],
+"Ship": "갤리온",
+"CountMin": 4,
+"CountMax": 4,
+"X": 16189,
+"Y": 3357,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 5
+}
+]
+},
+{
+"Id": 4280,
+"Title": "大交易国ゆえ",
+"Difficulty": 7,
+"Cities": [
+131
+],
+"Ship": "북유럽형 중갤리",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 60,
+"Target": "アユタヤ傭兵艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4336,
+"Title": "大商クジャラート氏の苦悩",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "중 갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 45,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500010,
+1
+],
+[
+0,
+1500013,
+1
+],
+[
+1,
+1600853,
+8
+],
+[
+1,
+1600855,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 2502,
+"Title": "大商人の復讐",
+"Difficulty": 7,
+"Cities": [
+6
+],
+"Ship": "경 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 15384,
+"Y": 3711,
+"SeaZone": 0,
+"Target": "イングランド賞金稼ぎ",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2109,
+"Title": "大船団現る",
+"Difficulty": 7,
+"Cities": [
+24,
+4,
+3
+],
+"Ship": "중 캐러벨",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 25,
+"Target": "イオニア海の大船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2637,
+"Title": "大西洋への一本道",
+"Difficulty": 2,
+"Cities": [
+5
+],
+"Ship": "바사",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 28,
+"Target": "オルダニー奇襲艦隊",
+"Durability": 38,
+"Crew": 7,
+"Reward": 6500,
+"Advance": 1300,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 6577,
+"Title": "奇妙な新興海賊",
+"Difficulty": 5,
+"Cities": [
+204
+],
+"Ship": "로얄 프리깃",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 127,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3461,
+"Title": "奪い合いの果てに",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"Ship": "갤리오트",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 25,
+"Target": "イオニア迎撃艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 81800,
+"Advance": 16360,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4382,
+"Title": "密貿易の取り締まり",
+"Difficulty": 6,
+"Cities": [
+172
+],
+"Ship": "삼층갑판 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 5494,
+"Y": 4221,
+"SeaZone": 62,
+"Target": "",
+"Durability": 832,
+"Crew": 92,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600851,
+35
+],
+[
+0,
+1500050,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4397,
+"Title": "封鎖された海峡",
+"Difficulty": 8,
+"Cities": [
+172
+],
+"Ship": "중 갤리온",
+"CountMin": 10,
+"CountMax": 10,
+"X": 0,
+"Y": 0,
+"SeaZone": 62,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500028,
+1
+],
+[
+1,
+1600103,
+1
+],
+[
+1,
+1600609,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2176,
+"Title": "封鎖突破者",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"Ship": "바사",
+"CountMin": 2,
+"CountMax": 2,
+"X": 15991,
+"Y": 3346,
+"SeaZone": 0,
+"Target": "無謀な地方海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 7900,
+"Advance": 1580,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 1415,
+"Title": "幼女からの手紙",
+"Difficulty": 5,
+"Cities": [
+5
+],
+"Ship": "캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 666,
+"Y": 3279,
+"SeaZone": 0,
+"Target": "ナポリ海賊遊撃船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 52000,
+"Advance": 10400,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+1,
+1600658,
+2
+]
+],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 2
+},
+{
+"Name": "イタリア語",
+"Rank": 1
+},
+{
+"Name": "オランダ語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2190,
+"Title": "幼子の想い",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"Ship": "한자 코그",
+"CountMin": 2,
+"CountMax": 2,
+"X": 15732,
+"Y": 2985,
+"SeaZone": 3,
+"Target": "海賊の手引き",
+"Durability": 0,
+"Crew": 0,
+"Reward": 77600,
+"Advance": 15520,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2620,
+"Title": "弱小海賊団の討伐",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"Ship": "바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 2,
+"Target": "イベリア海賊小艦隊",
+"Durability": 18,
+"Crew": 5,
+"Reward": 51200,
+"Advance": 10240,
+"Gifts": [],
+"Skills": [
+{
+"Name": "スペイン語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 6187,
+"Title": "彷徨う者たちの討伐依頼",
+"Difficulty": 9,
+"Cities": [
+77
+],
+"Ship": "유령선",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 9,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700066,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2208,
+"Title": "悪徳商船討伐",
+"Difficulty": 5,
+"Cities": [
+55
+],
+"Ship": "상업용 삼부크",
+"CountMin": 2,
+"CountMax": 2,
+"X": 788,
+"Y": 5854,
+"SeaZone": 0,
+"Target": "悪徳商船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 42000,
+"Advance": 8400,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2212,
+"Title": "情けない海賊たち",
+"Difficulty": 2,
+"Cities": [
+24,
+1,
+23,
+4
+],
+"Ship": "바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 23,
+"Target": "沿岸小海賊",
+"Durability": 0,
+"Crew": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2093,
+"Title": "戦に必要なもの",
+"Difficulty": 5,
+"Cities": [
+28
+],
+"Ship": "캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 1090,
+"Y": 3350,
+"SeaZone": 0,
+"Target": "ケルキラ私掠艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 62800,
+"Advance": 12560,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 5549,
+"Title": "技術発展の礎",
+"Difficulty": 4,
+"Cities": [
+5
+],
+"Ship": "핀네스",
+"CountMin": 1,
+"CountMax": 1,
+"X": 16338,
+"Y": 1932,
+"SeaZone": 0,
+"Target": "戦闘後、地精の刻印、砲兵隊の心得、アクアビット",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4337,
+"Title": "探検隊の安全確保",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "중 갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 3399,
+"Y": 4284,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 120,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500149,
+1
+],
+[
+1,
+1600607,
+5
+],
+[
+1,
+1600410,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4455,
+"Title": "新大陸沿岸偵察",
+"Difficulty": 8,
+"Cities": [
+77
+],
+"Ship": "전투용 갤리온",
+"CountMin": 4,
+"CountMax": 4,
+"X": 13020,
+"Y": 3330,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500009,
+1
+],
+[
+1,
+1600055,
+15
+],
+[
+1,
+1600652,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 3955,
+"Title": "新米航海者の試練",
+"Difficulty": 4,
+"Cities": [
+32
+],
+"Ship": "전투용 핀네스",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 34,
+"Target": "サーレマー海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+2000018,
+1
+],
+[
+0,
+1500068,
+1
+],
+[
+1,
+1600556,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4283,
+"Title": "昼と夜の顔",
+"Difficulty": 7,
+"Cities": [
+131
+],
+"Ship": "돌격용 펠러커",
+"CountMin": 4,
+"CountMax": 6,
+"X": 4547,
+"Y": 4726,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 30,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500029,
+1
+],
+[
+1,
+1600268,
+1
+],
+[
+0,
+1500007,
+1
+],
+[
+1,
+1600022,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3956,
+"Title": "暗殺",
+"Difficulty": 7,
+"Cities": [
+2
+],
+"Ship": "전투용 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 3,
+"Target": "フランス海軍遠征艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500157,
+1
+]
+],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 8
+}
+]
+},
+{
+"Id": 4513,
+"Title": "暗殺計画",
+"Difficulty": 7,
+"Cities": [
+55
+],
+"Ship": "갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 964,
+"Y": 6259,
+"SeaZone": 18,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600851,
+8
+],
+[
+1,
+1600856,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 2201,
+"Title": "書簡配達船の航路確保",
+"Difficulty": 6,
+"Cities": [
+62
+],
+"Ship": "경 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 2770,
+"Y": 4200,
+"SeaZone": 0,
+"Target": "クリアムリア海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 93000,
+"Advance": 18600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2691,
+"Title": "最近の若いの",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"Ship": "소형바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 15730,
+"Y": 3261,
+"SeaZone": 0,
+"Target": "沿岸小海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2541,
+"Title": "本物の貝",
+"Difficulty": 5,
+"Cities": [
+28
+],
+"Ship": "소형 갤리온",
+"CountMin": 2,
+"CountMax": 3,
+"X": 16190,
+"Y": 3343,
+"SeaZone": 0,
+"Target": "ベジャイア艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 50000,
+"Advance": 10000,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3800,
+"Title": "東からの手紙",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"Ship": "경 갤리",
+"CountMin": 1,
+"CountMax": 1,
+"X": 428,
+"Y": 3261,
+"SeaZone": 0,
+"Target": "バレアレスの脅迫者",
+"Durability": 0,
+"Crew": 0,
+"Reward": 18000,
+"Advance": 3600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4285,
+"Title": "東の交易路",
+"Difficulty": 7,
+"Cities": [
+131
+],
+"Ship": "갤리스",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 58,
+"Target": "マタラム私掠艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4509,
+"Title": "果てしなき攻防",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"Ship": "대형 캐러벨",
+"CountMin": 4,
+"CountMax": 6,
+"X": 2050,
+"Y": 5150,
+"SeaZone": 38,
+"Target": "『アンブル岬守備隊』",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500015,
+1
+],
+[
+1,
+1600155,
+20
+],
+[
+1,
+1600707,
+16
+]
+],
+"Skills": []
+},
+{
+"Id": 2209,
+"Title": "正体不明の船団",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"Ship": "수송용 갤리온",
+"CountMin": 2,
+"CountMax": 3,
+"X": 16191,
+"Y": 4680,
+"SeaZone": 0,
+"Target": "アビジャン沖の船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 6670,
+"Title": "正統バッカニア再び",
+"Difficulty": 8,
+"Cities": [
+77
+],
+"Ship": "아이언 사이즈",
+"CountMin": 3,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 9,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2169,
+"Title": "海上封鎖",
+"Difficulty": 2,
+"Cities": [
+1,
+2
+],
+"Ship": "전투용 바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 15743,
+"Y": 2977,
+"SeaZone": 3,
+"Target": "ガリシア収奪団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2186,
+"Title": "海上巡回警備",
+"Difficulty": 4,
+"Cities": [
+2
+],
+"Ship": "캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 15400,
+"Y": 3504,
+"SeaZone": 0,
+"Target": "セルペンテ遊撃船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 40000,
+"Advance": 8000,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2178,
+"Title": "海峡に潜む影",
+"Difficulty": 2,
+"Cities": [
+4
+],
+"Ship": "바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 300,
+"Y": 3045,
+"SeaZone": 0,
+"Target": "オルビア収奪艦隊",
+"Durability": 18,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4505,
+"Title": "海峡封鎖",
+"Difficulty": 7,
+"Cities": [
+55
+],
+"Ship": "무장 삼부크",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 38,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500063,
+1
+],
+[
+1,
+1600917,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 3607,
+"Title": "海賊が生きる世界",
+"Difficulty": 9,
+"Cities": [
+6
+],
+"Ship": "중 갤리온",
+"CountMin": 4,
+"CountMax": 4,
+"X": 12604,
+"Y": 3937,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700030,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4272,
+"Title": "海賊の目論見",
+"Difficulty": 7,
+"Cities": [
+131
+],
+"Ship": "중 갤리",
+"CountMin": 6,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 60,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+1,
+1600209,
+20
+],
+[
+1,
+1600425,
+10
+],
+[
+0,
+1500076,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4503,
+"Title": "海賊の行く先",
+"Difficulty": 8,
+"Cities": [
+131
+],
+"Ship": "중 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 5391,
+"Y": 4831,
+"SeaZone": 62,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500002,
+1
+],
+[
+0,
+1500013,
+1
+],
+[
+1,
+1600022,
+20
+]
+],
+"Skills": []
+},
+{
+"Id": 4498,
+"Title": "海賊大集結",
+"Difficulty": 7,
+"Cities": [
+111
+],
+"Ship": "대형 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 13000,
+"Y": 3790,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500029,
+1
+],
+[
+0,
+1500058,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4501,
+"Title": "海賊艦隊襲来",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"Ship": "전투용 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 4425,
+"Y": 4655,
+"SeaZone": 47,
+"Target": "クワンタン海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+1,
+1600416,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4046,
+"Title": "海賊討伐の布石",
+"Difficulty": 10,
+"Cities": [
+1
+],
+"Ship": "상업용 무장 카락",
+"CountMin": 10,
+"CountMax": 10,
+"X": 15265,
+"Y": 3865,
+"SeaZone": 8,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700039,
+1
+],
+[
+0,
+1500101,
+1
+],
+[
+1,
+1600013,
+1
+]
+],
+"Skills": [
+{
+"Name": "回避",
+"Rank": 14
+}
+]
+},
+{
+"Id": 4504,
+"Title": "海軍軍人の末路",
+"Difficulty": 5,
+"Cities": [
+59
+],
+"Ship": "전투용 핀네스",
+"CountMin": 2,
+"CountMax": 3,
+"X": 1914,
+"Y": 4847,
+"SeaZone": 0,
+"Target": "『海軍士官くずれ』",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600856,
+6
+],
+[
+0,
+1500010,
+1
+],
+[
+1,
+1600854,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 2195,
+"Title": "漁場の危機",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"Ship": "소형 카락",
+"CountMin": 2,
+"CountMax": 3,
+"X": 243,
+"Y": 4681,
+"SeaZone": 16,
+"Target": "ギニア湾密漁船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 46000,
+"Advance": 9200,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2066,
+"Title": "漁師からの依頼",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"Ship": "소형 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 475,
+"Y": 3200,
+"SeaZone": 0,
+"Target": "イグレシアス海賊",
+"Durability": 0,
+"Crew": 15,
+"Reward": 27000,
+"Advance": 5400,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3946,
+"Title": "漂流のバルシャ",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"Ship": "산 후안",
+"CountMin": 1,
+"CountMax": 1,
+"X": 13852,
+"Y": 4053,
+"SeaZone": 6,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3947,
+"Title": "災いの根源",
+"Difficulty": 10,
+"Cities": [
+70
+],
+"Ship": "갤리스",
+"CountMin": 10,
+"CountMax": 10,
+"X": 4035,
+"Y": 4070,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4396,
+"Title": "物資強奪団",
+"Difficulty": 6,
+"Cities": [
+62
+],
+"Ship": "중 프리깃",
+"CountMin": 4,
+"CountMax": 6,
+"X": 2800,
+"Y": 3860,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+],
+[
+0,
+1500105,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4440,
+"Title": "狙いは新米航海者",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"Ship": "전투용 바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 1300,
+"Y": 3434,
+"SeaZone": 26,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+2000018,
+1
+],
+[
+0,
+1500105,
+1
+],
+[
+1,
+1600264,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4439,
+"Title": "狙われた輸送船",
+"Difficulty": 4,
+"Cities": [
+28
+],
+"Ship": "대형 캐러벨",
+"CountMin": 2,
+"CountMax": 2,
+"X": 257,
+"Y": 3225,
+"SeaZone": 23,
+"Target": "",
+"Durability": 310,
+"Crew": 80,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+],
+[
+0,
+1500135,
+1
+],
+[
+1,
+1600313,
+16
+]
+],
+"Skills": []
+},
+{
+"Id": 1407,
+"Title": "疑われた人々",
+"Difficulty": 5,
+"Cities": [
+5
+],
+"Ship": "카락",
+"CountMin": 2,
+"CountMax": 3,
+"X": 15772,
+"Y": 3339,
+"SeaZone": 0,
+"Target": "偽装私掠艦隊",
+"Durability": 206,
+"Crew": 0,
+"Reward": 72000,
+"Advance": 14400,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4415,
+"Title": "盗まれた弾薬",
+"Difficulty": 2,
+"Cities": [
+3
+],
+"Ship": "소형바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 790,
+"Y": 3005,
+"SeaZone": 24,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+],
+[
+0,
+1500007,
+1
+],
+[
+1,
+1600061,
+3
+],
+[
+1,
+1600855,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 2685,
+"Title": "盗掘屋の討伐",
+"Difficulty": 2,
+"Cities": [
+3
+],
+"Ship": "바사",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 26,
+"Target": "無法な探検隊",
+"Durability": 30,
+"Crew": 5,
+"Reward": 11000,
+"Advance": 2200,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4492,
+"Title": "監視下の街",
+"Difficulty": 8,
+"Cities": [
+111
+],
+"Ship": "개조 중 카락",
+"CountMin": 4,
+"CountMax": 6,
+"X": 12370,
+"Y": 3710,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600351,
+20
+],
+[
+0,
+1500029,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4465,
+"Title": "砂金の略奪者",
+"Difficulty": 5,
+"Cities": [
+55
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 491,
+"Y": 5585,
+"SeaZone": 18,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600613,
+3
+],
+[
+0,
+1500066,
+1
+],
+[
+0,
+1500030,
+1
+],
+[
+1,
+1600024,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4453,
+"Title": "神出鬼没の海賊船",
+"Difficulty": 8,
+"Cities": [
+123
+],
+"Ship": "전투용 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 13570,
+"Y": 6583,
+"SeaZone": 54,
+"Target": "ウェッデル迎撃艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500062,
+1
+],
+[
+0,
+1500031,
+1
+],
+[
+1,
+1600009,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 3948,
+"Title": "禁じられた海域",
+"Difficulty": 10,
+"Cities": [
+77
+],
+"Ship": "유령선",
+"CountMin": 10,
+"CountMax": 10,
+"X": 14750,
+"Y": 3400,
+"SeaZone": 6,
+"Target": "死霊の船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600266,
+30
+],
+[
+0,
+1500265,
+1
+],
+[
+1,
+1600905,
+40
+]
+],
+"Skills": []
+},
+{
+"Id": 2199,
+"Title": "私掠船を討て",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"Ship": "돌격용 다우",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 41,
+"Target": "アラビア私掠船",
+"Durability": 0,
+"Crew": 0,
+"Reward": 61000,
+"Advance": 12200,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2639,
+"Title": "私掠艦隊迎撃指令",
+"Difficulty": 4,
+"Cities": [
+5,
+6
+],
+"Ship": "캐러벨",
+"CountMin": 2,
+"CountMax": 4,
+"X": 16059,
+"Y": 2587,
+"SeaZone": 28,
+"Target": "私掠船分艦隊",
+"Durability": 122,
+"Crew": 28,
+"Reward": 30000,
+"Advance": 6000,
+"Gifts": [
+[
+0,
+1700002,
+1
+]
+],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3078,
+"Title": "私掠艦隊迎撃指令",
+"Difficulty": 4,
+"Cities": [
+1,
+2
+],
+"Ship": "캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 15495,
+"Y": 3612,
+"SeaZone": 5,
+"Target": "私掠船分艦隊",
+"Durability": 122,
+"Crew": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 1
+},
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3714,
+"Title": "私掠艦隊迎撃指令",
+"Difficulty": 4,
+"Cities": [
+38,
+3
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 620,
+"Y": 3295,
+"SeaZone": 25,
+"Target": "私掠船分艦隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 30000,
+"Advance": 6000,
+"Gifts": [
+[
+0,
+1700002,
+1
+]
+],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2467,
+"Title": "私掠艦隊迎撃指令",
+"Difficulty": 4,
+"Cities": [
+24,
+23,
+4
+],
+"Ship": "캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 23,
+"Target": "私掠船分艦隊",
+"Durability": 122,
+"Crew": 28,
+"Reward": 30000,
+"Advance": 6000,
+"Gifts": [
+[
+0,
+1700002,
+1
+]
+],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 1
+},
+{
+"Name": "イタリア語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2182,
+"Title": "空白海域",
+"Difficulty": 4,
+"Cities": [
+38,
+40,
+23
+],
+"Ship": "대형 캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 656,
+"Y": 3400,
+"SeaZone": 0,
+"Target": "ブレガ海賊",
+"Durability": 310,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3605,
+"Title": "総督の計画",
+"Difficulty": 7,
+"Cities": [
+77
+],
+"Ship": "상업용 대형 갤리온",
+"CountMin": 10,
+"CountMax": 10,
+"X": 12986,
+"Y": 3805,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4449,
+"Title": "聖地巡礼航路の確保",
+"Difficulty": 5,
+"Cities": [
+3
+],
+"Ship": "돌격용 다우",
+"CountMin": 3,
+"CountMax": 3,
+"X": 1093,
+"Y": 3405,
+"SeaZone": 0,
+"Target": "",
+"Durability": 200,
+"Crew": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600359,
+10
+],
+[
+0,
+1500148,
+1
+],
+[
+1,
+1600102,
+20
+],
+[
+0,
+1500076,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2175,
+"Title": "脱獄犯の取り締まり",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"Ship": "소형바사",
+"CountMin": 9,
+"CountMax": 9,
+"X": 15760,
+"Y": 3250,
+"SeaZone": 0,
+"Target": "リスボンの脱獄者",
+"Durability": 18,
+"Crew": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 1413,
+"Title": "自慢の新造船",
+"Difficulty": 3,
+"Cities": [
+5
+],
+"Ship": "소형 캐러벨",
+"CountMin": 3,
+"CountMax": 3,
+"X": 16280,
+"Y": 2525,
+"SeaZone": 0,
+"Target": "ワイト海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4475,
+"Title": "航海に平安を",
+"Difficulty": 5,
+"Cities": [
+151
+],
+"Ship": "중 갤리",
+"CountMin": 2,
+"CountMax": 3,
+"X": 12678,
+"Y": 5159,
+"SeaZone": 0,
+"Target": "ワルメイ海賊10隻",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+],
+[
+0,
+1500105,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2527,
+"Title": "航路確認",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"Ship": "소형 카락",
+"CountMin": 2,
+"CountMax": 2,
+"X": 847,
+"Y": 3134,
+"SeaZone": 25,
+"Target": "マルタ奇襲艦隊",
+"Durability": 0,
+"Crew": 15,
+"Reward": 38000,
+"Advance": 7600,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 5917,
+"Title": "船乗りからの海賊討伐依頼",
+"Difficulty": 7,
+"Cities": [
+77
+],
+"Ship": "장갑전열함",
+"CountMin": 4,
+"CountMax": 6,
+"X": 11226,
+"Y": 3798,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3115,
+"Title": "荒くれ者の成敗",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"Ship": "캐러벨",
+"CountMin": 1,
+"CountMax": 1,
+"X": 634,
+"Y": 3295,
+"SeaZone": 0,
+"Target": "ネロ・アーテレ奇襲船",
+"Durability": 0,
+"Crew": 0,
+"Reward": 34000,
+"Advance": 6800,
+"Gifts": [],
+"Skills": [
+{
+"Name": "砲術",
+"Rank": 1
+}
+]
+},
+{
+"Id": 5376,
+"Title": "荒れるカリブ海",
+"Difficulty": 7,
+"Cities": [
+1
+],
+"Ship": "중 카락",
+"CountMin": 4,
+"CountMax": 4,
+"X": 0,
+"Y": 0,
+"SeaZone": 8,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500883,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4474,
+"Title": "行方不明の商船",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"Ship": "상업용 대형 카락",
+"CountMin": 2,
+"CountMax": 2,
+"X": 1870,
+"Y": 5730,
+"SeaZone": 37,
+"Target": "行方不明の商船",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500010,
+1
+],
+[
+0,
+1500002,
+1
+],
+[
+1,
+1600608,
+5
+],
+[
+1,
+1600154,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4494,
+"Title": "街の面目",
+"Difficulty": 5,
+"Cities": [
+28
+],
+"Ship": "전투용 캐러벨",
+"CountMin": 1,
+"CountMax": 2,
+"X": 15570,
+"Y": 3500,
+"SeaZone": 4,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500068,
+1
+],
+[
+1,
+1600001,
+15
+],
+[
+1,
+1600356,
+1
+]
+],
+"Skills": [
+{
+"Name": "視認",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4376,
+"Title": "裏切り者の始末",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"Ship": "경 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 1800,
+"Y": 5400,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600851,
+5
+],
+[
+0,
+1500028,
+1
+],
+[
+0,
+1500010,
+1
+],
+[
+1,
+1600853,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4289,
+"Title": "補給艦討伐指令",
+"Difficulty": 4,
+"Cities": [
+77
+],
+"Ship": "수송용 갤리온",
+"CountMin": 3,
+"CountMax": 3,
+"X": 14675,
+"Y": 3220,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500050,
+1
+],
+[
+0,
+1500105,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2474,
+"Title": "討伐遠征",
+"Difficulty": 6,
+"Cities": [
+51
+],
+"Ship": "삼부크",
+"CountMin": 4,
+"CountMax": 8,
+"X": 0,
+"Y": 0,
+"SeaZone": 5,
+"Target": "ヴェルデ海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 81000,
+"Advance": 16200,
+"Gifts": [
+[
+0,
+1500032,
+1
+],
+[
+0,
+1500010,
+1
+],
+[
+1,
+1600024,
+20
+]
+],
+"Skills": []
+},
+{
+"Id": 4434,
+"Title": "調査隊に平穏を",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"Ship": "전투용 갤리온",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 41,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500044,
+1
+],
+[
+0,
+1500101,
+1
+],
+[
+1,
+1600051,
+10
+],
+[
+1,
+1600181,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 4048,
+"Title": "議長からの依頼",
+"Difficulty": 7,
+"Cities": [
+5
+],
+"Ship": "전투용 갤리온",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 8,
+"Target": "イスパニア武装商船隊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700024,
+1
+]
+],
+"Skills": [
+{
+"Name": "剣術",
+"Rank": 10
+},
+{
+"Name": "収奪",
+"Rank": 6
+}
+]
+},
+{
+"Id": 4444,
+"Title": "赤く染まる海",
+"Difficulty": 6,
+"Cities": [
+123
+],
+"Ship": "상업용 무장 카락",
+"CountMin": 4,
+"CountMax": 10,
+"X": 14409,
+"Y": 6064,
+"SeaZone": 0,
+"Target": "盗伐船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500050,
+1
+],
+[
+1,
+1600361,
+10
+],
+[
+1,
+1600364,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4335,
+"Title": "軍の蜂起",
+"Difficulty": 8,
+"Cities": [
+123
+],
+"Ship": "강습용 갤리스",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 52,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500105,
+1
+],
+[
+1,
+1600230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3487,
+"Title": "迫り来るサラマンドラ海賊",
+"Difficulty": 4,
+"Cities": [
+38,
+42
+],
+"Ship": "강습용 갤리",
+"CountMin": 2,
+"CountMax": 3,
+"X": 1189,
+"Y": 3149,
+"SeaZone": 0,
+"Target": "サラマンドラ収奪艦隊",
+"Durability": 330,
+"Crew": 77,
+"Reward": 40000,
+"Advance": 8000,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4041,
+"Title": "追われる軍船",
+"Difficulty": 6,
+"Cities": [
+42
+],
+"Ship": "카락",
+"CountMin": 6,
+"CountMax": 6,
+"X": 1300,
+"Y": 3440,
+"SeaZone": 0,
+"Target": "",
+"Durability": 240,
+"Crew": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500101,
+1
+],
+[
+1,
+1600852,
+15
+],
+[
+1,
+1600855,
+15
+]
+],
+"Skills": []
+},
+{
+"Id": 3562,
+"Title": "追憶のグラナダ",
+"Difficulty": 4,
+"Cities": [
+40
+],
+"Ship": "경 갤리온",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 21,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 110000,
+"Advance": 22000,
+"Gifts": [
+[
+0,
+1500065,
+1
+],
+[
+1,
+1600309,
+12
+],
+[
+1,
+1600356,
+13
+]
+],
+"Skills": []
+},
+{
+"Id": 3968,
+"Title": "逃げた賞金首",
+"Difficulty": 8,
+"Cities": [
+195
+],
+"Ship": "전열함",
+"CountMin": 1,
+"CountMax": 1,
+"X": 0,
+"Y": 0,
+"SeaZone": 105,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600111,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2121,
+"Title": "造船所親方の旧知",
+"Difficulty": 6,
+"Cities": [
+1
+],
+"Ship": "대형갤리",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 23,
+"Target": "バルバリア海賊主力艦",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4481,
+"Title": "金の強奪者",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"Ship": "경 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 16237,
+"Y": 4588,
+"SeaZone": 0,
+"Target": "グランバサン海賊",
+"Durability": 100,
+"Crew": 15,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500036,
+1
+],
+[
+0,
+1500030,
+1
+],
+[
+1,
+1600155,
+10
+],
+[
+1,
+1600404,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 3606,
+"Title": "金密輸船襲撃計画",
+"Difficulty": 8,
+"Cities": [
+77
+],
+"Ship": "중 갤리온",
+"CountMin": 6,
+"CountMax": 6,
+"X": 12986,
+"Y": 3805,
+"SeaZone": 9,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4276,
+"Title": "銀輸送船の宿敵",
+"Difficulty": 8,
+"Cities": [
+77
+],
+"Ship": "중 갤리온",
+"CountMin": 4,
+"CountMax": 4,
+"X": 14220,
+"Y": 3486,
+"SeaZone": 6,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2218,
+"Title": "闇の海",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"Ship": "상업용 바사",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 3,
+"Target": "銀運搬船",
+"Durability": 33,
+"Crew": 6,
+"Reward": 16000,
+"Advance": 3200,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3464,
+"Title": "陸にあがる海賊",
+"Difficulty": 4,
+"Cities": [
+28
+],
+"Ship": "경 갤리",
+"CountMin": 2,
+"CountMax": 3,
+"X": 657,
+"Y": 3425,
+"SeaZone": 0,
+"Target": "ホムス海賊",
+"Durability": 135,
+"Crew": 40,
+"Reward": 71100,
+"Advance": 14220,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4332,
+"Title": "離脱部隊の計画",
+"Difficulty": 7,
+"Cities": [
+151
+],
+"Ship": "전열함",
+"CountMin": 4,
+"CountMax": 4,
+"X": 12385,
+"Y": 4847,
+"SeaZone": 70,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500328,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2459,
+"Title": "青い盗賊",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"Ship": "바사",
+"CountMin": 9,
+"CountMax": 9,
+"X": 0,
+"Y": 0,
+"SeaZone": 6,
+"Target": "",
+"Durability": 0,
+"Crew": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "スペイン語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3517,
+"Title": "非情な戦術",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"Ship": "갤리오트",
+"CountMin": 2,
+"CountMax": 3,
+"X": 240,
+"Y": 4756,
+"SeaZone": 0,
+"Target": "ロぺズ岬海賊団",
+"Durability": 112,
+"Crew": 34,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4375,
+"Title": "領土征服の防衛",
+"Difficulty": 5,
+"Cities": [
+40,
+28
+],
+"Ship": "경 갤리온",
+"CountMin": 2,
+"CountMax": 3,
+"X": 0,
+"Y": 0,
+"SeaZone": 21,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1510241,
+1
+],
+[
+0,
+1500065,
+1
+],
+[
+0,
+1500027,
+1
+],
+[
+1,
+1600309,
+1
+],
+[
+1,
+1600356,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 2936,
+"Title": "頭痛のタネ",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"Ship": "캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 15550,
+"Y": 3500,
+"SeaZone": 0,
+"Target": "セルペンテ遊撃船団",
+"Durability": 0,
+"Crew": 0,
+"Reward": 45000,
+"Advance": 9000,
+"Gifts": [
+[
+0,
+1500005,
+1
+],
+[
+1,
+1600016,
+15
+],
+[
+1,
+1600061,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 2227,
+"Title": "顧客の命の危機",
+"Difficulty": 6,
+"Cities": [
+2
+],
+"Ship": "경 갤리",
+"CountMin": 4,
+"CountMax": 6,
+"X": 0,
+"Y": 0,
+"SeaZone": 25,
+"Target": "イオニア海賊の刺客",
+"Durability": 135,
+"Crew": 40,
+"Reward": 80000,
+"Advance": 16000,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4470,
+"Title": "香料を積んだ船",
+"Difficulty": 5,
+"Cities": [
+55
+],
+"Ship": "상업용 캐러벨",
+"CountMin": 2,
+"CountMax": 2,
+"X": 0,
+"Y": 0,
+"SeaZone": 39,
+"Target": "私掠海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500106,
+1
+],
+[
+0,
+1500172,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4473,
+"Title": "香辛料を奪え",
+"Difficulty": 8,
+"Cities": [
+62
+],
+"Ship": "중 카락",
+"CountMin": 4,
+"CountMax": 4,
+"X": 2770,
+"Y": 4200,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600418,
+7
+],
+[
+1,
+1600415,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 4472,
+"Title": "香辛料商人の調査",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"Ship": "상업용 대형 카락",
+"CountMin": 2,
+"CountMax": 4,
+"X": 0,
+"Y": 0,
+"SeaZone": 44,
+"Target": "交易荒らしの船団",
+"Durability": 0,
+"Crew": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500032,
+1
+],
+[
+0,
+1500046,
+1
+],
+[
+1,
+1600465,
+3
+],
+[
+1,
+1600309,
+18
+]
+],
+"Skills": []
+},
+{
+"Id": 4471,
+"Title": "香辛料輸送船の航路確保",
+"Difficulty": 9,
+"Cities": [
+70
+],
+"Ship": "중 갤리온",
+"CountMin": 10,
+"CountMax": 10,
+"X": 3276,
+"Y": 4062,
+"SeaZone": 44,
+"Target": "ダマン海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+1,
+1600602,
+17
+]
+],
+"Skills": []
+},
+{
+"Id": 2177,
+"Title": "駆け出しの海賊",
+"Difficulty": 2,
+"Cities": [
+4
+],
+"Ship": "바사",
+"CountMin": 2,
+"CountMax": 2,
+"X": 300,
+"Y": 3215,
+"SeaZone": 0,
+"Target": "駆け出しの海賊",
+"Durability": 0,
+"Crew": 0,
+"Reward": 40000,
+"Advance": 8000,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2216,
+"Title": "騎士の末路",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"Ship": "소형 캐러벨",
+"CountMin": 2,
+"CountMax": 3,
+"X": 380,
+"Y": 2997,
+"SeaZone": 0,
+"Target": "没落騎士",
+"Durability": 84,
+"Crew": 15,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "フランス語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4468,
+"Title": "高価な像",
+"Difficulty": 6,
+"Cities": [
+70
+],
+"Ship": "상업용 대형 갤리온",
+"CountMin": 4,
+"CountMax": 6,
+"X": 3195,
+"Y": 4102,
+"SeaZone": 0,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500028,
+1
+],
+[
+1,
+1600619,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4045,
+"Title": "黄金の鹿",
+"Difficulty": 10,
+"Cities": [
+1
+],
+"Ship": "골든 하인드",
+"CountMin": 8,
+"CountMax": 8,
+"X": 14867,
+"Y": 3172,
+"SeaZone": 6,
+"Target": "",
+"Durability": 0,
+"Crew": 0,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700012,
+1
+],
+[
+1,
+1600804,
+1
+],
+[
+1,
+1600853,
+1
+]
+],
+"Skills": [
+{
+"Name": "回避",
+"Rank": 4
+},
+{
+"Name": "応急処置",
+"Rank": 4
+}
+]
+}
+]

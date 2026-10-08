@@ -13,7 +13,8 @@ public sealed record Ship(int Id, string Name, string Description, int Model, in
 /// <summary>배 부품. Slot: 0 보조돛(A 가로돛, B 세로돛) · 1 장갑(A 장갑, B 속도 줄임) · 2 선수상(A ~ D 효과 넷) · 3 문장(수치 없음).</summary>
 /// <summary>주점의 차림 한 가지(표 37) — 갈래: 0 술 · 1 요리 · 2 음료 · 3 물담배.</summary>
 public sealed record TavernDish(int Id, string Name, string Description, int Kind);
-public sealed record ShipPart(int Id, string Name, string Description, int Slot, int A, int B, int C, int D, int Durability);
+/// <summary>대포만: 장전 속도 · 탄속 · 폭발 범위(표 22 의 일곱째 · 다섯째 · 여섯째 값, 1 ~ 10 — 클수록 좋다: 「명품」이 늘 하나씩 높다).</summary>
+public sealed record ShipPart(int Id, string Name, string Description, int Slot, int A, int B, int C, int D, int Durability, int Reload = 0, int ShotSpeed = 0, int Blast = 0);
 /// <summary>
 /// 선박 데코(표 138) — 줄 꼬리 10바이트: u8 × 5 붙일 수 있는 자리(마스트 톱, 전방 측면 둘, 뒤쪽 측면 둘), u16 모형으로 보이는 번호, u8 ?(깃발은 나라 차례), u8 0, u8 갈래
 /// (0 마스트 톱의 깃발 · 상, 1 작은 배, 2 랜턴, 3 앵커, 4 상, 5 장식, 6 방패). 자리의 뜻은 설명 글(「마스트 톱」 · 「전방 측면」 · 「뒤쪽 측면」)과 맞춰 본 것이다.
@@ -80,6 +81,8 @@ public sealed class DataTables
     public IReadOnlyDictionary<int, string> Ammo { get; }
     /// <summary>시내 장소 이름(표 40): 9 조선소 · 10 교역소 · 14 은행 … — 시내 지도의 표식이 이 번호를 쓴다.</summary>
     public IReadOnlyDictionary<int, string> Places { get; }
+    /// <summary>아이템 표(14)의 이름 — 번호, 이름, 설명뿐인 표. 게임이 따로 다루지 않는 아이템(의뢰 알선서 · 책 · 부적 …)의 이름을 보이는 데 쓴다.</summary>
+    public IReadOnlyDictionary<int, string> ItemNames { get; } = new Dictionary<int, string>();
     /// <summary>선박 데코(표 138) 321줄과 선원 장비(표 139) 214줄 — 이름이 「※」인 빈 줄까지 그대로.</summary>
     public IReadOnlyList<ShipDeco> Decos { get; }
     public IReadOnlyList<CrewGear> CrewGears { get; }
@@ -139,17 +142,18 @@ public sealed class DataTables
         // 문장(표 26): id(1100001 ~), 이름, 설명뿐 — 수치가 없다
         parts.AddRange(Rows(Table(26), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 3, 0, 0, 0, 0, 0)));
         // 대포(표 22): id(700100 ~), 이름, 설명, i32 × 10 — 문 수, 관통력, 다는 자리(0 선측 · 1 선수 · 2 선미), 사정거리, 탄속, ?, ?, 1, 내구, 탄 갈래.
-        // 자리와 탄 갈래는 설명 글(「선측에 8문」 · 「선수에 4문」 · 「사슬탄」)과 맞춰 본 것이고, 여섯째 · 일곱째(1 ~ 10)는 폭발 범위 · 장전 속도로 보이나 못 가렸다
+        // 자리와 탄 갈래는 설명 글(「선측에 8문」 · 「선수에 4문」 · 「사슬탄」)과 맞춰 본 것이고, 다섯째 ~ 일곱째는 gvdb 아이템 목록의 글과 맞는다(팔콘포 2문: 「弾速：8 · 炸裂範囲：1 · 装填速度：6」) — 탄속 · 폭발 범위 · 장전 속도. 게임은 이 셋을 아직 안 쓴다(장전 속도의 수가 클수록 빠른지 느린지 모른다)
         parts.AddRange(Rows(Table(22), (r, id) =>
         {
             string name = r.Text(id), description = r.Text(id);
             int count = r.Int32(), pierce = r.Int32(), spot = r.Int32(), range = r.Int32();
-            r.Skip(16);
+            int shotSpeed = r.Int32(), blast = r.Int32(), reload = r.Int32();
+            r.Skip(4);
             int durability = r.Int32(), ammo = r.Int32();
             // D = 다는 자리 + 탄 갈래 × 10 (탄 갈래는 표 21 의 번호 — 0 통상탄 … 18 파쇄 유탄, 이름이 설명 글과 맞는다)
-            return new ShipPart(id, name, description, 4, count, pierce, range, spot + ammo * 10, durability);
+            return new ShipPart(id, name, description, 4, count, pierce, range, spot + ammo * 10, durability, reload, shotSpeed, blast);
         }));
-        // 특수장비(표 24): id(900001 ~), 이름, 설명, i32 갈래(0 충각 · 1 ? · 2 선수 추가돛 · 3 선미 추가돛 · 4 조교 · 5 기관포 · 6 화염방사기 · 7 방벽), i32 세기, i32 내구, 그 뒤 10바이트(못 풀었다)
+        // 특수장비(표 24): id(900001 ~), 이름, 설명, i32 갈래(0 충각 · 1 백병전 지원(gvdb 「白兵戦支援」) · 2 선수 추가돛 · 3 선미 추가돛 · 4 조교 · 5 기관포 · 6 화염방사기 · 7 방벽), i32 세기, i32 내구, 그 뒤 10바이트(못 풀었다)
         parts.AddRange(Rows(Table(24), (r, id) =>
         {
             string name = r.Text(id), description = r.Text(id);
@@ -228,6 +232,8 @@ public sealed class DataTables
         Aides = Rows(Table(AideTable), (r, id) => (id, r.Text(id), r.Byte(), r.Byte()));
         Duties = Rows(Table(DutyTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(d => d.Id, d => d.Name);
         Places = Rows(Table(PlaceTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(p => p.Id, p => p.Name);
+        try { ItemNames = Rows(Table(14), (r, id) => { string name = r.Text(id); r.Text(id); return (Id: id, Name: name); }).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Name); }
+        catch (Exception e) { Console.Error.WriteLine("ItemNames: " + e.Message); }
         Decos = Rows(Table(138), (r, id) =>
         {
             string name = r.Text(id), description = r.Text(id);

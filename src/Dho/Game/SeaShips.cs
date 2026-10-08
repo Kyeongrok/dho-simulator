@@ -68,6 +68,8 @@ internal sealed class SeaBattle
     public double FoeMineIn = 6;
     public readonly List<SeaShot> Shots = [];
     public readonly List<SeaHit> Hits = [];
+    /// <summary>이 싸움에서 아이템(돌격의 군기 · 강철포탄 · 원군요청서)으로 빌린 스킬 — 랭크 1 로 친다.</summary>
+    public readonly HashSet<int> Lent = [];
 }
 
 /// <summary>
@@ -88,6 +90,8 @@ internal sealed partial class Voyage
     private static readonly string[] PirateNames = ["붉은 수염", "검은 갈매기", "바다 늑대", "피의 닻", "외눈 상어", "밤의 조류", "녹슨 갈고리", "떠도는 해골"];
     private static readonly string[] MerchantNames = ["산타 마리아", "성 니콜라스", "황금 사슴", "북방의 별", "행운의 여신", "흰 돌고래", "성 안토니오", "바다의 딸"];
 
+    private double _seaQuestIn;
+
     private void UpdateSeaShips(double dt)
     {
         UpdateInfamy();
@@ -100,6 +104,8 @@ internal sealed partial class Voyage
             _seaShipIn = 15 + _random.NextDouble() * 25;
             if (SeaShips.Count < 3) SpawnSeaShip();
         }
+        // 해사 의뢰의 토벌 대상 — 네 초마다 살핀다(앞의 대상을 가라앉힌 뒤 다음 것이 나오기까지의 틈, 지은 값)
+        if ((_seaQuestIn -= dt) <= 0) { _seaQuestIn = 4; SeaQuestTick(); }
         foreach (var ship in SeaShips)
         {
             if (ship.Sinking >= 0) continue;
@@ -392,7 +398,7 @@ internal sealed partial class Voyage
         if (foe.Monster > 0) dead = 0;      // 괴물은 선원이 없다 — 내구가 다해야 잡힌다(전에는 「선원 1」이 깎여 한 방에 잡혔다)
         foe.Durability -= hit;
         foe.Crew -= dead;
-        battle.MyReload = ReloadSeconds * (1 - Math.Min(0.6, Option("Reload") + Bonus("Reload") + (Sail == 0 ? Option("FurledReload") : 0)));      // 「집중장전」: 돛을 접고 있는 동안 장전속도 50% 상승(원본 글의 수 그대로)      // 속사 스킬
+        battle.MyReload = ReloadSeconds * CannonReload * (1 - Math.Min(0.6, Option("Reload") + Bonus("Reload") + (Sail == 0 ? Option("FurledReload") : 0)));      // 「집중장전」: 돛을 접고 있는 동안 장전속도 50% 상승(원본 글의 수 그대로)      // 속사 스킬
         battle.Shots.Add(new SeaShot { FromX = ShipX, FromY = ShipY, ToX = foe.X, ToY = foe.Y, Life = 1.1 });
         battle.Hits.Add(new SeaHit { X = foe.X, Y = foe.Y, Text = $"{(rake ? "관통! " : "")}−{hit:0}" });
         battle.Log.Add($"{Fill(Text(20006, "%s에게 포격 명중!"), foe.Name)}{(rake ? " (관통)" : "")} [{AmmoName(ammo)}] {Fill(Text(20007, "선체에 %d의 피해를 주었습니다!"), $"{hit:0}")}{(dead >= 1 ? " " + Fill(Text(20008, "선원들에게 %d의 피해를 주었습니다!"), $"{dead:0}") : "")}");
@@ -440,6 +446,47 @@ internal sealed partial class Voyage
     public void FoeMineForTest()
     {
         if (Battle is { } battle) battle.FoeMines.Add((ShipX + Math.Sin(Heading) * 2.2, ShipY - Math.Cos(Heading) * 2.2, 2));
+    }
+
+    /// <summary>
+    /// 해전 아이템을 쓴다(gvdb 「消耗品（海戦・白兵戦）」의 使用時効果). 썼으면 true(하나 준다).
+    /// Truce 정전 협정서 「艦隊戦強制終了 — 奇襲してきた船との戦闘を終わらせる(対NPC)」 · Bell 철수의 종 「白兵戦強制終了」 ·
+    /// BattleSkill(Amount = 스킬 번호) 원군요청서 「援軍要請」 · 돌격의 군기 「突撃」 · 강철포탄 「貫通」 — 그 스킬을 이 싸움 동안 랭크 1 로 빌린다(랭크는 짐작).
+    /// </summary>
+    public bool UseBattleItem(ItemData item)
+    {
+        if (Battle is not { Result: null } battle) { Say($"{item.Name} — 해전 중에 쓴다."); Cues.Enqueue("Error"); return false; }
+        switch (item.Effect)
+        {
+            case "Truce":
+                if (battle.Foe.Monster > 0) { Say($"{item.Name} — 괴물에게는 통하지 않는다."); Cues.Enqueue("Error"); return false; }
+                (battle.Boarding, battle.Foe.Hunting, battle.Foe.Fooled) = (false, false, true);
+                battle.Result = $"{item.Name}을(를) 건넸다. 싸움이 끝났다.";
+                Say(battle.Result);
+                Dialog = Dialog.Battle;
+                return true;
+            case "Bell":
+                if (!battle.Boarding) { Say($"{item.Name} — 백병전 중에 쓴다."); Cues.Enqueue("Error"); return false; }
+                (battle.Boarding, battle.BoardIn) = (false, 10);
+                battle.Log.Add($"{item.Name}을(를) 울렸다. " + Text(20549, "전투에서 퇴각하겠습니다!"));
+                Say(battle.Log[^1]);
+                return true;
+            case "BattleSkill":
+                int skill = (int)item.Amount;
+                if (battle.Lent.Contains(skill) || Skills.ContainsKey(skill) && Data.SkillRules.Find(r => r.SkillId == skill)?.Effect != "Aid") { Say($"{item.Name} — 이미 {SkillName(skill)}이(가) 듣고 있다."); Cues.Enqueue("Error"); return false; }
+                if (Data.SkillRules.Find(r => r.SkillId == skill)?.Effect == "Aid")
+                {
+                    if (battle.AidCalled || battle.Foe.Monster > 0) { Say($"{item.Name} — 지금은 원군을 부를 수 없다."); Cues.Enqueue("Error"); return false; }
+                    battle.Lent.Add(skill);
+                    CallAid();
+                    return battle.AidCalled;
+                }
+                battle.Lent.Add(skill);
+                battle.Log.Add($"{item.Name} — 이 싸움 동안 {SkillName(skill)}이(가) 듣는다.");
+                Say(battle.Log[^1]);
+                return true;
+        }
+        return false;
     }
 
     /// <summary>「원군요청」 · 「해군 호위 요청」 스킬이 있는가 — 해전 막대에 단추가 선다.</summary>
@@ -622,7 +669,7 @@ internal sealed partial class Voyage
             // 서로 선원 수만큼 벤다 — 전투 레벨이 조금 거든다
             if ((battle.MeleeIn -= dt) > 0) return;
             battle.MeleeIn = 1.5;
-            double edge = 1 + LevelOf(BattleExp).Level * 0.01 + GearPower(4) * 0.05 + Option("Melee") + Study("Melee") + Bonus("Melee");      // 조교(특수장비)와 선박 스킬이 거든다
+            double edge = 1 + LevelOf(BattleExp).Level * 0.01 + (GearPower(4) + GearPower(1)) * 0.05 + Option("Melee") + Study("Melee") + Bonus("Melee");      // 조교(특수장비 갈래 4 「接舷効果」)와 백병전 지원 장비(갈래 1 「白兵戦支援」 — gvdb 글로 확인, 곱 5%는 조교와 같이 둔 지은 값) · 선박 스킬이 거든다
             // 한 합에 맞붙는 수는 적은 쪽의 선원 수다 — 선원이 서너 배 많은 배에 걸려도 두세 합에 전멸하지 않고 퇴각할 틈이 있다(지은 식).
             // 전에는 서로 제 선원 수만큼 베어서, 선원 40명인 배가 150명짜리 해적에게 걸리면 네 초 만에 졌다
             double front = Math.Min(Crew, foe.Crew);
@@ -661,6 +708,8 @@ internal sealed partial class Voyage
             else theirs *= 1 + Bonus(battle.Tactic == 0 ? "Charge" : "Volley");
             TrainEffect(battle.Tactic switch { 0 => "Charge", 1 => "Guard", _ => "Volley" }, 10);
             TrainEffect("Tactics", 4);
+            // 선원이 몇 안 남으면 한 합의 피해가 1 에 못 미쳐 「0의 피해」가 줄줄이 찍히며 헛돌았다 — 한 합에 적어도 한 사람은 쓰러진다(남은 선원까지)
+            (theirs, mine) = (Math.Max(theirs, Math.Min(1, foe.Crew)), Math.Max(mine, Math.Min(1, Crew)));
             foe.Crew -= theirs;
             Crew -= mine;
             battle.Hits.Add(new SeaHit { X = foe.X, Y = foe.Y, Text = $"선원 −{theirs:0}" });
@@ -710,6 +759,8 @@ internal sealed partial class Voyage
         double bearing = Math.Atan2(WorldMap.DeltaX(foe.X, ShipX), -(ShipY - foe.Y));
         if (battle.FoeReload <= 0 && foe.Guns > 0 && far <= FoeRange && Broadside(foe.Heading, bearing))
         {
+            // 선수상의 「포탄 회피」 — 그 번의 포격이 통째로 빗나간다
+            if (_random.NextDouble() < PartDodge) { _dodged++; battle.FoeReload = FoeReloadSeconds; battle.Log.Add("적의 포탄이 빗나갔다 — 선수상의 가호."); return; }
             bool rake = Raking(Heading, bearing);
             // 적은 한쪽 옆구리의 포만 쏜다 — 포문 수의 절반
             double hit = Salvo((int)(foe.Guns / 2 * Math.Clamp(foe.Crew / Math.Max(1, foe.MaxCrew * 0.4), 0.3, 1)), Stats.Armor) * (rake ? 1.5 : 1) * (1 - Math.Min(0.6, Option("ShotArmor") + Bonus("ShotArmor") + HonorEffect("ShotArmor") + (PrayerOn(3) ? 0.1 : 0))) * 0.5, dead = hit * 0.04;      // 적의 포격은 절반으로 친다(지은 값 — 그대로면 서너 번에 가라앉는다)
@@ -747,6 +798,7 @@ internal sealed partial class Voyage
         }
         if (foe.Durability > 0 && foe.Crew >= 1) return;
 
+        SeaQuestSunk(foe);
         // 이겼다 — 돈과(상선이면) 짐, 전투 경험과 명성
         int exp = 10 + foe.MaxDurability / 20 + foe.Guns, fame = Math.Max(1, exp / 4);
         int money = foe.Monster > 0 ? 0 : 500 + foe.MaxDurability * (foe.Kind == 0 ? 20 : 8);

@@ -1,0 +1,9867 @@
+[
+{
+"Id": 3211,
+"Title": "あたたかい服",
+"Difficulty": 2,
+"Cities": [
+4
+],
+"GoodId": 1600454,
+"Count": 30,
+"ToCity": 4,
+"Reward": 10000,
+"Advance": 24360,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3970,
+"Title": "うわさのお茶",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600174,
+"Count": 5,
+"ToCity": 51,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+23
+]
+],
+"Skills": []
+},
+{
+"Id": 3971,
+"Title": "お気に入りの香り",
+"Difficulty": 8,
+"Cities": [
+131
+],
+"GoodId": 1600419,
+"Count": 2,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+25
+]
+],
+"Skills": []
+},
+{
+"Id": 3072,
+"Title": "お礼の品",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600021,
+"Count": 10,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+45
+]
+],
+"Skills": []
+},
+{
+"Id": 4122,
+"Title": "お菓子の材料",
+"Difficulty": 8,
+"Cities": [
+4
+],
+"GoodId": 1600107,
+"Count": 5,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+35
+]
+],
+"Skills": []
+},
+{
+"Id": 3400,
+"Title": "かわいいお菓子屋さん",
+"Difficulty": 7,
+"Cities": [
+2
+],
+"GoodId": 1600103,
+"Count": 2,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 10
+}
+]
+},
+{
+"Id": 4781,
+"Title": "そら豆の仕入れ",
+"Difficulty": 3,
+"Cities": [
+42
+],
+"GoodId": 1600017,
+"Count": 10,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3501,
+"Title": "そら豆の仕入れ",
+"Difficulty": 3,
+"Cities": [
+38
+],
+"GoodId": 1600017,
+"Count": 10,
+"ToCity": 38,
+"Reward": 18000,
+"Advance": 520,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3201,
+"Title": "そら豆の納品",
+"Difficulty": 2,
+"Cities": [
+28
+],
+"GoodId": 1600017,
+"Count": 10,
+"ToCity": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3139,
+"Title": "そら豆の調達",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600017,
+"Count": 10,
+"ToCity": 24,
+"Reward": 5200,
+"Advance": 520,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3972,
+"Title": "ひでりの救援",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"GoodId": 1600015,
+"Count": 60,
+"ToCity": 50,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+17
+]
+],
+"Skills": []
+},
+{
+"Id": 3973,
+"Title": "めのうの配送",
+"Difficulty": 3,
+"Cities": [
+77
+],
+"GoodId": 1600617,
+"Count": 5,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 3974,
+"Title": "もう一度あの木の実を",
+"Difficulty": 6,
+"Cities": [
+131
+],
+"GoodId": 1600183,
+"Count": 1,
+"ToCity": 144,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4124,
+"Title": "アヒル肉の調達",
+"Difficulty": 4,
+"Cities": [
+32
+],
+"GoodId": 1600002,
+"Count": 5,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+5
+]
+],
+"Skills": [
+{
+"Name": "ノルド語",
+"Rank": 1
+},
+{
+"Name": "英語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3975,
+"Title": "アベンチュリンの配達",
+"Difficulty": 5,
+"Cities": [
+70
+],
+"GoodId": 1600601,
+"Count": 10,
+"ToCity": 62,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4777,
+"Title": "アラビア隊商への納品",
+"Difficulty": 4,
+"Cities": [
+62
+],
+"GoodId": 1600207,
+"Count": 15,
+"ToCity": 62,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4143,
+"Title": "アルケブス銃の使い道",
+"Difficulty": 6,
+"Cities": [
+1
+],
+"GoodId": 1600851,
+"Count": 3,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 5247,
+"Title": "アルパカの配送",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600078,
+"Count": 2,
+"ToCity": 39,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+39
+]
+],
+"Skills": []
+},
+{
+"Id": 3976,
+"Title": "アルパカ毛の配送",
+"Difficulty": 4,
+"Cities": [
+151
+],
+"GoodId": 1600320,
+"Count": 5,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+31
+]
+],
+"Skills": []
+},
+{
+"Id": 3977,
+"Title": "アワイヨを安平へ",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600478,
+"Count": 20,
+"ToCity": 177,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+25
+]
+],
+"Skills": []
+},
+{
+"Id": 3979,
+"Title": "アワイヨを江戸へ",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600478,
+"Count": 20,
+"ToCity": 171,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+23
+]
+],
+"Skills": []
+},
+{
+"Id": 3980,
+"Title": "アワイヨを重慶へ",
+"Difficulty": 10,
+"Cities": [
+151
+],
+"GoodId": 1600478,
+"Count": 20,
+"ToCity": 183,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 3978,
+"Title": "アワイヨを釜山へ",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600478,
+"Count": 20,
+"ToCity": 175,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+25
+]
+],
+"Skills": []
+},
+{
+"Id": 3458,
+"Title": "アンチョビの配送",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600104,
+"Count": 5,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+31
+]
+],
+"Skills": [
+{
+"Name": "保管",
+"Rank": 7
+}
+]
+},
+{
+"Id": 4172,
+"Title": "アーモンドの納品",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"GoodId": 1600151,
+"Count": 20,
+"ToCity": 10,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4123,
+"Title": "アーモンド油の納品",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"GoodId": 1600101,
+"Count": 10,
+"ToCity": 10,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 4895,
+"Title": "イスパニアの名物料理自慢",
+"Difficulty": 7,
+"Cities": [
+1
+],
+"GoodId": 1600004,
+"Count": 50,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+46
+]
+],
+"Skills": []
+},
+{
+"Id": 6703,
+"Title": "イラクサの調達",
+"Difficulty": 4,
+"Cities": [
+40
+],
+"GoodId": 1601116,
+"Count": 20,
+"ToCity": 41,
+"Reward": 150000,
+"Advance": 7760,
+"Gifts": [],
+"Skills": [
+{
+"Name": "アラビア語",
+"Rank": 1
+},
+{
+"Name": "ノルド語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4184,
+"Title": "イレーヌへの贈り物",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600417,
+"Count": 1,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3982,
+"Title": "インカローズの配送",
+"Difficulty": 4,
+"Cities": [
+151
+],
+"GoodId": 1600626,
+"Count": 5,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+27
+]
+],
+"Skills": []
+},
+{
+"Id": 3981,
+"Title": "インカローズ緊急配送",
+"Difficulty": 4,
+"Cities": [
+151
+],
+"GoodId": 1600626,
+"Count": 3,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+19
+]
+],
+"Skills": []
+},
+{
+"Id": 3983,
+"Title": "インド洋横断航路",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"GoodId": 1600306,
+"Count": 30,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 6305,
+"Title": "インド藍の配送",
+"Difficulty": 7,
+"Cities": [
+62
+],
+"GoodId": 1600352,
+"Count": 20,
+"ToCity": 158,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+18
+]
+],
+"Skills": []
+},
+{
+"Id": 3984,
+"Title": "インド藍の配送",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"GoodId": 1600352,
+"Count": 4,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+33
+]
+],
+"Skills": []
+},
+{
+"Id": 4173,
+"Title": "ウォードの納品",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600354,
+"Count": 10,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 3550,
+"Title": "ウォードの配送",
+"Difficulty": 4,
+"Cities": [
+3
+],
+"GoodId": 1600354,
+"Count": 10,
+"ToCity": 8,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 6372,
+"Title": "ウサギ毛の納品",
+"Difficulty": 5,
+"Cities": [
+195
+],
+"GoodId": 1600302,
+"Count": 30,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4770,
+"Title": "ウシの納入",
+"Difficulty": 4,
+"Cities": [
+123
+],
+"GoodId": 1600030,
+"Count": 20,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4769,
+"Title": "ウシの配送",
+"Difficulty": 4,
+"Cities": [
+32
+],
+"GoodId": 1600030,
+"Count": 3,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 3985,
+"Title": "エメラルドの配送",
+"Difficulty": 8,
+"Cities": [
+59
+],
+"GoodId": 1600602,
+"Count": 5,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+22
+]
+],
+"Skills": []
+},
+{
+"Id": 4766,
+"Title": "エーゲ海の野菜",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600215,
+"Count": 10,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3986,
+"Title": "オパールの配送",
+"Difficulty": 6,
+"Cities": [
+111
+],
+"GoodId": 1600620,
+"Count": 5,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 3213,
+"Title": "オリーブの納品",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"GoodId": 1600005,
+"Count": 10,
+"ToCity": 10,
+"Reward": 12000,
+"Advance": 2240,
+"Gifts": [
+[
+0,
+1500228,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 4765,
+"Title": "オリーブの調達",
+"Difficulty": 2,
+"Cities": [
+42
+],
+"GoodId": 1600005,
+"Count": 20,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3549,
+"Title": "オリーブ油の仕入れ",
+"Difficulty": 4,
+"Cities": [
+3
+],
+"GoodId": 1600102,
+"Count": 20,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4351,
+"Title": "オリーブ油の配送",
+"Difficulty": 5,
+"Cities": [
+38
+],
+"GoodId": 1600102,
+"Count": 30,
+"ToCity": 7,
+"Reward": 80000,
+"Advance": 8280,
+"Gifts": [
+[
+0,
+1500228,
+9
+]
+],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 6304,
+"Title": "オリーブ油の配送",
+"Difficulty": 8,
+"Cities": [
+3
+],
+"GoodId": 1600102,
+"Count": 30,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+40
+]
+],
+"Skills": []
+},
+{
+"Id": 4185,
+"Title": "オレガノの仕入れ",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"GoodId": 1600201,
+"Count": 30,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 3089,
+"Title": "オレガノの納品",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600201,
+"Count": 10,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3987,
+"Title": "カカドゥの香り",
+"Difficulty": 6,
+"Cities": [
+131
+],
+"GoodId": 1600427,
+"Count": 1,
+"ToCity": 144,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 3988,
+"Title": "カシューナッツの配送",
+"Difficulty": 4,
+"Cities": [
+77,
+111
+],
+"GoodId": 1600170,
+"Count": 5,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+23
+]
+],
+"Skills": []
+},
+{
+"Id": 4764,
+"Title": "カシューナッツの配達",
+"Difficulty": 4,
+"Cities": [
+111
+],
+"GoodId": 1600170,
+"Count": 5,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+23
+]
+],
+"Skills": []
+},
+{
+"Id": 3990,
+"Title": "カシューナッツを杭州へ",
+"Difficulty": 9,
+"Cities": [
+151
+],
+"GoodId": 1600170,
+"Count": 10,
+"ToCity": 180,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 3992,
+"Title": "カシューナッツを淡水へ",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600170,
+"Count": 10,
+"ToCity": 178,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+29
+]
+],
+"Skills": []
+},
+{
+"Id": 3989,
+"Title": "カシューナッツを漢陽へ",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600170,
+"Count": 10,
+"ToCity": 174,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 4125,
+"Title": "カブの納品",
+"Difficulty": 1,
+"Cities": [
+3
+],
+"GoodId": 1600006,
+"Count": 5,
+"ToCity": 27,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 3502,
+"Title": "カブの調達",
+"Difficulty": 2,
+"Cities": [
+38
+],
+"GoodId": 1600006,
+"Count": 10,
+"ToCity": 38,
+"Reward": 14000,
+"Advance": 360,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3993,
+"Title": "カボチャの配送",
+"Difficulty": 5,
+"Cities": [
+77
+],
+"GoodId": 1600007,
+"Count": 30,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4126,
+"Title": "カラス麦の納品",
+"Difficulty": 4,
+"Cities": [
+6
+],
+"GoodId": 1600008,
+"Count": 10,
+"ToCity": 30,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 3065,
+"Title": "カリブの麻生地",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"GoodId": 1600451,
+"Count": 30,
+"ToCity": 1,
+"Reward": 108000,
+"Advance": 9960,
+"Gifts": [
+[
+0,
+1500230,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4763,
+"Title": "カリブ海の真珠",
+"Difficulty": 5,
+"Cities": [
+77
+],
+"GoodId": 1600609,
+"Count": 3,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 3484,
+"Title": "ガラス細工の納入",
+"Difficulty": 5,
+"Cities": [
+38
+],
+"GoodId": 1600651,
+"Count": 5,
+"ToCity": 40,
+"Reward": 51000,
+"Advance": 5520,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3025,
+"Title": "ガーリックの仕入れ",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600202,
+"Count": 10,
+"ToCity": 23,
+"Reward": 13000,
+"Advance": 2440,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3143,
+"Title": "ガーリックの納品",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600202,
+"Count": 5,
+"ToCity": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3062,
+"Title": "ガーリックの調達",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"GoodId": 1600202,
+"Count": 10,
+"ToCity": 1,
+"Reward": 2900,
+"Advance": 2440,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3994,
+"Title": "ガーリックの配送",
+"Difficulty": 4,
+"Cities": [
+123
+],
+"GoodId": 1600202,
+"Count": 40,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 3995,
+"Title": "キヌアの配送",
+"Difficulty": 4,
+"Cities": [
+151
+],
+"GoodId": 1600076,
+"Count": 10,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+31
+]
+],
+"Skills": []
+},
+{
+"Id": 3996,
+"Title": "キャラバンへの配荷",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"GoodId": 1600605,
+"Count": 20,
+"ToCity": 64,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3219,
+"Title": "ギルドからの初仕事",
+"Difficulty": 1,
+"Cities": [
+6
+],
+"GoodId": 1600056,
+"Count": 10,
+"ToCity": 93,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4722,
+"Title": "ギルドからの初仕事",
+"Difficulty": 1,
+"Cities": [
+4
+],
+"GoodId": 1600002,
+"Count": 5,
+"ToCity": 85,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4721,
+"Title": "ギルドからの初仕事",
+"Difficulty": 1,
+"Cities": [
+3
+],
+"GoodId": 1600022,
+"Count": 5,
+"ToCity": 89,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4723,
+"Title": "ギルドからの初仕事",
+"Difficulty": 1,
+"Cities": [
+2
+],
+"GoodId": 1600151,
+"Count": 10,
+"ToCity": 82,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4724,
+"Title": "ギルドからの初仕事",
+"Difficulty": 1,
+"Cities": [
+1
+],
+"GoodId": 1600061,
+"Count": 5,
+"ToCity": 82,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4938,
+"Title": "ギルドからの初仕事",
+"Difficulty": 1,
+"Cities": [
+5
+],
+"GoodId": 1600023,
+"Count": 4,
+"ToCity": 92,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3997,
+"Title": "ギルドの心配り",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"GoodId": 1600312,
+"Count": 20,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 3490,
+"Title": "ギルドの教材",
+"Difficulty": 3,
+"Cities": [
+40
+],
+"GoodId": 1600652,
+"Count": 1,
+"ToCity": 40,
+"Reward": 16000,
+"Advance": 2856,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4227,
+"Title": "クエンカタイルの配送",
+"Difficulty": 4,
+"Cities": [
+1
+],
+"GoodId": 1600675,
+"Count": 30,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 3999,
+"Title": "クランベリーの配送",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"GoodId": 1600171,
+"Count": 30,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4144,
+"Title": "クロスボウの納品",
+"Difficulty": 4,
+"Cities": [
+23
+],
+"GoodId": 1600802,
+"Count": 3,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4000,
+"Title": "ゲレップの配送",
+"Difficulty": 4,
+"Cities": [
+123
+],
+"GoodId": 1600363,
+"Count": 5,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+13
+]
+],
+"Skills": []
+},
+{
+"Id": 4716,
+"Title": "ココナツの仕入れ",
+"Difficulty": 5,
+"Cities": [
+70,
+131
+],
+"GoodId": 1600156,
+"Count": 10,
+"ToCity": 62,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4005,
+"Title": "ココナツの配送",
+"Difficulty": 2,
+"Cities": [
+51
+],
+"GoodId": 1600156,
+"Count": 10,
+"ToCity": 50,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4002,
+"Title": "コーヒーの配送",
+"Difficulty": 7,
+"Cities": [
+62
+],
+"GoodId": 1600155,
+"Count": 100,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4001,
+"Title": "コーヒーの配送",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"GoodId": 1600155,
+"Count": 50,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+21
+]
+],
+"Skills": []
+},
+{
+"Id": 6440,
+"Title": "コーヒーの配送",
+"Difficulty": 8,
+"Cities": [
+59
+],
+"GoodId": 1600155,
+"Count": 50,
+"ToCity": 173,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+19
+]
+],
+"Skills": []
+},
+{
+"Id": 4003,
+"Title": "コーヒーブームのきざし",
+"Difficulty": 6,
+"Cities": [
+51
+],
+"GoodId": 1600155,
+"Count": 100,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4186,
+"Title": "ゴマの納品",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"GoodId": 1600208,
+"Count": 10,
+"ToCity": 11,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4006,
+"Title": "サイカクの緊急配送",
+"Difficulty": 4,
+"Cities": [
+131
+],
+"GoodId": 1600268,
+"Count": 5,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4007,
+"Title": "サイカクの買い付け",
+"Difficulty": 6,
+"Cities": [
+172
+],
+"GoodId": 1600268,
+"Count": 5,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+48
+]
+],
+"Skills": []
+},
+{
+"Id": 6311,
+"Title": "サイカクの配送",
+"Difficulty": 8,
+"Cities": [
+131
+],
+"GoodId": 1600268,
+"Count": 5,
+"ToCity": 32,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+49
+]
+],
+"Skills": []
+},
+{
+"Id": 4145,
+"Title": "サテンの配送",
+"Difficulty": 7,
+"Cities": [
+4
+],
+"GoodId": 1600457,
+"Count": 10,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+13
+]
+],
+"Skills": []
+},
+{
+"Id": 3440,
+"Title": "サファイヤをヨーロッパへ",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"GoodId": 1600607,
+"Count": 50,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700017,
+1
+]
+],
+"Skills": [
+{
+"Name": "宝石取引",
+"Rank": 5
+}
+]
+},
+{
+"Id": 3392,
+"Title": "サンゴの献上",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600608,
+"Count": 1,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+6
+]
+],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4008,
+"Title": "サンジョルジュギルドの支援",
+"Difficulty": 6,
+"Cities": [
+59
+],
+"GoodId": 1600154,
+"Count": 10,
+"ToCity": 51,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4729,
+"Title": "シナモンの仕入れ",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600212,
+"Count": 10,
+"ToCity": 67,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4009,
+"Title": "ジセルの腕前",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"GoodId": 1600309,
+"Count": 50,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4010,
+"Title": "ジャガイモの配送",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"GoodId": 1600014,
+"Count": 10,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+18
+]
+],
+"Skills": []
+},
+{
+"Id": 6302,
+"Title": "ジャスミンの配送",
+"Difficulty": 9,
+"Cities": [
+172
+],
+"GoodId": 1600411,
+"Count": 5,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+29
+]
+],
+"Skills": []
+},
+{
+"Id": 4011,
+"Title": "ジャワ更紗の配送",
+"Difficulty": 8,
+"Cities": [
+172
+],
+"GoodId": 1600471,
+"Count": 30,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+40
+]
+],
+"Skills": []
+},
+{
+"Id": 3020,
+"Title": "ジンの大量納入",
+"Difficulty": 8,
+"Cities": [
+5
+],
+"GoodId": 1600053,
+"Count": 60,
+"ToCity": 111,
+"Reward": 172000,
+"Advance": 30960,
+"Gifts": [
+[
+0,
+1500229,
+16
+]
+],
+"Skills": []
+},
+{
+"Id": 4127,
+"Title": "ジンの材料",
+"Difficulty": 4,
+"Cities": [
+32
+],
+"GoodId": 1600027,
+"Count": 20,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4012,
+"Title": "ジンジャーの配送",
+"Difficulty": 3,
+"Cities": [
+70
+],
+"GoodId": 1600213,
+"Count": 5,
+"ToCity": 68,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4013,
+"Title": "ジンジャーの配送",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600213,
+"Count": 5,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+22
+]
+],
+"Skills": []
+},
+{
+"Id": 3368,
+"Title": "スズ鉱石の納品",
+"Difficulty": 3,
+"Cities": [
+2
+],
+"GoodId": 1600554,
+"Count": 20,
+"ToCity": 16,
+"Reward": 28000,
+"Advance": 8480,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4715,
+"Title": "スズ鉱石の納品",
+"Difficulty": 7,
+"Cities": [
+172
+],
+"GoodId": 1600554,
+"Count": 40,
+"ToCity": 77,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+43
+]
+],
+"Skills": []
+},
+{
+"Id": 4190,
+"Title": "セロリの納入",
+"Difficulty": 3,
+"Cities": [
+38
+],
+"GoodId": 1600215,
+"Count": 20,
+"ToCity": 29,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4191,
+"Title": "セロリの納品",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"GoodId": 1600215,
+"Count": 10,
+"ToCity": 26,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 6785,
+"Title": "タイムの納品",
+"Difficulty": 5,
+"Cities": [
+5
+],
+"GoodId": 1600217,
+"Count": 3,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 3524,
+"Title": "タイムの納品",
+"Difficulty": 5,
+"Cities": [
+5
+],
+"GoodId": 1600217,
+"Count": 3,
+"ToCity": 4,
+"Reward": 51000,
+"Advance": 732,
+"Gifts": [
+[
+0,
+1500231,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 3129,
+"Title": "タバコの配送",
+"Difficulty": 5,
+"Cities": [
+77
+],
+"GoodId": 1600157,
+"Count": 20,
+"ToCity": 1,
+"Reward": 79000,
+"Advance": 8960,
+"Gifts": [
+[
+0,
+1500229,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 3451,
+"Title": "タマネギの配達",
+"Difficulty": 2,
+"Cities": [
+28
+],
+"GoodId": 1600018,
+"Count": 10,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4014,
+"Title": "タロイモの大量配送",
+"Difficulty": 4,
+"Cities": [
+131
+],
+"GoodId": 1600019,
+"Count": 100,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4015,
+"Title": "タロイモの調達",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600019,
+"Count": 20,
+"ToCity": 158,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 4661,
+"Title": "ダイヤモンドの配送",
+"Difficulty": 6,
+"Cities": [
+51
+],
+"GoodId": 1600613,
+"Count": 3,
+"ToCity": 39,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 2647,
+"Title": "チーズの納品",
+"Difficulty": 1,
+"Cities": [
+6
+],
+"GoodId": 1600020,
+"Count": 5,
+"ToCity": 18,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3079,
+"Title": "テキーラの配送",
+"Difficulty": 2,
+"Cities": [
+77
+],
+"GoodId": 1600055,
+"Count": 10,
+"ToCity": 77,
+"Reward": 8000,
+"Advance": 9920,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4016,
+"Title": "トゥンバガの配送",
+"Difficulty": 4,
+"Cities": [
+151
+],
+"GoodId": 1600667,
+"Count": 2,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+24
+]
+],
+"Skills": []
+},
+{
+"Id": 4760,
+"Title": "トウモロコシの配送",
+"Difficulty": 3,
+"Cities": [
+77
+],
+"GoodId": 1600021,
+"Count": 60,
+"ToCity": 79,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4017,
+"Title": "トパーズの配送",
+"Difficulty": 4,
+"Cities": [
+123
+],
+"GoodId": 1600614,
+"Count": 5,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 3856,
+"Title": "トマトの配送",
+"Difficulty": 4,
+"Cities": [
+111
+],
+"GoodId": 1600047,
+"Count": 15,
+"ToCity": 118,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4759,
+"Title": "トマトを使った料理",
+"Difficulty": 4,
+"Cities": [
+111
+],
+"GoodId": 1600047,
+"Count": 20,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4146,
+"Title": "トルコ絨毯の納品",
+"Difficulty": 5,
+"Cities": [
+42
+],
+"GoodId": 1600462,
+"Count": 1,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 4758,
+"Title": "ナイルも物騒だ",
+"Difficulty": 2,
+"Cities": [
+40
+],
+"GoodId": 1600467,
+"Count": 10,
+"ToCity": 40,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 6303,
+"Title": "ナツメグの配送",
+"Difficulty": 7,
+"Cities": [
+172
+],
+"GoodId": 1600218,
+"Count": 5,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4018,
+"Title": "ナツメグよりも",
+"Difficulty": 7,
+"Cities": [
+131
+],
+"GoodId": 1600234,
+"Count": 10,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4128,
+"Title": "ニガヨモギの納品",
+"Difficulty": 2,
+"Cities": [
+32
+],
+"GoodId": 1600260,
+"Count": 2,
+"ToCity": 30,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 5645,
+"Title": "ニッケル鉱石の納品依頼",
+"Difficulty": 8,
+"Cities": [
+172
+],
+"GoodId": 1600578,
+"Count": 10,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+35
+]
+],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3358,
+"Title": "バジルの納品",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600219,
+"Count": 10,
+"ToCity": 21,
+"Reward": 25000,
+"Advance": 1040,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4019,
+"Title": "バジルの配送",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"GoodId": 1600219,
+"Count": 30,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4020,
+"Title": "バナナの誘惑",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600180,
+"Count": 5,
+"ToCity": 158,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 4192,
+"Title": "パセリの納品",
+"Difficulty": 2,
+"Cities": [
+3
+],
+"GoodId": 1600220,
+"Count": 3,
+"ToCity": 26,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3128,
+"Title": "パパイヤへの興味",
+"Difficulty": 4,
+"Cities": [
+77
+],
+"GoodId": 1600181,
+"Count": 5,
+"ToCity": 123,
+"Reward": 104000,
+"Advance": 1520,
+"Gifts": [
+[
+0,
+1500229,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4129,
+"Title": "ヒツジの納品",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"GoodId": 1600037,
+"Count": 10,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4753,
+"Title": "ピクルスの仕入れ",
+"Difficulty": 2,
+"Cities": [
+38
+],
+"GoodId": 1600161,
+"Count": 10,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4752,
+"Title": "ピクルスの納入",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600161,
+"Count": 10,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3086,
+"Title": "ピクルスの納品",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600161,
+"Count": 10,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3860,
+"Title": "ピューターの配送",
+"Difficulty": 9,
+"Cities": [
+204
+],
+"GoodId": 1600930,
+"Count": 3,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+41
+]
+],
+"Skills": []
+},
+{
+"Id": 4892,
+"Title": "フランスの名物料理自慢",
+"Difficulty": 8,
+"Cities": [
+4
+],
+"GoodId": 1600210,
+"Count": 50,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 4175,
+"Title": "フルーツブランデーの配送",
+"Difficulty": 8,
+"Cities": [
+6
+],
+"GoodId": 1600063,
+"Count": 3,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+29
+]
+],
+"Skills": []
+},
+{
+"Id": 3132,
+"Title": "プルーンの納品",
+"Difficulty": 4,
+"Cities": [
+1
+],
+"GoodId": 1600162,
+"Count": 5,
+"ToCity": 18,
+"Reward": 35000,
+"Advance": 1440,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 3525,
+"Title": "ヘーゼルナッツの配送",
+"Difficulty": 3,
+"Cities": [
+23
+],
+"GoodId": 1600163,
+"Count": 5,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4147,
+"Title": "ベルベットの納入",
+"Difficulty": 7,
+"Cities": [
+4
+],
+"GoodId": 1600466,
+"Count": 10,
+"ToCity": 77,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4021,
+"Title": "ペルシャ工芸品の配送",
+"Difficulty": 7,
+"Cities": [
+62
+],
+"GoodId": 1600465,
+"Count": 5,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4130,
+"Title": "ホワイトビネガーの納品",
+"Difficulty": 4,
+"Cities": [
+3
+],
+"GoodId": 1600109,
+"Count": 10,
+"ToCity": 37,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 3205,
+"Title": "マスケット銃の購入",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"GoodId": 1600856,
+"Count": 5,
+"ToCity": 4,
+"Reward": 4300,
+"Advance": 12380,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 6300,
+"Title": "マスケット銃の配送",
+"Difficulty": 5,
+"Cities": [
+6
+],
+"GoodId": 1600856,
+"Count": 10,
+"ToCity": 216,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 2785,
+"Title": "マスケット銃の配送",
+"Difficulty": 6,
+"Cities": [
+1
+],
+"GoodId": 1600856,
+"Count": 3,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4894,
+"Title": "マスターのやさしさ",
+"Difficulty": 7,
+"Cities": [
+1
+],
+"GoodId": 1600062,
+"Count": 10,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+37
+]
+],
+"Skills": []
+},
+{
+"Id": 3468,
+"Title": "マスターの新作",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600044,
+"Count": 10,
+"ToCity": 1,
+"Reward": 7000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4744,
+"Title": "マスターの新作",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600044,
+"Count": 10,
+"ToCity": 3,
+"Reward": 7000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4745,
+"Title": "マスターの新作",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"GoodId": 1600044,
+"Count": 10,
+"ToCity": 4,
+"Reward": 7000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 3708,
+"Title": "マスターの新作",
+"Difficulty": 3,
+"Cities": [
+6
+],
+"GoodId": 1600044,
+"Count": 10,
+"ToCity": 6,
+"Reward": 7000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4743,
+"Title": "マスタードの納品",
+"Difficulty": 3,
+"Cities": [
+40
+],
+"GoodId": 1600223,
+"Count": 15,
+"ToCity": 40,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4022,
+"Title": "ミントの配送",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"GoodId": 1600224,
+"Count": 20,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4739,
+"Title": "モザンビークの苦境",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"GoodId": 1600024,
+"Count": 50,
+"ToCity": 57,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4737,
+"Title": "ヤシの酒",
+"Difficulty": 5,
+"Cities": [
+3
+],
+"GoodId": 1600058,
+"Count": 10,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4024,
+"Title": "ヤシ油の納品",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600110,
+"Count": 5,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4025,
+"Title": "ヤシ油の補充",
+"Difficulty": 6,
+"Cities": [
+172
+],
+"GoodId": 1600110,
+"Count": 10,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+31
+]
+],
+"Skills": []
+},
+{
+"Id": 4023,
+"Title": "ヤシ酒の味",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600058,
+"Count": 20,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4148,
+"Title": "ヨーロッパの武器",
+"Difficulty": 8,
+"Cities": [
+1
+],
+"GoodId": 1600856,
+"Count": 5,
+"ToCity": 131,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+26
+]
+],
+"Skills": []
+},
+{
+"Id": 1402,
+"Title": "ライ麦のジン",
+"Difficulty": 2,
+"Cities": [
+5
+],
+"GoodId": 1600027,
+"Count": 30,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4131,
+"Title": "ライ麦の調達",
+"Difficulty": 2,
+"Cities": [
+32
+],
+"GoodId": 1600027,
+"Count": 20,
+"ToCity": 33,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3019,
+"Title": "ライ麦の購入",
+"Difficulty": 2,
+"Cities": [
+5
+],
+"GoodId": 1600027,
+"Count": 5,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3470,
+"Title": "ラードの納品",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"GoodId": 1600111,
+"Count": 30,
+"ToCity": 45,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3491,
+"Title": "リキュールの仕入れ",
+"Difficulty": 3,
+"Cities": [
+38
+],
+"GoodId": 1600060,
+"Count": 6,
+"ToCity": 38,
+"Reward": 24000,
+"Advance": 2856,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4176,
+"Title": "リキュールの納入",
+"Difficulty": 3,
+"Cities": [
+24
+],
+"GoodId": 1600060,
+"Count": 5,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4026,
+"Title": "ルビーの配送",
+"Difficulty": 5,
+"Cities": [
+70
+],
+"GoodId": 1600619,
+"Count": 5,
+"ToCity": 62,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 3094,
+"Title": "レモンオイルの納品",
+"Difficulty": 3,
+"Cities": [
+24
+],
+"GoodId": 1600421,
+"Count": 5,
+"ToCity": 2,
+"Reward": 25000,
+"Advance": 2360,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4149,
+"Title": "レースの納品",
+"Difficulty": 5,
+"Cities": [
+1
+],
+"GoodId": 1600469,
+"Count": 10,
+"ToCity": 33,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 3088,
+"Title": "ロサリオへの贈り物",
+"Difficulty": 3,
+"Cities": [
+23
+],
+"GoodId": 1600422,
+"Count": 1,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 4263,
+"Title": "ロシアの都にライ麦を納品",
+"Difficulty": 7,
+"Cities": [
+1,
+2
+],
+"GoodId": 1600027,
+"Count": 80,
+"ToCity": 195,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4265,
+"Title": "ロシアの都に大麦を納品",
+"Difficulty": 7,
+"Cities": [
+1,
+2
+],
+"GoodId": 1600003,
+"Count": 60,
+"ToCity": 195,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4264,
+"Title": "ロシアの都に羊毛を納品",
+"Difficulty": 7,
+"Cities": [
+1,
+2
+],
+"GoodId": 1600314,
+"Count": 120,
+"ToCity": 195,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 3678,
+"Title": "ロシアの都に鉄鉱石を納品",
+"Difficulty": 7,
+"Cities": [
+5,
+6
+],
+"GoodId": 1600552,
+"Count": 70,
+"ToCity": 195,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 3812,
+"Title": "ローズの納品",
+"Difficulty": 5,
+"Cities": [
+4
+],
+"GoodId": 1600422,
+"Count": 10,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 2753,
+"Title": "ローズマリーの納品",
+"Difficulty": 3,
+"Cities": [
+2
+],
+"GoodId": 1600226,
+"Count": 7,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3442,
+"Title": "ロープの材料調達",
+"Difficulty": 4,
+"Cities": [
+172
+],
+"GoodId": 1600317,
+"Count": 40,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4187,
+"Title": "ローリエの調達",
+"Difficulty": 2,
+"Cities": [
+40
+],
+"GoodId": 1600227,
+"Count": 10,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3137,
+"Title": "ワインの大量仕入れ",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600061,
+"Count": 50,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4734,
+"Title": "ワインの納品",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"GoodId": 1600061,
+"Count": 3,
+"ToCity": 8,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3085,
+"Title": "ワインの納品",
+"Difficulty": 2,
+"Cities": [
+4
+],
+"GoodId": 1600061,
+"Count": 3,
+"ToCity": 24,
+"Reward": 3500,
+"Advance": 1128,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3482,
+"Title": "ワインの緊急仕入れ",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600061,
+"Count": 10,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3023,
+"Title": "ワインの調達",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600061,
+"Count": 10,
+"ToCity": 24,
+"Reward": 3000,
+"Advance": 3760,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3028,
+"Title": "ワインビネガーの納品",
+"Difficulty": 1,
+"Cities": [
+1
+],
+"GoodId": 1600113,
+"Count": 5,
+"ToCity": 9,
+"Reward": 8200,
+"Advance": 2160,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4177,
+"Title": "ワックスの強行配送",
+"Difficulty": 2,
+"Cities": [
+38
+],
+"GoodId": 1600919,
+"Count": 10,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 6306,
+"Title": "ワックスの配送",
+"Difficulty": 7,
+"Cities": [
+55
+],
+"GoodId": 1600919,
+"Count": 10,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4029,
+"Title": "一巻のジャワ更紗",
+"Difficulty": 4,
+"Cities": [
+131
+],
+"GoodId": 1600471,
+"Count": 1,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+5
+]
+],
+"Skills": [
+{
+"Name": "インド諸語",
+"Rank": 1
+},
+{
+"Name": "マラユ・タガログ語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4101,
+"Title": "不思議な香辛料",
+"Difficulty": 5,
+"Cities": [
+77
+],
+"GoodId": 1600228,
+"Count": 1,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 4161,
+"Title": "不穏なできごと",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600851,
+"Count": 3,
+"ToCity": 11,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4986,
+"Title": "世界を飲み干したい！",
+"Difficulty": 7,
+"Cities": [
+172
+],
+"GoodId": 1600064,
+"Count": 10,
+"ToCity": 196,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+40
+]
+],
+"Skills": []
+},
+{
+"Id": 3676,
+"Title": "世界を飲み干したい！",
+"Difficulty": 7,
+"Cities": [
+1,
+2
+],
+"GoodId": 1600062,
+"Count": 10,
+"ToCity": 196,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4987,
+"Title": "世界を飲み干したい！",
+"Difficulty": 7,
+"Cities": [
+195
+],
+"GoodId": 1600052,
+"Count": 10,
+"ToCity": 196,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+20
+]
+],
+"Skills": []
+},
+{
+"Id": 4988,
+"Title": "世界を飲み干したい！",
+"Difficulty": 7,
+"Cities": [
+5
+],
+"GoodId": 1600053,
+"Count": 10,
+"ToCity": 196,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+15
+]
+],
+"Skills": []
+},
+{
+"Id": 4294,
+"Title": "両手剣の購入",
+"Difficulty": 4,
+"Cities": [
+1
+],
+"GoodId": 1600808,
+"Count": 5,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4097,
+"Title": "乳香の配送",
+"Difficulty": 7,
+"Cities": [
+62
+],
+"GoodId": 1600415,
+"Count": 30,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 3462,
+"Title": "亜麻の調達",
+"Difficulty": 5,
+"Cities": [
+28
+],
+"GoodId": 1600301,
+"Count": 20,
+"ToCity": 13,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4084,
+"Title": "代行輸送",
+"Difficulty": 6,
+"Cities": [
+70
+],
+"GoodId": 1600207,
+"Count": 100,
+"ToCity": 57,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 6704,
+"Title": "住人の悩み",
+"Difficulty": 7,
+"Cities": [
+23
+],
+"GoodId": 1600421,
+"Count": 500,
+"ToCity": 196,
+"Reward": 168000,
+"Advance": 236000,
+"Gifts": [],
+"Skills": [
+{
+"Name": "英語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3396,
+"Title": "健康のもと",
+"Difficulty": 6,
+"Cities": [
+123
+],
+"GoodId": 1600174,
+"Count": 10,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4054,
+"Title": "元気に頑張るジセルの腕前",
+"Difficulty": 5,
+"Cities": [
+151
+],
+"GoodId": 1600626,
+"Count": 10,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4068,
+"Title": "初めての香り",
+"Difficulty": 6,
+"Cities": [
+131
+],
+"GoodId": 1600419,
+"Count": 10,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4150,
+"Title": "割れ物の旅",
+"Difficulty": 8,
+"Cities": [
+3
+],
+"GoodId": 1600651,
+"Count": 30,
+"ToCity": 122,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4055,
+"Title": "午後の友",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"GoodId": 1600013,
+"Count": 5,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4155,
+"Title": "南国宛の毛織生地",
+"Difficulty": 8,
+"Cities": [
+4
+],
+"GoodId": 1600454,
+"Count": 50,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4689,
+"Title": "危険な北海",
+"Difficulty": 3,
+"Cities": [
+5
+],
+"GoodId": 1600917,
+"Count": 10,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4683,
+"Title": "古美術品の調達",
+"Difficulty": 2,
+"Cities": [
+40
+],
+"GoodId": 1600706,
+"Count": 10,
+"ToCity": 40,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4682,
+"Title": "古美術品の配送",
+"Difficulty": 7,
+"Cities": [
+4
+],
+"GoodId": 1600706,
+"Count": 50,
+"ToCity": 174,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4620,
+"Title": "名物料理のひけつ",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600217,
+"Count": 2,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3339,
+"Title": "味の秘訣",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"GoodId": 1600107,
+"Count": 5,
+"ToCity": 18,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 3471,
+"Title": "味の秘訣",
+"Difficulty": 4,
+"Cities": [
+24,
+23
+],
+"GoodId": 1600107,
+"Count": 5,
+"ToCity": 18,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 2158,
+"Title": "商人ギルドの苦境",
+"Difficulty": 5,
+"Cities": [
+28
+],
+"GoodId": 1600467,
+"Count": 100,
+"ToCity": 28,
+"Reward": 60000,
+"Advance": 50000,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": [
+{
+"Name": "会計",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3352,
+"Title": "商人ギルドの苦境",
+"Difficulty": 5,
+"Cities": [
+3
+],
+"GoodId": 1600005,
+"Count": 200,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": [
+{
+"Name": "会計",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4663,
+"Title": "商人ギルドの苦境",
+"Difficulty": 5,
+"Cities": [
+42
+],
+"GoodId": 1600467,
+"Count": 100,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": [
+{
+"Name": "会計",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2649,
+"Title": "商人ギルドの苦境",
+"Difficulty": 5,
+"Cities": [
+5
+],
+"GoodId": 1600056,
+"Count": 200,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": [
+{
+"Name": "会計",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3212,
+"Title": "商人ギルドの苦境",
+"Difficulty": 5,
+"Cities": [
+4
+],
+"GoodId": 1600060,
+"Count": 200,
+"ToCity": 4,
+"Reward": 60000,
+"Advance": 6000,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": [
+{
+"Name": "会計",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3474,
+"Title": "商人ギルドの苦境",
+"Difficulty": 5,
+"Cities": [
+24
+],
+"GoodId": 1600061,
+"Count": 200,
+"ToCity": 24,
+"Reward": 60000,
+"Advance": 60000,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": [
+{
+"Name": "会計",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4664,
+"Title": "商人ギルドの苦境",
+"Difficulty": 5,
+"Cities": [
+1
+],
+"GoodId": 1600023,
+"Count": 200,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1700001,
+1
+]
+],
+"Skills": [
+{
+"Name": "会計",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4071,
+"Title": "商船の積荷配送",
+"Difficulty": 4,
+"Cities": [
+62
+],
+"GoodId": 1600415,
+"Count": 30,
+"ToCity": 59,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4875,
+"Title": "困った酔っ払い",
+"Difficulty": 9,
+"Cities": [
+6
+],
+"GoodId": 1600052,
+"Count": 10,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+41
+]
+],
+"Skills": [
+{
+"Name": "北米諸語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4093,
+"Title": "土地由来の香り",
+"Difficulty": 7,
+"Cities": [
+131
+],
+"GoodId": 1600406,
+"Count": 5,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4038,
+"Title": "基本材料",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600906,
+"Count": 10,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 5497,
+"Title": "塩の山",
+"Difficulty": 9,
+"Cities": [
+42
+],
+"GoodId": 1600104,
+"Count": 50,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+56
+]
+],
+"Skills": [
+{
+"Name": "北米諸語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4031,
+"Title": "塩の配送",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"GoodId": 1600104,
+"Count": 10,
+"ToCity": 47,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4181,
+"Title": "大理石の仕入れ",
+"Difficulty": 4,
+"Cities": [
+42
+],
+"GoodId": 1600911,
+"Count": 10,
+"ToCity": 25,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4637,
+"Title": "大理石の調達",
+"Difficulty": 4,
+"Cities": [
+3
+],
+"GoodId": 1600911,
+"Count": 5,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3070,
+"Title": "大砲の購入",
+"Difficulty": 3,
+"Cities": [
+2
+],
+"GoodId": 1600853,
+"Count": 5,
+"ToCity": 2,
+"Reward": 3000,
+"Advance": 16240,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4152,
+"Title": "大砲の長距離配送",
+"Difficulty": 7,
+"Cities": [
+6
+],
+"GoodId": 1600853,
+"Count": 10,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4086,
+"Title": "大西洋横断商船の代行",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"GoodId": 1600059,
+"Count": 50,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 3054,
+"Title": "大麦の購入",
+"Difficulty": 3,
+"Cities": [
+6
+],
+"GoodId": 1600003,
+"Count": 10,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4070,
+"Title": "女性に大人気の食材",
+"Difficulty": 5,
+"Cities": [
+77
+],
+"GoodId": 1600012,
+"Count": 1,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4195,
+"Title": "孔雀石の配送",
+"Difficulty": 7,
+"Cities": [
+6
+],
+"GoodId": 1600605,
+"Count": 50,
+"ToCity": 174,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+32
+]
+],
+"Skills": []
+},
+{
+"Id": 4710,
+"Title": "安息香の配送",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600424,
+"Count": 5,
+"ToCity": 65,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 2941,
+"Title": "定期便",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"GoodId": 1600023,
+"Count": 10,
+"ToCity": 12,
+"Reward": 5600,
+"Advance": 3760,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4089,
+"Title": "定期商船",
+"Difficulty": 6,
+"Cities": [
+59
+],
+"GoodId": 1600403,
+"Count": 5,
+"ToCity": 51,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4090,
+"Title": "定期商船の代行",
+"Difficulty": 5,
+"Cities": [
+59
+],
+"GoodId": 1600309,
+"Count": 30,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 3203,
+"Title": "定期航路",
+"Difficulty": 2,
+"Cities": [
+1,
+4
+],
+"GoodId": 1600061,
+"Count": 5,
+"ToCity": 9,
+"Reward": 7200,
+"Advance": 1880,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3495,
+"Title": "定期航路の受難",
+"Difficulty": 2,
+"Cities": [
+3
+],
+"GoodId": 1600220,
+"Count": 4,
+"ToCity": 26,
+"Reward": 5100,
+"Advance": 384,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3498,
+"Title": "定期航路の受難",
+"Difficulty": 2,
+"Cities": [
+40
+],
+"GoodId": 1600005,
+"Count": 20,
+"ToCity": 40,
+"Reward": 8000,
+"Advance": 4480,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4631,
+"Title": "定期航路の受難",
+"Difficulty": 3,
+"Cities": [
+38
+],
+"GoodId": 1600061,
+"Count": 10,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4091,
+"Title": "定期配送の遅れ",
+"Difficulty": 5,
+"Cities": [
+111
+],
+"GoodId": 1600309,
+"Count": 15,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4092,
+"Title": "定期配送の遅れ",
+"Difficulty": 5,
+"Cities": [
+77
+],
+"GoodId": 1600309,
+"Count": 15,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4102,
+"Title": "宝石と呼ばれる甲羅",
+"Difficulty": 8,
+"Cities": [
+131
+],
+"GoodId": 1600624,
+"Count": 3,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+22
+]
+],
+"Skills": []
+},
+{
+"Id": 4136,
+"Title": "小麦の納品",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"GoodId": 1600011,
+"Count": 5,
+"ToCity": 11,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4137,
+"Title": "小麦の納品",
+"Difficulty": 5,
+"Cities": [
+6
+],
+"GoodId": 1600011,
+"Count": 40,
+"ToCity": 25,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 3090,
+"Title": "小麦の調達",
+"Difficulty": 2,
+"Cities": [
+24,
+4
+],
+"GoodId": 1600011,
+"Count": 10,
+"ToCity": 25,
+"Reward": 12000,
+"Advance": 400,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4662,
+"Title": "小麦の配送",
+"Difficulty": 3,
+"Cities": [
+38
+],
+"GoodId": 1600011,
+"Count": 20,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 3198,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+28
+],
+"GoodId": 1600043,
+"Count": 10,
+"ToCity": 28,
+"Reward": 3000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3713,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"GoodId": 1600011,
+"Count": 1,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4658,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600011,
+"Count": 1,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3797,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600043,
+"Count": 10,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4659,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+23
+],
+"GoodId": 1600011,
+"Count": 1,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3060,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+5
+],
+"GoodId": 1600043,
+"Count": 10,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3716,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+40
+],
+"GoodId": 1600043,
+"Count": 10,
+"ToCity": 40,
+"Reward": 3000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4660,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+24
+],
+"GoodId": 1600011,
+"Count": 1,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3526,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+38
+],
+"GoodId": 1600043,
+"Count": 10,
+"ToCity": 38,
+"Reward": 3000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4656,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+42
+],
+"GoodId": 1600011,
+"Count": 1,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4657,
+"Title": "小麦粉の納品",
+"Difficulty": 3,
+"Cities": [
+6
+],
+"GoodId": 1600011,
+"Count": 1,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4094,
+"Title": "島の美術品",
+"Difficulty": 5,
+"Cities": [
+77
+],
+"GoodId": 1600707,
+"Count": 5,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4115,
+"Title": "嵐の救援",
+"Difficulty": 6,
+"Cities": [
+59
+],
+"GoodId": 1600004,
+"Count": 100,
+"ToCity": 53,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 3040,
+"Title": "希少な配送物",
+"Difficulty": 8,
+"Cities": [
+131
+],
+"GoodId": 1600557,
+"Count": 5,
+"ToCity": 6,
+"Reward": 364000,
+"Advance": 7240,
+"Gifts": [
+[
+0,
+1500229,
+34
+]
+],
+"Skills": []
+},
+{
+"Id": 4039,
+"Title": "希少な香辛料",
+"Difficulty": 3,
+"Cities": [
+172
+],
+"GoodId": 1600206,
+"Count": 10,
+"ToCity": 131,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 4064,
+"Title": "師匠への贈り物",
+"Difficulty": 8,
+"Cities": [
+55
+],
+"GoodId": 1600202,
+"Count": 5,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+18
+]
+],
+"Skills": []
+},
+{
+"Id": 3507,
+"Title": "干しアンズの仕入れ",
+"Difficulty": 3,
+"Cities": [
+42
+],
+"GoodId": 1600164,
+"Count": 10,
+"ToCity": 40,
+"Reward": 20000,
+"Advance": 3440,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4691,
+"Title": "干しイチジクの仕入れ",
+"Difficulty": 3,
+"Cities": [
+42
+],
+"GoodId": 1600166,
+"Count": 5,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3452,
+"Title": "干しブドウの仕入れ",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"GoodId": 1600167,
+"Count": 30,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 2634,
+"Title": "干しブドウの納品",
+"Difficulty": 3,
+"Cities": [
+2
+],
+"GoodId": 1600167,
+"Count": 10,
+"ToCity": 15,
+"Reward": 15000,
+"Advance": 2080,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3061,
+"Title": "干しリンゴの納品",
+"Difficulty": 3,
+"Cities": [
+5
+],
+"GoodId": 1600169,
+"Count": 10,
+"ToCity": 7,
+"Reward": 23000,
+"Advance": 2760,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4635,
+"Title": "弾丸の調達",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600854,
+"Count": 5,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3199,
+"Title": "弾丸の購入",
+"Difficulty": 3,
+"Cities": [
+28
+],
+"GoodId": 1600854,
+"Count": 5,
+"ToCity": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4153,
+"Title": "弾丸不足",
+"Difficulty": 8,
+"Cities": [
+1
+],
+"GoodId": 1600854,
+"Count": 10,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+22
+]
+],
+"Skills": []
+},
+{
+"Id": 3391,
+"Title": "心休まる味",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600058,
+"Count": 20,
+"ToCity": 84,
+"Reward": 61000,
+"Advance": 5120,
+"Gifts": [
+[
+0,
+1500229,
+7
+]
+],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3192,
+"Title": "思い出の味",
+"Difficulty": 4,
+"Cities": [
+28
+],
+"GoodId": 1600156,
+"Count": 3,
+"ToCity": 28,
+"Reward": 27000,
+"Advance": 768,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3287,
+"Title": "恐妻家の役人",
+"Difficulty": 2,
+"Cities": [
+3
+],
+"GoodId": 1600469,
+"Count": 2,
+"ToCity": 26,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": [
+{
+"Name": "イタリア語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4083,
+"Title": "想いはミモザの花に",
+"Difficulty": 6,
+"Cities": [
+131
+],
+"GoodId": 1600360,
+"Count": 1,
+"ToCity": 132,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4188,
+"Title": "意地の張り合い",
+"Difficulty": 3,
+"Cities": [
+23
+],
+"GoodId": 1600421,
+"Count": 5,
+"ToCity": 40,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3412,
+"Title": "憩いの一杯",
+"Difficulty": 4,
+"Cities": [
+70
+],
+"GoodId": 1600154,
+"Count": 10,
+"ToCity": 143,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4133,
+"Title": "懐かしの品",
+"Difficulty": 6,
+"Cities": [
+2
+],
+"GoodId": 1600752,
+"Count": 10,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+15
+]
+],
+"Skills": []
+},
+{
+"Id": 4178,
+"Title": "懐かしの琥珀色",
+"Difficulty": 8,
+"Cities": [
+6
+],
+"GoodId": 1600051,
+"Count": 60,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+16
+]
+],
+"Skills": []
+},
+{
+"Id": 4081,
+"Title": "戦の予兆",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600917,
+"Count": 40,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 3548,
+"Title": "技術研究",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600656,
+"Count": 3,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3457,
+"Title": "探検の必需品",
+"Difficulty": 8,
+"Cities": [
+2
+],
+"GoodId": 1600806,
+"Count": 4,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+22
+]
+],
+"Skills": []
+},
+{
+"Id": 4281,
+"Title": "探検隊の証",
+"Difficulty": 3,
+"Cities": [
+23
+],
+"GoodId": 1600806,
+"Count": 1,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4707,
+"Title": "援軍要請書の調達",
+"Difficulty": 4,
+"Cities": [
+3
+],
+"GoodId": 1600918,
+"Count": 1,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "工芸",
+"Rank": 5
+}
+]
+},
+{
+"Id": 3453,
+"Title": "援軍要請書の調達",
+"Difficulty": 4,
+"Cities": [
+1
+],
+"GoodId": 1600918,
+"Count": 1,
+"ToCity": 38,
+"Reward": 30000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "工芸",
+"Rank": 5
+}
+]
+},
+{
+"Id": 4708,
+"Title": "援軍要請書の調達",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"GoodId": 1600918,
+"Count": 1,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "工芸",
+"Rank": 5
+}
+]
+},
+{
+"Id": 3522,
+"Title": "援軍要請書の調達",
+"Difficulty": 4,
+"Cities": [
+5
+],
+"GoodId": 1600918,
+"Count": 1,
+"ToCity": 38,
+"Reward": 30000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "工芸",
+"Rank": 5
+}
+]
+},
+{
+"Id": 3456,
+"Title": "援軍要請書の調達",
+"Difficulty": 4,
+"Cities": [
+2
+],
+"GoodId": 1600918,
+"Count": 1,
+"ToCity": 38,
+"Reward": 30000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "工芸",
+"Rank": 5
+}
+]
+},
+{
+"Id": 3798,
+"Title": "援軍要請書の調達",
+"Difficulty": 4,
+"Cities": [
+6
+],
+"GoodId": 1600918,
+"Count": 1,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "工芸",
+"Rank": 5
+}
+]
+},
+{
+"Id": 6756,
+"Title": "故郷のおもちゃ",
+"Difficulty": 6,
+"Cities": [
+32
+],
+"GoodId": 1601114,
+"Count": 10,
+"ToCity": 216,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4891,
+"Title": "故郷の味",
+"Difficulty": 8,
+"Cities": [
+4
+],
+"GoodId": 1600169,
+"Count": 10,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+40
+]
+],
+"Skills": []
+},
+{
+"Id": 3520,
+"Title": "故郷の酒",
+"Difficulty": 7,
+"Cities": [
+2
+],
+"GoodId": 1600061,
+"Count": 20,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4135,
+"Title": "故郷の香り",
+"Difficulty": 3,
+"Cities": [
+23
+],
+"GoodId": 1600005,
+"Count": 5,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4117,
+"Title": "料理の必需品",
+"Difficulty": 3,
+"Cities": [
+172
+],
+"GoodId": 1600118,
+"Count": 10,
+"ToCity": 131,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 3444,
+"Title": "斜陽の街",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600656,
+"Count": 2,
+"ToCity": 24,
+"Reward": 6800,
+"Advance": 2512,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4673,
+"Title": "斜陽の街",
+"Difficulty": 4,
+"Cities": [
+42
+],
+"GoodId": 1600652,
+"Count": 1,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4074,
+"Title": "新しい味を求めて",
+"Difficulty": 4,
+"Cities": [
+131
+],
+"GoodId": 1600117,
+"Count": 10,
+"ToCity": 69,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 3131,
+"Title": "新しい料理",
+"Difficulty": 2,
+"Cities": [
+1
+],
+"GoodId": 1600113,
+"Count": 1,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4075,
+"Title": "新しい料理に挑戦",
+"Difficulty": 5,
+"Cities": [
+123
+],
+"GoodId": 1600067,
+"Count": 2,
+"ToCity": 77,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4069,
+"Title": "暑い街の受難",
+"Difficulty": 7,
+"Cities": [
+123
+],
+"GoodId": 1600310,
+"Count": 50,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 5357,
+"Title": "曲刀の配送",
+"Difficulty": 7,
+"Cities": [
+42
+],
+"GoodId": 1600803,
+"Count": 50,
+"ToCity": 180,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4681,
+"Title": "更紗の配送",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600471,
+"Count": 10,
+"ToCity": 158,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 3438,
+"Title": "書痴の統計",
+"Difficulty": 2,
+"Cities": [
+4
+],
+"GoodId": 1600752,
+"Count": 3,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "フランス語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3954,
+"Title": "服染め用のベニバナ",
+"Difficulty": 10,
+"Cities": [
+42
+],
+"GoodId": 1600358,
+"Count": 300,
+"ToCity": 66,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500593,
+1
+],
+[
+1,
+1600358,
+1
+],
+[
+1,
+1600358,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4112,
+"Title": "木材の仕入れ",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600917,
+"Count": 20,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 1375,
+"Title": "木材の納入",
+"Difficulty": 3,
+"Cities": [
+5
+],
+"GoodId": 1600917,
+"Count": 20,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "オランダ語",
+"Rank": 1
+},
+{
+"Name": "ノルド語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 3071,
+"Title": "木材の納入",
+"Difficulty": 4,
+"Cities": [
+1
+],
+"GoodId": 1600917,
+"Count": 5,
+"ToCity": 1,
+"Reward": 42000,
+"Advance": 2960,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2476,
+"Title": "木材の納入",
+"Difficulty": 4,
+"Cities": [
+2
+],
+"GoodId": 1600917,
+"Count": 10,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4110,
+"Title": "木材の緊急配達",
+"Difficulty": 3,
+"Cities": [
+51
+],
+"GoodId": 1600917,
+"Count": 10,
+"ToCity": 48,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4111,
+"Title": "木材の緊急配達",
+"Difficulty": 5,
+"Cities": [
+55
+],
+"GoodId": 1600917,
+"Count": 10,
+"ToCity": 52,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 3144,
+"Title": "木材の調達",
+"Difficulty": 5,
+"Cities": [
+28
+],
+"GoodId": 1600917,
+"Count": 10,
+"ToCity": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4615,
+"Title": "木材の調達",
+"Difficulty": 6,
+"Cities": [
+38
+],
+"GoodId": 1600917,
+"Count": 20,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2309,
+"Title": "木材の購入",
+"Difficulty": 3,
+"Cities": [
+6
+],
+"GoodId": 1600917,
+"Count": 5,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "英語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4183,
+"Title": "木材を運べ",
+"Difficulty": 8,
+"Cities": [
+3
+],
+"GoodId": 1600917,
+"Count": 10,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+32
+]
+],
+"Skills": []
+},
+{
+"Id": 4113,
+"Title": "木材不足",
+"Difficulty": 6,
+"Cities": [
+123
+],
+"GoodId": 1600917,
+"Count": 20,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 3394,
+"Title": "東国の青",
+"Difficulty": 7,
+"Cities": [
+3
+],
+"GoodId": 1600354,
+"Count": 10,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+20
+]
+],
+"Skills": []
+},
+{
+"Id": 3068,
+"Title": "東西トルティーヤ対決",
+"Difficulty": 5,
+"Cities": [
+111
+],
+"GoodId": 1600021,
+"Count": 10,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+16
+]
+],
+"Skills": []
+},
+{
+"Id": 4033,
+"Title": "果物の旅",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600365,
+"Count": 20,
+"ToCity": 62,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 4082,
+"Title": "染料の配送",
+"Difficulty": 6,
+"Cities": [
+70
+],
+"GoodId": 1600356,
+"Count": 20,
+"ToCity": 59,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 3443,
+"Title": "栄養たっぷりの食材",
+"Difficulty": 7,
+"Cities": [
+172
+],
+"GoodId": 1600180,
+"Count": 20,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+35
+]
+],
+"Skills": []
+},
+{
+"Id": 4030,
+"Title": "栄養豊富な野菜",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600007,
+"Count": 5,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+40
+]
+],
+"Skills": []
+},
+{
+"Id": 4818,
+"Title": "毛皮の納品",
+"Difficulty": 5,
+"Cities": [
+195
+],
+"GoodId": 1600307,
+"Count": 40,
+"ToCity": 6,
+"Reward": 56000,
+"Advance": 45440,
+"Gifts": [
+[
+0,
+1500230,
+4
+]
+],
+"Skills": [
+{
+"Name": "極北諸語",
+"Rank": 1
+},
+{
+"Name": "英語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4616,
+"Title": "毛皮の配送",
+"Difficulty": 6,
+"Cities": [
+55
+],
+"GoodId": 1600307,
+"Count": 30,
+"ToCity": 131,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 3146,
+"Title": "毛織生地の仕入れ",
+"Difficulty": 2,
+"Cities": [
+28
+],
+"GoodId": 1600454,
+"Count": 5,
+"ToCity": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2754,
+"Title": "毛織生地の納品",
+"Difficulty": 2,
+"Cities": [
+4
+],
+"GoodId": 1600454,
+"Count": 25,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4617,
+"Title": "毛織生地の納品",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600454,
+"Count": 10,
+"ToCity": 9,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4646,
+"Title": "水晶の配送",
+"Difficulty": 7,
+"Cities": [
+5
+],
+"GoodId": 1600610,
+"Count": 50,
+"ToCity": 177,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 4138,
+"Title": "水銀剤の納品",
+"Difficulty": 5,
+"Cities": [
+2
+],
+"GoodId": 1600257,
+"Count": 100,
+"ToCity": 40,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4614,
+"Title": "洋麻の調達",
+"Difficulty": 4,
+"Cities": [
+42
+],
+"GoodId": 1600313,
+"Count": 10,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3334,
+"Title": "流行通信",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600706,
+"Count": 1,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4034,
+"Title": "海を渡る果実",
+"Difficulty": 4,
+"Cities": [
+131
+],
+"GoodId": 1600286,
+"Count": 3,
+"ToCity": 59,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4896,
+"Title": "海事ギルドの開拓奮闘記",
+"Difficulty": 7,
+"Cities": [
+1
+],
+"GoodId": 1600806,
+"Count": 30,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+32
+]
+],
+"Skills": []
+},
+{
+"Id": 4035,
+"Title": "海賊被害のあおり",
+"Difficulty": 6,
+"Cities": [
+123
+],
+"GoodId": 1600917,
+"Count": 50,
+"ToCity": 77,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 3516,
+"Title": "火薬の納品",
+"Difficulty": 4,
+"Cities": [
+4
+],
+"GoodId": 1600852,
+"Count": 9,
+"ToCity": 45,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4705,
+"Title": "火薬の購入",
+"Difficulty": 3,
+"Cities": [
+24
+],
+"GoodId": 1600852,
+"Count": 5,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4063,
+"Title": "災害の支援",
+"Difficulty": 6,
+"Cities": [
+59
+],
+"GoodId": 1600917,
+"Count": 30,
+"ToCity": 52,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+11
+]
+],
+"Skills": []
+},
+{
+"Id": 3135,
+"Title": "無理難題",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600454,
+"Count": 10,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4098,
+"Title": "熱帯の果実",
+"Difficulty": 3,
+"Cities": [
+172
+],
+"GoodId": 1600156,
+"Count": 20,
+"ToCity": 131,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4162,
+"Title": "片手剣の納品",
+"Difficulty": 4,
+"Cities": [
+2
+],
+"GoodId": 1600801,
+"Count": 2,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 4134,
+"Title": "牛肉の仕入れ",
+"Difficulty": 3,
+"Cities": [
+32
+],
+"GoodId": 1600009,
+"Count": 10,
+"ToCity": 31,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4032,
+"Title": "王室からの依頼",
+"Difficulty": 3,
+"Cities": [
+77
+],
+"GoodId": 1600160,
+"Count": 50,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 3080,
+"Title": "王宮への献上物",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"GoodId": 1600666,
+"Count": 10,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 2755,
+"Title": "珍しい石",
+"Difficulty": 5,
+"Cities": [
+23
+],
+"GoodId": 1600606,
+"Count": 1,
+"ToCity": 24,
+"Reward": 80000,
+"Advance": 2024,
+"Gifts": [
+[
+0,
+1500231,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4189,
+"Title": "琥珀の配送",
+"Difficulty": 8,
+"Cities": [
+5
+],
+"GoodId": 1600606,
+"Count": 10,
+"ToCity": 124,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4608,
+"Title": "琥珀の間のために",
+"Difficulty": 7,
+"Cities": [
+5,
+6
+],
+"GoodId": 1600606,
+"Count": 30,
+"ToCity": 195,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4690,
+"Title": "甘い香り",
+"Difficulty": 8,
+"Cities": [
+172
+],
+"GoodId": 1600424,
+"Count": 5,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+32
+]
+],
+"Skills": [
+{
+"Name": "マラユ・タガログ語",
+"Rank": 1
+},
+{
+"Name": "英語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4077,
+"Title": "生糸の配送",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"GoodId": 1600306,
+"Count": 10,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+27
+]
+],
+"Skills": []
+},
+{
+"Id": 3397,
+"Title": "男の意地",
+"Difficulty": 9,
+"Cities": [
+5,
+6
+],
+"GoodId": 1600030,
+"Count": 50,
+"ToCity": 106,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4027,
+"Title": "異国の更紗",
+"Difficulty": 4,
+"Cities": [
+70
+],
+"GoodId": 1600452,
+"Count": 1,
+"ToCity": 131,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4709,
+"Title": "異国の服",
+"Difficulty": 2,
+"Cities": [
+32
+],
+"GoodId": 1600307,
+"Count": 15,
+"ToCity": 32,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4028,
+"Title": "異国の染料",
+"Difficulty": 6,
+"Cities": [
+123
+],
+"GoodId": 1600363,
+"Count": 10,
+"ToCity": 51,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4040,
+"Title": "疑惑のサンゴ細工",
+"Difficulty": 5,
+"Cities": [
+111
+],
+"GoodId": 1600666,
+"Count": 5,
+"ToCity": 10,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+13
+]
+],
+"Skills": []
+},
+{
+"Id": 3140,
+"Title": "疑惑の大理石像",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600703,
+"Count": 1,
+"ToCity": 10,
+"Reward": 9200,
+"Advance": 2536,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3141,
+"Title": "疑惑の美術品",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600706,
+"Count": 1,
+"ToCity": 10,
+"Reward": 8200,
+"Advance": 3284,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4158,
+"Title": "皮革の定期配送",
+"Difficulty": 4,
+"Cities": [
+32
+],
+"GoodId": 1600309,
+"Count": 10,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4099,
+"Title": "皮革の配送",
+"Difficulty": 6,
+"Cities": [
+123
+],
+"GoodId": 1600309,
+"Count": 10,
+"ToCity": 51,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4088,
+"Title": "知られざる薬",
+"Difficulty": 6,
+"Cities": [
+131
+],
+"GoodId": 1600287,
+"Count": 1,
+"ToCity": 132,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4087,
+"Title": "短剣の仕入れ",
+"Difficulty": 6,
+"Cities": [
+131
+],
+"GoodId": 1600806,
+"Count": 10,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4078,
+"Title": "石材の納品",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"GoodId": 1600907,
+"Count": 50,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4079,
+"Title": "石材の配送",
+"Difficulty": 7,
+"Cities": [
+62
+],
+"GoodId": 1600907,
+"Count": 40,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4825,
+"Title": "石油の納品",
+"Difficulty": 5,
+"Cities": [
+195
+],
+"GoodId": 1600910,
+"Count": 3,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4642,
+"Title": "石油の緊急配送",
+"Difficulty": 2,
+"Cities": [
+51
+],
+"GoodId": 1600910,
+"Count": 5,
+"ToCity": 52,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4641,
+"Title": "石油の配送",
+"Difficulty": 3,
+"Cities": [
+51
+],
+"GoodId": 1600910,
+"Count": 3,
+"ToCity": 49,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": [
+{
+"Name": "ポルトガル語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4062,
+"Title": "砂糖の配送",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"GoodId": 1600103,
+"Count": 50,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 2154,
+"Title": "砂金の配送",
+"Difficulty": 2,
+"Cities": [
+77
+],
+"GoodId": 1600504,
+"Count": 10,
+"ToCity": 77,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4277,
+"Title": "研究活動における回復拠点",
+"Difficulty": 5,
+"Cities": [
+151
+],
+"GoodId": 1600010,
+"Count": 100,
+"ToCity": 186,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+15
+]
+],
+"Skills": []
+},
+{
+"Id": 4623,
+"Title": "砲弾の購入",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600855,
+"Count": 5,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4163,
+"Title": "砲弾の配送",
+"Difficulty": 6,
+"Cities": [
+2
+],
+"GoodId": 1600855,
+"Count": 10,
+"ToCity": 77,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4157,
+"Title": "破戒",
+"Difficulty": 2,
+"Cities": [
+38
+],
+"GoodId": 1600703,
+"Count": 1,
+"ToCity": 35,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4072,
+"Title": "硝石の使いかた",
+"Difficulty": 6,
+"Cities": [
+70
+],
+"GoodId": 1600557,
+"Count": 30,
+"ToCity": 187,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 4056,
+"Title": "硬質な紙の原料",
+"Difficulty": 5,
+"Cities": [
+172
+],
+"GoodId": 1600304,
+"Count": 10,
+"ToCity": 59,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4639,
+"Title": "祖国の味",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600006,
+"Count": 5,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4159,
+"Title": "秘密のギフト",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600706,
+"Count": 1,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 4116,
+"Title": "竜涎香の配送",
+"Difficulty": 4,
+"Cities": [
+62
+],
+"GoodId": 1600418,
+"Count": 10,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4114,
+"Title": "約束の届け物",
+"Difficulty": 8,
+"Cities": [
+131
+],
+"GoodId": 1600608,
+"Count": 3,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+28
+]
+],
+"Skills": []
+},
+{
+"Id": 3073,
+"Title": "紅茶で一息",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"GoodId": 1600154,
+"Count": 5,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+30
+]
+],
+"Skills": []
+},
+{
+"Id": 3441,
+"Title": "細工物の材料調達",
+"Difficulty": 4,
+"Cities": [
+172
+],
+"GoodId": 1600501,
+"Count": 5,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4085,
+"Title": "絹生地の配送",
+"Difficulty": 7,
+"Cities": [
+70
+],
+"GoodId": 1600453,
+"Count": 10,
+"ToCity": 179,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4164,
+"Title": "網元の欲しいもの",
+"Difficulty": 7,
+"Cities": [
+3
+],
+"GoodId": 1600469,
+"Count": 15,
+"ToCity": 77,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+15
+]
+],
+"Skills": []
+},
+{
+"Id": 3466,
+"Title": "綿生地の調達",
+"Difficulty": 3,
+"Cities": [
+40
+],
+"GoodId": 1600467,
+"Count": 10,
+"ToCity": 27,
+"Reward": 21000,
+"Advance": 6680,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4618,
+"Title": "綿生地の調達",
+"Difficulty": 3,
+"Cities": [
+42
+],
+"GoodId": 1600467,
+"Count": 10,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3521,
+"Title": "綿花の大量配達",
+"Difficulty": 7,
+"Cities": [
+123
+],
+"GoodId": 1600310,
+"Count": 30,
+"ToCity": 5,
+"Reward": 172000,
+"Advance": 8040,
+"Gifts": [
+[
+0,
+1500230,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4109,
+"Title": "綿花の用途",
+"Difficulty": 7,
+"Cities": [
+123
+],
+"GoodId": 1600310,
+"Count": 80,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4619,
+"Title": "綿花の調達",
+"Difficulty": 2,
+"Cities": [
+70
+],
+"GoodId": 1600310,
+"Count": 100,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4107,
+"Title": "綿花の配送",
+"Difficulty": 5,
+"Cities": [
+70
+],
+"GoodId": 1600310,
+"Count": 50,
+"ToCity": 67,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4108,
+"Title": "綿花の配送",
+"Difficulty": 6,
+"Cities": [
+59
+],
+"GoodId": 1600310,
+"Count": 100,
+"ToCity": 70,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4613,
+"Title": "羊毛の調達",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600314,
+"Count": 20,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4609,
+"Title": "羊肉の仕入れ",
+"Difficulty": 4,
+"Cities": [
+55
+],
+"GoodId": 1600024,
+"Count": 10,
+"ToCity": 52,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 4610,
+"Title": "羊肉の仕入れ",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600024,
+"Count": 10,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4139,
+"Title": "羊肉の納品",
+"Difficulty": 4,
+"Cities": [
+6
+],
+"GoodId": 1600024,
+"Count": 3,
+"ToCity": 33,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4140,
+"Title": "羊肉の配送",
+"Difficulty": 4,
+"Cities": [
+40,
+42
+],
+"GoodId": 1600024,
+"Count": 10,
+"ToCity": 13,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 4141,
+"Title": "羊肉の配達",
+"Difficulty": 4,
+"Cities": [
+42
+],
+"GoodId": 1600024,
+"Count": 5,
+"ToCity": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4160,
+"Title": "美しい織物の調達",
+"Difficulty": 4,
+"Cities": [
+42
+],
+"GoodId": 1600460,
+"Count": 3,
+"ToCity": 41,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3195,
+"Title": "美術の教室",
+"Difficulty": 2,
+"Cities": [
+28
+],
+"GoodId": 1600706,
+"Count": 1,
+"ToCity": 28,
+"Reward": 5200,
+"Advance": 3284,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4624,
+"Title": "美術の時間",
+"Difficulty": 2,
+"Cities": [
+42
+],
+"GoodId": 1600706,
+"Count": 1,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3404,
+"Title": "美術品収集",
+"Difficulty": 5,
+"Cities": [
+77
+],
+"GoodId": 1600707,
+"Count": 3,
+"ToCity": 2,
+"Reward": 104000,
+"Advance": 2616,
+"Gifts": [
+[
+0,
+1500230,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4118,
+"Title": "臨時の仕入れ",
+"Difficulty": 8,
+"Cities": [
+151
+],
+"GoodId": 1600314,
+"Count": 50,
+"ToCity": 42,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+28
+]
+],
+"Skills": []
+},
+{
+"Id": 4066,
+"Title": "自家製調味料",
+"Difficulty": 7,
+"Cities": [
+55
+],
+"GoodId": 1600013,
+"Count": 5,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+19
+]
+],
+"Skills": []
+},
+{
+"Id": 3069,
+"Title": "舌がしびれる新感覚",
+"Difficulty": 6,
+"Cities": [
+123
+],
+"GoodId": 1600067,
+"Count": 20,
+"ToCity": 2,
+"Reward": 124000,
+"Advance": 2240,
+"Gifts": [
+[
+0,
+1500228,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4680,
+"Title": "航海術の授業",
+"Difficulty": 2,
+"Cities": [
+23
+],
+"GoodId": 1600105,
+"Count": 5,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4640,
+"Title": "船大工の悩み",
+"Difficulty": 7,
+"Cities": [
+51
+],
+"GoodId": 1600312,
+"Count": 500,
+"ToCity": 196,
+"Reward": 140000,
+"Advance": 64000,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3138,
+"Title": "花を贈る相手",
+"Difficulty": 3,
+"Cities": [
+23
+],
+"GoodId": 1600417,
+"Count": 10,
+"ToCity": 187,
+"Reward": 16500,
+"Advance": 6760,
+"Gifts": [
+[
+0,
+1500231,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 3448,
+"Title": "芸術のために",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600906,
+"Count": 5,
+"ToCity": 1,
+"Reward": 25000,
+"Advance": 4300,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4898,
+"Title": "若き商人の野望",
+"Difficulty": 7,
+"Cities": [
+2
+],
+"GoodId": 1600167,
+"Count": 30,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+37
+]
+],
+"Skills": []
+},
+{
+"Id": 4053,
+"Title": "茎をまるかじり",
+"Difficulty": 4,
+"Cities": [
+123
+],
+"GoodId": 1600013,
+"Count": 20,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+17
+]
+],
+"Skills": []
+},
+{
+"Id": 3510,
+"Title": "蜂蜜の納入",
+"Difficulty": 2,
+"Cities": [
+38
+],
+"GoodId": 1600107,
+"Count": 5,
+"ToCity": 39,
+"Reward": 8000,
+"Advance": 3840,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4700,
+"Title": "街一番の料理人",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600034,
+"Count": 1,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4701,
+"Title": "街一番の料理人",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"GoodId": 1600034,
+"Count": 1,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3535,
+"Title": "街娘の挑戦",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"GoodId": 1600042,
+"Count": 5,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4699,
+"Title": "街娘の挑戦",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600042,
+"Count": 5,
+"ToCity": 1,
+"Reward": 6000,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 3075,
+"Title": "街娘の挑戦",
+"Difficulty": 3,
+"Cities": [
+6
+],
+"GoodId": 1600042,
+"Count": 5,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 1411,
+"Title": "街娘の挑戦",
+"Difficulty": 3,
+"Cities": [
+5
+],
+"GoodId": 1600042,
+"Count": 5,
+"ToCity": 5,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4698,
+"Title": "街娘の挑戦",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600042,
+"Count": 5,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 3373,
+"Title": "街娘の挑戦",
+"Difficulty": 3,
+"Cities": [
+2
+],
+"GoodId": 1600042,
+"Count": 5,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "調理",
+"Rank": 2
+}
+]
+},
+{
+"Id": 3372,
+"Title": "袋小路",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"GoodId": 1600010,
+"Count": 10,
+"ToCity": 14,
+"Reward": 11000,
+"Advance": 1280,
+"Gifts": [
+[
+0,
+1500228,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 4676,
+"Title": "試行の味",
+"Difficulty": 4,
+"Cities": [
+40
+],
+"GoodId": 1600113,
+"Count": 5,
+"ToCity": 41,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4675,
+"Title": "試行の料理",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"GoodId": 1600223,
+"Count": 5,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3794,
+"Title": "調査対象は樹脂",
+"Difficulty": 7,
+"Cities": [
+77
+],
+"GoodId": 1600190,
+"Count": 10,
+"ToCity": 1,
+"Reward": 108000,
+"Advance": 7920,
+"Gifts": [
+[
+0,
+1500229,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 3087,
+"Title": "論文用紙不足",
+"Difficulty": 3,
+"Cities": [
+23
+],
+"GoodId": 1600918,
+"Count": 10,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2690,
+"Title": "豚肉の納品",
+"Difficulty": 2,
+"Cities": [
+2
+],
+"GoodId": 1600025,
+"Count": 5,
+"ToCity": 14,
+"Reward": 12000,
+"Advance": 1520,
+"Gifts": [
+[
+0,
+1500228,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 3492,
+"Title": "豚肉の調達",
+"Difficulty": 4,
+"Cities": [
+38
+],
+"GoodId": 1600025,
+"Count": 10,
+"ToCity": 3,
+"Reward": 44000,
+"Advance": 3040,
+"Gifts": [
+[
+0,
+1500228,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4073,
+"Title": "象牙の調達",
+"Difficulty": 8,
+"Cities": [
+62,
+59
+],
+"GoodId": 1600611,
+"Count": 30,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+16
+]
+],
+"Skills": []
+},
+{
+"Id": 4649,
+"Title": "象牙の配送",
+"Difficulty": 4,
+"Cities": [
+51
+],
+"GoodId": 1600611,
+"Count": 3,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 6370,
+"Title": "象牙の配送",
+"Difficulty": 5,
+"Cities": [
+55
+],
+"GoodId": 1600611,
+"Count": 5,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4648,
+"Title": "象牙の配送",
+"Difficulty": 8,
+"Cities": [
+59
+],
+"GoodId": 1600611,
+"Count": 10,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+22
+]
+],
+"Skills": []
+},
+{
+"Id": 4036,
+"Title": "貝甲香の配送",
+"Difficulty": 8,
+"Cities": [
+59
+],
+"GoodId": 1600403,
+"Count": 5,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+21
+]
+],
+"Skills": []
+},
+{
+"Id": 3022,
+"Title": "貴族のたしなみ",
+"Difficulty": 6,
+"Cities": [
+111
+],
+"GoodId": 1600666,
+"Count": 5,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4065,
+"Title": "資材の納品",
+"Difficulty": 4,
+"Cities": [
+62
+],
+"GoodId": 1600907,
+"Count": 50,
+"ToCity": 64,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4080,
+"Title": "赤豆の仕入れ",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600001,
+"Count": 20,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 3091,
+"Title": "赤豆の配送",
+"Difficulty": 3,
+"Cities": [
+24
+],
+"GoodId": 1600001,
+"Count": 20,
+"ToCity": 25,
+"Reward": 17000,
+"Advance": 1360,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4076,
+"Title": "身を守る備え",
+"Difficulty": 3,
+"Cities": [
+172
+],
+"GoodId": 1600806,
+"Count": 7,
+"ToCity": 131,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 4636,
+"Title": "辰砂の納品",
+"Difficulty": 2,
+"Cities": [
+32
+],
+"GoodId": 1600556,
+"Count": 1,
+"ToCity": 32,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3489,
+"Title": "造船の必需品",
+"Difficulty": 4,
+"Cities": [
+3
+],
+"GoodId": 1600919,
+"Count": 3,
+"ToCity": 3,
+"Reward": 36000,
+"Advance": 2012,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4132,
+"Title": "違いのわかる男",
+"Difficulty": 2,
+"Cities": [
+42
+],
+"GoodId": 1600102,
+"Count": 10,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3477,
+"Title": "遠くの木の実",
+"Difficulty": 4,
+"Cities": [
+38
+],
+"GoodId": 1600156,
+"Count": 10,
+"ToCity": 38,
+"Reward": 48000,
+"Advance": 2560,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4067,
+"Title": "酒場マスターの思いやり",
+"Difficulty": 4,
+"Cities": [
+77,
+111
+],
+"GoodId": 1600155,
+"Count": 10,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+23
+]
+],
+"Skills": []
+},
+{
+"Id": 6281,
+"Title": "酒場マスターの悩み",
+"Difficulty": 7,
+"Cities": [
+42
+],
+"GoodId": 1600020,
+"Count": 500,
+"ToCity": 196,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+48
+]
+],
+"Skills": []
+},
+{
+"Id": 3518,
+"Title": "金の配送",
+"Difficulty": 7,
+"Cities": [
+59
+],
+"GoodId": 1600501,
+"Count": 5,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+16
+]
+],
+"Skills": []
+},
+{
+"Id": 4685,
+"Title": "金の配送",
+"Difficulty": 7,
+"Cities": [
+62
+],
+"GoodId": 1600501,
+"Count": 20,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+7
+]
+],
+"Skills": []
+},
+{
+"Id": 3465,
+"Title": "金細工の調達",
+"Difficulty": 3,
+"Cities": [
+40
+],
+"GoodId": 1600652,
+"Count": 2,
+"ToCity": 40,
+"Reward": 16000,
+"Advance": 5712,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3395,
+"Title": "鉄不足",
+"Difficulty": 6,
+"Cities": [
+111
+],
+"GoodId": 1600552,
+"Count": 10,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+13
+]
+],
+"Skills": []
+},
+{
+"Id": 4819,
+"Title": "鉄材の納品",
+"Difficulty": 5,
+"Cities": [
+195
+],
+"GoodId": 1600912,
+"Count": 20,
+"ToCity": 193,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": [
+{
+"Name": "極北諸語",
+"Rank": 1
+},
+{
+"Name": "英語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4182,
+"Title": "鉄材の配達",
+"Difficulty": 4,
+"Cities": [
+1
+],
+"GoodId": 1600912,
+"Count": 5,
+"ToCity": 10,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3700,
+"Title": "鉄鉱石の緊急配送",
+"Difficulty": 5,
+"Cities": [
+4
+],
+"GoodId": 1600552,
+"Count": 15,
+"ToCity": 11,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 3523,
+"Title": "鉄鉱石の調達",
+"Difficulty": 2,
+"Cities": [
+5
+],
+"GoodId": 1600552,
+"Count": 10,
+"ToCity": 5,
+"Reward": 63000,
+"Advance": 5680,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4270,
+"Title": "鉛鉱石の配送",
+"Difficulty": 7,
+"Cities": [
+5
+],
+"GoodId": 1600551,
+"Count": 50,
+"ToCity": 174,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+43
+]
+],
+"Skills": []
+},
+{
+"Id": 4180,
+"Title": "鉱石の納入",
+"Difficulty": 4,
+"Cities": [
+2
+],
+"GoodId": 1600552,
+"Count": 10,
+"ToCity": 14,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4057,
+"Title": "鉱石配送",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"GoodId": 1600555,
+"Count": 50,
+"ToCity": 64,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+1
+]
+],
+"Skills": []
+},
+{
+"Id": 4095,
+"Title": "銅鉱石の納品",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"GoodId": 1600553,
+"Count": 50,
+"ToCity": 59,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4096,
+"Title": "銅鉱石の配送",
+"Difficulty": 6,
+"Cities": [
+59
+],
+"GoodId": 1600553,
+"Count": 50,
+"ToCity": 64,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 3463,
+"Title": "鋼の納品",
+"Difficulty": 3,
+"Cities": [
+40
+],
+"GoodId": 1600915,
+"Count": 5,
+"ToCity": 28,
+"Reward": 29000,
+"Advance": 4800,
+"Gifts": [
+[
+0,
+1500229,
+2
+]
+],
+"Skills": []
+},
+{
+"Id": 2782,
+"Title": "鋼の調達",
+"Difficulty": 2,
+"Cities": [
+40
+],
+"GoodId": 1600915,
+"Count": 5,
+"ToCity": 40,
+"Reward": 5600,
+"Advance": 4860,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3815,
+"Title": "鋼の調達",
+"Difficulty": 3,
+"Cities": [
+42
+],
+"GoodId": 1600915,
+"Count": 5,
+"ToCity": 42,
+"Reward": 21000,
+"Advance": 4860,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3814,
+"Title": "鋼の配送",
+"Difficulty": 4,
+"Cities": [
+42
+],
+"GoodId": 1600915,
+"Count": 5,
+"ToCity": 23,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4627,
+"Title": "陶磁器の調達",
+"Difficulty": 2,
+"Cities": [
+3
+],
+"GoodId": 1600656,
+"Count": 10,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3063,
+"Title": "陸地探索の必需品",
+"Difficulty": 5,
+"Cities": [
+1
+],
+"GoodId": 1600851,
+"Count": 3,
+"ToCity": 77,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 2767,
+"Title": "陸稲の仕入れ",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600004,
+"Count": 20,
+"ToCity": 2,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+10
+]
+],
+"Skills": []
+},
+{
+"Id": 4638,
+"Title": "隊商への納品",
+"Difficulty": 5,
+"Cities": [
+70
+],
+"GoodId": 1600452,
+"Count": 30,
+"ToCity": 64,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+6
+]
+],
+"Skills": []
+},
+{
+"Id": 4893,
+"Title": "隠れ甘党",
+"Difficulty": 8,
+"Cities": [
+4
+],
+"GoodId": 1600106,
+"Count": 5,
+"ToCity": 204,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+50
+]
+],
+"Skills": []
+},
+{
+"Id": 4156,
+"Title": "難儀な客",
+"Difficulty": 4,
+"Cities": [
+38
+],
+"GoodId": 1600703,
+"Count": 1,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4100,
+"Title": "非常に硬い木",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600927,
+"Count": 5,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+16
+]
+],
+"Skills": []
+},
+{
+"Id": 4692,
+"Title": "革ひもの納品",
+"Difficulty": 3,
+"Cities": [
+40
+],
+"GoodId": 1600661,
+"Count": 10,
+"ToCity": 40,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "縫製",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4693,
+"Title": "革ひもの納品",
+"Difficulty": 3,
+"Cities": [
+3
+],
+"GoodId": 1600661,
+"Count": 10,
+"ToCity": 3,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "縫製",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4696,
+"Title": "革ひもの納品",
+"Difficulty": 3,
+"Cities": [
+1
+],
+"GoodId": 1600661,
+"Count": 10,
+"ToCity": 1,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "縫製",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4697,
+"Title": "革ひもの納品",
+"Difficulty": 3,
+"Cities": [
+38
+],
+"GoodId": 1600661,
+"Count": 10,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "縫製",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4694,
+"Title": "革ひもの納品",
+"Difficulty": 3,
+"Cities": [
+4
+],
+"GoodId": 1600661,
+"Count": 10,
+"ToCity": 4,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "縫製",
+"Rank": 2
+}
+]
+},
+{
+"Id": 3145,
+"Title": "革ひもの納品",
+"Difficulty": 3,
+"Cities": [
+28
+],
+"GoodId": 1600661,
+"Count": 10,
+"ToCity": 28,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "縫製",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4695,
+"Title": "革ひもの納品",
+"Difficulty": 3,
+"Cities": [
+6
+],
+"GoodId": 1600661,
+"Count": 10,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "縫製",
+"Rank": 2
+}
+]
+},
+{
+"Id": 3024,
+"Title": "革ひもの納品",
+"Difficulty": 3,
+"Cities": [
+24
+],
+"GoodId": 1600661,
+"Count": 10,
+"ToCity": 24,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "縫製",
+"Rank": 2
+}
+]
+},
+{
+"Id": 4037,
+"Title": "頑張るジセルの腕前",
+"Difficulty": 4,
+"Cities": [
+151
+],
+"GoodId": 1600478,
+"Count": 30,
+"ToCity": 123,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+12
+]
+],
+"Skills": []
+},
+{
+"Id": 4611,
+"Title": "食卓に不可欠な食材",
+"Difficulty": 3,
+"Cities": [
+55,
+51
+],
+"GoodId": 1600156,
+"Count": 10,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 2776,
+"Title": "食料不足",
+"Difficulty": 4,
+"Cities": [
+40
+],
+"GoodId": 1600008,
+"Count": 20,
+"ToCity": 13,
+"Reward": 37000,
+"Advance": 640,
+"Gifts": [
+[
+0,
+1500228,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 3407,
+"Title": "食糧難",
+"Difficulty": 2,
+"Cities": [
+77
+],
+"GoodId": 1600014,
+"Count": 100,
+"ToCity": 76,
+"Reward": 5100,
+"Advance": 11600,
+"Gifts": [],
+"Skills": [
+{
+"Name": "スペイン語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 4179,
+"Title": "館長は働き者",
+"Difficulty": 4,
+"Cities": [
+38
+],
+"GoodId": 1600918,
+"Count": 30,
+"ToCity": 169,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4059,
+"Title": "香料の配送",
+"Difficulty": 5,
+"Cities": [
+62
+],
+"GoodId": 1600418,
+"Count": 20,
+"ToCity": 67,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+3
+]
+],
+"Skills": []
+},
+{
+"Id": 4058,
+"Title": "香辛料中継",
+"Difficulty": 5,
+"Cities": [
+70
+],
+"GoodId": 1600207,
+"Count": 20,
+"ToCity": 59,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4679,
+"Title": "高級な貢ぎ物",
+"Difficulty": 8,
+"Cities": [
+172
+],
+"GoodId": 1600609,
+"Count": 1,
+"ToCity": 111,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+31
+]
+],
+"Skills": []
+},
+{
+"Id": 3076,
+"Title": "高級毛織物の素材",
+"Difficulty": 2,
+"Cities": [
+6
+],
+"GoodId": 1600314,
+"Count": 30,
+"ToCity": 18,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4106,
+"Title": "魅惑の香味はシナモン",
+"Difficulty": 5,
+"Cities": [
+131
+],
+"GoodId": 1600212,
+"Count": 1,
+"ToCity": 158,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+4
+]
+],
+"Skills": []
+},
+{
+"Id": 4688,
+"Title": "魚肉の仕入れ",
+"Difficulty": 2,
+"Cities": [
+38
+],
+"GoodId": 1600010,
+"Count": 20,
+"ToCity": 38,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 3479,
+"Title": "魚肉の仕入れ",
+"Difficulty": 2,
+"Cities": [
+40
+],
+"GoodId": 1600010,
+"Count": 10,
+"ToCity": 40,
+"Reward": 4800,
+"Advance": 1280,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4687,
+"Title": "魚肉の仕入れ",
+"Difficulty": 4,
+"Cities": [
+3
+],
+"GoodId": 1600010,
+"Count": 10,
+"ToCity": 26,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [],
+"Skills": [
+{
+"Name": "イタリア語",
+"Rank": 1
+}
+]
+},
+{
+"Id": 2780,
+"Title": "魚肉の納入",
+"Difficulty": 2,
+"Cities": [
+24
+],
+"GoodId": 1600010,
+"Count": 20,
+"ToCity": 24,
+"Reward": 8000,
+"Advance": 2560,
+"Gifts": [],
+"Skills": []
+},
+{
+"Id": 4050,
+"Title": "魚肉の納品",
+"Difficulty": 4,
+"Cities": [
+111
+],
+"GoodId": 1600010,
+"Count": 40,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+32
+]
+],
+"Skills": []
+},
+{
+"Id": 4052,
+"Title": "魚肉の買い付け",
+"Difficulty": 5,
+"Cities": [
+51
+],
+"GoodId": 1600010,
+"Count": 30,
+"ToCity": 55,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 4051,
+"Title": "魚肉の買い付け　",
+"Difficulty": 4,
+"Cities": [
+55
+],
+"GoodId": 1600010,
+"Count": 10,
+"ToCity": 51,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500228,
+8
+]
+],
+"Skills": []
+},
+{
+"Id": 3084,
+"Title": "鶏肉の行方",
+"Difficulty": 3,
+"Cities": [
+6
+],
+"GoodId": 1600022,
+"Count": 10,
+"ToCity": 169,
+"Reward": 10300,
+"Advance": 2880,
+"Gifts": [
+[
+0,
+1500228,
+5
+]
+],
+"Skills": []
+},
+{
+"Id": 4119,
+"Title": "麝香の配送",
+"Difficulty": 8,
+"Cities": [
+70
+],
+"GoodId": 1600410,
+"Count": 2,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500231,
+27
+]
+],
+"Skills": []
+},
+{
+"Id": 4105,
+"Title": "麻生地の配送",
+"Difficulty": 6,
+"Cities": [
+77
+],
+"GoodId": 1600451,
+"Count": 30,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+9
+]
+],
+"Skills": []
+},
+{
+"Id": 4104,
+"Title": "麻生地の配送",
+"Difficulty": 6,
+"Cities": [
+111
+],
+"GoodId": 1600451,
+"Count": 40,
+"ToCity": 6,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500230,
+14
+]
+],
+"Skills": []
+},
+{
+"Id": 4061,
+"Title": "黒檀の調達",
+"Difficulty": 4,
+"Cities": [
+172
+],
+"GoodId": 1600927,
+"Count": 3,
+"ToCity": 151,
+"Reward": 0,
+"Advance": 0,
+"Gifts": [
+[
+0,
+1500229,
+27
+]
+],
+"Skills": []
+}
+]

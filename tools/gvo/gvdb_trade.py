@@ -15,6 +15,7 @@ import gvdb_quests
 import gvdb_recipes
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "data", "extracted")
+SELLERS = ("道具屋主人", "行商人", "取引商人", "工房職人", "販売員", "陸上交易管理人", "翻訳家")
 
 
 def main():
@@ -23,9 +24,13 @@ def main():
     good_by = {sq(n): i for i, n in gvdb_recipes.names(gvo.LANG_JA, 19, 2).items()}
     item_by = {sq(n): i for i, n in gvdb_recipes.names(gvo.LANG_JA, 14, 0).items()}
     towns, missed_town, missed_thing, rows = {}, {}, {}, 0
+    sells = {}     # 도시 → 그 도시의 누군가(도구점 · 행상인 · 거래 상인 · 공방 장인 · 판매원)가 파는 아이템 — 값이 안 적힌 줄도
     buys = {}      # (도시, 교역품) → 그 도시에 팔았을 때의 값들(이용자들의 보고)
     for line in open(os.path.join(ROOT, "gvdb", "tradeinfo.csv"), encoding="cp932", errors="replace").read().splitlines():
         c = line.split("\t")
+        # 아이템을 파는 사람의 줄은 값이 안 적혀 있어도 「그 도시에서 판다」는 것은 알린다(행상인의 재해 대처 아이템 따위) — Sells
+        if len(c) >= 8 and c[3] in SELLERS and sq(c[1]) in item_by and sq(c[2]) in city_by:
+            sells.setdefault(city_by[sq(c[2])], set()).add(item_by[sq(c[1])])
         # 파는 값은 다섯째 칸, 가끔 여섯째 칸에만 적혀 있다(런던의 종이 따위)
         if len(c) >= 8 and not (c[4].isdigit() or c[5].isdigit()) and c[3] == "交易所主人" and (c[6].isdigit() or c[7].isdigit()):
             if sq(c[1]) in good_by and sq(c[2]) in city_by:
@@ -85,7 +90,11 @@ def main():
         if price > middle[good] * 8 or price <= 0:
             continue
         towns.setdefault(city, dict(CityId=city, Goods={}, Items={})).setdefault("Buys", {})[good] = price
-    out = [dict(CityId=t["CityId"], Goods=sorted([k, v, t.get("Invest", {}).get(k, 0)] for k, v in t["Goods"].items()), Items=sorted([k, v] for k, v in t["Items"].items()), Buys=sorted([k, v] for k, v in t.get("Buys", {}).items()))
+    for city in sells:
+        towns.setdefault(city, dict(CityId=city, Goods={}, Items={}))
+    print("item sellers", len(sells), "towns ·", sum(len(v) for v in sells.values()), "rows ·", len(set().union(*sells.values())), "items")
+    out = [dict(CityId=t["CityId"], Goods=sorted([k, v, t.get("Invest", {}).get(k, 0)] for k, v in t["Goods"].items()), Items=sorted([k, v] for k, v in t["Items"].items()), Buys=sorted([k, v] for k, v in t.get("Buys", {}).items()),
+                Sells=sorted(sells.get(t["CityId"], ())))
            for t in sorted(towns.values(), key=lambda t: t["CityId"])]
     print("rows with a sale price", rows, "| towns", len(out), "with goods", sum(1 for t in out if t["Goods"]),
           "| goods rows", sum(len(t["Goods"]) for t in out), "item rows", sum(len(t["Items"]) for t in out), "| buy reports", sum(len(t["Buys"]) for t in out))
