@@ -27,6 +27,8 @@ internal sealed partial class Voyage
         if (kind == 0) (AdventureExp, AdventureFame) = (AdventureExp + exp, AdventureFame + fame);
         else if (kind == 1) (TradeExp, TradeFame) = (TradeExp + exp, TradeFame + fame);
         else (BattleExp, BattleFame) = (BattleExp + exp, BattleFame + fame);
+        // 부관도 선장이 얻은 경험의 한 몫을 그 갈래로 얻는다 — 몫은 모드 창에서 정한다(기본 10% — 지은 값)
+        if (exp > 0) foreach (var aide in Aides) AideGain(aide, Math.Clamp(kind, 0, 2), exp * Math.Clamp(Data.Settings.ModAideShare, 0, 100) / 100.0);
         int after = LevelOf(ExpOf(kind)).Level;
         if (after <= before) return;
         Say($"레벨 업! {ExpNames[kind]} 레벨 {after}");

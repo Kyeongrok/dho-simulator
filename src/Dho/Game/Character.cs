@@ -158,7 +158,8 @@ internal sealed partial class Voyage
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
-            Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exp, a.Ship == null ? 0 : AllMoored.IndexOf(a.Ship) + 1, a.Trust }).ToList(),
+            // 뒤의 여섯 칸(레벨 셋 · 경험 셋)은 나중에 덧붙인 것 — 옛 저장에는 없다
+            Aides = Aides.Select(a => new[] { a.Who.Id, a.Duty, a.Level, a.Exps[AideMainKind(a)], a.Ship == null ? 0 : AllMoored.IndexOf(a.Ship) + 1, a.Trust, a.Levels[0], a.Levels[1], a.Levels[2], a.Exps[0], a.Exps[1], a.Exps[2] }).ToList(),
             Dock = AllMoored.Select(d => new double[] { d.Ship.Id, d.Durability, d.Material, d.Load }.Concat(d.Parts.Select(p => (double)p.Id)).ToArray()).ToList(),
             QuestId = Quest?.Id ?? 0, QuestStage = (int)QuestStage,
         };
@@ -221,8 +222,16 @@ internal sealed partial class Voyage
         // 배 자료가 바뀌어(위키 값으로 맞춘 뒤) 저장된 내구가 상한을 넘는 배가 있다 — 상한에 맞춘다
         foreach (var moored in Dock) moored.Durability = Math.Min(moored.Durability, StatsOf(moored).Durability);
         foreach (var saved in save.Aides)
-            if (saved.Length >= 4 && AideById((int)saved[0]) is { } who)
-                Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3], Ship = saved.Length >= 5 ? Dock.ElementAtOrDefault((int)saved[4] - 1) : null, Trust = saved.Length >= 6 ? saved[5] : 0 });
+            // dhoguide 에서 온 부관(지은 번호 20000 ~)은 그 자료 파일이 없으면 이름을 못 찾는다 — 그래도 버리지 않고 번호로 남겨 둔다
+            // (버리면 다음 저장 때 영영 사라진다; 자료가 돌아오면 이름과 스킬도 돌아온다)
+            if (saved.Length >= 4 && (AideById((int)saved[0]) ?? ((int)saved[0] >= FactAideBase ? new NamedData { Id = (int)saved[0], Name = $"부관 {(int)saved[0] - FactAideBase}" } : null)) is { } who)
+            {
+                var back = new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Ship = saved.Length >= 5 ? Dock.ElementAtOrDefault((int)saved[4] - 1) : null, Trust = saved.Length >= 6 ? saved[5] : 0 };
+                // 레벨 셋이 든 저장이면 그대로, 옛 저장이면 세 갈래가 같은 레벨이고 경험은 본 갈래에
+                if (saved.Length >= 12) for (int kind = 0; kind < 3; kind++) (back.Levels[kind], back.Exps[kind]) = (Math.Max(1, (int)saved[6 + kind]), saved[9 + kind]);
+                else back.Exps[AideMainKind(back)] = saved[3];
+                Aides.Add(back);
+            }
         Dock.RemoveAll(d => Aides.Any(a => a.Ship == d));       // 부관 선장의 배는 부두에서 빠져 있다
         Savings = Math.Max(0, save.Bank);
         if (save.SailLook.Length == 2) (SailPattern, SailTint) = (save.SailLook[0], save.SailLook[1]);

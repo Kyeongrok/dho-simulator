@@ -591,6 +591,35 @@ public sealed class GearItem
 }
 
 /// <summary>배 하나의 상세(ssjoy 의 배 쪽) — 강화 횟수, 강화 상한, 부품 칸 수, 붙일 수 있는 선박 스킬과 그 재료, 특수 건조의 선체.</summary>
+/// <summary>부관 한 명 — dhoguide.kr 의 부관 목록에서 받은 것(tools\gvo\dhoguide_aides.py → data\extracted\aides-dhoguide.json). 위키에만 쓴다.</summary>
+public sealed class AideFact
+{
+    public int No { get; set; }
+    public int Doc { get; set; }
+    public string Name { get; set; } = "";
+    public string Kind { get; set; } = "";      // 모험 · 교역 · 전투
+    public string Job { get; set; } = "";
+    public string Sex { get; set; } = "";
+    public string Nation { get; set; } = "";
+    public string City { get; set; } = "";      // 고용하는 도시 — 여럿이면 「, 」로 이어 적혀 있다
+    public string Rescue { get; set; } = "";
+    // 아래 셋은 부관 낱낱의 쪽을 받은 부관에게만 있다
+    public string NeedLevel { get; set; } = "";     // 최대 필요 레벨 — 「모험 Lv30, 교역 Lv31, 전투 Lv33」
+    public string NeedTrait { get; set; } = "";     // 최대 필요 특성 — 「항해장 : 70, 감시 : 40 …」
+    public List<AideSkillFact> Skills { get; set; } = [];
+}
+
+/// <summary>부관이 익히는 스킬 한 줄 — 분류(모험 · 교역 · 전투 · 언어 · 부관 · 부관선장), 익히는 데 드는 부관의 레벨 셋, 드는 특성(「감시 40」, 없으면 빈 글).</summary>
+public sealed class AideSkillFact
+{
+    public string Kind { get; set; } = "";
+    public string Name { get; set; } = "";
+    public int Adventure { get; set; }
+    public int Trade { get; set; }
+    public int Battle { get; set; }
+    public string Trait { get; set; } = "";
+}
+
 public sealed class ShipDetailFact
 {
     public int No { get; set; }
@@ -911,6 +940,10 @@ public sealed class SettingsData
     public bool ModTripleGain { get; set; }
     /// <summary>모드: 경험치 · 숙련도 배율(1 ~ 3). 0 이면 아직 안 고른 것 — 예전 설정(ModTripleGain)을 따른다.</summary>
     public int ModGain { get; set; }
+    /// <summary>모드: 선장이 경험을 얻을 때 부관이 같은 갈래로 얻는 몫(0 ~ 100, %). 기본 10 — 지은 값.</summary>
+    public int ModAideShare { get; set; } = 10;
+    // 모드: 서고에서 「지도 찾기」를 한 번 할 때 지도를 찾을 확률(%) — 지은 값, 기본 70
+    public int ModMapSearch { get; set; } = 70;
     [System.Text.Json.Serialization.JsonIgnore]
     public int Gain => ModGain is >= 1 and <= 3 ? ModGain : ModTripleGain ? 3 : 1;
     /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
@@ -1126,6 +1159,7 @@ public sealed class GameData
     [System.Text.Json.Serialization.JsonIgnore] public List<ResearchFact> Research { get; set; } = [];
     /// <summary>직업마다 우대 스킬 · 전문 스킬 · 전직 비용 — <c>data\extracted\job-facts.json</c>(ssjoy 에서 모은 것, 저장소에는 안 둔다).</summary>
     [System.Text.Json.Serialization.JsonIgnore] public List<JobFact> JobFacts { get; set; } = [];
+    [System.Text.Json.Serialization.JsonIgnore] public List<AideFact> AideFacts { get; set; } = [];
     public List<ShipMaterial> ShipMaterials { get; set; } = [];
     public ShipWorkBook ShipWorks { get; set; } = new();
     public List<ShipPart> ShipParts { get; set; } = [];
@@ -1229,8 +1263,18 @@ public sealed class GameData
     public Dictionary<int, string> GradeBonusNotes { get; set; } = [];
     /// <summary>알림 메모의 풀이 글(표 121) — 번호 → 풀이. 클라이언트의 글이라 실행 때 읽는다(없으면 빈 채 — 쓰는 쪽이 제 글로 대신한다).</summary>
     public Dictionary<int, string> Memos { get; set; } = [];
+    /// <summary>역사적 사건의 결말(표 87) — 번호 → 글 다섯(이름 · 본문 · 결과 줄 셋). 클라이언트의 글이라 실행 때 읽는다. 위키의 「역사」 갈래가 보인다(게임 규칙에는 아직 안 쓴다).</summary>
+    public Dictionary<int, string[]> HistoryEnds { get; set; } = [];
+    /// <summary>전승(표 124) — 번호 → 글 둘(이름 · 본문). 클라이언트의 글이라 실행 때 읽는다. 위키의 「역사」 갈래가 결말 뒤에 함께 보인다.</summary>
+    public Dictionary<int, string[]> Legends { get; set; } = [];
+    /// <summary>단계가 있는 이야기(표 81) — 번호 → 이름 · 설명 · 단계마다 「조건 값|단계 번호」. 클라이언트의 글이라 실행 때 읽는다. 위키의 「역사」 갈래가 보인다.</summary>
+    public Dictionary<int, string[]> Tales { get; set; } = [];
+    /// <summary>이야기의 단계 글(표 82) — 번호 → 글.</summary>
+    public Dictionary<int, string> TaleSteps { get; set; } = [];
     /// <summary>선박 스킬(스킬 표의 갈래 6)의 이름 — 번호 → 이름. 선원 장비가 가리키는 스킬의 이름을 보이는 데 쓴다.</summary>
     public Dictionary<int, string> ShipSkillNames { get; set; } = [];
+    /// <summary>스킬 표에서 선장의 스킬도 선박 스킬도 아닌 줄의 이름(번호 → 이름) — 부관스킬(1000번대 「방화」 …) · 부관 선장의 스킬 따위. 부관 자료의 스킬 이름을 번호에 잇는 데 쓴다.</summary>
+    public Dictionary<int, string> AideSkillLabels { get; set; } = [];
     public List<LandingData> Landings { get; set; } = [];
     public List<DiscoveryData> Discoveries { get; set; } = [];
     public List<NamedData> DiscoveryKinds { get; set; } = [];
@@ -1280,7 +1324,12 @@ public sealed class GameData
         data.MaterialNotes = Read<Dictionary<string, string>>(Path.Combine(extracted, "material-notes.json")) ?? [];
         data.GradeBonusNotes = Read<Dictionary<int, string>>(Path.Combine(extracted, "grade-bonus-notes.json")) ?? [];
         data.Memos = Read<Dictionary<int, string>>(Path.Combine(extracted, "memos.json")) ?? [];
+        data.HistoryEnds = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "history-ends.json")) ?? [];
+        data.Legends = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "legends.json")) ?? [];
+        data.Tales = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "tales.json")) ?? [];
+        data.TaleSteps = Read<Dictionary<int, string>>(Path.Combine(extracted, "tale-steps.json")) ?? [];
         data.ShipSkillNames = (Read<Dictionary<string, string>>(Path.Combine(extracted, "ship-skill-names.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
+        data.AideSkillLabels = (Read<Dictionary<string, string>>(Path.Combine(extracted, "aide-skill-names.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
         data.SkillNotes = (Read<Dictionary<string, string>>(Path.Combine(extracted, "skill-notes.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
             data.Ships = Read<List<ShipData>>(Path.Combine(extracted, "ships.json")) ?? [];
             data.Goods = Read<List<GoodData>>(Path.Combine(extracted, "goods.json")) ?? [];
@@ -1362,6 +1411,7 @@ public sealed class GameData
         data.MaterialItems = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-items.json")) ?? [];
         data.FigureheadUses = Read<Dictionary<int, string>>(Path.Combine(extracted, "figurehead-uses-gvdb.json")) ?? [];
         data.JobFacts = Read<List<JobFact>>(Path.Combine(extracted, "job-facts.json")) ?? [];
+        data.AideFacts = Read<List<AideFact>>(Path.Combine(extracted, "aides-dhoguide.json")) ?? [];
         data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
         data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
@@ -1497,6 +1547,11 @@ public sealed class GameData
         Write(Path.Combine(extracted, "material-notes.json"), MaterialNotes);
         Write(Path.Combine(extracted, "grade-bonus-notes.json"), GradeBonusNotes);
         Write(Path.Combine(extracted, "memos.json"), Memos);
+        Write(Path.Combine(extracted, "history-ends.json"), HistoryEnds);
+        Write(Path.Combine(extracted, "legends.json"), Legends);
+        Write(Path.Combine(extracted, "tales.json"), Tales);
+        Write(Path.Combine(extracted, "tale-steps.json"), TaleSteps);
+        Write(Path.Combine(extracted, "aide-skill-names.json"), AideSkillLabels.ToDictionary(n => n.Key.ToString(), n => n.Value));
         Write(Path.Combine(extracted, "ship-skill-names.json"), ShipSkillNames.ToDictionary(n => n.Key.ToString(), n => n.Value));
         Write(Path.Combine(extracted, "ships.json"), Ships);
         Write(Path.Combine(extracted, "goods.json"), Goods);
@@ -1595,10 +1650,15 @@ public sealed class GameData
         }).ToList();
         SkillNotes = tables.Skills.Where(s => s.Group > 3 && s.Description.Length > 0).GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First().Description);
         ShipSkillNames = tables.Skills.Where(s => s.Group == 6 && s.Name.Length > 0 && !s.Name.StartsWith('※')).GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First().Name);
+        AideSkillLabels = tables.Skills.Where(s => s.Group > 3 && s.Group != 6 && s.Name.Length > 0 && !s.Name.StartsWith('※')).GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First().Name);
         StudySkillNotes = tables.Skills.Where(s => s.Group == 8 && s.Description.Length > 0 && !s.Name.StartsWith('※')).GroupBy(s => s.Name.Replace(" ", "")).ToDictionary(g => g.Key, g => g.First().Description);
         MaterialNotes = new Dictionary<string, string>(tables.MaterialNotes);
         GradeBonusNotes = new Dictionary<int, string>(tables.GradeBonusNotes);
         Memos = new Dictionary<int, string>(tables.Memos);
+        HistoryEnds = new Dictionary<int, string[]>(tables.HistoryEnds);
+        Legends = new Dictionary<int, string[]>(tables.Legends);
+        Tales = new Dictionary<int, string[]>(tables.Tales);
+        TaleSteps = new Dictionary<int, string>(tables.TaleSteps);
         Goods = tables.Goods.Select(g => new GoodData { Id = g.Id, Name = g.Name, Description = g.Description, Kind = g.Kind }).ToList();
         Nations = tables.Nations.Select(n => new NamedData { Id = n.Id, Name = n.Name }).ToList();
         Jobs = tables.Jobs.Select(j => new NamedData { Id = j.Id, Name = j.Name, Group = j.Line }).ToList();
@@ -1690,7 +1750,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-30";
+    private const string ExtractVersion = "extracted-35";
 
     public static string RoomsOf(byte[] sceneTable, int cityId)
     {

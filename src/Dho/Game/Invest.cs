@@ -19,6 +19,29 @@ internal sealed partial class Voyage
     /// </summary>
     public static string CityKindName(Dho.Data.CityData city) => city.Kind switch { 0 => "본거지", 1 => "영지", 2 => "동맹항", 3 => "해적섬", 4 => "내륙 도시", _ => "도시" };
 
+    /// <summary>
+    /// 이 도시에 투자할 수 있는가 — 동맹항, 그리고 제 나라의 본거지 · 영지(사용자가 가리킨 글, 2026-10-09: 「동맹항, 자국 본거지, 영지에서만 투자 가능 · 보급항과 타국 본거지/영지는 불가」).
+    /// </summary>
+    public bool CanInvestHere => City.Kind == 2 || (City.Kind is 0 or 1 && NationId != 0 && City.Nation == NationId);
+
+    /// <summary>이 도시에서 투자를 받는 사람 — 본거지는 왕궁의 귀족, 그 밖은 도시관리(같은 글: 「대도시(본거지 등): 왕궁의 귀족 · 중소도시: 도시관리」).</summary>
+    public string InvestHost => City.Kind == 0 ? "왕궁의 귀족" : "도시관리";
+
+    /// <summary>대본용 — 시내 지도에 도시관리 표식(장소 20 · 401)이 있는 도시를 세어 기록에 적는다.</summary>
+    public void InvestMarksForTest()
+    {
+        var counts = new Dictionary<int, List<string>> { [20] = [], [21] = [], [401] = [] };
+        int towns = 0;
+        foreach (var city in Data.Cities)
+        {
+            if (Dho.Data.TownMap.Load(city.Id) is not { Marks.Count: > 0 } town) continue;
+            towns++;
+            foreach (int place in counts.Keys) if (town.Marks.Any(m => m.Place == place)) counts[place].Add(city.Name);
+        }
+        foreach (var (place, names) in counts) Say($"(시험) 시내 지도 {towns}곳 가운데 장소 {place} 「{PlaceName(place)}」 표식이 있는 곳 {names.Count} — {string.Join(" · ", names.Take(8))}");
+        Say($"(시험) 이 도시({City.Name}, {CityKindName(City)})의 표식: {string.Join(" ", (TownMap?.Marks ?? []).Select(m => m.Place).Distinct().OrderBy(p => p))}");
+    }
+
     public long InvestedIn(Dho.Data.CityData city) => Invested.GetValueOrDefault(city.Id);
 
     /// <summary>그 도시에서 제 나라가 차지한 몫(%) — 제 나라 도시는 50 에서, 남의 도시는 0 에서 시작해 투자한 만큼 오른다.</summary>
@@ -34,7 +57,7 @@ internal sealed partial class Voyage
 
     public string? InvestBlocker(int amount) =>
         Mode != Mode.Port ? "항구에서만 투자한다"
-        : City.Kind != 2 ? $"{CityKindName(City)}에는 투자할 수 없다 — 투자는 동맹항에 한다"
+        : !CanInvestHere ? (City.Kind is 0 or 1 ? $"남의 나라 {CityKindName(City)}에는 투자할 수 없다" : $"{CityKindName(City)}에는 투자할 수 없다 — 투자는 동맹항과 제 나라의 본거지 · 영지에 한다")
         : NationId == 0 ? "나라가 없다"
         : _investedAt == (City.Id, (int)(Clock / Settings.SecondsPerDay)) ? Text(7024, "※ 투자를 잇달아 할 수는 없다").TrimStart('※') + " — 하루 뒤에"
         : Money < amount ? "돈이 모자라다" : null;

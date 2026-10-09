@@ -8,8 +8,12 @@ internal sealed class Aide
     public required NamedData Who { get; init; }
     /// <summary>담당 — 표 36 의 번호(0 항해장 … 5 선의).</summary>
     public int Duty { get; set; }
-    public int Level { get; set; } = 1;
-    public double Exp { get; set; }
+    /// <summary>레벨 셋 — 0 모험 · 1 교역 · 2 전투(원본의 부관 정보 화면대로 갈래마다 따로 오른다).</summary>
+    public int[] Levels { get; } = [1, 1, 1];
+    /// <summary>갈래마다 다음 레벨까지 쌓인 경험.</summary>
+    public double[] Exps { get; } = [0, 0, 0];
+    /// <summary>셋 가운데 가장 높은 레벨 — 급여 · 지방함대 · 고용 조건처럼 「부관의 레벨」 하나를 보는 규칙이 쓴다. 넣으면 셋 모두 그 값이 된다(옛 저장 · 시험용).</summary>
+    public int Level { get => Levels.Max(); set => Levels[0] = Levels[1] = Levels[2] = value; }
     /// <summary>신뢰도(0 ~ 100) — 함께 바다에 있으면 오른다. 원본의 「부관정보」에 있는 값(화면 글 16208).</summary>
     public double Trust { get; set; }
     /// <summary>부관 선장으로 맡은 배 — 없으면 null.</summary>
@@ -44,15 +48,22 @@ internal sealed partial class Voyage
     /// <summary>이 도시의 주점에서 만날 수 있는 후보 — 도시마다 셋(늘 같은 사람들), 이미 고용한 사람은 뺀다.</summary>
     public List<NamedData> AidesToHire()
     {
+        // 글에 고용 도시가 적힌 부관(한스 · 후란시느)은 그 도시에서 맨 앞에 나온다
+        var known = AideKits.Where(k => k.Cities.Contains(City.Name)).Select(k => new NamedData { Id = k.Id, Name = k.Name }).ToList();
+        // dhoguide 의 부관은 그 사람의 고용 도시에서만 나온다(사용자, 2026-10-09) — 손으로 적은 두 사람과 이름이 같으면 적은 쪽을 쓴다
+        if (Data.AideFacts.Count > 0)
+            return known.Concat(Data.AideFacts.Where(f => AideHomes(f).Contains(City.Name) && known.All(k => k.Name != f.Name)).Select(AideOfFact))
+                .Where(a => Aides.All(h => h.Who.Id != a.Id && h.Who.Name != a.Name)).ToList();
+        // 그 자료가 없으면 예전대로 — 클라이언트의 부관 표에서 도시마다 셋(지은 것)
         if (Data.Aides.Count == 0) return [];
         var random = new Random(City.Id * 31 + 7);
-        // 글에 고용 도시가 적힌 부관(한스 · 후란시느)은 그 도시에서 맨 앞에 나온다
-        var known = AideKits.Where(k => k.Cities.Contains(City.Name)).Select(k => new NamedData { Id = k.Id, Name = k.Name });
         return known.Concat(Data.Aides.OrderBy(_ => random.Next()).Take(3)).Where(a => Aides.All(h => h.Who.Id != a.Id)).ToList();
     }
 
+    private static string[] AideHomes(AideFact fact) => fact.City.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
     /// <summary>주점이 있는 도시에서만 고용한다(시내 지도에 주점 표식이 있는가). 지도가 없는 도시는 된다고 본다.</summary>
-    public bool HasTavern => TownMap is not { Marks.Count: > 0 } map || map.Marks.Any(m => m.Place == 13) || AideKits.Any(k => k.Cities.Contains(City.Name));      // 글에 고용 도시로 적힌 곳(튀니스 — 시내 지도에 주점 표식이 없다)은 된다고 본다
+    public bool HasTavern => TownMap is not { Marks.Count: > 0 } map || map.Marks.Any(m => m.Place == 13) || AideKits.Any(k => k.Cities.Contains(City.Name)) || Data.AideFacts.Exists(f => AideHomes(f).Contains(City.Name));      // 글에 고용 도시로 적힌 곳(튀니스 — 시내 지도에 주점 표식이 없다)은 된다고 본다
 
     public int AideCost(NamedData who) => 100_000;      // gvdb: 부관 72명 모두 주점 주인에게 100,000 두캇(전에는 지은 값 8,000 ~ 17,000)
 
@@ -102,6 +113,27 @@ internal sealed partial class Voyage
     public double AideFatigue => 1 - Math.Min(0.5, AideEffect(4, 0.10, 0.01));
     public double AideCrewLoss => 1 - Math.Min(0.5, AideEffect(5, 0.12, 0.012));
 
+    private static readonly string[] AideKindNames = ["모험", "교역", "전투"];
+
+    /// <summary>그 부관의 본 갈래(0 모험 · 1 교역 · 2 전투) — 자료의 분류, 자료가 없으면 번호에서 지어 고른다. 항해 일수 · 지방함대 따위 갈래가 없는 경험은 여기로 간다(지은 규칙).</summary>
+    public int AideMainKind(Aide aide) => AideFactOf(aide.Who) is { } fact && Array.IndexOf(AideKindNames, fact.Kind) is >= 0 and var kind ? kind : aide.Who.Id % 3;
+
+    /// <summary>부관이 그 갈래의 경험을 얻는다 — 레벨마다 「레벨 × 40」이 들고(지은 값) 갈래마다 따로 오른다.</summary>
+    public void AideGain(Aide aide, int kind, double exp)
+    {
+        if (exp <= 0 || aide.Levels[kind] >= AideMaxLevel) return;
+        aide.Exps[kind] += exp;
+        while (aide.Levels[kind] < AideMaxLevel && aide.Exps[kind] >= aide.Levels[kind] * 40)
+        {
+            aide.Exps[kind] -= aide.Levels[kind] * 40;
+            aide.Levels[kind]++;
+            Say($"부관 {aide.Who.Name}의 {AideKindNames[kind]} 레벨이 {aide.Levels[kind]}(이)가 되었다.");
+        }
+    }
+
+    /// <summary>다음 레벨까지 남은 경험(부관 정보의 Next) — 다 올랐으면 0.</summary>
+    public int AideNext(Aide aide, int kind) => aide.Levels[kind] >= AideMaxLevel ? 0 : (int)Math.Ceiling(aide.Levels[kind] * 40 - aide.Exps[kind]);
+
     /// <summary>바다에서 흐른 날만큼 급여가 나가고 경험이 쌓인다.</summary>
     private void UpdateAides(double days)
     {
@@ -112,14 +144,7 @@ internal sealed partial class Voyage
             aide.Trust = Math.Min(100, aide.Trust + days * (aide.Ship != null ? 1 : 0.5));
             if ((int)aide.Trust > (int)before) TrustRose(aide);
             _aidePay += AidePay(aide) * days;
-            if (aide.Level >= AideMaxLevel) continue;
-            aide.Exp += days * 10 * GainFactor * (1 + GearEffect("AideGrow") * 0.10);      // 장비 효과 「부관 성장 촉진」(gvdb 「副官成長促進」) — 「항해일수에 따른 부관 경험치에만 적용, 1랭크당 10%」(인벤 498/20820)
-            while (aide.Level < AideMaxLevel && aide.Exp >= aide.Level * 40)
-            {
-                aide.Exp -= aide.Level * 40;
-                aide.Level++;
-                Say($"부관 {aide.Who.Name}의 레벨이 {aide.Level}(이)가 되었다.");
-            }
+            AideGain(aide, AideMainKind(aide), days * 10 * GainFactor * (1 + GearEffect("AideGrow") * 0.10));      // 장비 효과 「부관 성장 촉진」(gvdb 「副官成長促進」) — 「항해일수에 따른 부관 경험치에만 적용, 1랭크당 10%」(인벤 498/20820)
         }
         // 급여는 두캇 단위로 모아서 뗀다
         if (_aidePay >= 1) { int pay = (int)_aidePay; _aidePay -= pay; Money = Math.Max(0, Money - pay); }
@@ -174,8 +199,7 @@ internal sealed partial class Voyage
         int money = success ? 2000 + aide.Level * 500 + _random.Next(2000) : 0, merit = success ? 1 : 0;
         Money += money;
         Merit += merit;
-        aide.Exp += (success ? 30 : 10) * GainFactor;
-        while (aide.Level < AideMaxLevel && aide.Exp >= aide.Level * 40) { aide.Exp -= aide.Level * 40; aide.Level++; Say($"부관 {aide.Who.Name}의 레벨이 {aide.Level}(이)가 되었다."); }
+        AideGain(aide, AideMainKind(aide), (success ? 30 : 10) * GainFactor);
         string reward = success ? $"사례금 {money:N0} 두캇 · 공적 +{merit} · 부관 경험 +{30 * GainFactor}" : $"부관 경험 +{10 * GainFactor}";
         FleetResult = (mission, success, reward, aide.Who.Name);
         Say($"지방함대 「{mission.Name}」 — {(success ? "잘 끝났다" : "잘되지 않았다")}. ({reward})");

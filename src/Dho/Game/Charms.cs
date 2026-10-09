@@ -105,8 +105,7 @@ internal sealed partial class Voyage
         foreach (var aide in fed)
         {
             if (duty == 8) { aide.Trust = Math.Min(100, aide.Trust + 2); continue; }
-            aide.Exp += 30;
-            while (aide.Level < AideMaxLevel && aide.Exp >= aide.Level * 40) { aide.Exp -= aide.Level * 40; aide.Level++; Say($"{aide.Who.Name}의 레벨이 {aide.Level}(으)로 올랐다."); }
+            AideGain(aide, AideMainKind(aide), 30);
         }
         Cues.Enqueue("Eat");
         Say($"{meal.Name}을(를) {string.Join(" · ", fed.Select(a => a.Who.Name))}에게 대접했다.");

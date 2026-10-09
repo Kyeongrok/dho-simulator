@@ -15,7 +15,7 @@ internal sealed partial class Voyage
 
     /// <summary>낱말이 이름에 든 것들 — 도시 · 교역품 · 아이템 · 배 차례. 낱말이 비면 도시 전부.</summary>
     /// <summary>위키의 갈래들 — 탭의 차례.</summary>
-    public static readonly string[] WikiKinds = ["도시", "교역품", "아이템", "배", "스킬", "레시피", "발견물", "의뢰", "직업", "부품", "상륙지", "재질", "해역"];
+    public static readonly string[] WikiKinds = ["도시", "교역품", "아이템", "배", "스킬", "레시피", "발견물", "의뢰", "직업", "부품", "상륙지", "재질", "해역", "부관", "역사"];
 
     /// <summary>낱말이 이름에 든 것들. <paramref name="kind"/> 를 주면 그 갈래만(낱말이 비면 그 갈래 전부), 안 주고 낱말도 비면 도시 전부.</summary>
     public List<(string Kind, int Id, string Name)> WikiFind(string word, string building, string kind)
@@ -34,6 +34,10 @@ internal sealed partial class Voyage
         if (kind is "" or "레시피") all.AddRange(Data.RecipeRules.Where(r => r.Name != "" && Hit(r.Name)).OrderBy(r => r.Name).Select(r => ("레시피", r.RecipeId, r.Name)));
         if (kind is "" or "발견물") all.AddRange(Data.Discoveries.Where(d => d.Name != "" && Hit(d.Name)).OrderBy(d => d.Name).Select(d => ("발견물", d.Id, d.Name)));
         if (kind is "" or "의뢰") all.AddRange(Data.Quests.Where(q => q.Title != "" && Hit(q.Title)).OrderBy(q => q.Title).Select(q => ("의뢰", q.Id, q.Title)));
+        if (kind is "" or "부관") all.AddRange(Data.AideFacts.Where(a => a.Name != "" && (Hit(a.Name) || Hit(a.Job))).OrderBy(a => a.Name).Select(a => ("부관", a.Doc, a.Job is "" or "-" ? a.Name : $"{a.Name} — {a.Job}")));      // 이름 옆에 직업 — 직업 이름으로도 찾아진다
+        if (kind is "" or "역사") all.AddRange(Data.HistoryEnds.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key, e.Value[0])));      // 역사적 사건의 결말(표 87)
+        if (kind is "" or "역사") all.AddRange(Data.Legends.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 1000, e.Value[0])));      // 전승(표 124) — 결말과 번호가 겹쳐 1000 을 더했다(지은 번호)
+        if (kind is "" or "역사") all.AddRange(Data.Tales.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 2000, e.Value[0])));      // 단계가 있는 이야기(표 81) — 2000 을 더했다(지은 번호)
         if (kind is "" or "직업") all.AddRange(Data.JobFacts.Where(j => j.Name != "" && Hit(j.Name)).OrderBy(j => j.Name).Select(j => ("직업", j.No, j.Name)));
         if (kind is "" or "부품") all.AddRange(Data.ShipParts.Where(p => p.Name != "" && Hit(p.Name)).GroupBy(p => p.Id).Select(g => g.First()).OrderBy(p => p.Slot).ThenBy(p => p.Name).Select(p => ("부품", p.Id, p.Name)));
         if (kind is "" or "상륙지") all.AddRange(Data.Landings.Where(l => l.Name != "" && Hit(l.Name)).GroupBy(l => l.Id).Select(g => g.First()).OrderBy(l => l.Name).Select(l => ("상륙지", l.Id, l.Name)));
@@ -224,6 +228,8 @@ internal sealed partial class Voyage
                 var skill = Data.Skills.Find(s => s.Id == id);
                 string name = skill?.Name ?? OptionName(id);
                 string about = skill?.Description is { Length: > 0 } told ? told : Data.SkillNotes.GetValueOrDefault(id) ?? "";
+                // 부관의 스킬(스킬 표의 1000번대)은 찾는 목록에 없어 이름이 안 보이니 쪽 맨 위에 적는다
+                if (skill == null && Data.AideSkillLabels.TryGetValue(id, out string? aideSkill)) lines.Add(new(aideSkill + " — 부관의 스킬"));
                 if (about != "") WikiProse(lines, about);
                 // 이 게임에서의 효과와 한 번 쓰는 데 드는 행동력(바다에서 눌러 쓰는 스킬)
                 if (SkillEffect(id) is { Length: > 0 } effect) { Head("이 게임에서"); WikiProse(lines, effect); }
@@ -303,6 +309,70 @@ internal sealed partial class Voyage
                 if (Data.Discoveries.Find(d => d.Id == quest.DiscoveryId) is { } target) lines.Add(new(target.Name + "  (발견물)", "발견물", target.Id));
                 if (quest.Request != "") { Head("의뢰 내용"); WikiProse(lines, quest.Request); }
                 if (quest.Hint != "") { Head("실마리"); WikiProse(lines, quest.Hint); }
+                break;
+            }
+            case "역사" when id > 2000 && Data.Tales.TryGetValue(id - 2000, out string[]? tale):
+            {
+                // 단계가 있는 이야기 — 원본의 표 81(이름 · 설명 · 단계 칸)과 표 82(단계 글). 이야기를 푸는 기능은 게임에 아직 없다
+                lines.Add(new("이야기(글만 보인다)"));
+                if (tale.Length > 1 && tale[1] != "") WikiProse(lines, tale[1]);
+                int stage = 0;
+                foreach (string cell in tale.Skip(2))
+                {
+                    string[] halves = cell.Split('|');
+                    if (halves.Length < 2 || !int.TryParse(halves[1], out int stepId) || !Data.TaleSteps.TryGetValue(stepId, out string? stepNote)) continue;
+                    Head($"{++stage}단계 — 조건 값 {halves[0]}");
+                    WikiProse(lines, stepNote);
+                }
+                break;
+            }
+            case "역사" when id > 1000 && Data.Legends.TryGetValue(id - 1000, out string[]? legend):
+            {
+                // 전승 — 원본의 표 124(이름 · 본문). 전승을 쓰는 기능은 게임에 아직 없다
+                lines.Add(new("전승(글만 보인다)"));
+                if (legend.Length > 1 && legend[1] != "") WikiProse(lines, legend[1]);
+                if (legend.Length > 2 && int.TryParse(legend[2], out int found) && Data.Discoveries.Find(d => d.Id == found) is { } told) { Head("발견물"); lines.Add(new(told.Name + "  (발견물)", "발견물", told.Id)); }
+                break;
+            }
+            case "역사" when Data.HistoryEnds.TryGetValue(id, out string[]? end):
+            {
+                // 역사적 사건의 결말 — 원본의 표 87(이름 · 본문 · 결과 줄 셋). 사건 자체는 게임에 아직 없다
+                lines.Add(new("역사적 사건의 결말(글만 보인다)"));
+                if (end.Length > 1 && end[1] != "") WikiProse(lines, end[1]);
+                var after = end.Skip(2).Where(t => t != "").ToList();
+                if (after.Count > 0) { Head("결과"); foreach (string t in after) WikiProse(lines, t); }
+                break;
+            }
+            case "부관" when Data.AideFacts.Find(a => a.Doc == id) is { } mate:
+            {
+                // 부관 — dhoguide.kr 의 부관 목록에서 받은 것(분류 · 직업 · 성별 · 국적 · 고용하는 도시 · 구조)
+                lines.Add(new(string.Join(" · ", new[] { mate.Kind, mate.Job, mate.Sex }.Where(t => t is not ("" or "-")))));
+                if (mate.Nation is not ("" or "-")) lines.Add(new("국적  " + mate.Nation));
+                if (Data.Aides.Exists(a => a.Name == mate.Name)) lines.Add(new("이 게임의 부관 목록에 있는 이름이다."));
+                var towns = mate.City.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Where(t => t != "-").ToList();
+                if (towns.Count > 0) Head("고용하는 도시");
+                foreach (string town in towns)
+                    lines.Add(_cities.Values.FirstOrDefault(c => c.Name == town) is { } home ? new(town, "도시", home.Id) : new(town));
+                if (mate.Rescue is not ("" or "-")) { Head("구조"); lines.Add(new(mate.Rescue)); }
+                if (Data.Jobs.Find(j => j.Name == mate.Job) is { } trade && Data.JobFacts.Exists(j => j.No == trade.Id)) { Head("직업"); lines.Add(new(mate.Job, "직업", trade.Id)); }
+                // 스킬 — 낱낱의 쪽을 받은 부관만. 숫자는 그 스킬을 익히는 데 드는 부관의 레벨(모험 · 교역 · 전투)과 특성 값
+                if (mate.Skills.Count == 0) lines.Add(new("스킬 자료는 아직 받지 않았다."));
+                if (mate.NeedLevel != "") { Head("최대 필요 레벨"); lines.Add(new(mate.NeedLevel)); }
+                if (mate.NeedTrait != "") { Head("최대 필요 특성"); WikiProse(lines, mate.NeedTrait); }
+                foreach (var group in mate.Skills.GroupBy(s => s.Kind))
+                {
+                    Head(group.Key + " 스킬");
+                    foreach (var learned in group)
+                    {
+                        var needs = new[] { ("모험", learned.Adventure), ("교역", learned.Trade), ("전투", learned.Battle) }.Where(n => n.Item2 > 0).Select(n => $"{n.Item1} {n.Item2}").ToList();
+                        if (learned.Trait != "") needs.Add(learned.Trait);
+                        string row = learned.Name + (needs.Count > 0 ? "  —  " + string.Join(" · ", needs) : "");
+                        // 선장의 스킬이면 그 번호, 부관 · 부관선장 갈래면 스킬 표의 1000번대 번호 — 그림이 붙고 눌러서 설명 쪽으로 간다
+                        int linked = Data.Skills.Find(s => s.Name == learned.Name)?.Id ?? (learned.Kind is "부관" or "부관선장" ? AideSkillIdOf(learned.Name) : 0);
+                        lines.Add(linked > 0 ? new(row, "스킬", linked) : new(row));
+                    }
+                }
+                lines.Add(new($"번호 {mate.No} · 출처 dhoguide.kr"));
                 break;
             }
             case "해역" when Data.Seas.Find(sea => sea.Id == id) is { } waters:

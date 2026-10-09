@@ -92,6 +92,14 @@ public sealed class DataTables
     public IReadOnlyDictionary<int, string> GradeBonusNotes { get; } = new Dictionary<int, string>();
     /// <summary>알림 메모의 풀이 글(표 121: 번호 · 제목 · 「…메모가 있습니다」 · 풀이, 53줄) — 번호 → 풀이. 2 작위 수여 · 3 입항허가 …</summary>
     public IReadOnlyDictionary<int, string> Memos { get; } = new Dictionary<int, string>();
+    /// <summary>역사적 사건의 결말(표 87) — 번호 → 글 다섯(이름 · 본문 · 결과 줄 셋).</summary>
+    public IReadOnlyDictionary<int, string[]> HistoryEnds { get; } = new Dictionary<int, string[]>();
+    /// <summary>전승(표 124) — 번호 → 이름 · 본문 · 이어진 발견물 번호(글로). 뒤의 나머지 78 바이트(번호 하나와 좌표로 보이는 값)는 아직 안 쓴다.</summary>
+    public IReadOnlyDictionary<int, string[]> Legends { get; } = new Dictionary<int, string[]>();
+    /// <summary>단계가 있는 이야기(표 81) — 번호 → 이름 · 설명 · 그 뒤로 단계마다 「조건 값|단계 번호」(단계 번호는 표 82 의 번호).</summary>
+    public IReadOnlyDictionary<int, string[]> Tales { get; } = new Dictionary<int, string[]>();
+    /// <summary>이야기의 단계 글(표 82) — 번호 → 글.</summary>
+    public IReadOnlyDictionary<int, string> TaleSteps { get; } = new Dictionary<int, string>();
     /// <summary>선박 데코(표 138) 321줄과 선원 장비(표 139) 214줄 — 이름이 「※」인 빈 줄까지 그대로.</summary>
     public IReadOnlyList<ShipDeco> Decos { get; }
     public IReadOnlyList<CrewGear> CrewGears { get; }
@@ -250,6 +258,22 @@ public sealed class DataTables
         catch (Exception e) { Console.Error.WriteLine("GradeBonusNotes: " + e.Message); }
         try { Memos = Rows(Table(121), (r, id) => { r.Text(id); r.Text(id); return (Id: id, Note: r.Text(id)); }).Where(p => p.Note.Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Note); }
         catch (Exception e) { Console.Error.WriteLine("Memos: " + e.Message); }
+        try { HistoryEnds = Rows(Table(87), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id), r.Text(id), r.Text(id), r.Text(id) })).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts); }
+        catch (Exception e) { Console.Error.WriteLine("HistoryEnds: " + e.Message); }
+        try { Legends = Rows(Table(124), (r, id) => { string name = r.Text(id), body = r.Text(id); int find = r.UInt16(); r.Skip(78); return (Id: id, Texts: new[] { name, body, find.ToString() }); }).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts); }
+        catch (Exception e) { Console.Error.WriteLine("Legends: " + e.Message); }
+        try
+        {
+            Tales = Rows(Table(81), (r, id) =>
+            {
+                var texts = new List<string> { r.Text(id), r.Text(id) };
+                // 7 바이트 칸 열 개: 조건 값 u8 · 단계 번호 u16 · 바이트 넷(안 쓴다) — 조건 값이 0 이면 빈 칸
+                for (int k = 0; k < 10; k++) { int need = r.Byte(), step = r.UInt16(); r.Skip(4); if (need > 0) texts.Add($"{need}|{step}"); }
+                return (Id: id, Texts: texts.ToArray());
+            }).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts);
+            TaleSteps = Rows(Table(82), (r, id) => (Id: id, Note: r.Text(id))).Where(p => p.Note.Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Note);
+        }
+        catch (Exception e) { Console.Error.WriteLine("Tales: " + e.Message); }
         Decos = Rows(Table(138), (r, id) =>
         {
             string name = r.Text(id), description = r.Text(id);

@@ -345,6 +345,7 @@ internal sealed partial class Voyage
     /// <summary>시설 앞에 서 있는 사람의 이름(없는 시설이면 null) — 표 98 의 NPC 갈래 이름을 따른다.</summary>
     public static string? KeeperName(int place) => place switch
     {
+        20 or 401 => "도시관리",           // 투자를 받는다(본거지에서는 왕궁의 귀족이 받는다)
         4 or 5 => "항구관리",              // 도시마다 항구 앞에 선다(사용자, 2026-10-07) — 말을 걸면 부두로(출항 · 보급)
         9 or 30 => "조선소 주인",
         14 or 21 or 22 or 25 => "은행원",
@@ -390,6 +391,7 @@ internal sealed partial class Voyage
         else if (mark.Place is 9 or 30) Dialog = Dialog.ShipyardMenu;
         else if (mark.Place is 10 or 19 or 26 or 27 or 32) Dialog = Dialog.Trade;
         else if (mark.Place is 14 or 21 or 22 or 25) Dialog = Dialog.Bank;
+        else if (mark.Place is 20 or 401) Dialog = Dialog.Invest;      // 도시관리 — 투자
         else if (mark.Place == 1) EnterGuild();
         else if (mark.Place is 11 or 31 or 12) { ItemShopOpen = true; Dialog = Dialog.Items; }       // 12 대장간 — 돛 도료를 판다
         else if (mark.Place == 13) { if (!EnterPlace(13)) Dialog = Dialog.Tavern; }

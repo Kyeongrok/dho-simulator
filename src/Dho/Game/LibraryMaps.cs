@@ -110,6 +110,36 @@ internal sealed partial class Voyage
         Say($"「{map.Title}」의 발견을 마쳤다.");
     }
 
+    /// <summary>「지도 찾기」를 못 하는 까닭 — 할 수 있으면 null. 서적 열람의 조건(언어 · 스킬 · 남은 열람 · 열람료)에 지도의 조건을 더한다.</summary>
+    public string? MapSearchBlocker(SkillData book)
+    {
+        if (ReadBlocker(book) is { } why) return why;
+        if (HoldsMap) return "지도를 이미 한 장 들고 있다 — 찾아내거나 버린 뒤에";
+        if (Quest != null) return "의뢰를 맡은 동안에는 지도를 찾지 않는다";
+        if (MapsShelved(book.Id) == 0) return $"이 서고에는 {book.Name}의 지도가 없다(또는 모두 찾았다)";
+        if (MapsHere(book.Id).Count == 0) return $"{book.Name} 랭크가 모자라다 — 이 서고의 지도는 Rank {MapRankNeeded(book.Id)} 부터";
+        return null;
+    }
+
+    /// <summary>이 서고의 그 학문 지도 가운데(아직 못 찾은 것) 가장 낮은 필요 랭크 — 없으면 0.</summary>
+    public int MapRankNeeded(int skillId) => MapQuests.Where(q => q.CityId == City.Id && q.MapSkill == skillId && !Found.Contains(q.DiscoveryId) && !_done.Contains(q.Id)).Select(q => q.Rank).DefaultIfEmpty(0).Min();
+
+    /// <summary>
+    /// 서고에서 지도를 골라 찾는다 — 열람 한 번(열람료 · 오늘의 권수)을 쓰고, 모드의 확률(<see cref="Dho.Data.Settings.ModMapSearch"/>, 기본 70% — 지은 값)로 그 학문의 지도 한 장을 얻는다.
+    /// 서적을 읽다가 우연히 나오는 것(<see cref="MapChance"/>)과 달리 숙련도는 절반만 오른다(지은 값).
+    /// </summary>
+    public void SearchMap(SkillData book)
+    {
+        if (MapSearchBlocker(book) != null) { Cues.Enqueue("Error"); return; }
+        if ((int)Today != _booksDay) (_booksDay, _booksRead) = ((int)Today, 0);
+        _booksRead++;
+        Money -= BookFee;
+        Train(book.Id, 20);
+        var maps = MapsHere(book.Id);
+        if (_random.Next(100) < Math.Clamp(Data.Settings.ModMapSearch, 0, 100)) TakeMap(maps[_random.Next(Math.Min(3, maps.Count))]);
+        else Say($"{book.Name} 서적을 뒤졌지만 지도는 나오지 않았다. (열람료 {BookFee:N0} 두캇, 남은 열람 {BooksLeft}권)");
+    }
+
     /// <summary>지도를 버린다.</summary>
     public void DropMap()
     {

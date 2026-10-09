@@ -85,7 +85,7 @@ internal sealed partial class Voyage
     public int ExpertBoost(int skillId) => IsExpert(skillId) ? 1 : 0;
 
     public string SkillName(int skillId) =>
-        Data.Skills.Find(s => s.Id == skillId)?.Name ?? Data.SkillRules.Find(r => r.SkillId == skillId)?.Name ?? $"스킬 {skillId}";
+        Data.Skills.Find(s => s.Id == skillId)?.Name ?? Data.SkillRules.Find(r => r.SkillId == skillId)?.Name ?? Data.AideSkillLabels.GetValueOrDefault(skillId) ?? $"스킬 {skillId}";
 
     public int ExpToNext(int rank) => Settings.SkillExpBase * rank * rank;
 
@@ -183,8 +183,12 @@ internal sealed partial class Voyage
     /// <summary>경험치 · 숙련도에 곱하는 값 — 모드에서 고른 1 · 2 · 3배.</summary>
     private int GainFactor => Data.Settings.Gain;
 
+    /// <summary>랭크가 없는 스킬 — 익히면 그대로 쓴다(숙련도가 쌓이지 않고 랭크가 안 오른다). 구제(19) — 사용자, 2026-10-09: 「구제는 랭크가 없어 그냥 쓰는거다」.</summary>
+    public static bool Rankless(int skillId) => skillId == 19;
+
     private void Train(int skillId, double exp)
     {
+        if (Rankless(skillId)) return;
         if (!Skills.TryGetValue(skillId, out var state) || state.Rank >= Settings.MaxSkillRank) return;
         exp *= GainFactor * CharmFactor;      // 번개 시리즈를 쓴 동안 숙련도 +100%
         state.Exp += exp;
@@ -252,7 +256,8 @@ internal sealed partial class Voyage
         if (CureSkill(disaster.Data) is not { } rule || !Disasters.Contains(disaster)) return;
         Fatigue = Math.Min(100, Fatigue + 4);
         Train(rule.SkillId, 30);
-        if (_random.NextDouble() < 0.5 + Rank(rule.SkillId) * rule.PerRank) End(disaster);
+        // 랭크가 없는 스킬(구제)은 쓰면 그대로 가라앉는다 — 랭크로 확률을 따질 것이 없다(지은 값: 꼭 된다)
+        if (Rankless(rule.SkillId) || _random.NextDouble() < 0.5 + Rank(rule.SkillId) * rule.PerRank) End(disaster);
         else Say($"{SkillName(rule.SkillId)} — 아직 가라앉지 않았다.");
     }
 

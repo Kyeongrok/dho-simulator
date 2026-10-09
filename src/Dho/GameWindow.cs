@@ -1462,7 +1462,21 @@ internal sealed class GameWindow : IDisposable
             var spot = _grid.Nearest(harbour.Scene + new Vector2(-230f, 60f));
             _keepers.Add((new TownMark(Voyage.Broker, harbour.MapX, harbour.MapY, 0, spot, 0), "의뢰 중개인", spot, MathF.Atan2(_walk.X - spot.X, _walk.Y - spot.Y)));
         }
-        // 조선소 주인 곁의 사람들 — 원본(세비야)처럼 한 줄로 나란히 선다. 말은 못 건다(서 있기만 한다)
+        // 도시관리(투자) — 지도에 제 표식(20 · 401)이 있으면 위에서 이미 섰다. 「도시관리-은행원」(21) 표식뿐인 도시는 은행원 곁에,
+        // 표식이 아예 없는 도시(튀니스 따위 31곳)는 항구 앞 의뢰 중개인 너머에 세운다(자리는 지은 것). 본거지는 왕궁의 귀족이 받으니 세우지 않는다
+        if (!_keepers.Exists(k => k.Name == "도시관리") && _voyage.City.Kind != 0)
+        {
+            var marks = _voyage.TownMap?.Marks ?? [];
+            var beside = marks.Find(m => m.Place == 21) is { } teller ? teller.Scene + new Vector2(140f, 0f)
+                       : marks.Find(m => m.Place is 5 or 4) is { } quay ? quay.Scene + new Vector2(-460f, 60f) : default;
+            if (beside != default)
+            {
+                var spot = _grid.Nearest(beside);
+                var anchor = marks.Find(m => m.Place is 21 or 5 or 4)!;
+                _keepers.Add((new TownMark(401, anchor.MapX, anchor.MapY, 0, spot, 0), "도시관리", spot, MathF.Atan2(_walk.X - spot.X, _walk.Y - spot.Y)));
+            }
+        }
+        // 조선소 주인 곁의 사람들 —원본(세비야)처럼 한 줄로 나란히 선다. 말은 못 건다(서 있기만 한다)
         if (_keepers.Find(k => k.Mark.Place == 9) is { Name: not null } owner)
         {
             var side = new Vector2(MathF.Cos(owner.Facing), -MathF.Sin(owner.Facing));
@@ -1715,6 +1729,7 @@ internal sealed class GameWindow : IDisposable
             case "skillup": _voyage.SkillUpForTest((int)Number()); break;
             case "relieve": if (_voyage.Aides.Find(a => a.Ship != null) is { } captain) _voyage.RelieveCaptain(captain); break;
             case "captainpick": _hud.CaptainPickForTest(); break;
+            case "giveship": if (_voyage.Data.Ships.Find(s => s.Id == (int)Number()) is { } docks) _voyage.GiveShip(docks); break;      // 대본: 그 배를 부두에 한 척 넣는다
             case "offerlang": _voyage.Offered = _voyage.MadeQuests.Find(q => q.Languages.Count > 0 && q.CityId == _voyage.City.Id); break;
             case "day": _voyage.PassDay(); break;
             case "seaday": for (int n = Math.Max(1, (int)Number()); n > 0; n--) _voyage.SkipSeaDayForTest(); break;
@@ -1958,6 +1973,8 @@ internal sealed class GameWindow : IDisposable
             case "readon": if (_voyage.Books().ElementAtOrDefault((int)Number()) is { } tome) _voyage.ReadOn(tome); break;
             case "insure": _voyage.NextInsurance(); break;
             case "bank": _voyage.Dialog = Dialog.Bank; break;
+            case "writelog": File.WriteAllLines(argument, _voyage.Log.TakeLast(40)); break;      // 대본: 기록의 끝 40 줄을 파일에(writelog:경로)
+            case "investmarks": _voyage.InvestMarksForTest(); break;      // 대본: 도시관리 표식이 있는 도시를 센다
             case "buypet": _voyage.BuyPet(); break;
             case "pet": _voyage.PetForTest((int)Number()); break;
             case "tavern": _voyage.Dialog = Dialog.Tavern; break;
