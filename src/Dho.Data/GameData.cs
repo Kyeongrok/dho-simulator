@@ -553,6 +553,8 @@ public sealed class SavedRoute
     public string Name { get; set; } = "";
     public string Saved { get; set; } = "";
     public List<int> Points { get; set; } = [];
+    /// <summary>지나온 점들(x, y 를 차례로) — 「항로 만들기」로 저장한 항로에만 있다.</summary>
+    public List<int> Trail { get; set; } = [];
 }
 
 // 지은 값을 진짜 값으로 채워 달라는 요청 하나 — 게임에서 「지은 값」 표시를 누르면 data\wiki-requests.json 에 쌓인다.
@@ -890,6 +892,8 @@ public sealed class SettingsData
     public double UiScale { get; set; }
     /// <summary>내비게이션의 뱃머리 방향 선 — 길이 · 두께(픽셀). 창의 단추로 바꾼다.</summary>
     public int NavLineLength { get; set; } = 18;
+    /// <summary>방향 선을 지도 끝까지 긋는다(사용자, 2026-10-09: 「방향선이 지도 끝에 닿게 하는 옵션」) — 켜면 길이 값은 안 쓴다.</summary>
+    public bool NavLineEndless { get; set; }
     public int NavLineWidth { get; set; } = 2;
     /// <summary>배경음 크기(0 ~ 1). 0 이면 끈다.</summary>
     public double MusicVolume { get; set; } = 0.5;
@@ -944,6 +948,8 @@ public sealed class SettingsData
     public int ModAideShare { get; set; } = 10;
     // 모드: 서고에서 「지도 찾기」를 한 번 할 때 지도를 찾을 확률(%) — 지은 값, 기본 70
     public int ModMapSearch { get; set; } = 70;
+    // 모드: 항해 중 물결 · 거품 무늬가 뒤로 흘러가는 빠르기(1노트에 초당 이 값만큼 — 지은 값, 기본 3, 0 ~ 10)
+    public int ModSeaFlow { get; set; } = 3;
     [System.Text.Json.Serialization.JsonIgnore]
     public int Gain => ModGain is >= 1 and <= 3 ? ModGain : ModTripleGain ? 3 : 1;
     /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
@@ -1267,6 +1273,14 @@ public sealed class GameData
     public Dictionary<int, string[]> HistoryEnds { get; set; } = [];
     /// <summary>전승(표 124) — 번호 → 글 둘(이름 · 본문). 클라이언트의 글이라 실행 때 읽는다. 위키의 「역사」 갈래가 결말 뒤에 함께 보인다.</summary>
     public Dictionary<int, string[]> Legends { get; set; } = [];
+    /// <summary>역사적 사건(표 85) — 번호 → 이름 · 본문 · 갈래 값. 사건 n 의 결말은 <see cref="HistoryEnds"/> 의 3n−2 · 3n−1 · 3n. 위키의 「역사」 갈래가 보인다.</summary>
+    public Dictionary<int, string[]> HistoryEvents { get; set; } = [];
+    /// <summary>대해적(표 94) — 번호 → 이름 · 설명. 위키의 「역사」 갈래가 글만 보인다(바다에 나타나는 규칙은 없다).</summary>
+    public Dictionary<int, string[]> GreatPirates { get; set; } = [];
+    /// <summary>테마(표 83) — 번호 → 이름 · 설명. 위키의 「역사」 갈래가 보인다.</summary>
+    public Dictionary<int, string[]> Themes { get; set; } = [];
+    /// <summary>테마의 단서(표 84) — 번호 → 이름 · 설명. 설명 글에 든 테마 이름으로 테마에 잇는다(숫자 칸은 없다).</summary>
+    public Dictionary<int, string[]> ThemeClues { get; set; } = [];
     /// <summary>단계가 있는 이야기(표 81) — 번호 → 이름 · 설명 · 단계마다 「조건 값|단계 번호」. 클라이언트의 글이라 실행 때 읽는다. 위키의 「역사」 갈래가 보인다.</summary>
     public Dictionary<int, string[]> Tales { get; set; } = [];
     /// <summary>이야기의 단계 글(표 82) — 번호 → 글.</summary>
@@ -1326,6 +1340,10 @@ public sealed class GameData
         data.Memos = Read<Dictionary<int, string>>(Path.Combine(extracted, "memos.json")) ?? [];
         data.HistoryEnds = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "history-ends.json")) ?? [];
         data.Legends = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "legends.json")) ?? [];
+        data.HistoryEvents = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "history-events.json")) ?? [];
+        data.Themes = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "themes.json")) ?? [];
+        data.GreatPirates = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "great-pirates.json")) ?? [];
+        data.ThemeClues = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "theme-clues.json")) ?? [];
         data.Tales = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "tales.json")) ?? [];
         data.TaleSteps = Read<Dictionary<int, string>>(Path.Combine(extracted, "tale-steps.json")) ?? [];
         data.ShipSkillNames = (Read<Dictionary<string, string>>(Path.Combine(extracted, "ship-skill-names.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
@@ -1549,6 +1567,10 @@ public sealed class GameData
         Write(Path.Combine(extracted, "memos.json"), Memos);
         Write(Path.Combine(extracted, "history-ends.json"), HistoryEnds);
         Write(Path.Combine(extracted, "legends.json"), Legends);
+        Write(Path.Combine(extracted, "history-events.json"), HistoryEvents);
+        Write(Path.Combine(extracted, "themes.json"), Themes);
+        Write(Path.Combine(extracted, "great-pirates.json"), GreatPirates);
+        Write(Path.Combine(extracted, "theme-clues.json"), ThemeClues);
         Write(Path.Combine(extracted, "tales.json"), Tales);
         Write(Path.Combine(extracted, "tale-steps.json"), TaleSteps);
         Write(Path.Combine(extracted, "aide-skill-names.json"), AideSkillLabels.ToDictionary(n => n.Key.ToString(), n => n.Value));
@@ -1657,6 +1679,10 @@ public sealed class GameData
         Memos = new Dictionary<int, string>(tables.Memos);
         HistoryEnds = new Dictionary<int, string[]>(tables.HistoryEnds);
         Legends = new Dictionary<int, string[]>(tables.Legends);
+        HistoryEvents = new Dictionary<int, string[]>(tables.HistoryEvents);
+        Themes = new Dictionary<int, string[]>(tables.Themes);
+        GreatPirates = new Dictionary<int, string[]>(tables.GreatPirates);
+        ThemeClues = new Dictionary<int, string[]>(tables.ThemeClues);
         Tales = new Dictionary<int, string[]>(tables.Tales);
         TaleSteps = new Dictionary<int, string>(tables.TaleSteps);
         Goods = tables.Goods.Select(g => new GoodData { Id = g.Id, Name = g.Name, Description = g.Description, Kind = g.Kind }).ToList();
@@ -1750,7 +1776,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-35";
+    private const string ExtractVersion = "extracted-38";
 
     public static string RoomsOf(byte[] sceneTable, int cityId)
     {

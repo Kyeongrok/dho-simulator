@@ -794,6 +794,11 @@ internal sealed class GameWindow : IDisposable
                 aura = new Vector3(0.5f + 0.5f * MathF.Sin(h), 0.5f + 0.5f * MathF.Sin(h + 2.09f), 0.5f + 0.5f * MathF.Sin(h + 4.19f));
             }
         }
+        // 물결이 뒤로 흘러가는 빠르기 — 속력에 비례해 쌓는다(사용자, 2026-10-09: 「속도가 빠르면 빠르게 지나가는 것 처럼 보여야지」). 1노트에 초당 3(셰이더의 물결 단위)은 지은 값
+        double flowStep = Math.Clamp(_voyage.Clock - _seaFlowClock, 0, 0.1);
+        _seaFlowClock = _voyage.Clock;
+        float flowGain = (float)(_voyage.Knots * flowStep * Math.Clamp(_voyage.Data.Settings.ModSeaFlow, 0, 10));      // 모드 창 「바다 흐름 빠르기」
+        if (_voyage.Mode == Mode.Sea) _seaFlow = new Vector2((_seaFlow.X + heading.X * flowGain) % 131072, (_seaFlow.Y + heading.Y * flowGain) % 131072);
         var frame = new FrameConstants
         {
             ViewProjection = _viewProjection,
@@ -810,9 +815,9 @@ internal sealed class GameWindow : IDisposable
             ZenithColor = sky.Zenith,
             WaterColor = sky.Water,
             WorldOffset = new Vector2((float)(_voyage.ShipX * Terrain.Unit % 1048576), (float)(_voyage.ShipY * Terrain.Unit % 1048576)),
-            ShipPosition = Vector2.Zero,
+            ShipPosition = _seaFlow,      // 배는 늘 원점 — 이 칸은 물결이 더 흘러간 만큼(위)을 싣는다
             ShipDirection = heading,
-            ShipSpeed = (float)Math.Clamp(_voyage.Knots / 12, 0, 1),
+            ShipSpeed = (float)Math.Clamp(_voyage.Knots / 12, 0, 1.6),
             WaveScale = _voyage.Mode == Mode.Sea ? (float)Math.Clamp(_voyage.WaveScale, 0.3, 4) : 0.8f,
             Pad1 = aura.X, Pad2 = aura.Y, Pad3 = aura.Z,
         };
@@ -1101,6 +1106,8 @@ internal sealed class GameWindow : IDisposable
 
     // 부관 선장의 배가 있는 자리와 뱃머리 — 그릴 때마다 내 배 뒤의 제자리로 조금씩 따라온다
     private readonly Dictionary<Aide, (double X, double Y, double Heading)> _aideWake = new();
+    private Vector2 _seaFlow;
+    private double _seaFlowClock;
     private double _aideClock;
 
     /// <summary>부관 선장의 배들 — 내 배 뒤 왼쪽 · 오른쪽에 붙어 따라온다(원본의 「따라가기 표시」). 자리는 그리는 쪽에서만 센다 — 규칙에는 안 쓰인다.</summary>
@@ -1729,6 +1736,8 @@ internal sealed class GameWindow : IDisposable
             case "skillup": _voyage.SkillUpForTest((int)Number()); break;
             case "relieve": if (_voyage.Aides.Find(a => a.Ship != null) is { } captain) _voyage.RelieveCaptain(captain); break;
             case "captainpick": _hud.CaptainPickForTest(); break;
+            case "talk": if (_keepers.Find(k => k.Name == argument) is { Name: not null } spoken) _voyage.Visit(spoken.Mark); else _voyage.Say($"(시험) 「{argument}」(이)라는 사람이 시내에 없다."); break;      // 대본: 시내에 선 그 사람에게 말을 건다
+            case "workpage": _hud.WorkPageForTest((int)Number()); break;      // 대본: 강화 창의 쪽을 넘긴다
             case "giveship": if (_voyage.Data.Ships.Find(s => s.Id == (int)Number()) is { } docks) _voyage.GiveShip(docks); break;      // 대본: 그 배를 부두에 한 척 넣는다
             case "offerlang": _voyage.Offered = _voyage.MadeQuests.Find(q => q.Languages.Count > 0 && q.CityId == _voyage.City.Id); break;
             case "day": _voyage.PassDay(); break;
@@ -1883,6 +1892,7 @@ internal sealed class GameWindow : IDisposable
             case "followturns": _voyage.FollowTurns(Math.Abs((int)Number()), Number() < 0); break;      // 음수면 거꾸로      // 대본: 조타 기록 N 번부터 따라간다
             case "effects": _hud.OpenEffects(argument == "" ? -1 : (int)Number()); break;      // effects:2215 = ef0002 의 215번 효과      // 대본: 화면 효과 보기 창
             case "navroutes": _hud.NavRoutesForTest(); break;      // 대본: 내비게이션의 항로 목록을 편다
+            case "navrouteopen": _hud.NavRouteOpenForTest(); break;      // 대본: 맨 나중에 저장한 항로를 편집으로 연다(파일은 안 바꾼다)
             case "navturn": _hud.NavTurnPickForTest((int)Number()); break;      // 대본: 내비게이션에서 조타 기록 N 번을 고른다
             case "wikipick": _hud.WikiPickForTest(argument.Split(',')[0], int.Parse(argument.Split(',')[1])); break;      // 대본: wikipick:도시,2
             case "sea":                             // 바다 위의 자리로 옮긴다: sea:x,y

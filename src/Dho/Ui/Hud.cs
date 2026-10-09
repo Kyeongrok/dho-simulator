@@ -214,7 +214,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private void ModWindow()
     {
         canvas.PanelId = "WndMod";
-        const float w = 520, h = 712;
+        const float w = 520, h = 758;
         float x = (canvas.Width - w) / 2, y = 34;
         var settings = voyage.Data.Settings;
         canvas.Panel(x, y, w, h);
@@ -353,6 +353,12 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             int odds = Math.Clamp(settings.ModMapSearch + overSteps[i].Step, 0, 100);
             if (canvas.Button(overSteps[i].Label, x + w - 216 + i * 50, y + 616, 46, 28, odds != settings.ModMapSearch, 13)) { settings.ModMapSearch = odds; voyage.Data.SaveSettings(); }
         }
+        // 바다가 흘러가는 빠르기 — 항해 중 물결 · 거품 무늬가 속력에 비례해 뒤로 밀려가는 세기(0 ~ 10, 지은 값; 0 이면 안 민다)
+        settings.ModSeaFlow = Math.Clamp(settings.ModSeaFlow, 0, 10);
+        canvas.Text($"바다 흐름 빠르기  {settings.ModSeaFlow}", x + 54, y + 660, 240, 22, 15, Canvas.White);
+        canvas.Text("항해 중 물결이 속력에 따라 뒤로 흘러가는 세기(0 = 끔).", x + 54, y + 682, 280, 18, 10, Canvas.Dim);
+        if (canvas.Button("−1", x + w - 166, y + 662, 46, 28, settings.ModSeaFlow > 0, 13)) { settings.ModSeaFlow--; voyage.Data.SaveSettings(); }
+        if (canvas.Button("+1", x + w - 116, y + 662, 46, 28, settings.ModSeaFlow < 10, 13)) { settings.ModSeaFlow++; voyage.Data.SaveSettings(); }
         }
         if (_modTab == 1)
         {
@@ -3121,7 +3127,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             if (rank > 0 && Voyage.Rankless(skill.Id)) canvas.Text("랭크 없음", x + 250, row + 7, 260, 24, 15, Canvas.Dim, 2);
             else if (rank > 0)
             {
-                int boost = voyage.ExpertBoost(skill.Id);
+                // 괄호 안은 제 랭크에 얹힌 것 모두(전문 스킬 · 장비 · 부관 · 연성 …) — 전에는 전문 스킬 몫만 넣어 장비 몫이 제 랭크처럼 보였다(낚시 +2 장비 → 「Rank 8」; 사용자, 2026-10-09)
+                int boost = Math.Max(0, rank - (voyage.Skills.TryGetValue(skill.Id, out var ownState) ? ownState.Rank : rank));
                 canvas.Text($"Rank {rank - boost,2}" + (boost > 0 ? $"(+{boost})" : ""), x + 250, row + 7, 110, 24, 16, Canvas.White);
                 bool top = rank >= voyage.Data.Settings.MaxSkillRank;
                 canvas.Text(top ? "※최대 랭크" : $"{voyage.Skills[skill.Id].Exp:0}/{voyage.ExpNeed(voyage.Skills[skill.Id])}", x + 340, row + 7, 170, 24, 16, Canvas.White, 2);
@@ -3164,7 +3171,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             canvas.Text(rule == null ? "(이 게임에서는 아직 하는 일이 없다)" : rule.Effect is "Aid" or "Mine" or "Flee" ? "사용 스킬 — 해전 중에 눌러 쓴다" : rule.Effect == "Gather" ? "사용 스킬 — 상륙지 · 바다에서 쓴다" : active || rule.Effect is "Procure" or "Fish" or "Repair" or "Rest" ? "사용 스킬 — 바다에서 눌러 쓴다" : "자동효과",
                         rx, rule == null ? y + 162 : y + 26, rw, 22, rule == null ? 14 : 12, rule == null ? Canvas.Dim : Canvas.Gold, 2);      // 효과 글이 그 줄을 쓰니 이름 줄 오른쪽으로 올렸다
             canvas.Text(voyage.Text(1301, "상태"), rx, y + 196, 100, 22, 15, Canvas.Gold, 0, true);
-            canvas.Text(rank > 0 && Voyage.Rankless(skill.Id) ? "익혔다 — 랭크가 없는 스킬(그대로 쓴다)" : rank > 0 ? $"Rank {rank}" + (voyage.Refined(skill.Id) ? "(연성 +2)" : "") + (voyage.Skills[skill.Id].Rank >= voyage.Data.Settings.MaxSkillRank ? "   ※최대 랭크" : $"   {voyage.Skills[skill.Id].Exp:0}/{voyage.ExpNeed(voyage.Skills[skill.Id])}") : "익히지 않았다",
+            canvas.Text(rank > 0 && Voyage.Rankless(skill.Id) ? "익혔다 — 랭크가 없는 스킬(그대로 쓴다)" : rank > 0 ? $"Rank {(voyage.Skills.TryGetValue(skill.Id, out var mine) ? mine.Rank : rank)}" + (voyage.Skills.TryGetValue(skill.Id, out var held) && rank > held.Rank ? $"(+{rank - held.Rank})" : "") + (voyage.Refined(skill.Id) ? " · 연성 +2 포함" : "") + (voyage.Skills[skill.Id].Rank >= voyage.Data.Settings.MaxSkillRank ? "   ※최대 랭크" : $"   {voyage.Skills[skill.Id].Exp:0}/{voyage.ExpNeed(voyage.Skills[skill.Id])}") : "익히지 않았다",
                         rx + 10, y + 222, rw - 10, 22, 15, Canvas.White);
             canvas.Text(voyage.Text(9156, "습득"), rx, y + 258, 100, 22, 15, Canvas.Gold, 0, true);
             canvas.Text($"{skill.Cost:N0} 두캇 — {Voyage.TeacherName(skill.Group == 3 ? 0 : skill.Group)} 마스터에게 배운다", rx + 10, y + 284, rw - 10, 22, 15, Canvas.White);
@@ -5192,6 +5199,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     public void SellSideForTest() => (_selling, _tradePage, _tradeChosen) = (true, 0, 0);
     /// <summary>대본용: 첫 부관의 배 고르는 창을 띄운다.</summary>
     public void CaptainPickForTest() => _captainFor = voyage.Aides.FirstOrDefault();
+    /// <summary>대본용 — 강화 창의 쪽(0 재료 · 1 불러오기)을 넘긴다.</summary>
+    public void WorkPageForTest(int page) => _workPage = page;
 
     private Aide? _aideInfo;
     private float _aideYaw = 0.35f;
@@ -7578,6 +7587,10 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private bool _navRoutes;            // 내비게이션의 항로 목록이 떠 있는가
     private SavedRoute? _navRouteEdit;  // 이름을 고치는 중인 항로(없으면 null)
     private string _navRouteName = "";
+    private SavedRoute? _navRouteOpen;  // 열어서 편집하는 중인 항로(없으면 null) — 조타 기록을 고친 뒤 「저장」으로 그 항로에 다시 적는다
+    private int _navRouteTop;           // 편집 중인 항로의 기록 목록에서 맨 위에 보이는 줄
+    private bool _navTurnMove;        // 고른 조타 기록의 자리를 옮기는 중 — 지도를 누르면 거기로 간다
+    public void NavRouteOpenForTest() { if (voyage.Data.Routes.Count > 0) { _navRouteOpen = voyage.Data.Routes[^1]; voyage.LoadRoute(_navRouteOpen); (_navRoutes, _navTurns) = (false, true); } }
     private bool NavRouteTyping => voyage.Dialog == Dialog.Nav && _navRoutes && _navRouteEdit != null;
     public void NavRoutesForTest() => _navRoutes = true;
     /// <summary>카메라가 바라보는 쪽(세계의 방위, 라디안 — 0 이 북) — 창이 프레임마다 넣는다. 내비게이션에 하늘빛 줄로 보인다.</summary>
@@ -7669,7 +7682,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 if (Spot(mark.X, mark.Y) is not { } at) continue;
                 if (markIndex == _navTurnPick) canvas.Circle(at.X, at.Y, 8, Canvas.Gold, false, 2);
                 // 점을 누르면 그 기록의 창이 뜬다 — 침로를 고치거나 지운다
-                if (canvas.Hover(at.X - 6, at.Y - 6, 12, 12) && canvas.Pointer.Clicked) (_navTurnPick, canvas.Pressed, _navDrag) = (markIndex, true, false);
+                if (!_navTurnMove && canvas.Hover(at.X - 6, at.Y - 6, 12, 12) && canvas.Pointer.Clicked) (_navTurnPick, canvas.Pressed, _navDrag) = (markIndex, true, false);
                 float bearing = (float)mark.Heading;
                 canvas.Line(at.X, at.Y, at.X + MathF.Sin(bearing) * 10, at.Y - MathF.Cos(bearing) * 10, new Color4(0, 0, 0, 1), 3);
                 canvas.Line(at.X, at.Y, at.X + MathF.Sin(bearing) * 10, at.Y - MathF.Cos(bearing) * 10, new Color4(1f, 1f, 1f, 1), 1.5f);
@@ -7692,8 +7705,20 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             if (voyage.Mode == Mode.Sea)
             {
                 float reach = voyage.Data.Settings.NavLineLength, thick = voyage.Data.Settings.NavLineWidth;
+                // 무한 — 그 쪽으로 지도 그림의 끝에 닿을 때까지
+                float Reach(float toward)
+                {
+                    if (!voyage.Data.Settings.NavLineEndless) return reach;
+                    float sx = MathF.Sin(toward), sy = -MathF.Cos(toward);
+                    float tx2 = sx > 0.0001f ? (mx + NavW - me.X) / sx : sx < -0.0001f ? (mx - me.X) / sx : float.MaxValue;
+                    float ty3 = sy > 0.0001f ? (my + NavH - me.Y) / sy : sy < -0.0001f ? (my - me.Y) / sy : float.MaxValue;
+                    return MathF.Max(0, MathF.Min(tx2, ty3));
+                }
+                float lookReach = Reach((float)CameraHeading);
+                reach = Reach(heading);
                 canvas.Line(me.X, me.Y, me.X + MathF.Sin(heading) * reach, me.Y - MathF.Cos(heading) * reach, new Color4(0, 0, 0, 1), thick + 2);
                 canvas.Line(me.X, me.Y, me.X + MathF.Sin(heading) * reach, me.Y - MathF.Cos(heading) * reach, new Color4(1f, 0.9f, 0.2f, 1), thick);
+                reach = lookReach;
                 // 카메라가 바라보는 쪽 — 하늘빛 줄(사용자, 2026-10-09): 지금 화면 한가운데 쪽으로 조타하면 배가 어디로 가는지 지도에서 본다
                 float look = (float)CameraHeading;
                 canvas.Line(me.X, me.Y, me.X + MathF.Sin(look) * reach, me.Y - MathF.Cos(look) * reach, new Color4(0, 0, 0, 0.8f), MathF.Max(2, thick));
@@ -7704,7 +7729,12 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         }
         // 뱃머리 방향 선의 길이(6 ~ 240) · 두께(1 ~ 8) — 설정 파일에 남는다
         var navSet = voyage.Data.Settings;
-        canvas.Text("방향 선 길이", x + 250, y + 11, 84, 20, 12, Canvas.Dim);
+        canvas.Text("방향 선", x + 232, y + 11, 44, 20, 12, Canvas.Dim);
+        // 무한 — 방향 선을 지도 끝까지(켜면 길이 값은 쉬고 단추가 금빛 테를 두른다)
+        if (canvas.Button("∞", x + 280, y + 6, 30, 28, true, 15)) { navSet.NavLineEndless = !navSet.NavLineEndless; voyage.Data.SaveSettings(); }
+        if (navSet.NavLineEndless) canvas.Frame(x + 280, y + 6, 30, 28, Canvas.Gold, 2);
+        if (canvas.Hover(x + 280, y + 6, 30, 28)) _tip = (navSet.NavLineEndless ? "방향 선 무한 — 켜짐\n누르면 길이 값대로 긋는다" : "방향 선 무한 — 꺼짐\n누르면 지도 끝까지 긋는다", x + 295, y + 76);
+        canvas.Text("길이", x + 312, y + 11, 24, 20, 11, Canvas.Dim);
         if (canvas.Button("−", x + 336, y + 6, 28, 28, navSet.NavLineLength > 6, 13)) { navSet.NavLineLength = Math.Max(6, navSet.NavLineLength - 6); voyage.Data.SaveSettings(); }
         canvas.Text($"{navSet.NavLineLength}", x + 366, y + 11, 34, 20, 12, Canvas.White, 1);
         if (canvas.Button("+", x + 402, y + 6, 28, 28, navSet.NavLineLength < 240, 13)) { navSet.NavLineLength = Math.Min(240, navSet.NavLineLength + 6); voyage.Data.SaveSettings(); }
@@ -7715,11 +7745,20 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         if (canvas.Button(_navTrack ? "지나온 항로 숨기기" : "지나온 항로 보기", x + w - 290, y + 6, 150, 28, true, 12)) _navTrack = !_navTrack;
         // 고른 조타 기록의 창 — 지도 오른쪽 위에 뜬다: 자리 · 며칠째, 침로를 1도 · 10도씩 고치기, 지우기
         if (!_navTurns || _navTurnPick >= voyage.TurnMarks.Count) _navTurnPick = -1;
+        if (_navTurnPick < 0) _navTurnMove = false;
         if (_navTurnPick >= 0)
         {
             var picked = voyage.TurnMarks[_navTurnPick];
-            const float tw = 250, th = 214;
+            const float tw = 250, th = 246;
             float tx = mx + NavW - tw - 10, ty = my + 10;
+            // 자리 옮기기 — 지도의 빈 데를 누르면 고른 기록이 거기로 간다(창들 위를 누른 것은 뺀다)
+            if (_navTurnMove && canvas.Pointer.Clicked && overMap && !canvas.Hover(tx, ty, tw, th) && !(_navRouteOpen != null && !_navRoutes && canvas.Hover(mx + 10, my + 10, 430, 376)))
+            {
+                double movedX = (((_navLeft + (canvas.Pointer.X - mx) * _navZoom) % 4096 + 4096) % 4096) / NavMap.Scale, movedY = (_navTop + (canvas.Pointer.Y - my) * _navZoom) / NavMap.Scale;
+                voyage.MoveTurn(_navTurnPick, movedX, movedY);
+                (_navTurnMove, _navDrag, canvas.Pressed) = (false, false, true);
+                picked = voyage.TurnMarks[_navTurnPick];
+            }
             canvas.PanelId = "WndNavTurn";
             canvas.Panel(tx, ty, tw, th);
             canvas.Block(tx, ty, tw, th);
@@ -7737,6 +7776,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 if (canvas.Button("여기부터 따라가기", tx + 12, ty + 116, tw - 24, 26, voyage.Mode == Mode.Sea, 13)) voyage.FollowTurns(_navTurnPick);
                 if (canvas.Button("여기부터 거꾸로 따라가기", tx + 12, ty + 146, tw - 24, 26, voyage.Mode == Mode.Sea, 13)) voyage.FollowTurns(_navTurnPick, back: true);
             }
+            if (canvas.Button(_navTurnMove ? "옮길 자리를 지도에서 누른다 (그만)" : "자리 옮기기", tx + 12, ty + 176, tw - 24, 26, true, 12)) _navTurnMove = !_navTurnMove;
             if (canvas.Button("지우기", tx + 12, ty + th - 34, 80, 26, true, 13)) { voyage.RemoveTurn(_navTurnPick); _navTurnPick = -1; }
             if (canvas.Button(voyage.Text(253, "닫기"), tx + tw - 92, ty + th - 34, 80, 26, true, 13)) _navTurnPick = -1;
             canvas.PanelId = "WndNav";
@@ -7747,30 +7787,81 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         {
             var routes = voyage.Data.Routes;
             int shownRoutes = Math.Min(routes.Count, 8);
-            const float lw2 = 360;
-            float lh = 110 + Math.Max(1, shownRoutes) * 30, lx = mx + 10, ly = my + 10;
+            const float lw2 = 410;
+            float lh = 142 + Math.Max(1, shownRoutes) * 30, lx = mx + 10, ly = my + 10;
             canvas.PanelId = "WndNavRoutes";
             canvas.Panel(lx, ly, lw2, lh);
             canvas.Block(lx, ly, lw2, lh);
             canvas.Text($"항로 {routes.Count}개", lx + 12, ly + 8, 120, 22, 15, Canvas.Gold, 0, true);
             if (canvas.Button($"지금 조타 기록을 저장 ({voyage.TurnMarks.Count}개)", lx + 130, ly + 6, lw2 - 142, 26, voyage.TurnMarks.Count >= 2, 12)) voyage.SaveRoute();
-            if (routes.Count == 0) canvas.Text("저장해 둔 항로가 없다.", lx + 12, ly + 44, lw2 - 24, 20, 13, Canvas.Dim);
+            // 항로 만들기 — 켜 두면 도시를 떠나 도시에 들 때마다 그 길이 항로 하나로 저절로 저장된다(켤 때 지금 조타 기록은 먼저 저장된다)
+            if (canvas.Button(voyage.RouteMaking ? "■ 항로 만들기 끄기 (적는 중)" : "● 항로 만들기", lx + 12, ly + 38, lw2 - 24, 28, true, 13)) voyage.MakeRoute();
+            if (canvas.Hover(lx + 12, ly + 38, lw2 - 24, 28)) _tip = ("지나온 점과 조타 지점을 적는다\n지금 조타 기록은 먼저 항로로 저장된다\n출항 ~ 입항이 항로 하나 — 입항하면 저절로 저장", lx + lw2 / 2, ly + 36);
+            if (routes.Count == 0) canvas.Text("저장해 둔 항로가 없다.", lx + 12, ly + 76, lw2 - 24, 20, 13, Canvas.Dim);
             for (int k = 0; k < shownRoutes; k++)
             {
                 var route = routes[routes.Count - 1 - k];      // 새로 저장한 것부터
-                float ry = ly + 40 + k * 30;
+                float ry = ly + 72 + k * 30;
                 canvas.Fill(lx + 8, ry, lw2 - 16, 27, new Color4(0.04f, 0.07f, 0.2f, 0.85f));
-                bool editing = _navRouteEdit == route, overName = canvas.Hover(lx + 8, ry, lw2 - 148, 27);
-                if (editing) canvas.Frame(lx + 8, ry, lw2 - 148, 27, Canvas.Gold, 1.2f);
+                bool editing = _navRouteEdit == route, overName = canvas.Hover(lx + 8, ry, lw2 - 198, 27);
+                if (editing) canvas.Frame(lx + 8, ry, lw2 - 198, 27, Canvas.Gold, 1.2f);
                 string nameShown = editing ? _navRouteName + ((int)(voyage.Clock * 2) % 2 == 0 ? "|" : "") : route.Name;
-                canvas.Text(nameShown, lx + 14, ry + 4, lw2 - 160, 20, nameShown.Length > 16 ? 11 : 13, Canvas.White);
-                if (overName && !editing) _tip = ($"{route.Saved} 저장 · 점 {route.Points.Count / 3}개\n누르면 이름을 고친다(Enter 확정 · Esc 그만)", lx + 120, ry - 2);
+                canvas.Text(nameShown, lx + 14, ry + 4, lw2 - 210, 20, nameShown.Length > 16 ? 11 : 13, Canvas.White);
+                if (overName && !editing) _tip = ($"{route.Saved} 저장 · 조타 {route.Points.Count / 3}개{(route.Trail.Count > 0 ? $" · 지나온 점 {route.Trail.Count / 2}개" : "")}\n누르면 이름을 고친다(Enter 확정 · Esc 그만)", lx + 120, ry - 2);
                 if (overName && canvas.Pointer.Clicked && !editing) (_navRouteEdit, _navRouteName, canvas.Pressed) = (route, route.Name, true);
-                if (canvas.Button("불러오기", lx + lw2 - 132, ry + 1, 72, 25, true, 12)) { voyage.LoadRoute(route); (_navTurnPick, _navTurns) = (-1, true); }
+                // 편집 — 그 항로를 열어(조타 기록으로 불러와) 지도에서 점을 고치고, 위의 「저장」으로 그 항로에 다시 적는다
+                if (canvas.Button("편집", lx + lw2 - 182, ry + 1, 46, 25, true, 12)) { voyage.LoadRoute(route); (_navRouteOpen, _navTurnPick, _navTurns, _navRoutes, _navRouteEdit) = (route, -1, true, false, null); }
+                if (canvas.Button("불러오기", lx + lw2 - 132, ry + 1, 72, 25, true, 12)) { voyage.LoadRoute(route); (_navTurnPick, _navTurns, _navRouteOpen) = (-1, true, null); }
                 if (canvas.Button("지움", lx + lw2 - 56, ry + 1, 44, 25, true, 12)) { voyage.RemoveRoute(route); break; }
             }
-            canvas.Text("불러오면 지금 조타 기록이 그 항로로 바뀐다.\n점을 눌러 「따라가기」.", lx + 12, ly + lh - 62, lw2 - 110, 34, 11, Canvas.Dim);
+            canvas.Text("불러오면 지금 조타 기록이 그 항로로 바뀐다.\n점을 눌러 「따라가기」. 「편집」은 고쳐서 다시 저장.", lx + 12, ly + lh - 62, lw2 - 110, 34, 11, Canvas.Dim);
             if (canvas.Button(voyage.Text(253, "닫기"), lx + lw2 - 92, ly + lh - 34, 80, 24, true, 12)) (_navRoutes, _navRouteEdit) = (false, null);
+            canvas.PanelId = "WndNav";
+        }
+        // 편집 중인 항로의 띠 — 지도 왼쪽 위(항로 목록이 닫혀 있을 때): 고친 조타 기록을 그 항로에 다시 적거나 그만둔다
+        if (_navRouteOpen != null && !voyage.Data.Routes.Contains(_navRouteOpen)) _navRouteOpen = null;
+        if (_navRouteOpen != null && !_navRoutes)
+        {
+            float ex = mx + 10, ey = my + 10;
+            canvas.PanelId = "WndNavRouteEdit";
+            canvas.Panel(ex, ey, 430, 66);
+            canvas.Block(ex, ey, 430, 66);
+            canvas.Text($"편집 중 — {_navRouteOpen.Name}", ex + 12, ey + 8, 280, 20, _navRouteOpen.Name.Length > 16 ? 12 : 14, Canvas.Gold, 0, true);
+            canvas.Text($"조타 {voyage.TurnMarks.Count}개 · 점을 눌러 침로 · 자리 옮기기 · 지우기", ex + 12, ey + 36, 290, 20, 11, Canvas.Dim);
+            if (canvas.Button("저장", ex + 306, ey + 8, 54, 26, voyage.TurnMarks.Count >= 2, 13)) { voyage.UpdateRoute(_navRouteOpen); _navRouteOpen = null; }
+            if (canvas.Button("그만", ex + 364, ey + 8, 54, 26, true, 13)) _navRouteOpen = null;
+            if (canvas.Hover(ex + 364, ey + 8, 54, 26)) _tip = ("저장하지 않고 편집을 끝낸다\n저장된 항로는 그대로 남는다", ex + 391, ey + 96);
+            // 기록 목록 — 어디서 몇 도로 틀었는지 한 줄씩: 줄을 누르면 그 점이 골라지고 지도가 거기로 간다(오른쪽 창에서 침로 · 자리 고치기), ＋ 는 그 뒤에 점 넣기, ✕ 는 지우기
+            const int turnRows = 12;
+            float gy = ey + 66;
+            canvas.Panel(ex, gy, 430, 310);
+            canvas.Block(ex, gy, 430, 310);
+            int turnCount = voyage.TurnMarks.Count;
+            _navRouteTop = Math.Clamp(_navRouteTop, 0, Math.Max(0, turnCount - turnRows));
+            for (int k = 0; k < turnRows && _navRouteTop + k < turnCount; k++)
+            {
+                int turnIndex = _navRouteTop + k;
+                var turn = voyage.TurnMarks[turnIndex];
+                float ty2 = gy + 8 + k * 22;
+                bool chosen = turnIndex == _navTurnPick;
+                if (chosen) canvas.Fill(ex + 8, ty2, 414, 21, new Color4(0.35f, 0.3f, 0.08f, 0.9f));
+                else if (canvas.Hover(ex + 8, ty2, 350, 21)) canvas.Fill(ex + 8, ty2, 414, 21, new Color4(0.1f, 0.15f, 0.35f, 0.9f));
+                canvas.Text($"{turnIndex + 1}", ex + 12, ty2 + 2, 34, 18, 12, Canvas.Dim, 2);
+                canvas.Text($"({turn.X:0}, {turn.Y:0})  {voyage.SeaNameAt(turn.X, turn.Y)}", ex + 54, ty2 + 2, 220, 18, 12, Canvas.White);
+                canvas.Text($"침로 {((turn.Heading * 180 / Math.PI) % 360 + 360) % 360:0}°", ex + 276, ty2 + 2, 76, 18, 12, chosen ? Canvas.Gold : Canvas.White, 2);
+                if (canvas.Hover(ex + 8, ty2, 350, 21) && canvas.Pointer.Clicked)
+                {
+                    (_navTurnPick, _navTurns, _navTurnMove, canvas.Pressed) = (turnIndex, true, false, true);
+                    // 지도를 그 점으로 옮긴다
+                    (_navPanX, _navPanY) = ((float)(WorldMap.DeltaX(voyage.ShipX, turn.X) * NavMap.Scale), (float)((turn.Y - voyage.ShipY) * NavMap.Scale));
+                }
+                if (canvas.Button("＋", ex + 364, ty2, 26, 21, true, 12)) { _navTurnPick = voyage.InsertTurn(turnIndex); _navTurnMove = false; break; }
+                if (canvas.Hover(ex + 364, ty2, 26, 21)) _tip = ("이 점 뒤에 점을 하나 넣는다\n(다음 점과의 한가운데 — 넣은 뒤 자리 · 침로를 고친다)", ex + 300, ty2 - 2);
+                if (canvas.Button("✕", ex + 394, ty2, 26, 21, true, 12)) { voyage.RemoveTurn(turnIndex); _navTurnPick = -1; break; }
+            }
+            canvas.Text(turnCount == 0 ? "기록이 없다." : $"{_navRouteTop + 1} ~ {Math.Min(turnCount, _navRouteTop + turnRows)} / {turnCount}", ex + 12, gy + 282, 220, 20, 11, Canvas.Dim);
+            if (canvas.Button("▲", ex + 340, gy + 278, 38, 24, _navRouteTop > 0, 12)) _navRouteTop = Math.Max(0, _navRouteTop - turnRows);
+            if (canvas.Button("▼", ex + 382, gy + 278, 38, 24, _navRouteTop + turnRows < turnCount, 12)) _navRouteTop += turnRows;
             canvas.PanelId = "WndNav";
         }
         if (canvas.Button(_navTurns ? "조타 기록 숨기기" : "조타 기록 보기", x + 592, y + 6, 112, 28, true, 12)) _navTurns = !_navTurns;

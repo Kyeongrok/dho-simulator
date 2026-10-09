@@ -96,6 +96,14 @@ public sealed class DataTables
     public IReadOnlyDictionary<int, string[]> HistoryEnds { get; } = new Dictionary<int, string[]>();
     /// <summary>전승(표 124) — 번호 → 이름 · 본문 · 이어진 발견물 번호(글로). 뒤의 나머지 78 바이트(번호 하나와 좌표로 보이는 값)는 아직 안 쓴다.</summary>
     public IReadOnlyDictionary<int, string[]> Legends { get; } = new Dictionary<int, string[]>();
+    /// <summary>역사적 사건(표 85) — 번호 → 이름 · 본문 · 갈래 값(글로). 사건 n 의 결말은 표 87 의 3n−2 · 3n−1 · 3n(이름으로 맞춰 봤다).</summary>
+    public IReadOnlyDictionary<int, string[]> HistoryEvents { get; } = new Dictionary<int, string[]>();
+    /// <summary>대해적(표 94) — 번호(201 ~ 210) → 이름 · 설명.</summary>
+    public IReadOnlyDictionary<int, string[]> GreatPirates { get; } = new Dictionary<int, string[]>();
+    /// <summary>테마(표 83) — 번호 → 이름 · 설명. 이야기(표 81)를 묶는 윗갈래.</summary>
+    public IReadOnlyDictionary<int, string[]> Themes { get; } = new Dictionary<int, string[]>();
+    /// <summary>테마의 단서(표 84) — 번호 → 이름 · 설명(설명 글에 어느 테마의 것인지 적혀 있다).</summary>
+    public IReadOnlyDictionary<int, string[]> ThemeClues { get; } = new Dictionary<int, string[]>();
     /// <summary>단계가 있는 이야기(표 81) — 번호 → 이름 · 설명 · 그 뒤로 단계마다 「조건 값|단계 번호」(단계 번호는 표 82 의 번호).</summary>
     public IReadOnlyDictionary<int, string[]> Tales { get; } = new Dictionary<int, string[]>();
     /// <summary>이야기의 단계 글(표 82) — 번호 → 글.</summary>
@@ -262,6 +270,16 @@ public sealed class DataTables
         catch (Exception e) { Console.Error.WriteLine("HistoryEnds: " + e.Message); }
         try { Legends = Rows(Table(124), (r, id) => { string name = r.Text(id), body = r.Text(id); int find = r.UInt16(); r.Skip(78); return (Id: id, Texts: new[] { name, body, find.ToString() }); }).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts); }
         catch (Exception e) { Console.Error.WriteLine("Legends: " + e.Message); }
+        try { HistoryEvents = Rows(Table(85), (r, id) => { string name = r.Text(id), body = r.Text(id); return (Id: id, Texts: new[] { name, body, r.Byte().ToString() }); }).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts); }
+        catch (Exception e) { Console.Error.WriteLine("HistoryEvents: " + e.Message); }
+        try { GreatPirates = Rows(Table(94), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id) })).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts); }
+        catch (Exception e) { Console.Error.WriteLine("GreatPirates: " + e.Message); }
+        try
+        {
+            Themes = Rows(Table(83), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id) })).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts);
+            ThemeClues = Rows(Table(84), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id) })).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts);
+        }
+        catch (Exception e) { Console.Error.WriteLine("Themes: " + e.Message); }
         try
         {
             Tales = Rows(Table(81), (r, id) =>

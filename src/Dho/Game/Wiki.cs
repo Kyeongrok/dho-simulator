@@ -35,6 +35,9 @@ internal sealed partial class Voyage
         if (kind is "" or "발견물") all.AddRange(Data.Discoveries.Where(d => d.Name != "" && Hit(d.Name)).OrderBy(d => d.Name).Select(d => ("발견물", d.Id, d.Name)));
         if (kind is "" or "의뢰") all.AddRange(Data.Quests.Where(q => q.Title != "" && Hit(q.Title)).OrderBy(q => q.Title).Select(q => ("의뢰", q.Id, q.Title)));
         if (kind is "" or "부관") all.AddRange(Data.AideFacts.Where(a => a.Name != "" && (Hit(a.Name) || Hit(a.Job))).OrderBy(a => a.Name).Select(a => ("부관", a.Doc, a.Job is "" or "-" ? a.Name : $"{a.Name} — {a.Job}")));      // 이름 옆에 직업 — 직업 이름으로도 찾아진다
+        if (kind is "" or "역사") all.AddRange(Data.HistoryEvents.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 3000, e.Value[0] + " (사건)")));      // 역사적 사건(표 85) — 3000 을 더했다(지은 번호)
+        if (kind is "" or "역사") all.AddRange(Data.Themes.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 4000, e.Value[0] + " (테마)")));      // 테마(표 83) — 4000 을 더했다(지은 번호)
+        if (kind is "" or "역사") all.AddRange(Data.GreatPirates.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 5000, e.Value[0] + " (대해적)")));      // 대해적(표 94) — 5000 을 더했다(지은 번호)
         if (kind is "" or "역사") all.AddRange(Data.HistoryEnds.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key, e.Value[0])));      // 역사적 사건의 결말(표 87)
         if (kind is "" or "역사") all.AddRange(Data.Legends.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 1000, e.Value[0])));      // 전승(표 124) — 결말과 번호가 겹쳐 1000 을 더했다(지은 번호)
         if (kind is "" or "역사") all.AddRange(Data.Tales.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 2000, e.Value[0])));      // 단계가 있는 이야기(표 81) — 2000 을 더했다(지은 번호)
@@ -311,6 +314,37 @@ internal sealed partial class Voyage
                 if (quest.Hint != "") { Head("실마리"); WikiProse(lines, quest.Hint); }
                 break;
             }
+            case "역사" when id > 5000 && Data.GreatPirates.TryGetValue(id - 5000, out string[]? corsair):
+            {
+                // 대해적 — 원본의 표 94(이름 · 설명). 바다에 나타나는 규칙은 게임에 아직 없다
+                lines.Add(new("대해적(글만 보인다)"));
+                if (corsair.Length > 1 && corsair[1] != "") WikiProse(lines, corsair[1]);
+                break;
+            }
+            case "역사" when id > 4000 && Data.Themes.TryGetValue(id - 4000, out string[]? motif):
+            {
+                // 테마 — 원본의 표 83(이름 · 설명). 단서(표 84)는 설명 글에 든 테마 이름으로 잇고, 이야기(표 81)는 그 단서 글에 이름이 나오는 것만 잇는다(숫자 칸이 없다)
+                lines.Add(new("테마(글만 보인다)"));
+                if (motif.Length > 1 && motif[1] != "") WikiProse(lines, motif[1]);
+                var leads = Data.ThemeClues.Where(c => c.Value.Length > 1 && c.Value[1].Replace("\n", "").Contains($"「{motif[0]}」")).OrderBy(c => c.Key).Select(c => c.Value).ToList();
+                var storied = Data.Tales.Where(t => leads.Exists(c => c[0].Contains(t.Value[0]) || c[1].Contains(t.Value[0]))).OrderBy(t => t.Key).ToList();
+                if (storied.Count > 0) { Head("이야기"); foreach (var t in storied) lines.Add(new(t.Value[0], "역사", t.Key + 2000)); }
+                Head("단서");
+                lines.Add(new(leads.Count == 0 ? "단서 없음" : $"단서 {leads.Count}개"));
+                foreach (string[] c in leads.Take(10)) lines.Add(new("· " + c[0]));
+                if (leads.Count > 10) lines.Add(new($"… 그 밖 {leads.Count - 10}개"));
+                break;
+            }
+            case "역사" when id > 3000 && Data.HistoryEvents.TryGetValue(id - 3000, out string[]? happening):
+            {
+                // 역사적 사건 — 원본의 표 85(이름 · 본문). 결말 셋은 표 87 의 3n−2 · 3n−1 · 3n. 사건을 겪는 기능은 게임에 아직 없다
+                lines.Add(new("역사적 사건(글만 보인다)"));
+                if (happening.Length > 1 && happening[1] != "") WikiProse(lines, happening[1]);
+                Head("결말");
+                for (int n = 3 * (id - 3000) - 2; n <= 3 * (id - 3000); n++)
+                    if (Data.HistoryEnds.TryGetValue(n, out string[]? outcome) && outcome[0] != "" && !outcome[0].StartsWith('※')) lines.Add(new(outcome[0], "역사", n));
+                break;
+            }
             case "역사" when id > 2000 && Data.Tales.TryGetValue(id - 2000, out string[]? tale):
             {
                 // 단계가 있는 이야기 — 원본의 표 81(이름 · 설명 · 단계 칸)과 표 82(단계 글). 이야기를 푸는 기능은 게임에 아직 없다
@@ -341,6 +375,7 @@ internal sealed partial class Voyage
                 if (end.Length > 1 && end[1] != "") WikiProse(lines, end[1]);
                 var after = end.Skip(2).Where(t => t != "").ToList();
                 if (after.Count > 0) { Head("결과"); foreach (string t in after) WikiProse(lines, t); }
+                if (Data.HistoryEvents.TryGetValue((id + 2) / 3, out string[]? whence)) { Head("사건"); lines.Add(new(whence[0], "역사", (id + 2) / 3 + 3000)); }
                 break;
             }
             case "부관" when Data.AideFacts.Find(a => a.Doc == id) is { } mate:

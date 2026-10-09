@@ -183,13 +183,80 @@ internal sealed partial class Voyage
         StopFollow();
         _turnMarks.Clear();
         for (int k = 0; k + 2 < route.Points.Count; k += 3) _turnMarks.Add((route.Points[k], route.Points[k + 1], route.Points[k + 2] * Math.PI / 180, 0));
+        // 항로 만들기로 저장한 것은 지나온 점도 들어 있다 — 지도의 지나온 항로로 함께 보인다
+        if (route.Trail.Count >= 4)
+        {
+            _track.Clear();
+            for (int k = 0; k + 1 < route.Trail.Count; k += 2) _track.Add((route.Trail[k], route.Trail[k + 1]));
+        }
         Say($"항로 「{route.Name}」을(를) 불러왔다. (조타 기록 {_turnMarks.Count}개)");
     }
     public void RemoveRoute(SavedRoute route) { Data.Routes.Remove(route); Data.SaveRoutes(); }
 
+    // 항로 만들기(사용자, 2026-10-09) — 켜면 그때까지의 조타 기록을 항로로 저장해 두고 새로 적기 시작한다.
+    // 도시를 떠나서 도시에 들 때까지가 항로 하나: 입항하면 「떠난 도시 → 든 도시」로 저절로 저장되고(지나온 점과 조타 기록), 다음 출항부터 새 항로가 된다.
+    // 켜 둔 것은 게임을 끄면 풀린다(저장에 넣지 않았다)
+    public bool RouteMaking { get; private set; }
+    private string _routeFrom = "";
+    public void MakeRoute()
+    {
+        if (RouteMaking) { RouteMaking = false; Say("항로 만들기를 껐다."); return; }
+        if (_turnMarks.Count >= 2) SaveRoute();      // 기존 것은 자동 저장
+        ClearTrack();
+        (RouteMaking, _routeFrom) = (true, Mode == Mode.Port ? City.Name : SeaNameAt(ShipX, ShipY));
+        Say(Mode == Mode.Port ? $"항로 만들기 — {City.Name}을(를) 떠나 다음 도시에 들 때까지가 항로 하나로 저장된다." : $"항로 만들기 — 여기({_routeFrom})부터 다음 도시에 들 때까지가 항로 하나로 저장된다.");
+    }
+    // 출항: 새 항로의 처음
+    private void RouteMakingDeparts()
+    {
+        if (!RouteMaking) return;
+        ClearTrack();
+        _routeFrom = City.Name;
+    }
+    // 입항: 떠난 곳 → 이 도시로 저장(지나온 점이 둘은 있어야 한다)
+    private void RouteMakingArrives(CityData city)
+    {
+        if (!RouteMaking || _track.Count < 2) return;
+        string name = $"{_routeFrom} → {city.Name}";
+        for (int n = 2; Data.Routes.Exists(r => r.Name == name); n++) name = $"{_routeFrom} → {city.Name} ({n})";
+        Data.Routes.Add(new SavedRoute
+        {
+            Name = name, Saved = $"{DateTime.Now:yyyy-MM-dd HH:mm}",
+            Points = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI) })],
+            Trail = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })],
+        });
+        Data.SaveRoutes();
+        Say($"항로 「{name}」을(를) 저장했다. (지나온 점 {_track.Count}개 · 조타 기록 {_turnMarks.Count}개)");
+    }
+
     /// <summary>조타 기록 하나의 침로를 고친다 · 지운다(내비게이션의 조타 기록 창).</summary>
     public void SetTurnHeading(int index, double heading) { if (index >= 0 && index < _turnMarks.Count) _turnMarks[index] = _turnMarks[index] with { Heading = Normalize(heading) }; }
     public void RemoveTurn(int index) { if (index >= 0 && index < _turnMarks.Count) _turnMarks.RemoveAt(index); }
+    /// <summary>조타 기록의 자리를 옮긴다(침로 · 날짜는 그대로) — 내비게이션에서 항로를 편집할 때.</summary>
+    public void MoveTurn(int index, double x, double y) { if (index >= 0 && index < _turnMarks.Count) _turnMarks[index] = _turnMarks[index] with { X = x, Y = y }; }
+    /// <summary>조타 기록을 하나 끼워 넣는다 — index 번과 다음 번의 한가운데(침로는 다음 점 쪽), 끝 점 뒤라면 그 침로로 40 만큼 간 자리(지은 값). 넣은 자리의 번호를 돌려준다.</summary>
+    public int InsertTurn(int index)
+    {
+        if (index < 0 || index >= _turnMarks.Count) return -1;
+        var from = _turnMarks[index];
+        if (index + 1 < _turnMarks.Count)
+        {
+            var next = _turnMarks[index + 1];
+            double dx = WorldMap.DeltaX(from.X, next.X), dy = next.Y - from.Y;
+            _turnMarks.Insert(index + 1, (from.X + dx / 2, from.Y + dy / 2, dx == 0 && dy == 0 ? from.Heading : Normalize(Math.Atan2(dx, -dy)), from.Day));
+        }
+        else _turnMarks.Add((from.X + Math.Sin(from.Heading) * 40, from.Y - Math.Cos(from.Heading) * 40, from.Heading, from.Day));
+        return index + 1;
+    }
+    /// <summary>편집한 조타 기록을 그 항로에 다시 적는다(이름 · 지나온 점은 그대로) — 사용자, 2026-10-09: 「항로 저장된거 열어서 편집 할 수 있게」.</summary>
+    public void UpdateRoute(SavedRoute route)
+    {
+        if (_turnMarks.Count < 2) { Say("조타 기록이 둘은 있어야 항로로 저장한다."); return; }
+        route.Points = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI) })];
+        route.Saved = $"{DateTime.Now:yyyy-MM-dd HH:mm}";
+        Data.SaveRoutes();
+        Say($"항로 「{route.Name}」을(를) 고쳐 저장했다. (조타 기록 {_turnMarks.Count}개)");
+    }
     // 조타 기록을 항로로 — 고른 기록부터 차례로 그 자리들을 지나가고, 자리에 닿으면 거기 적힌 침로를 잡는다(사용자, 2026-10-09).
     // 손으로 키를 잡으면(글쇠 · 더블클릭) 풀린다. 닿았다고 보는 거리(5)는 지은 값
     public bool TurnFollow { get; private set; }
@@ -567,6 +634,7 @@ internal sealed partial class Voyage
         SecondsAtSea = 0;
         Sail = 1;
         Say($"{City.Name}을(를) 출항했다.");
+        RouteMakingDeparts();
         // 옵션: 출항하면 돛 조종을 켠다 — 스킬이 없거나 못 쓸 때(행동력 부족 따위)는 조용히 넘어간다
         if (Settings.AutoSailTrim && Data.SkillRules.Find(r => r.Effect == "Speed") is { } trim && Rank(trim.SkillId) > 0 && SkillBlocker(trim) == null) UseSkill(trim);
     }
@@ -590,6 +658,7 @@ internal sealed partial class Voyage
         if (Battle is { Result: null }) { Say("싸우는 중에는 입항할 수 없다."); Cues.Enqueue("Error"); return; }
         if (PermitMissing(city) is { } lacking) { Say($"{city.Name} — {lacking}으로의 입항 허가가 없다."); Cues.Enqueue("Error"); return; }
         int days = DaysAtSea;
+        RouteMakingArrives(city);
         MoorAt(city);
         Say($"{city.Name}에 입항했다. (항해 {days}일)");
         DeliverTow();

@@ -206,10 +206,13 @@ internal sealed class SceneRenderer : IDisposable
             float2 slope = float2(hx - h0, hz - h0) / e;
             float frame = Time / 5.0;
             // layers are turned off the grid so the 64 x 64 tile does not line up in rows
-            float2 ripple = WaveSlope(float2(p.x * 0.94 - p.y * 0.34, p.x * 0.34 + p.y * 0.94) / 30.0, frame) * 1.0;
-            ripple += WaveSlope(float2(p.x * 0.6 + p.y * 0.8, p.y * 0.6 - p.x * 0.8) / 97.0 + 0.37, frame * 0.61 + 0.5) * 1.1;
+            // ShipPosition carries the extra drift of the water surface (grows along the heading with speed): the ripples and the foam
+            // slide astern faster than the map moves, so a fast ship looks fast
+            float2 pf = p + ShipPosition;
+            float2 ripple = WaveSlope(float2(pf.x * 0.94 - pf.y * 0.34, pf.x * 0.34 + pf.y * 0.94) / 30.0, frame) * 1.0;
+            ripple += WaveSlope(float2(pf.x * 0.6 + pf.y * 0.8, pf.y * 0.6 - pf.x * 0.8) / 97.0 + 0.37, frame * 0.61 + 0.5) * 1.1;
             float near = saturate(1.0 - dist / 420.0);
-            ripple += WaveSlope(p / 11.0 + 0.11, frame * 1.7) * 0.7 * near;
+            ripple += WaveSlope(pf / 11.0 + 0.11, frame * 1.7) * 0.7 * near;
             float calm = saturate(1.0 - dist / 3500.0);
             // rougher seas: steeper swell and stronger ripples
             float rough = lerp(0.75, 1.0, saturate(WaveScale)) + max(WaveScale - 1.0, 0.0) * 0.55;
@@ -229,19 +232,30 @@ internal sealed class SceneRenderer : IDisposable
             float3 halfway = normalize(v + SunDirection);
             color += SunColor * pow(saturate(dot(n, halfway)), 140.0) * 0.10;
 
-            float2 rel = (i.world.xz - ShipPosition) / K;
+            float2 rel = i.world.xz / K;      // the ship sits at the origin
             float along = dot(rel, ShipDirection);
             float across = dot(rel, float2(-ShipDirection.y, ShipDirection.x));
             float hull = saturate(1.0 - length(float2(across / 16.0, along / 44.0)));
             float behind = saturate(-along / 420.0);
-            float spread = 12.0 + behind * 85.0;
-            float wake = saturate(1.0 - abs(across) / spread) * step(along, 20.0) * (1.0 - behind);
+            // bow wave: two bands of foam that leave the bow and open into a V; faster = longer, wider, whiter (shape after the original's look, numbers made up)
+            float back = 40.0 - along;
+            float reach = 90.0 + 520.0 * ShipSpeed;
+            float armAt = 9.0 + back * (0.16 + 0.10 * ShipSpeed);
+            float armWide = 5.0 + back * 0.11;
+            float arms = saturate(1.0 - abs(abs(across) - armAt) / armWide) * step(0.0, back) * saturate(1.0 - back / reach);
+            float astern = saturate(1.0 - abs(across) / (8.0 + behind * 40.0)) * step(along, -30.0) * (1.0 - behind);
             // noise needs small coordinates: far from the world origin the hash loses precision and the foam smears into streaks
-            float2 q = frac(p / 512.0) * 512.0;
+            float2 q = frac(pf / 512.0) * 512.0;
             float drift = frac(Time / 640.0) * 640.0;
             float foamNoise = Noise(q * 0.22 + drift * 0.4) * 0.6 + Noise(q * 0.7 - drift * 0.8) * 0.4;
-            float foam = saturate((hull * 1.4 + wake * 1.5 * saturate(ShipSpeed * 2.0)) * (0.35 + ShipSpeed)) * smoothstep(0.18, 0.7, foamNoise + hull * 0.4);
-            color = lerp(color, (Ambient + SunColor) * 0.9, saturate(foam) * 0.8);
+            // water cut by the hull: a narrow band of foam hugging the waterline along the ship's length
+            float sides = saturate(1.0 - abs(abs(across) - 9.0) / 5.0) * saturate(1.0 - abs(along) / 48.0);
+            float foam = saturate(hull * 0.5 * (0.3 + ShipSpeed) + (sides * 1.3 + arms * 1.25 + astern * 1.0) * saturate(ShipSpeed * 2.5)) * smoothstep(0.26, 0.66, foamNoise + hull * 0.3 + arms * 0.08);
+            color = lerp(color, (Ambient + SunColor) * 0.9, saturate(foam) * 0.85);
+            // speed lines: thin pale-blue streaks running astern beside the hull once the ship is fast (after the original's look; numbers made up)
+            float streakNoise = Noise(float2(across * 1.5, (along + dot(ShipPosition, ShipDirection)) * 0.012));
+            float streak = smoothstep(0.66, 0.8, streakNoise) * saturate(1.0 - abs(abs(across) - 20.0) / 15.0) * saturate(1.0 - abs(along + 50.0) / 150.0) * saturate((ShipSpeed - 0.5) * 2.5);
+            color += float3(0.55, 0.75, 1.0) * (Ambient + SunColor) * streak * 0.6;
 
             // hull effect paint: light shimmering on the water around the ship (Pad1..3 = colour, 0 = none)
             float3 aura = float3(Pad1, Pad2, Pad3);
