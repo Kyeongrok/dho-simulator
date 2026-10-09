@@ -519,6 +519,7 @@ internal sealed class GameWindow : IDisposable
             case "Dev": _hud.ToggleDev(); return;
             case "Warp": _hud.ToggleWarp(); return;
             case "Wiki": _hud.ToggleWiki(); return;
+            case "ItemAdd": _hud.ToggleItemAdd(); return;
             case "Jobs": Toggle(Dialog.Jobs); return;
             case "Equip": Toggle(Dialog.Equip); return;
             case "Aides": Toggle(Dialog.Aides); return;
@@ -856,6 +857,7 @@ internal sealed class GameWindow : IDisposable
                         * Matrix4x4.CreateTranslation(0, sway * 60f - _sunk, 0);
         // 재해의 모습을 그릴 자리 — 배의 가운데 · 뱃머리 쪽 · 돛대 꼭대기 쪽이 화면의 어디인가
         _hud.ShipOnScreen = null;
+        _hud.CameraHeading = -_yaw;      // 카메라가 보는 쪽 = 카메라가 물러난 쪽(_yaw)의 맞은편 — 내비게이션의 하늘빛 줄
         if (_voyage.Mode == Mode.Sea && !town)
         {
             (float X, float Y)? Spot(Vector3 p)
@@ -1731,6 +1733,7 @@ internal sealed class GameWindow : IDisposable
                 _voyage.ShowSail(int.Parse(sailLook[0]), int.Parse(sailLook[1]));
                 break;
             case "type": foreach (char c in argument) _hud.Type(c); break;
+            case "enter": _hud.Type('\r'); break;      // 대본: 입력 칸에서 Enter
             case "studycheck": _voyage.StudyCheckForTest(); break;
             case "studyeffects": _voyage.StudyEffectsForTest(); break;      // 대본: 정치상인 투자 10% · 흑자 교역 10만 문턱
             case "battlestudy": _voyage.BattleStudyForTest(); break;      // 대본: 싸움 중 — 해군사관 포격 10% · 현상금 사냥꾼 상금 2배
@@ -1861,6 +1864,11 @@ internal sealed class GameWindow : IDisposable
             case "peekship": _hud.PeekShip((int)Number()); break;      // 대본: 위키의 「선박 정보로 보기」(peekship:배번호)
             case "seabases": File.WriteAllText(argument, string.Join("\n", Dho.Render.PortScene.SeaBases.Select(b => (MathF.Floor(b / 100) * 100)).GroupBy(b => b).OrderBy(g => g.Key).Select(g => $"{g.Key} {g.Count()}"))); break;      // 대본: 바다에서 보는 도시의 면 밑동 높이 분포
             case "sealimit": Dho.Render.PortScene.SeaBaseLimit = (float)Number(); break;
+            case "icons": _hud.OpenIcons((int)Number()); break;      // 대본: 아이콘 목록 창(icons:쪽)
+            case "followturns": _voyage.FollowTurns(Math.Abs((int)Number()), Number() < 0); break;      // 음수면 거꾸로      // 대본: 조타 기록 N 번부터 따라간다
+            case "effects": _hud.OpenEffects(argument == "" ? -1 : (int)Number()); break;      // effects:2215 = ef0002 의 215번 효과      // 대본: 화면 효과 보기 창
+            case "navroutes": _hud.NavRoutesForTest(); break;      // 대본: 내비게이션의 항로 목록을 편다
+            case "navturn": _hud.NavTurnPickForTest((int)Number()); break;      // 대본: 내비게이션에서 조타 기록 N 번을 고른다
             case "wikipick": _hud.WikiPickForTest(argument.Split(',')[0], int.Parse(argument.Split(',')[1])); break;      // 대본: wikipick:도시,2
             case "sea":                             // 바다 위의 자리로 옮긴다: sea:x,y
                 var seaAt = argument.Split(',');

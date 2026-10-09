@@ -149,6 +149,39 @@ internal static unsafe class GameTexture
         }
     }
 
+    /// <summary>MFTF 묶음의 A8R8G8B8 판에 든 그림 수(없으면 0)와, 그 가운데 하나를 BGRA 로 — 원본 이펙트 그림을 화면에 보일 때 쓴다.</summary>
+    public static int ArgbCount(byte[] data) => ArgbAt(data) is int xftx and >= 0 ? BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(xftx + 16)) : 0;
+    public static (int Width, int Height, byte[] Bgra)? ArgbImage(byte[] data, int image)
+    {
+        int xftx = ArgbAt(data);
+        if (xftx < 0 || image < 0 || image >= BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(xftx + 16))) return null;
+        int record = xftx + BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(xftx + 20 + image * 4));
+        int width = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(record)), height = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(record + 2));
+        int at = record + BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(record + 12));
+        if (width <= 0 || height <= 0 || at + width * height * 4 > data.Length) return null;
+        return (width, height, data.AsSpan(at, width * height * 4).ToArray());
+    }
+    private static int ArgbAt(byte[] data)
+    {
+        if (data.Length < 24 || !data.AsSpan(0, 4).SequenceEqual("MFTF"u8)) return -1;
+        for (int i = 0; i < BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(16)); i++)
+            if (BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(20 + i * 16)) == A8R8G8B8) return BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(24 + i * 16));
+        return -1;
+    }
+
+    /// <summary>GTEX 텍스처에서 뚫린(알파가 거의 0 인) 점의 몫 — 나뭇잎 · 울타리처럼 오려 낸 그림을 가려내는 데 쓴다. 알파가 없는 그림은 0.</summary>
+    public static float GtexHoles(byte[] data, int gtex, int index)
+    {
+        int at = gtex + BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(gtex + 12 + index * 4));
+        if (BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(at)) == R8G8B8) return 0;
+        int width = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(at + 4)), height = BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(at + 6));
+        at += 12;
+        int seen = 0, holes = 0;
+        for (int i = 0; i < width * height && at + i * 4 + 3 < data.Length; i += 3, seen++)
+            if (data[at + i * 4 + 3] < 48) holes++;
+        return seen == 0 ? 0 : holes / (float)seen;
+    }
+
     public static int GtexCount(byte[] data, int gtex) => BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(gtex + 8));
 
     private static ID3D11ShaderResourceView Create(Gfx gfx, int width, int height, Format format, SubresourceData[] levels)

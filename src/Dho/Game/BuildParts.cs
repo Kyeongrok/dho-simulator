@@ -191,7 +191,7 @@ internal sealed partial class Voyage
         Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
         TrainEffect("Shipbuilding", ShipbuildingExp(Ship));
         Cues.Enqueue("Part");
-        Say($"{Ship.Name}에 옵션 스킬 「{given.Name}」을(를) 부여했다." + (OptionValid(given) ? "" : $" 옵션 스킬의 유효 조건을 충족하지 않습니다({OptionNeedLine(given)})."));
+        Say($"{Ship.Name}에 옵션 스킬 「{given.Name}」을(를) 부여했다." + (OptionValid(given) ? "" : $" 다만 이 배는 그 스킬이 듣는 조건에 안 맞는다({OptionNeedLine(given)})."));
     }
 
     /// <summary>재료를 넣어 강화한다 — 능력치마다 범위 안에서 붙고(조타 숙련도의 한계까지), 조합이 맞으면 옵션 스킬이 붙는다.</summary>

@@ -466,13 +466,14 @@ internal sealed partial class Voyage
             if (Dock.Count >= DockSlots) { Say(Text(6831, "부두가 가득 찼다.").TrimStart('※')); return; }
             // 교환권으로 받은 배에는 그 배에 붙일 수 있는 옵션 스킬 가운데 하나가 무작위로 붙어 있다
             // (배 상세를 모은 배는 거기 적힌 스킬 가운데, 못 모은 배는 옵션 스킬 전체 가운데)
-            var fitted = new ShipWork();
+            // 원본처럼 강화를 한 번 한 상태(1/6)로 나온다(사용자가 준 글, 2026-10-09) — 그 한 번으로 무엇이 올랐는지는 몰라 횟수만 쓴 것으로 한다(짐작). 성능 초기화로 되돌린다
+            var fitted = new ShipWork { Times = 1 };
             var allowed = Data.ShipDetail(given.Name) is { Skills.Count: > 0 } detail
-                ? Data.OptionSkills.Where(o => detail.Skills.Exists(s => s.Name == o.Name)).ToList() : Data.OptionSkills;
+                ? Data.OptionSkills.Where(o => detail.Skills.Exists(s => s.Name == o.Name)).ToList() : Data.OptionSkills.Where(o => o.SkillId is not (>= 2900 and <= 2904)).ToList();      // 「개조」는 그레이드 보너스로만 붙는 스킬이라 뺀다
             var bonus = allowed.Count > 0 ? allowed[_random.Next(allowed.Count)] : null;
             if (bonus != null) fitted.Skills.Add(bonus.SkillId);
             Dock.Add(new DockedShip { Ship = given, Durability = ShipStats.Of(given, Data.Settings.Ships).Durability, Work = fitted, Material = NativeMaterial(given) });
-            Say($"{ticket.Name}을(를) {given.Name}(으)로 바꿔 부두에 매어 두었다. 선박교환에서 갈아탄다." + (bonus == null ? "" : $" 옵션 스킬 「{bonus.Name}」이(가) 붙어 있다."));
+            Say($"{ticket.Name}을(를) {given.Name}(으)로 바꿔 부두에 매어 두었다. 선박교환에서 갈아탄다. 강화가 한 번 된 상태다." + (bonus == null ? "" : $" 옵션 스킬 「{bonus.Name}」이(가) 붙어 있다."));
         }
         else if (item >= JobPaper && Data.Jobs.Find(j => j.Id == item - JobPaper) is { } job)
         {
@@ -495,13 +496,16 @@ internal sealed partial class Voyage
             string text = food.Description.Replace(" ", "");
             bool rests = text.Contains("피로회복");
             var scurvy = text.Contains("괴혈병") ? Disasters.Find(d => d.Data.Name.Contains("괴혈병")) : null;
-            if (Vigour >= MaxVigour && (!rests || Fatigue <= 0) && scurvy == null) { Say($"{food.Name} — 지금은 먹을 까닭이 없다."); Cues.Enqueue("Error"); return; }
+            // 영양부족은 행동력을 채우는 음식을 먹으면 낫는다(사용자, 2026-10-09 — 원본에서 그렇다)
+            var hungry = Disasters.Find(d => d.Data.Name.Contains("영양부족"));
+            if (Vigour >= MaxVigour && (!rests || Fatigue <= 0) && scurvy == null && hungry == null) { Say($"{food.Name} — 지금은 먹을 까닭이 없다."); Cues.Enqueue("Error"); return; }
             GainVigour(vigour * (1 + Study("FoodGain")));
             double relief = Data.FoodEffects.TryGetValue(item, out var effect) && effect.Length > 1 && effect[1] > 0 ? effect[1] : rests ? vigour * 0.2 : 0;
             rests |= relief > 0;
             if (rests) Fatigue = Math.Max(0, Fatigue - relief);
             if (scurvy != null) End(scurvy);
-            Say($"{food.Name}을(를) 먹었다. 행동력 +{vigour} ({Vigour:0}/{MaxVigour})" + (rests ? $" · 피로 −{relief:0}" : "") + (scurvy != null ? " · 괴혈병이 가라앉았다" : "") + ".");
+            if (hungry != null) End(hungry);
+            Say($"{food.Name}을(를) 먹었다. 행동력 +{vigour} ({Vigour:0}/{MaxVigour})" + (rests ? $" · 피로 −{relief:0}" : "") + (scurvy != null ? " · 괴혈병이 가라앉았다" : "") + (hungry != null ? " · 영양부족이 나았다" : "") + ".");
             Cues.Enqueue("Eat");
         }
         else return;

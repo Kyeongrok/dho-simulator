@@ -58,7 +58,7 @@
   "WindowHeight": 1440,
   "Fullscreen": false,
   "UiScale": 2,
-  "NavLineLength": 114,
+  "NavLineLength": 120,
   "NavLineWidth": 1,
   "MusicVolume": 0.7,
   "IconScale": 1,
@@ -67,8 +67,8 @@
   "SeaMapScale": 0.8,
   "SeaMapZoom": 1,
   "SeaMapSquare": true,
-  "ShipFilterSize": 3,
-  "ShipFilterUse": 1,
+  "ShipFilterSize": 0,
+  "ShipFilterUse": 2,
   "ItemRows": 5,
   "ModWorkOnBoard": true,
   "ModCombineOnBoard": false,
@@ -79,6 +79,8 @@
   "ModAllLanguages": false,
   "ModBooksTimes5": false,
   "AutoSailTrim": true,
+  "SteerStep": 5,
+  "AutoProcureInRain": false,
   "ModCombineBonus": 50,
   "ModOverWorkBonus": 40,
   "ModTripleGain": false,
@@ -97,7 +99,8 @@
     "Warp": 48,
     "Mod": 77,
     "Dev": 57,
-    "Wiki": 187
+    "Wiki": 187,
+    "ItemAdd": 73
   },
   "SoundMemos": {
     "14:15": "돛 조종 켜질 때 ",

@@ -15,7 +15,7 @@ internal sealed partial class Voyage
 
     /// <summary>낱말이 이름에 든 것들 — 도시 · 교역품 · 아이템 · 배 차례. 낱말이 비면 도시 전부.</summary>
     /// <summary>위키의 갈래들 — 탭의 차례.</summary>
-    public static readonly string[] WikiKinds = ["도시", "교역품", "아이템", "배", "스킬", "레시피", "발견물", "의뢰", "직업", "부품", "상륙지"];
+    public static readonly string[] WikiKinds = ["도시", "교역품", "아이템", "배", "스킬", "레시피", "발견물", "의뢰", "직업", "부품", "상륙지", "재질", "해역"];
 
     /// <summary>낱말이 이름에 든 것들. <paramref name="kind"/> 를 주면 그 갈래만(낱말이 비면 그 갈래 전부), 안 주고 낱말도 비면 도시 전부.</summary>
     public List<(string Kind, int Id, string Name)> WikiFind(string word, string building, string kind)
@@ -26,7 +26,7 @@ internal sealed partial class Voyage
         if (kind == "") word = word == "" ? "\0" : word;      // 「전체」에서 낱말이 없으면 도시만(위에서 돌려보냈다)
         if (kind is "" or "교역품") { }                       // 교역품 · 아이템 · 배는 아래의 옛 함수가 낱말로 찾는다 — 낱말이 비면 여기서 전부를 댄다
         if (kind == "교역품" && word == "") return Data.Goods.OrderBy(g => g.Name).Select(g => ("교역품", g.Id, g.Name)).ToList();
-        if (kind == "아이템" && word == "") return Data.ItemTowns.Keys.Select(id => ("아이템", id, ItemName(id))).OrderBy(i => i.Item3).ToList();
+        if (kind == "아이템" && word == "") return WikiItems().Select(i => ("아이템", i.Id, i.Name)).ToList();
         if (kind == "배" && word == "") return Data.Ships.Where(s => s.Kind == 0).GroupBy(s => s.Name).Select(g => g.First()).OrderBy(s => s.Name).Select(s => ("배", s.Id, s.Name)).ToList();
         if (kind is "" or "스킬")
             all.AddRange(Data.Skills.Where(s => s.Name != "" && !s.Name.StartsWith('※') && Hit(s.Name)).GroupBy(s => s.Name).Select(g => g.First()).OrderBy(s => s.Name).Select(s => ("스킬", s.Id, s.Name))
@@ -37,6 +37,8 @@ internal sealed partial class Voyage
         if (kind is "" or "직업") all.AddRange(Data.JobFacts.Where(j => j.Name != "" && Hit(j.Name)).OrderBy(j => j.Name).Select(j => ("직업", j.No, j.Name)));
         if (kind is "" or "부품") all.AddRange(Data.ShipParts.Where(p => p.Name != "" && Hit(p.Name)).GroupBy(p => p.Id).Select(g => g.First()).OrderBy(p => p.Slot).ThenBy(p => p.Name).Select(p => ("부품", p.Id, p.Name)));
         if (kind is "" or "상륙지") all.AddRange(Data.Landings.Where(l => l.Name != "" && Hit(l.Name)).GroupBy(l => l.Id).Select(g => g.First()).OrderBy(l => l.Name).Select(l => ("상륙지", l.Id, l.Name)));
+        if (kind is "" or "해역") all.AddRange(Data.Seas.Where(sea => sea.Name != "" && Hit(sea.Name)).GroupBy(sea => sea.Id).Select(g => g.First()).OrderBy(sea => sea.Name).Select(sea => ("해역", sea.Id, sea.Name)));
+        if (kind is "" or "재질") all.AddRange(Data.ShipMaterials.Where(m => m.Name != "" && Hit(m.Name)).OrderBy(m => m.Name).Select(m => ("재질", m.Id, m.Name)));
         return kind == "" ? all : all.Where(f => f.Kind == kind).ToList();
     }
 
@@ -58,6 +60,15 @@ internal sealed partial class Voyage
         }
     }
 
+    private List<(int Id, string Name)>? _wikiItems;
+    /// <summary>위키의 아이템 목록 — 도구점에서 파는 것뿐 아니라 장비 · 증서 · 교환권 · 쓰는 아이템까지(이름이 있는 것, 이름 차례).</summary>
+    private List<(int Id, string Name)> WikiItems() => _wikiItems ??= Data.ItemTowns.Keys
+        .Concat(Data.Gear.Select(g => g.Id)).Concat(Data.Papers.Select(p => p.Id)).Concat(Data.Items.Select(i => i.Id)).Distinct()
+        .Select(id => (Id: id, Name: ItemName(id))).Where(i => i.Name != "" && !i.Name.StartsWith('※') && !i.Name.StartsWith('?'))
+        // 이름이 같은 것(빛깔만 다른 옷 따위)은 한 줄로 — 도구점에서 파는 것이 있으면 그것, 없으면 번호가 가장 작은 것을 남긴다
+        .GroupBy(i => i.Name).Select(g => g.OrderBy(i => Data.ItemTowns.ContainsKey(i.Id) ? 0 : 1).ThenBy(i => i.Id).First())
+        .OrderBy(i => i.Name, StringComparer.Ordinal).ToList();
+
     public List<(string Kind, int Id, string Name)> WikiFind(string word, string building = "")
     {
         bool Hit(string name) => name.Contains(word, StringComparison.OrdinalIgnoreCase);
@@ -67,7 +78,7 @@ internal sealed partial class Voyage
         var found = Data.Cities.Where(c => !c.Name.StartsWith('※') && (word == "" || Hit(c.Name))).OrderBy(c => c.Name).Select(c => ("도시", c.Id, c.Name)).ToList();
         if (word == "") return found;
         found.AddRange(Data.Goods.Where(g => Hit(g.Name)).OrderBy(g => g.Name).Select(g => ("교역품", g.Id, g.Name)));
-        found.AddRange(Data.ItemTowns.Keys.Select(id => (Id: id, Name: ItemName(id))).Where(i => Hit(i.Name)).OrderBy(i => i.Name).Select(i => ("아이템", i.Id, i.Name)));
+        found.AddRange(WikiItems().Where(i => Hit(i.Name)).Select(i => ("아이템", i.Id, i.Name)));
         found.AddRange(Data.Ships.Where(s => s.Kind == 0 && Hit(s.Name)).GroupBy(s => s.Name).Select(g => g.First()).OrderBy(s => s.Name).Select(s => ("배", s.Id, s.Name)));
         return found;
     }
@@ -115,6 +126,10 @@ internal sealed partial class Voyage
             {
                 string nation = Data.Nations.Find(n => n.Id == city.Nation)?.Name ?? "";
                 lines.Add(new(string.Join(" · ", new[] { CityKindName(city), nation, CultureName(city) }.Where(t => t != ""))));
+                // 말 · 자리 — 그 도시에서 통하는 언어(누르면 스킬 쪽), 항구 앞바다의 해역과 좌표
+                var tongues = LanguagesOf(city);
+                if (tongues.Count > 0) { Head("언어"); foreach (var tongue in tongues) lines.Add(new(tongue.Name, "스킬", tongue.Id)); }
+                if (city.SeaX != 0 || city.SeaY != 0) lines.Add(new($"{SeaNameAt(city.SeaX, city.SeaY)}  ({city.SeaX}, {city.SeaY})"));
                 var fact = Data.MarketFacts.Find(f => f.CityId == id);
                 var market = Data.Markets.Find(m => m.CityId == id);
                 var goods = (market?.GoodIds() ?? []).Select(Good).OfType<GoodData>().ToList();
@@ -150,6 +165,13 @@ internal sealed partial class Voyage
                 var kinds = WikiBuildingsOf(city);
                 if (kinds.Count > 0) Head($"건물 {kinds.Count}가지");
                 foreach (string built in kinds) lines.Add(new(built));
+                // 이 도시에 딸린 상륙지와, 여기서 받는 의뢰
+                var shores = Data.Landings.Where(l => l.City == id && l.Name != "").GroupBy(l => l.Id).Select(g => g.First()).OrderBy(l => l.Name).ToList();
+                if (shores.Count > 0) Head($"가까운 상륙지 {shores.Count}곳");
+                foreach (var shore in shores) lines.Add(new(shore.Name, "상륙지", shore.Id));
+                var asked = Data.Quests.Where(q => q.CityId == id && q.Title != "").OrderBy(q => q.Title).ToList();
+                if (asked.Count > 0) Head($"여기서 받는 의뢰 {asked.Count}건" + (asked.Count > 30 ? " (30건만)" : ""));
+                foreach (var quest in asked.Take(30)) lines.Add(new(quest.Title, "의뢰", quest.Id));
                 break;
             }
             case "교역품" when Good(id) is { } good:
@@ -227,6 +249,7 @@ internal sealed partial class Voyage
             }
             case "직업" when Data.JobFacts.Find(j => j.No == id) is { } job:
             {
+
                 if (job.Cost > 0) lines.Add(new($"전직 비용 {job.Cost:N0}"));
                 if (job.Expert != "") { Head("전문 스킬"); lines.Add(new(job.Expert, "스킬", Data.Skills.Find(s => s.Name == job.Expert)?.Id ?? 0)); }
                 Head($"우대 스킬 {job.Skills.Count}가지");
@@ -282,6 +305,35 @@ internal sealed partial class Voyage
                 if (quest.Hint != "") { Head("실마리"); WikiProse(lines, quest.Hint); }
                 break;
             }
+            case "해역" when Data.Seas.Find(sea => sea.Id == id) is { } waters:
+            {
+                // 해역 — 낚이는 어종(낚시 표), 이 해역에 항구 앞바다가 든 도시, 배 대는 자리가 든 상륙지
+                var catches = FishGrounds.TryGetValue(waters.Name, out var ground) ? ground : CommonFish;
+                Head("낚이는 어종");
+                foreach (string fish in catches)
+                {
+                    var fishGood = Data.Goods.Find(g => g.Name == fish && g.Id is >= 1_601_000 and < 1_602_000);
+                    lines.Add(new(fish + (FishRanks.TryGetValue(fish, out int fishRank) ? $"  (낚시 {fishRank}랭크부터)" : ""), fishGood != null ? "교역품" : "", fishGood?.Id ?? 0));
+                }
+                var ports = Data.Cities.Where(c => !c.Name.StartsWith('※') && (c.SeaX != 0 || c.SeaY != 0) && Zones.ZoneAt(c.SeaX, c.SeaY) == id).OrderBy(c => c.Name).ToList();
+                if (ports.Count > 0) Head($"이 해역의 도시 {ports.Count}곳");
+                foreach (var port in ports) lines.Add(new(port.Name, "도시", port.Id));
+                var beaches = Data.Landings.Where(l => l.Name != "" && (l.X != 0 || l.Y != 0) && Zones.ZoneAt(l.X, l.Y) == id).GroupBy(l => l.Id).Select(g => g.First()).OrderBy(l => l.Name).ToList();
+                if (beaches.Count > 0) Head($"이 해역의 상륙지 {beaches.Count}곳");
+                foreach (var beach in beaches) lines.Add(new(beach.Name, "상륙지", beach.Id));
+                break;
+            }
+            case "재질" when MaterialOf(id) is { } timber:
+            {
+                // 선박 재질 — 내구도 · 돛의 배율은 이용자들이 모은 값(너도밤나무가 100%)
+                lines.Add(new($"내구도 {timber.Durability * 100:0.#}% · 돛 성능 {timber.Sail * 100:0.#}%"));
+                WikiProse(lines, "너도밤나무를 100% 로 본 배율이다. 강화 때 재료 칸 하나에 넣거나 특수 조선에서 고른다.");
+                if (Data.MaterialItems.TryGetValue(id, out int timberItem) && timberItem > 0) { Head("재질 아이템"); lines.Add(new(ItemName(timberItem), "아이템", timberItem)); }
+                var same = Data.ShipMaterials.Where(m => m.Id != id && m.Name != "" && Math.Abs(m.Sail - timber.Sail) < 1e-6 && Math.Abs(m.Durability - timber.Durability) < 1e-6).OrderBy(m => m.Name).Take(12).ToList();
+                if (same.Count > 0) Head("배율이 같은 재질");
+                foreach (var twin in same) lines.Add(new(twin.Name, "재질", twin.Id));
+                break;
+            }
             case "상륙지" when Data.Landings.Find(l => l.Id == id) is { } site:
             {
                 bool placed = site.X != 0 || site.Y != 0;
@@ -301,9 +353,8 @@ internal sealed partial class Voyage
             case "배" when Data.Ships.Find(s => s.Id == id) is { } ship:
             {
                 var stats = ShipStats.Of(ship, Settings.Ships);
-                lines.Add(new($"선원 {stats.MinCrew}/{stats.MaxCrew} · 대포 {stats.Guns} · 창고 {stats.Hold} · 속도 {stats.Knots:0.0}노트"));
-                lines.Add(new($"내구 {stats.Durability} · 세로돛 {stats.VerticalSail} · 가로돛 {stats.HorizontalSail}" + (stats.Rowing > 0 ? $" · 조력 {stats.Rowing}" : "")));
-                lines.Add(new($"선회 {stats.Turn} · 내파 {stats.WaveResist} · 장갑 {stats.Armor}"));
+                // 성능은 줄글이 아니라 선박 정보 창 같은 카드로 — 화면 쪽이 이 여덟 줄 자리에 그린다(사용자, 2026-10-09)
+                for (int row = 0; row < 8; row++) lines.Add(new("", "배카드", ship.Id));
                 // 배 상세(강화 횟수 · 건조 일수 · 강화 상한 · 부품 칸) — 자료가 있는 배만
                 if (Data.ShipDetail(ship.Name) is { } detail)
                 {
@@ -315,12 +366,7 @@ internal sealed partial class Voyage
                         lines.Add(new($"  조력 {detail.Caps[3]} · 선회 {detail.Caps[4]} · 내파 {detail.Caps[5]} · 장갑 {detail.Caps[6]}"));
                         lines.Add(new($"  선실 {detail.Caps[7]} · 포실 {detail.Caps[8]} · 창고 {detail.Caps[9]}"));
                     }
-                    if (detail.Slots.Count >= 6)
-                    {
-                        Head("부품 칸");
-                        lines.Add(new($"보조돛 {detail.Slots[0]} · 특수장비 {detail.Slots[1]} · 추가장갑 {detail.Slots[2]}"));
-                        lines.Add(new($"선측포 {detail.Slots[3]} · 선수포 {detail.Slots[4]} · 선미포 {detail.Slots[5]}"));
-                    }
+
                     if (detail.Borrowed != "") lines.Add(new($"(이 배의 자료가 없어 「{detail.Borrowed}」 것을 빌렸다)"));
                 }
                 var yards = Data.Shipyards.Where(y => y.Value.ContainsKey(ship.Name) && _cities.ContainsKey(y.Key)).OrderBy(y => CityName(y.Key)).ToList();

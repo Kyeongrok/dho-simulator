@@ -85,12 +85,12 @@ internal sealed partial class Voyage
             if (_random.NextDouble() < 1.0 / 3 || _lockForTest)
             {
                 _lockForTest = false;
-                Say(Text(3140, "무언가를 발견했습니다!자물쇠로 잠겨있는 것 같습니다"));
+                Say(Text(3140, "무언가 찾았다! 그런데 자물쇠가 채워져 있다"));
                 if (!Has("Lockpick")) { Say(Text(3147, "자물쇠는 열리지 않았습니다.")); GainExp(0, 10); return; }
                 TrainEffect("Lockpick", 20);
                 if (_random.NextDouble() >= 0.3 + Bonus("Lockpick")) { Say(Text(3143, "자물쇠 열기에 실패했습니다…….")); GainExp(0, 10); return; }
                 found *= 5;
-                Say(Text(3142, "자물쇠 여는 방법을 알아냈습니다!"));
+                Say(Text(3142, "자물쇠를 여는 법을 찾았다!"));
                 Studied("Lock");
                 FindWreckPiece("궤 안에서");
             }

@@ -634,8 +634,8 @@ internal sealed partial class Voyage
             double blast = (50 + _random.NextDouble() * 40) * PartDamage * (1 - Math.Min(0.5, RankByName("조타") * 0.03));
             Durability -= blast;
             battle.Hits.Add(new SeaHit { X = ShipX, Y = ShipY, Text = $"기뢰! −{blast:0}", OnMe = true });
-            battle.Log.Add(Durability <= 0 ? Text(20062, "기뢰에 의해 배가 침몰했습니다!") : $"{Text(3255, "기뢰에 접촉하였습니다!")} {Fill(Text(20010, "선체에 %d의 피해!"), $"{blast:0}")}");
-            if (Durability <= 0) Say(Text(20062, "기뢰에 의해 배가 침몰했습니다!"));
+            battle.Log.Add(Durability <= 0 ? Text(20062, "기뢰를 건드려 배가 가라앉았다!") : $"{Text(3255, "기뢰에 접촉하였습니다!")} {Fill(Text(20010, "선체에 %d의 피해!"), $"{blast:0}")}");
+            if (Durability <= 0) Say(Text(20062, "기뢰를 건드려 배가 가라앉았다!"));
             Cues.Enqueue("Cannon");
             CheckBattleEnd(battle);
             if (Battle != battle || battle.Result != null) return;
@@ -663,8 +663,8 @@ internal sealed partial class Voyage
             else
             {
                 (battle.Boarding, battle.MeleeIn) = (true, 0.5);
-                battle.Log.Add(Text(20059, "적의 선원들이 돌격해 왔습니다!"));
-                Say(Text(20059, "적의 선원들이 돌격해 왔습니다!"));
+                battle.Log.Add(Text(20059, "적선의 선원들이 넘어온다!"));
+                Say(Text(20059, "적선의 선원들이 넘어온다!"));
                 Sail = 0;
             }
         }
@@ -685,12 +685,12 @@ internal sealed partial class Voyage
             if (won == 2)
             {
                 (theirs, mine) = (theirs * 1.5, mine * 0.5);
-                tactics = battle.Tactic switch { 0 => Text(20086, "적선에 돌격! 적의 전술은 무력화되었습니다!"), 1 => Text(20088, "적 선원의 돌격을 막아냈습니다!"), _ => Text(20091, "총격으로 적의 방어를 무력화시켰습니다") } + "\n";
+                tactics = battle.Tactic switch { 0 => Text(20086, "적선으로 뛰어들었다! 적의 전술이 깨졌다!"), 1 => Text(20088, "넘어오는 적 선원들을 막아 냈다!"), _ => Text(20091, "총을 쏘아 적의 방어를 깨뜨렸다") } + "\n";
             }
             else if (won == 1)
             {
                 (theirs, mine) = (theirs * 0.5, mine * 1.5);
-                tactics = battle.Tactic switch { 0 => Text(20087, "적의 방어진때문에 돌격이 실패했습니다!"), 1 => Text(20090, "적 선원의 총격 때문에 방어가 무력화되었습니다!"), _ => Text(20080, "적의 돌격때문에 전술의 효과가 없었습니다!") } + "\n";
+                tactics = battle.Tactic switch { 0 => Text(20087, "적이 굳게 막아 뛰어들지 못했다!"), 1 => Text(20090, "적의 총에 우리 방어가 깨졌다!"), _ => Text(20080, "적이 뛰어들어 전술이 듣지 않았다!") } + "\n";
             }
             // 전술로 누른 합에는 「수탈」 스킬이 랭크마다 5%로 적선의 짐을 조금 빼앗는다(원본 글 20025, 확률과 양은 지은 값)
             if (won == 2 && HoldFree > 0 && Data.Goods.Count > 0 && _random.NextDouble() < Bonus("Loot") + GearEffect("Loot") * 0.03)

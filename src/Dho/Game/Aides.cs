@@ -181,6 +181,6 @@ internal sealed partial class Voyage
         Say($"지방함대 「{mission.Name}」 — {(success ? "잘 끝났다" : "잘되지 않았다")}. ({reward})");
         Cues.Enqueue(success ? "Done" : "Error");
         Dialog = Dialog.FleetReport;
-        if (TitleDue) Say("당신의 올린 공적에 대한 작위가 수여된다고 합니다. 자국 본거지의 투자를 받고있는 인물을 만나러 갑시다.");
+        if (TitleDue) Say(Data.Memos.GetValueOrDefault(2) ?? "작위를 받을 만한 공적이 쌓였다. 자국 본거지의 관리를 찾아가자.");      // 원본의 알림 메모(표 121 의 2번) — 클라이언트에서 읽는다
     }
 }

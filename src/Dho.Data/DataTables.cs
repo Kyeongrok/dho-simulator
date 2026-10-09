@@ -90,6 +90,8 @@ public sealed class DataTables
     public IReadOnlyDictionary<string, string> MaterialNotes { get; } = new Dictionary<string, string>();
     /// <summary>그레이드 보너스의 설명 글(표 90: 번호 · 이름 · 설명, 32줄 — 이름이 ※ 인 줄은 뺀다) — 번호 → 설명.</summary>
     public IReadOnlyDictionary<int, string> GradeBonusNotes { get; } = new Dictionary<int, string>();
+    /// <summary>알림 메모의 풀이 글(표 121: 번호 · 제목 · 「…메모가 있습니다」 · 풀이, 53줄) — 번호 → 풀이. 2 작위 수여 · 3 입항허가 …</summary>
+    public IReadOnlyDictionary<int, string> Memos { get; } = new Dictionary<int, string>();
     /// <summary>선박 데코(표 138) 321줄과 선원 장비(표 139) 214줄 — 이름이 「※」인 빈 줄까지 그대로.</summary>
     public IReadOnlyList<ShipDeco> Decos { get; }
     public IReadOnlyList<CrewGear> CrewGears { get; }
@@ -246,6 +248,8 @@ public sealed class DataTables
         catch (Exception e) { Console.Error.WriteLine("MaterialNotes: " + e.Message); }
         try { GradeBonusNotes = Rows(Table(90), (r, id) => (Id: id, Name: r.Text(id), Note: r.Text(id))).Where(p => !p.Name.StartsWith('※') && p.Note.Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Note); }
         catch (Exception e) { Console.Error.WriteLine("GradeBonusNotes: " + e.Message); }
+        try { Memos = Rows(Table(121), (r, id) => { r.Text(id); r.Text(id); return (Id: id, Note: r.Text(id)); }).Where(p => p.Note.Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Note); }
+        catch (Exception e) { Console.Error.WriteLine("Memos: " + e.Message); }
         Decos = Rows(Table(138), (r, id) =>
         {
             string name = r.Text(id), description = r.Text(id);

@@ -574,7 +574,7 @@ internal sealed partial class Voyage
         string was = Work.Dedicated > 0 ? OptionName(Work.Dedicated) : "";
         Work.Dedicated = skill.SkillId;
         Say(was == "" ? $"{Ship.Name}에 전용함 스킬 「{skill.Name}」을(를) 붙였다. (허가증 {need}장)" : $"{Ship.Name}의 전용함 스킬을 「{was}」에서 「{skill.Name}」(으)로 바꿨다. (허가증 {need}장)");
-        if (!OptionValid(skill)) Say($"전용함 스킬의 유효조건을 만족하지 않습니다. ({OptionNeedLine(skill)})");
+        if (!OptionValid(skill)) Say($"이 배는 그 전용함 스킬이 듣는 조건에 안 맞는다({OptionNeedLine(skill)}).");
     }
 
     public string OptionName(int skillId) => skillId is >= 2900 and <= 2904 ? BonusName(17 + skillId - 2900) : Data.OptionSkills.Find(s => s.SkillId == skillId)?.Name ?? SkillName(skillId);
@@ -737,14 +737,20 @@ internal sealed partial class Voyage
     // 성능초기화를 못 하는 까닭(되면 null). 그레이드가 올라 강화 횟수가 0 이 된 배도 조선으로 붙인 옵션 스킬이 남아 있으면 지울 것이 있다
     public string? ResetBlocker(ShipWork work)
     {
-        bool skills = work.Skills.Exists(s => !work.BonusSkills.Contains(s) && s is not (>= 2900 and <= 2904));
+        bool skills = work.Skills.Exists(s => !FromGradeBonus(work, s));
         if (work.Times == 0 && !skills)
             return work.Skills.Count > 0 ? "지울 것이 없다 — 붙은 스킬은 그레이드 보너스(스킬 계승 · 개조)라 선박 조합의 「그레이드 초기화」로 지운다" : "지울 강화가 없다";
-        return Items.GetValueOrDefault(DismantleBook) <= 0 ? Text(6839, "%s이(가) 있어야 한다").Replace("%s", ItemName(DismantleBook)) : null;
+        return null;      // 특수조선 해체 기법서(캐시 아이템)는 없어도 된다(사용자, 2026-10-09) — 원본은 한 권이 든다
     }
 
     /// <summary>조선으로 붙인 옵션 스킬(그레이드 보너스의 스킬 · 전용함 스킬은 뺀다).</summary>
-    public List<int> ClearableSkills(ShipWork work) => work.Skills.Where(s => !work.BonusSkills.Contains(s) && s != work.Dedicated && s is not (>= 2900 and <= 2904)).ToList();
+    public List<int> ClearableSkills(ShipWork work) => work.Skills.Where(s => s != work.Dedicated && !FromGradeBonus(work, s)).ToList();
+
+    /// <summary>
+    /// 그 스킬이 그레이드 보너스(스킬 계승 · 개조)로 들어온 것인가 — 그런 것은 성능 초기화 · 스킬 초기화로 안 지워진다.
+    /// 「개조」 스킬(2900 ~ 2904)은 그레이드가 있는 배에서만 보너스로 친다: 그레이드 0 인 배에 붙어 있으면(교환권으로 받은 배에 잘못 붙던 것) 지울 수 있다.
+    /// </summary>
+    private static bool FromGradeBonus(ShipWork work, int skill) => work.BonusSkills.Contains(skill) || (skill is >= 2900 and <= 2904 && work.Grade > 0);
 
     /// <summary>
     /// 스킬만 초기화 — 조건 없이(책 없이) 그 배에 붙인 옵션 스킬만 지운다. 강화치 · 강화 횟수 · 전용함 스킬 · 그레이드 보너스는 그대로
@@ -763,19 +769,19 @@ internal sealed partial class Voyage
     public void ResetWork()
     {
         if (Mode != Mode.Port || ResetBlocker(Work) != null) return;
-        if (--Items[DismantleBook] <= 0) Items.Remove(DismantleBook);
+        // 원본은 특수조선 해체 기법서 한 권이 든다 — 이 게임에서는 들지 않는다(사용자, 2026-10-09)
         // 지워지는 것은 강화치와 (조선으로 붙인) 옵션 스킬뿐 — 재질 · 그레이드와 그 보너스 · 선박 형식 · 전용함 스킬 · 조타 숙련도는 남는다(원본의 안내 글 6843).
         // 그레이드 보너스로 들어온 스킬(스킬 계승 · 개조)도 보너스의 일부라 남는다
         var kept = Work;
         Work = new ShipWork { Dedicated = kept.Dedicated, Grade = kept.Grade, GradeExp = kept.GradeExp, Mastery = kept.Mastery, Form = kept.Form };
         Work.Bonuses.AddRange(kept.Bonuses);
-        var held = kept.Skills.Where(s => kept.BonusSkills.Contains(s) || s is >= 2900 and <= 2904).ToList();
+        var held = kept.Skills.Where(s => FromGradeBonus(kept, s)).ToList();
         Work.Skills.AddRange(held);
         Work.BonusSkills.AddRange(held);
         Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
         Durability = Math.Min(Durability, Stats.Durability);
         Crew = Math.Min(Crew, Stats.MaxCrew);
-        Say($"특수조선 해체 기법서를 써서 {Ship.Name}의 성능을 초기화했다. 강화치와 옵션 스킬이 지워졌다(재질 · 그레이드와 그 보너스 · 전용함 스킬은 그대로).");
+        Say($"{Ship.Name}의 성능을 초기화했다. 강화치와 옵션 스킬이 지워졌다(재질 · 그레이드와 그 보너스 · 전용함 스킬은 그대로).");
     }
 
     /// <summary>
@@ -822,7 +828,7 @@ internal sealed partial class Voyage
             Work.Skills.Add(given.SkillId);
             Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
             TrainEffect("Shipbuilding", ShipbuildingExp(Ship));
-            Say($"{Ship.Name}에 옵션 스킬 「{given.Name}」을(를) 부여했다." + (OptionValid(given) ? "" : $" 옵션 스킬의 유효 조건을 충족하지 않습니다({OptionNeedLine(given)})."));
+            Say($"{Ship.Name}에 옵션 스킬 「{given.Name}」을(를) 부여했다." + (OptionValid(given) ? "" : $" 다만 이 배는 그 스킬이 듣는 조건에 안 맞는다({OptionNeedLine(given)})."));
             return;
         }
         var gained = new List<string>();

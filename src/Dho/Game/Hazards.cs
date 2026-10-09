@@ -136,7 +136,7 @@ internal sealed partial class Voyage
     private void RestInPort()
     {
         Life = MaxLife;
-        if (Fatigue > 0) Say(Text(TextFatigueCured, "선원들의 피로가 회복되었습니다."));
+        if (Fatigue > 0) Say(Text(TextFatigueCured, "선원들이 기운을 되찾았다."));
         Fatigue = 0;
         foreach (var disaster in Disasters) Say(Text((uint)disaster.Data.EndText, $"{disaster.Data.Name} — 풀렸다."));
         Disasters.Clear();
@@ -176,7 +176,7 @@ internal sealed partial class Voyage
         Weather = Weather.Storm;
         _stormDays = Rules.StormDays;
         Studied("Storm");
-        Say(Text(TextStorm, "폭풍이 몰아칩니다! 돛을 펴놓고 있으면 전복하고 맙니다!"));
+        Say(Text(TextStorm, "폭풍이다! 돛을 편 채로 있으면 배가 뒤집힌다!"));
         Say(StormProof ? $"이 배의 내파({Stats.WaveResist})라면 폭풍 속에서도 항해할 수 있다. (내파 {Rules.StormWaveResist} 이상)"
                        : $"내파 {Stats.WaveResist} — {Rules.StormWaveResist} 이상이어야 폭풍 속을 항해할 수 있다.");
         Cues.Enqueue("Storm");
@@ -281,7 +281,7 @@ internal sealed partial class Voyage
         }
         if (Fatigue >= 100)
         {
-            if (fatigueBefore < 100) Say(Text(TextCollapse, "피로가 극에 달해 선원들이 쓰러지고 있습니다!"));
+            if (fatigueBefore < 100) Say(Text(TextCollapse, "선원들이 지쳐서 쓰러지기 시작했다!"));
             Crew -= 3 * days * crewScale;
         }
 
@@ -383,7 +383,7 @@ internal sealed partial class Voyage
             {
                 double shove = (_random.NextDouble() < 0.5 ? -1 : 1) * (0.25 + _random.NextDouble() * 0.35);
                 Heading = TargetHeading = Normalize(Heading + shove);
-                Say(Text(3046, "갑작스런 측면의 파도때문에 진로가 어긋났습니다!"));
+                Say(Text(3046, "옆에서 친 파도에 뱃머리가 돌아갔다!"));
                 Cues.Enqueue("Warn");
             }
         }
@@ -426,7 +426,7 @@ internal sealed partial class Voyage
         int lost = monster ? 0 : (int)((beatenBy != null ? Math.Min(Money * 0.05, 50_000) : Money * Rules.WreckMoneyLoss) * (1 - Math.Min(1, Option("Lifeboat"))));      // 구명정이 잃는 돈을 줄인다
         Money -= lost;
         string insured = PayInsurance(lost);
-        WreckText = (Durability <= 0 ? Text(3038, "선박이 항해불능상태가 되었습니다!") : Text(3037, "선원이 전멸했습니다!")) +
+        WreckText = (Durability <= 0 ? Text(3038, "배가 더는 나아가지 못한다!") : Text(3037, "선원이 전멸했습니다!")) +
                     (monster ? $"\n\n{beatenBy}에게 당해 {nearest.Name}(으)로 떠밀려 왔다."
                      : beatenBy != null ? $"\n\n{beatenBy}에게 져서 {nearest.Name}(으)로 끌려 왔다.\n{lost:N0} 두캇을 빼앗겼다."
                                       : $"\n\n난파하여 {nearest.Name}(으)로 떠밀려 왔다.\n수습하는 데 {lost:N0} 두캇이 들었다.") + insured;

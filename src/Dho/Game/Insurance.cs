@@ -55,6 +55,6 @@ internal sealed partial class Voyage
         Fatigue = Math.Min(100, Fatigue + 5 * days);
         if (_unpaidDay == (int)Today) return;
         _unpaidDay = (int)Today;
-        Say(Text(3041, "더 이상 선원들에게 급료를 지불할 수 없습니다."));
+        Say(Text(3041, "선원들에게 줄 급료가 떨어졌다."));
     }
 }

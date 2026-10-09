@@ -88,6 +88,18 @@ internal sealed class PortScene : IDisposable
     private readonly bool _solid;
     // 바다에서 멀리 보는 도시 — 네모난 땅바닥의 가장자리를 투명하게 풀어 바다 · 뭍에 스미게 한다
     private readonly bool _fadeGround;
+    // 오려 낸 그림(나뭇잎 · 울타리)을 입힌 면인가 — 텍스처마다 한 번만 본다. 그런 면은 지붕으로 치지 않는다(카메라 가림 — 사용자, 2026-10-09)
+    private readonly Dictionary<(int Set, int Texture), bool> _leafy = new();
+    private byte[]? _grmData, _sharedData;
+    private bool Leafy(int set, int texture)
+    {
+        if (texture == 0xFFFF) return false;
+        if (_leafy.TryGetValue((set, texture), out bool known)) return known;
+        byte[]? source = set == OwnTextures ? _grmData : (_sharedData ??= GvoFiles.Read(@"0002\no200000.bin"));
+        int gtex = set == OwnTextures && source != null ? BinaryPrimitives.ReadInt32LittleEndian(source.AsSpan(0x1C)) : 0x10;
+        bool leafy = source != null && texture < GameTexture.GtexCount(source, gtex) && GameTexture.GtexHoles(source, gtex, texture) > 0.15f;      // 뚫린 데가 15% 넘으면(지은 문턱)
+        return _leafy[(set, texture)] = leafy;
+    }
     /// <summary>바다에서 보는 도시(바닥을 빼고 키워 그린다)에서 꼭대기가 이 높이를 넘는 면 묶음은 안 그린다 — 도시를 둘러친 높은 벽 같은 건물이 바다에서 큰 담처럼 보여서(라스팔마스 — 사용자, 2026-10-09). 장면마다 준다.</summary>
     private readonly float _seaTop;
     /// <summary>확인용(대본 sealimit): 0 이 아니면 모든 장면에 이 높이를 쓴다.</summary>
@@ -105,7 +117,7 @@ internal sealed class PortScene : IDisposable
         _seaTop = seaTop;
         _solid = solid;
         _grid = grid;
-        var grm = GvoFiles.Read($@"0002\{0x20000 + sceneNumber:D8}.bin");
+        var grm = GvoFiles.Read($@"0002\{0x20000 + sceneNumber:D8}.bin"); _grmData = grm;
         int I32(byte[] data, int at) => BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(at));
 
         AddDraws(grm, I32(grm, 0x0C), I32(grm, 0x10), I32(grm, 0x24), I32(grm, 0x28), I32(grm, 0x2C), I32(grm, 0x30),
@@ -269,7 +281,7 @@ internal sealed class PortScene : IDisposable
                 }
 
                 // 땅바닥이 아닌 면의 높이(지붕)를 적어 둔다 — 카메라 가림에 쓴다
-                if (_grid != null && data[record + 9] != 0xFF)
+                if (_grid != null && data[record + 9] != 0xFF && !Leafy(textureSet, texture))
                     for (int i = 0; i < triangles; i++)
                     {
                         Vector3 Corner(int k)

@@ -36,7 +36,7 @@ internal sealed partial class Voyage
         Mode != Mode.Port ? "항구에서만 투자한다"
         : City.Kind != 2 ? $"{CityKindName(City)}에는 투자할 수 없다 — 투자는 동맹항에 한다"
         : NationId == 0 ? "나라가 없다"
-        : _investedAt == (City.Id, (int)(Clock / Settings.SecondsPerDay)) ? Text(7024, "※투자는 연속으로 할 수 없습니다").TrimStart('※') + " — 하루 뒤에"
+        : _investedAt == (City.Id, (int)(Clock / Settings.SecondsPerDay)) ? Text(7024, "※ 투자를 잇달아 할 수는 없다").TrimStart('※') + " — 하루 뒤에"
         : Money < amount ? "돈이 모자라다" : null;
 
     // 마지막으로 투자한 (도시, 날) — 원본 글 「※투자는 연속으로 할 수 없습니다」(화면 글 7024). 얼마나 기다리는지는 글에 없어 하루로 두었다(지은 값)
@@ -72,7 +72,7 @@ internal sealed partial class Voyage
             Cues.Enqueue("Done");
         }
         // 원본의 알림 메모(클라이언트 표 121 의 2번) 글 그대로
-        if (TitleDue) Say("당신의 올린 공적에 대한 작위가 수여된다고 합니다. 자국 본거지의 투자를 받고있는 인물을 만나러 갑시다.");
+        if (TitleDue) Say(Data.Memos.GetValueOrDefault(2) ?? "작위를 받을 만한 공적이 쌓였다. 자국 본거지의 관리를 찾아가자.");      // 원본의 알림 메모(표 121 의 2번) — 클라이언트에서 읽는다
     }
 
     public bool TitleDue => Title < Data.Orders.Titles.Count - 1 && Merit >= MeritToNext;

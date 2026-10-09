@@ -26,15 +26,15 @@ internal sealed partial class Voyage
     public int TotalHold => Stats.Hold + AideHold;
 
     public string? CaptainBlocker(Aide aide) =>
-        Mode != Mode.Port ? Text(16227, "이곳에서는 부관 선장을 변경할 수 없습니다.")
+        Mode != Mode.Port ? Text(16227, "여기서는 부관 선장을 바꿀 수 없다.")
         : aide.Ship == null && Dock.Count == 0 ? "부두에 맡길 배가 없다"
-        : aide.Ship != null && CargoCount > TotalHold - StatsOf(aide.Ship).Hold ? Fill(Text(6049, "부관 선박의 적재화물이 너무 많아서，%s 선박으로 옮길 수 없습니다."), Ship.Name)
+        : aide.Ship != null && CargoCount > TotalHold - StatsOf(aide.Ship).Hold ? Fill(Text(6049, "부관 배의 짐이 너무 많아 %s 배로 다 옮기지 못한다."), Ship.Name)
         : null;
 
     /// <summary>부두의 배를 부관에게 맡긴다. 이미 선장이면 타던 배는 부두로 돌아간다.</summary>
     public void AppointCaptain(Aide aide, DockedShip docked)
     {
-        if (Mode != Mode.Port) { Say(Text(16227, "이곳에서는 부관 선장을 변경할 수 없습니다.")); Cues.Enqueue("Error"); return; }
+        if (Mode != Mode.Port) { Say(Text(16227, "여기서는 부관 선장을 바꿀 수 없다.")); Cues.Enqueue("Error"); return; }
         if (!Dock.Remove(docked)) return;
         if (aide.Ship is { } old) Dock.Add(old);
         aide.Ship = docked;

@@ -165,8 +165,72 @@ internal sealed partial class Voyage
     // 조타 기록 — 키를 꺾은 자리와 그때 잡은 침로(사용자, 2026-10-09). 많아야 600개(지은 값), 넘으면 오래된 것부터 버린다
     private readonly List<(double X, double Y, double Heading, int Day)> _turnMarks = [];
     private bool _steerHeld;
+    private double _steerRepeat;
     public IReadOnlyList<(double X, double Y, double Heading, int Day)> TurnMarks => _turnMarks;
+    /// <summary>지금 조타 기록을 항로로 저장한다 — 이름은 첫 점의 해역 → 끝 점의 해역(같은 이름이 있으면 번호를 붙인다).</summary>
+    public void SaveRoute()
+    {
+        if (_turnMarks.Count < 2) { Say("조타 기록이 둘은 있어야 항로로 저장한다."); return; }
+        string from = SeaNameAt(_turnMarks[0].X, _turnMarks[0].Y), to = SeaNameAt(_turnMarks[^1].X, _turnMarks[^1].Y), name = $"{from} → {to}";
+        for (int n = 2; Data.Routes.Exists(r => r.Name == name); n++) name = $"{from} → {to} ({n})";
+        Data.Routes.Add(new SavedRoute { Name = name, Saved = $"{DateTime.Now:yyyy-MM-dd HH:mm}", Points = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI) })] });
+        Data.SaveRoutes();
+        Say($"항로 「{name}」을(를) 저장했다. (조타 기록 {_turnMarks.Count}개)");
+    }
+    /// <summary>저장해 둔 항로를 조타 기록으로 불러온다(지금 기록은 바뀐다).</summary>
+    public void LoadRoute(SavedRoute route)
+    {
+        StopFollow();
+        _turnMarks.Clear();
+        for (int k = 0; k + 2 < route.Points.Count; k += 3) _turnMarks.Add((route.Points[k], route.Points[k + 1], route.Points[k + 2] * Math.PI / 180, 0));
+        Say($"항로 「{route.Name}」을(를) 불러왔다. (조타 기록 {_turnMarks.Count}개)");
+    }
+    public void RemoveRoute(SavedRoute route) { Data.Routes.Remove(route); Data.SaveRoutes(); }
+
+    /// <summary>조타 기록 하나의 침로를 고친다 · 지운다(내비게이션의 조타 기록 창).</summary>
+    public void SetTurnHeading(int index, double heading) { if (index >= 0 && index < _turnMarks.Count) _turnMarks[index] = _turnMarks[index] with { Heading = Normalize(heading) }; }
+    public void RemoveTurn(int index) { if (index >= 0 && index < _turnMarks.Count) _turnMarks.RemoveAt(index); }
+    // 조타 기록을 항로로 — 고른 기록부터 차례로 그 자리들을 지나가고, 자리에 닿으면 거기 적힌 침로를 잡는다(사용자, 2026-10-09).
+    // 손으로 키를 잡으면(글쇠 · 더블클릭) 풀린다. 닿았다고 보는 거리(5)는 지은 값
+    public bool TurnFollow { get; private set; }
+    public int TurnFollowAt { get; private set; }
+    /// <summary>거꾸로 따라가는 중인가 — 고른 기록부터 앞 번호 쪽으로(온 길을 되짚는다).</summary>
+    public bool TurnFollowBack { get; private set; }
+    public void FollowTurns(int from, bool back = false)
+    {
+        if (Mode != Mode.Sea || from < 0 || from >= _turnMarks.Count) return;
+        CancelDelegate("조타 기록을 따라간다");
+        (TurnFollow, TurnFollowAt, TurnFollowBack) = (true, from, back);
+        Say(back ? $"조타 기록 {from + 1}번부터 거꾸로 따라간다. (1번까지)" : $"조타 기록 {from + 1}번부터 따라간다. (기록 {_turnMarks.Count}개)");
+    }
+    public void StopFollow(string why = "")
+    {
+        if (!TurnFollow) return;
+        TurnFollow = false;
+        Say(why == "" ? "조타 기록 따라가기를 멈췄다." : $"조타 기록 따라가기를 멈췄다 — {why}.");
+    }
+    private void TickFollow()
+    {
+        if (!TurnFollow) return;
+        if (TurnFollowAt < 0 || TurnFollowAt >= _turnMarks.Count) { StopFollow("끝까지 왔다"); return; }
+        var next = _turnMarks[TurnFollowAt];
+        double dx = WorldMap.DeltaX(ShipX, next.X), dy = next.Y - ShipY;
+        if (Math.Abs(dx) + Math.Abs(dy) < 5)
+        {
+            // 앞으로 갈 때는 그 자리에 적힌 침로를 잡는다. 거꾸로 갈 때 적힌 침로는 온 쪽의 것이라 쓰지 않고, 다음 기록 쪽을 보게 둔다
+            if (!TurnFollowBack) TargetHeading = next.Heading;
+            TurnFollowAt += TurnFollowBack ? -1 : 1;
+            if (TurnFollowAt < 0 || TurnFollowAt >= _turnMarks.Count) StopFollow("끝까지 왔다");
+            return;
+        }
+        TargetHeading = Normalize(Math.Atan2(dx, -dy));
+    }
     private void MarkTurn()
+    {
+        if (TurnFollow) return;      // 따라가는 동안에는 새로 적지 않는다
+        MarkTurnNow();
+    }
+    private void MarkTurnNow()
     {
         if (Mode != Mode.Sea) return;
         // 같은 자리에서 잇달아 꺾은 것은 마지막 것만 남긴다
@@ -712,6 +776,7 @@ internal sealed partial class Voyage
     /// <summary>그쪽으로 뱃머리를 돌린다(바다를 눌렀을 때) — 눈에 띄게 꺾으면 선회 소리가 난다(잇달아 눌러도 띄엄띄엄).</summary>
     public void SteerTo(double heading, bool cue = true)
     {
+        StopFollow("키를 잡았다");
         CancelDelegate("뱃머리를 돌렸다");
         double before = TargetHeading;
         TargetHeading = Normalize(heading);
@@ -774,7 +839,18 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
         TickSkills();
 
         UpdateDelegate(dt, steer);
-        if (steer != 0) TargetHeading = Normalize(Heading + steer * 0.6);
+        if (steer != 0) StopFollow("키를 잡았다");
+        TickFollow();
+        // 조타 글쇠 — 설정의 각(1도 단위)이 있으면 한 번 누를 때 그만큼만 꺾고(누르고 있으면 0.25초마다 되풀이), 0 이면 누르는 동안 계속 돈다
+        if (steer != 0 && Settings.SteerStep > 0)
+        {
+            if (!_steerHeld || Clock >= _steerRepeat)
+            {
+                TargetHeading = Normalize(TargetHeading + Math.Sign(steer) * Settings.SteerStep * Math.PI / 180);
+                _steerRepeat = Clock + (_steerHeld ? 0.25 : 0.5);
+            }
+        }
+        else if (steer != 0) TargetHeading = Normalize(Heading + steer * 0.6);
         // 글쇠로 꺾던 키를 놓은 자리를 조타 기록에 남긴다
         if (steer == 0 && _steerHeld) MarkTurn();
         _steerHeld = steer != 0;

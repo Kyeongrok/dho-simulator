@@ -264,6 +264,10 @@ internal sealed partial class Voyage
         if (great > 0) Studied("Great", great, RecipeSkill(rule)?.Rank ?? 0, RecipeSkill(rule)?.SkillId ?? 0);
         GainMastery();
         if (great > 0) { Say(Text(16503, "생산 대성공!!") + (times > 1 ? $" ({great}번)" : "")); Cues.Enqueue("Done"); }
+        // 관리기술의 숙련도 — 「바다 위에서 · 스킬 달린 선박으로 움직이면서 · 대성공 생산 시」 오른다(사용자가 준 인벤 글 「실전 관기 랭작 빨리하기」, 2026-10-09).
+        // 한 번에 얼마인지는 글에 없다 — 대성공 한 번에 10(지은 값)
+        if (great > 0 && Mode == Mode.Sea && Knots > 0.5 && (Work.Skills.Count > 0 || Work.Dedicated > 0) && Data.Skills.Find(s => s.Name == "관리기술") is { } keeping && Rank(keeping.Id) > 0)
+            Train(keeping.Id, 10 * great);
         string madeName = Data.ShipParts.Find(p => p.Id == rule.OutputItem)?.Name ?? (rule.OutputItem > 0 ? ItemName(rule.OutputItem) : Good(rule.Output)?.Name ?? "물건");
         if (done > 0) Say($"{madeName} {rule.OutputCount * (done + (rule.GreatOutput > 0 && rule.OutputItem == 0 ? 0 : IsPartId(rule.OutputItem) ? 0 : great + refinedMore))}개를 만들었다.");
     }

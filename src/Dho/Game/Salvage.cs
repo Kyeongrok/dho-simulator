@@ -93,7 +93,7 @@ internal sealed partial class Voyage
             Cues.Enqueue("Error");
             if (WreckFails >= 3)
             {
-                Say(Fill(Text(3177, "인양에 실패하여 침몰선이 가라앉아버렸습니다…. 인양율은%d％입니다"), $"{WreckRaised}"));
+                Say(Fill(Text(3177, "끌어올리지 못해 침몰선이 다시 가라앉았다…. 인양율 %d％"), $"{WreckRaised}"));
                 WreckAt = null;
             }
             else Say($"{Text(3176, "인양작업에 실패하여 배가 손상되었습니다…")} (내구 −{harm:0}, 실패 {WreckFails} / 3)");
@@ -145,8 +145,8 @@ internal sealed partial class Voyage
                 continue;
             }
             (TowValue, TowFrayed, _towWreck) = (0, false, 0);
-            Say(Text(3428, "선장님！ 예항로프가 끊어져 버렸습니다！"));
-            Say(Text(3182, "예항 중인 침몰선이 다시 바다속으로 가라앉아 버렸습니다…"));
+            Say(Text(3428, "선장님! 끌던 밧줄이 끊어졌습니다!"));
+            Say(Text(3182, "끌고 가던 침몰선이 도로 물속에 잠겼다…"));
             Cues.Enqueue("Error");
         }
     }

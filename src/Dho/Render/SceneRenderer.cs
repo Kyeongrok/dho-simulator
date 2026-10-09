@@ -122,11 +122,11 @@ internal sealed class SceneRenderer : IDisposable
             float sunUp = saturate(trueSun.y * 8.0 + 1.0);      // fades out once it is below the horizon
             float sun = saturate(dot(dir, trueSun));
             float3 sunTint = lerp(float3(1.0, 0.55, 0.30), float3(1.0, 0.96, 0.88), saturate(trueSun.y * 3.0));
-            color += sunTint * (pow(sun, 400.0) * 2.0 + pow(sun, 12.0) * 0.12) * sunUp;
+            color += sunTint * (pow(sun, 1800.0) * 1.6 + pow(sun, 60.0) * 0.10) * sunUp;      // a smaller disc and a tighter glow
             // low red sun: a faint flare ring around it
             float low = saturate((sunTint.r - sunTint.b) * 2.5) * sunUp;
-            float ring = smoothstep(0.035, 0.0, abs(acos(min(sun, 0.9999)) - 0.24));
-            color += float3(1.0, 0.35, 0.30) * ring * low * 0.30;
+            float ring = smoothstep(0.018, 0.0, abs(acos(min(sun, 0.9999)) - 0.11));
+            color += float3(1.0, 0.35, 0.30) * ring * low * 0.16;
 
             float2 sphere = float2(atan2(dir.z, dir.x), asin(clamp(dir.y, -1, 1))) * 110.0;
             float2 cell = floor(sphere);
