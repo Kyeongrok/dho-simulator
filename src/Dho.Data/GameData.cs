@@ -778,6 +778,8 @@ public sealed class SaveData
     public double[] AtSea { get; set; } = [];
     /// <summary>지나온 항로 — x, y 가 번갈아(정수로 줄여 적는다).</summary>
     public int[] Track { get; set; } = [];
+    /// <summary>조타 기록 — x, y, 침로(도), 항해 며칠째가 차례로.</summary>
+    public int[] Turns { get; set; } = [];
     public Dictionary<int, int> Hostility { get; set; } = [];
     // 대장간의 단련: 장비 · 대포 번호 → 더해진 (공격력 또는 관통력, 방어력)
     public Dictionary<int, int[]> Forged { get; set; } = [];
@@ -849,6 +851,9 @@ public sealed class SettingsData
     public bool Fullscreen { get; set; }
     /// <summary>화면 글과 창의 배율. 0 이면 윈도의 배율(175% 면 1.75)을 따른다.</summary>
     public double UiScale { get; set; }
+    /// <summary>내비게이션의 뱃머리 방향 선 — 길이 · 두께(픽셀). 창의 단추로 바꾼다.</summary>
+    public int NavLineLength { get; set; } = 18;
+    public int NavLineWidth { get; set; } = 2;
     /// <summary>배경음 크기(0 ~ 1). 0 이면 끈다.</summary>
     public double MusicVolume { get; set; } = 0.5;
     /// <summary>그림 단추(오른쪽 위 단추 줄 · 항구 단추 · 가장자리 둥근 단추)의 배율(0.5 ~ 2.5) — 글과 창의 배율과 따로 논다.</summary>
@@ -884,6 +889,10 @@ public sealed class SettingsData
     public bool ModAllLanguages { get; set; }
     // 모드: 서고에서 하루에 읽는 권수 5배(5 → 25) — 기본 꺼짐
     public bool ModBooksTimes5 { get; set; }
+    /// <summary>출항하면 「돛 조종」 스킬을 저절로 켠다(스킬이 있고 쓸 수 있을 때 — 행동력은 평소대로 든다).</summary>
+    public bool AutoSailTrim { get; set; }
+    /// <summary>바다에서 비가 오면 「조달」 스킬을 저절로 켠다(스킬이 있고 물통이 덜 찼을 때).</summary>
+    public bool AutoProcureInRain { get; set; }
     /// <summary>모드: 선박 조합의 성공률에 더하는 값(%) — 0 ~ 50. 0 이면 그대로.</summary>
     public int ModCombineBonus { get; set; }
     /// <summary>모드: 초과 강화(강화 횟수를 다 쓴 뒤의 강화)의 성공률에 더하는 값(0 ~ 50, %p).</summary>

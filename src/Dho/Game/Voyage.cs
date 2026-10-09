@@ -160,7 +160,20 @@ internal sealed partial class Voyage
     private readonly List<(double X, double Y)> _track = [];
     private const int TrackMost = 6000;
     public IReadOnlyList<(double X, double Y)> Track => _track;
-    public void ClearTrack() => _track.Clear();
+    public void ClearTrack() { _track.Clear(); _turnMarks.Clear(); }
+
+    // 조타 기록 — 키를 꺾은 자리와 그때 잡은 침로(사용자, 2026-10-09). 많아야 600개(지은 값), 넘으면 오래된 것부터 버린다
+    private readonly List<(double X, double Y, double Heading, int Day)> _turnMarks = [];
+    private bool _steerHeld;
+    public IReadOnlyList<(double X, double Y, double Heading, int Day)> TurnMarks => _turnMarks;
+    private void MarkTurn()
+    {
+        if (Mode != Mode.Sea) return;
+        // 같은 자리에서 잇달아 꺾은 것은 마지막 것만 남긴다
+        if (_turnMarks.Count > 0 && Math.Abs(WorldMap.DeltaX(_turnMarks[^1].X, ShipX)) + Math.Abs(ShipY - _turnMarks[^1].Y) < 3) _turnMarks.RemoveAt(_turnMarks.Count - 1);
+        if (_turnMarks.Count >= 600) _turnMarks.RemoveRange(0, 60);
+        _turnMarks.Add((ShipX, ShipY, TargetHeading, DaysAtSea));
+    }
     private void MarkTrack()
     {
         if (_track.Count > 0 && Math.Abs(WorldMap.DeltaX(_track[^1].X, ShipX)) + Math.Abs(ShipY - _track[^1].Y) < 8) return;
@@ -488,6 +501,8 @@ internal sealed partial class Voyage
         SecondsAtSea = 0;
         Sail = 1;
         Say($"{City.Name}을(를) 출항했다.");
+        // 옵션: 출항하면 돛 조종을 켠다 — 스킬이 없거나 못 쓸 때(행동력 부족 따위)는 조용히 넘어간다
+        if (Settings.AutoSailTrim && Data.SkillRules.Find(r => r.Effect == "Speed") is { } trim && Rank(trim.SkillId) > 0 && SkillBlocker(trim) == null) UseSkill(trim);
     }
 
     /// <summary>항구 앞바다에 있으면 그 도시.</summary>
@@ -695,12 +710,15 @@ internal sealed partial class Voyage
     private double _turnCued = -10;
 
     /// <summary>그쪽으로 뱃머리를 돌린다(바다를 눌렀을 때) — 눈에 띄게 꺾으면 선회 소리가 난다(잇달아 눌러도 띄엄띄엄).</summary>
-    public void SteerTo(double heading)
+    public void SteerTo(double heading, bool cue = true)
     {
         CancelDelegate("뱃머리를 돌렸다");
         double before = TargetHeading;
         TargetHeading = Normalize(heading);
-        if (Mode != Mode.Sea || Math.Abs(Normalize(TargetHeading - before + Math.PI) - Math.PI) < 0.15 || Clock - _turnCued < 1.2) return;
+        MarkTurn();
+        // 마우스를 누른 채 끌면 목표가 조금씩만 바뀐다 — 앞의 목표뿐 아니라 지금 뱃머리와 견줘서도 눈에 띄게 꺾였으면 소리를 낸다
+        double swing = Math.Max(Math.Abs(Normalize(TargetHeading - before + Math.PI) - Math.PI), Math.Abs(Normalize(TargetHeading - Heading + Math.PI) - Math.PI));
+        if (!cue || Mode != Mode.Sea || swing < 0.15 || Clock - _turnCued < 1.2) return;
         _turnCued = Clock;
         Cues.Enqueue("Turn");
     }
@@ -757,6 +775,9 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
 
         UpdateDelegate(dt, steer);
         if (steer != 0) TargetHeading = Normalize(Heading + steer * 0.6);
+        // 글쇠로 꺾던 키를 놓은 자리를 조타 기록에 남긴다
+        if (steer == 0 && _steerHeld) MarkTurn();
+        _steerHeld = steer != 0;
         // 선회 — 키를 꺾는다고 바로 돌지 않는다. 도는 빠르기가 서서히 붙고 서서히 죽는다(큰 배일수록 굼뜨다).
         // 가장 빠른 빠르기는 배의 선회 성능에 비례하고(선회 12 인 배가 초당 14°쯤, 반 바퀴에 13초 남짓),
         // 배가 서 있으면 키가 잘 안 듣고, 돛을 다 펴면 덜 돈다 — 돛을 줄이면 잘 돈다. 값은 지은 것이다.
@@ -775,7 +796,7 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
             if (Stats.Rowing > 0) TrainEffect("Row", 10 * days);
             if (FormBonus("FormSail") > 0) TrainEffect("FormSail", 6 * days);
             if (FormBonus("FormKeep") > 0) TrainEffect("FormKeep", 6 * days);
-            TrainEffect("Survey", 8 * days);
+            if (CanSurvey) TrainEffect("Survey", 8 * days);      // 측량은 켜 두었을 때만 오른다(꺼도 오르던 것 — 사용자, 2026-10-09)
             if (Math.Abs(turn) > 0.05) TrainEffect("Turn", 30 * days);
         }
 

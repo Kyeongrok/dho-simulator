@@ -88,14 +88,21 @@ internal sealed class PortScene : IDisposable
     private readonly bool _solid;
     // 바다에서 멀리 보는 도시 — 네모난 땅바닥의 가장자리를 투명하게 풀어 바다 · 뭍에 스미게 한다
     private readonly bool _fadeGround;
+    /// <summary>바다에서 보는 도시(바닥을 빼고 키워 그린다)에서 꼭대기가 이 높이를 넘는 면 묶음은 안 그린다 — 도시를 둘러친 높은 벽 같은 건물이 바다에서 큰 담처럼 보여서(라스팔마스 — 사용자, 2026-10-09). 장면마다 준다.</summary>
+    private readonly float _seaTop;
+    /// <summary>확인용(대본 sealimit): 0 이 아니면 모든 장면에 이 높이를 쓴다.</summary>
+    public static float SeaBaseLimit;
+    /// <summary>확인용: 바다에서 보는 장면을 읽을 때 면 묶음마다의 꼭대기 높이.</summary>
+    public static readonly List<float> SeaBases = [];
     private readonly HashSet<MeshBuilder> _ground = [];
     private readonly HashSet<Mesh> _groundMeshes = [];      // 바닥 조각 — 먼바다에서 도시를 키워 그릴 때는 뺀다
 
     /// <param name="solid">정점색의 알파를 무시한다 — 방 장면은 벽의 알파가 0 이라 그대로면 벽이 안 그려진다.</param>
-    public PortScene(Gfx gfx, int sceneNumber, TownGrid? grid = null, bool solid = false, bool fadeGround = false)
+    public PortScene(Gfx gfx, int sceneNumber, TownGrid? grid = null, bool solid = false, bool fadeGround = false, float seaTop = float.MaxValue)
     {
         _gfx = gfx;
         _fadeGround = fadeGround;
+        _seaTop = seaTop;
         _solid = solid;
         _grid = grid;
         var grm = GvoFiles.Read($@"0002\{0x20000 + sceneNumber:D8}.bin");
@@ -246,6 +253,20 @@ internal sealed class PortScene : IDisposable
                 if (indices < 0 || (long)indices + (firstIndex + triangles * 3) * 2L > data.Length
                     || (firstIndex + triangles * 3) * 2 > I32(indexTable + indexBuffer * 8 + 4)
                     || vertices < 0 || (long)vertices + (long)vertexCount * stride > data.Length || stride < 20) continue;
+
+                if (_fadeGround && !ground)
+                {
+                    float bottom = float.MaxValue, top = float.MinValue;
+                    for (int i = 0; i < triangles * 3; i++)
+                    {
+                        int v = U16(indices + (firstIndex + i) * 2);
+                        int p = vertices + (v < vertexCount ? v : 0) * stride;
+                        float tall = Vector3.Transform(new Vector3(F32(p), F32(p + 4), F32(p + 8)), transform).Y;
+                        (bottom, top) = (MathF.Min(bottom, tall), MathF.Max(top, tall));
+                    }
+                    SeaBases.Add(top);
+                    if (top > (SeaBaseLimit > 0 ? SeaBaseLimit : _seaTop)) continue;
+                }
 
                 // 땅바닥이 아닌 면의 높이(지붕)를 적어 둔다 — 카메라 가림에 쓴다
                 if (_grid != null && data[record + 9] != 0xFF)

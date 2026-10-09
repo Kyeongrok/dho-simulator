@@ -15,7 +15,7 @@ internal sealed partial class Voyage
     private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest", "Speed", "Turn", "Gather", "Cure", "Find", "Rescue"];
 
     /// <summary>
-    /// 켜 두는 스킬 — 돛 조종 · 조타 · 낚시 · 조달. 원본처럼 켜면 한동안 켜져 있다가 꺼지고(화면 오른쪽 가운데에 그림이 뜬다),
+    /// 켜 두는 스킬 — 돛 조종 · 조타 · 낚시 · 조달. 켜면 한동안 켜져 있다가 시간이 끝나면 저절로 다시 쓴다(화면 오른쪽 가운데에 그림이 뜬다 — 끄려면 Ctrl+클릭),
     /// 켜져 있는 동안 돛 조종 · 조타는 효과가 걸리고 낚시 · 조달은 일정한 사이를 두고 저절로 된다.
     /// 켜져 있는 시간 · 사이 · 한꺼번에 켜는 수는 지은 값이다.
     /// </summary>
@@ -23,12 +23,14 @@ internal sealed partial class Voyage
     public const int MaxSkillsOn = 3;
     private const double OnSeconds = 180, TickSeconds = 15;
     private readonly Dictionary<int, (double Until, double Next)> _skillOn = new();
+    private bool _autoProcured;      // 지금 켜진 조달이 「비가 오면 조달」 옵션으로 켜진 것인가
 
     public bool SkillOn(int skillId) => _skillOn.ContainsKey(skillId);
 
     /// <summary>켜 둔 스킬을 끈다(Ctrl+클릭).</summary>
     public void StopSkill(int skillId)
     {
+        if (Data.SkillRules.Find(r => r.SkillId == skillId)?.Effect == "Procure") _autoProcured = false;
         if (_skillOn.Remove(skillId)) Say($"{SkillName(skillId)} 스킬을 껐다.");
     }
 
@@ -40,13 +42,25 @@ internal sealed partial class Voyage
     /// <summary>바다에서 프레임마다 — 시간이 다 된 스킬을 끄고, 낚시 · 조달은 때가 되면 한 번 한다.</summary>
     private void TickSkills()
     {
+        // 옵션: 비가 오면 조달을 켠다 — 저절로 켠 것은 비가 그치면 다시 켜지 않는다(물통이 차도 마찬가지)
+        bool raining = Weather is Weather.Rain or Weather.Storm;
+        if (Settings.AutoProcureInRain && raining && Water < MaxWaterNow && Data.SkillRules.Find(r => r.Effect == "Procure") is { } procure
+            && Rank(procure.SkillId) > 0 && !SkillOn(procure.SkillId) && SkillBlocker(procure) == null)
+        {
+            UseSkill(procure);
+            _autoProcured = true;
+        }
         foreach (var (id, on) in _skillOn.ToList())
         {
             var rule = Data.SkillRules.Find(r => r.SkillId == id);
             if (rule == null || Clock >= on.Until)
             {
                 _skillOn.Remove(id);
-                Say($"{SkillName(id)} 스킬의 효과가 끝났다.");
+                // 지속 시간이 끝나면 저절로 다시 쓴다(사용자, 2026-10-09: 「항해중 사용하는 스킬은 지속시간 끝나면 자동으로 재시작이야」) — 행동력은 쓸 때마다 든다.
+                // 행동력이 모자라는 따위로 못 쓰면 그때 끝난다
+                if (rule is { Effect: "Procure" } && _autoProcured && (!raining || Water >= MaxWaterNow)) { _autoProcured = false; Say($"{SkillName(id)} 스킬의 효과가 끝났다."); }
+                else if (rule != null && Rank(id) > 0 && SkillBlocker(rule) == null) UseSkill(rule);
+                else Say($"{SkillName(id)} 스킬의 효과가 끝났다.");
                 continue;
             }
             if (Clock < on.Next) continue;
@@ -162,10 +176,14 @@ internal sealed partial class Voyage
         int count = Math.Min(school, HoldFree);
         if (Data.Goods.Find(g => g.Name == fish && g.Id is >= 1_601_000 and < 1_602_000) is not { } good) { Say($"{lead}아무것도 낚지 못했다."); return; }
         GiveGood(good, count);              // 「○○ N개를 실었다」는 글은 그쪽이 낸다
+        GainNotice = (good.Id, Text(15402, "%s 를 낚아 올렸습니다.").Replace("%s", fish), count, Clock);
         Studied("Outdoor");                 // 연구 과제 「야외 활동」 — 조달，낚시，채집으로 교역품을 입수
         // 숙련도 — 글에는 차례만 있다(다랑어 2 > 연어 5, 다랑어 2 > 상어 1, 여러 마리 > 한 마리). 그 차례가 나오게 지은 값: 5 × 어종 랭크^1.7 × 마릿수
         Train(rule.SkillId, 5 * Math.Pow(FishRanks[fish], 1.7) * count);
     }
+    /// <summary>얻은 것을 알리는 작은 창(원본: 물고기를 낚으면 화면 위쪽 가운데에 그림 · 수 · 「○○를 낚아 올렸습니다.」가 뜬다 — 사용자가 보여 준 원본 화면, 2026-10-09).</summary>
+    public (int GoodId, string Text, int Count, double At) GainNotice { get; private set; } = (0, "", 0, -100);
+
     /// <summary>대본용 — 낚시를 여러 번 던진다.</summary>
     public void FishForTest(int times)
     {

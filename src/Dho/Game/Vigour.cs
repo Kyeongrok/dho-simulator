@@ -37,7 +37,8 @@ internal sealed partial class Voyage
     {
         "Speed" or "Turn" => 8,
         "Survey" => 5,
-        "Procure" or "Fish" or "Gather" => 15,
+        "Procure" => 5,                       // 조달은 한 번에 5(사용자가 준 글, 2026-10-09)
+        "Fish" or "Gather" => 15,
         "Repair" => 20,
         "Rest" => 25,
         "Haggle" => 10,

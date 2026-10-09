@@ -16,7 +16,7 @@ internal sealed class SceneRenderer : IDisposable
             float3 CameraPosition; float Time;
             float3 SunDirection; float Night;
             float3 SunColor; float FogDensity;
-            float3 Ambient; float Pad0;
+            float3 Ambient; float SunAngle;
             float3 HorizonColor; float Pad1;
             float3 ZenithColor; float Pad2;
             float3 WaterColor; float Pad3;
@@ -117,10 +117,14 @@ internal sealed class SceneRenderer : IDisposable
             float3 dir = normalize(farPoint.xyz / farPoint.w - CameraPosition);
             float3 color = SkyColor(dir);
 
-            float sun = saturate(dot(dir, SunDirection));
-            color += SunColor * (pow(sun, 400.0) * 2.0 + pow(sun, 12.0) * 0.12);
+            // the sun disc follows the real sun (SunDirection is the light, which is clamped above the horizon and becomes moonlight at night)
+            float3 trueSun = normalize(float3(cos(SunAngle) * 0.8, sin(SunAngle), 0.45));
+            float sunUp = saturate(trueSun.y * 8.0 + 1.0);      // fades out once it is below the horizon
+            float sun = saturate(dot(dir, trueSun));
+            float3 sunTint = lerp(float3(1.0, 0.55, 0.30), float3(1.0, 0.96, 0.88), saturate(trueSun.y * 3.0));
+            color += sunTint * (pow(sun, 400.0) * 2.0 + pow(sun, 12.0) * 0.12) * sunUp;
             // low red sun: a faint flare ring around it
-            float low = saturate((SunColor.r - SunColor.b) * 2.5) * (1.0 - Night);
+            float low = saturate((sunTint.r - sunTint.b) * 2.5) * sunUp;
             float ring = smoothstep(0.035, 0.0, abs(acos(min(sun, 0.9999)) - 0.24));
             color += float3(1.0, 0.35, 0.30) * ring * low * 0.30;
 
@@ -133,7 +137,7 @@ internal sealed class SceneRenderer : IDisposable
             color += point_ * Night * saturate(dir.y * 4.0 + 0.2);
 
             // moon at night: a small pale disc opposite the sun, a little past half (gibbous), with faint mottling
-            float3 moonDir = normalize(float3(0.35, 0.22, -0.90));      // a fixed spot in the northern sky, low enough to sit in the usual view (about 15 degrees up)
+            float3 moonDir = normalize(float3(-cos(SunAngle) * 0.8, -sin(SunAngle) * 0.5, -0.45));      // opposite the sun: rises at dusk, about 48 degrees up at midnight, sets at dawn
             float3 mx = normalize(cross(float3(0, 1, 0), moonDir));
             float3 my = cross(moonDir, mx);
             float2 mp = float2(dot(dir, mx), dot(dir, my)) / 0.017;
@@ -143,6 +147,8 @@ internal sealed class SceneRenderer : IDisposable
                 float shade = smoothstep(0.95, 1.05, length(mp - float2(1.35, 0.55)));      // the dark side eats one edge
                 float mottle = 0.82 + 0.18 * Noise(mp * 2.5 + 3.0);
                 float lit = disc * shade;
+                float up = saturate(moonDir.y * 12.0 + 0.3);      // dims as it sinks to the horizon
+                lit *= up;
                 color = lerp(color, float3(0.92, 0.90, 0.80) * mottle, lit * Night);
                 color += float3(0.25, 0.27, 0.32) * smoothstep(1.3, 0.9, length(mp)) * (1.0 - lit) * Night * 0.25;
             }

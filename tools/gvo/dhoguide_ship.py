@@ -93,16 +93,62 @@ def fetch(name):
         print("받음", name, link)
 
 
+def collect():
+    ships = [parse(p) for p in sorted(glob.glob("data/extracted/wiki/dhoguide-ship-*.html"))]
+    return [s for s in ships if s["Name"]]
+
+
+def write(ships):
+    json.dump(ships, open("data/extracted/shipdetail-dhoguide.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+
+
+def fill(gap_minutes):
+    """배 상세가 없는 배를 한 척씩 차례로 받는다(사용자, 2026-10-09: 「3분마다 한개씩 받아와」).
+
+    ship-facts.json 의 Doc(그 사이트의 배 쪽 번호)으로 배 쪽을 바로 받는다 — 한 척에 접속 한 번, 척과 척 사이는 gap_minutes 분.
+    막히지 않게: 200 이 아니거나 오류가 나면 그 자리에서 끝낸다(다시 해 보지 않는다). 받을 때마다 결과 파일을 다시 쓴다.
+    data/extracted/wiki/dhoguide-stop 파일이 생기면 멈춘다.
+    """
+    import os, time, urllib.request
+    facts = json.load(open("data/extracted/ship-facts.json", encoding="utf-8-sig"))
+    have = set()
+    for path in ("data/extracted/shipdetail-facts.json", "data/extracted/shipdetail-dhoguide.json"):
+        if os.path.exists(path):
+            have |= {d["Name"] for d in json.load(open(path, encoding="utf-8-sig"))}
+    todo = [f for f in facts if f.get("Doc") and f["Name"] not in have and not os.path.exists(f"data/extracted/wiki/dhoguide-ship-{f['Doc']}.html")]
+    print("받을 배", len(todo), flush=True)
+    agent = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    for n, fact in enumerate(todo):
+        copies = glob.glob("data/extracted/wiki/dhoguide-*.html")
+        wait = gap_minutes * 60 - (time.time() - max((os.path.getmtime(p) for p in copies), default=0))
+        while wait > 0:
+            if os.path.exists("data/extracted/wiki/dhoguide-stop"):
+                print("멈춤 파일 — 끝", flush=True); return
+            time.sleep(min(wait, 20)); wait -= 20
+        try:
+            with urllib.request.urlopen(urllib.request.Request(f"https://www.dhoguide.kr/dho/ship/{fact['Doc']}", headers=agent), timeout=30) as r:
+                if r.status != 200:
+                    print("받지 못함", r.status, fact["Name"], "— 끝", flush=True); return
+                body = r.read().decode("utf-8", errors="replace")
+        except Exception as e:
+            print("오류", fact["Name"], repr(e)[:120], "— 끝", flush=True); return
+        open(f"data/extracted/wiki/dhoguide-ship-{fact['Doc']}.html", "w", encoding="utf-8").write(body)
+        write(collect())
+        print(time.strftime("%H:%M"), "받음", n + 1, "/", len(todo), fact["Name"], flush=True)
+
+
 if "--fetch" in sys.argv:
     fetch(sys.argv[sys.argv.index("--fetch") + 1])
+if "--fill" in sys.argv:
+    fill(float(sys.argv[sys.argv.index("--fill") + 1]))
+    sys.exit()
 
-ships = [parse(p) for p in sorted(glob.glob("data/extracted/wiki/dhoguide-ship-*.html"))]
-ships = [s for s in ships if s["Name"]]
+ships = collect()
 for s in ships:
     print(s["Name"], "강화", s["Times"], "+", s["Retimes"], "건조", s["Days"], "일")
     print("  상한", s["Caps"], "칸", s["Slots"])
     for k in s["Skills"]:
         print("  ", k["Name"], "=", " + ".join(k["Parts"]))
 if "--write" in sys.argv:
-    json.dump(ships, open("data/extracted/shipdetail-dhoguide.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    write(ships)
     print("씀", len(ships))

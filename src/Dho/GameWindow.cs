@@ -804,6 +804,7 @@ internal sealed class GameWindow : IDisposable
             SunColor = sky.LightColor,
             FogDensity = 0.0000032f * (1 + _overcast * 0.5f),
             Ambient = sky.Ambient,
+            SunAngle = (float)((_voyage.SkyPhase - 0.25) * Math.Tau),      // 달이 시간에 따라 뜨고 진다(사용자, 2026-10-09)
             HorizonColor = sky.Horizon,
             ZenithColor = sky.Zenith,
             WaterColor = sky.Water,
@@ -967,7 +968,7 @@ internal sealed class GameWindow : IDisposable
             _gfx.BeginInset(frame with
             {
                 ViewProjection = look, InverseViewProjection = lookInverse, CameraPosition = eye, FogDensity = 0,
-                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
+                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0, SunAngle = MathF.PI / 2,
             }, who.X * UiScale, (who.Y + Hud.TitleHeight) * UiScale, who.W * UiScale, who.H * UiScale);
             _scene.BeginMeshes();
             if (_previewFigure.Loaded) _previewFigure.Draw(_scene, Matrix4x4.CreateRotationY(pose.Yaw), 0, 0, (float)_voyage.Clock);
@@ -1002,7 +1003,7 @@ internal sealed class GameWindow : IDisposable
             _gfx.BeginInset(frame with
             {
                 ViewProjection = look, InverseViewProjection = lookInverse, CameraPosition = eye, FogDensity = 0,
-                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
+                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0, SunAngle = MathF.PI / 2,
             }, box.X * UiScale, (box.Y + Hud.TitleHeight) * UiScale, box.W * UiScale, box.H * UiScale);
             _scene.BeginMeshes();
             shown.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(spin) * Matrix4x4.CreateTranslation(centre), null, Hull(shown, timber));
@@ -1034,7 +1035,7 @@ internal sealed class GameWindow : IDisposable
             _gfx.BeginInset(frame with
             {
                 ViewProjection = look, InverseViewProjection = lookInverse, CameraPosition = eye, FogDensity = 0,
-                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0,
+                SunDirection = noon.LightDirection, SunColor = noon.LightColor, Ambient = noon.Ambient, Night = 0, SunAngle = MathF.PI / 2,
             }, side.X * UiScale, (side.Y + Hud.TitleHeight) * UiScale, side.W * UiScale, side.H * UiScale);
             _scene.BeginMeshes();
             hull.Draw(_scene, Matrix4x4.CreateTranslation(-centre) * Matrix4x4.CreateRotationY(_previewYaw) * Matrix4x4.CreateTranslation(centre), null, Hull(hull, side.Color));
@@ -1232,6 +1233,9 @@ internal sealed class GameWindow : IDisposable
     // 바다에서 보이는 도시들 — 도시 번호 → (장면, 배 대는 자리). 가까운 셋까지 세워 둔다
     private readonly Dictionary<int, (PortScene? Scene, Vector3 Anchor)> _seaCities = new();
 
+    // 바다에서 볼 때 높은 건물을 빼는 항구 장면 — 장면 번호 → 꼭대기 높이 한계(장면 좌표; 낮은 집은 400 아래, 둘러친 높은 건물은 600 ~ 1300 — 한계 500 은 지은 값)
+    private static readonly Dictionary<int, float> SeaTops = new() { [7001] = 500, [7005] = 500 };      // 7001: 라스팔마스 · 마데이라 · 포르투 … 서른한 도시가 같이 쓰는 장면, 7005: 아르긴 · 카보베르데(초가집 항구) — 사용자, 2026-10-09
+
     private void DrawCityAtSea()
     {
         const double range = 130;                   // 세계 좌표 — 이보다 멀면 안 그린다(14 → 60 → 110 → 130: 원본은 먼 도시도 바닷가에 보인다)
@@ -1251,7 +1255,7 @@ internal sealed class GameWindow : IDisposable
                 shown = (null, default);
                 try
                 {
-                    var scene = new PortScene(_gfx, city.PortScene, fadeGround: true);
+                    var scene = new PortScene(_gfx, city.PortScene, fadeGround: true, seaTop: SeaTops.GetValueOrDefault(city.PortScene, float.MaxValue));
                     var berth = _voyage.Data.Settings.Berths.Find(b => b.Scene == city.PortScene);
                     shown = (scene, berth != null ? new Vector3(berth.X, 0, berth.Z) : new Vector3(scene.Center.X, 0, scene.Center.Z));
                 }
@@ -1560,6 +1564,8 @@ internal sealed class GameWindow : IDisposable
     }
 
     /// <summary>바다를 누르면 그쪽으로 뱃머리를 돌린다.</summary>
+    private (long At, int X, int Y) _seaClick;
+
     private void SteerToPointer()
     {
         // 조선소 주인 차림(구석의 작은 창)은 바깥을 누르면 닫히고 그 자리로 걸어간다
@@ -1591,9 +1597,17 @@ internal sealed class GameWindow : IDisposable
             return;
         }
         if (_voyage.Mode != Mode.Sea) return;
+        // 바다의 조타는 두 번 눌러야 듣는다(사용자, 2026-10-09: 「마우스 조타는 더블클릭 해야 조타되는거다 원클릭으로는 아니야」) — 0.45초 안에 거의 같은 자리를(사이 · 거리는 지은 값)
+        long clickedAt = Environment.TickCount64;
+        bool twice = clickedAt - _seaClick.At < 450 && Math.Abs(_mouseX - _seaClick.X) + Math.Abs(_mouseY - _seaClick.Y) < 16;
+        _seaClick = twice ? default : (clickedAt, _mouseX, _mouseY);
+        if (!twice) return;
         if (direction.Y >= -1e-4f) return;                 // 수평선 위를 눌렀다
         var hit = _eye + direction * (-_eye.Y / direction.Y);
-        _voyage.SteerTo(Math.Atan2(hit.X, -hit.Z));
+        _voyage.SteerTo(Math.Atan2(hit.X, -hit.Z), cue: false);
+        // 두 번 눌러 조타할 때마다 조타 소리(사용자, 2026-10-09) — 꺾는 각도와 상관없이 난다
+        _turnSounded = _voyage.Clock;
+        PlayCue("Turn");
     }
 
     // ── 확인용 대본 ──────────────────────────────────────────────────────────
@@ -1844,6 +1858,9 @@ internal sealed class GameWindow : IDisposable
             case "wikikind": _hud.WikiKindForTest(argument); break;      // 대본: 위키의 갈래 탭
             case "speedparts": File.AppendAllText(argument, string.Join("\n", new[] { 0, 90, 135, 180 }.Select(off => _voyage.SpeedPartsForTest(off))) + "\n\n"); break;      // 대본: 속도 식을 곱마다 풀어 파일에(speedparts:경로)
             case "wiki": _hud.WikiForTest(argument); break;      // 대본: 도시 정보 검색 창을 그 낱말로
+            case "peekship": _hud.PeekShip((int)Number()); break;      // 대본: 위키의 「선박 정보로 보기」(peekship:배번호)
+            case "seabases": File.WriteAllText(argument, string.Join("\n", Dho.Render.PortScene.SeaBases.Select(b => (MathF.Floor(b / 100) * 100)).GroupBy(b => b).OrderBy(g => g.Key).Select(g => $"{g.Key} {g.Count()}"))); break;      // 대본: 바다에서 보는 도시의 면 밑동 높이 분포
+            case "sealimit": Dho.Render.PortScene.SeaBaseLimit = (float)Number(); break;
             case "wikipick": _hud.WikiPickForTest(argument.Split(',')[0], int.Parse(argument.Split(',')[1])); break;      // 대본: wikipick:도시,2
             case "sea":                             // 바다 위의 자리로 옮긴다: sea:x,y
                 var seaAt = argument.Split(',');

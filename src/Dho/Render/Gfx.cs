@@ -19,7 +19,7 @@ internal struct FrameConstants
     public Vector3 CameraPosition; public float Time;
     public Vector3 SunDirection; public float Night;
     public Vector3 SunColor; public float FogDensity;
-    public Vector3 Ambient; public float Pad0;
+    public Vector3 Ambient; public float SunAngle;      // 해의 각(라디안) — 하늘 셰이더가 달의 자리를 여기서 셈한다
     public Vector3 HorizonColor; public float Pad1;
     public Vector3 ZenithColor; public float Pad2;
     public Vector3 WaterColor; public float Pad3;
