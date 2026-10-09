@@ -121,7 +121,8 @@ internal sealed class ShipModel : IDisposable
                 if (!_index!.TryGetValue((0x300, U16(row)), out var model)) continue;
                 ID3D11ShaderResourceView? picture = null;
                 if (_index.TryGetValue((0x301, U16(row + 2)), out var pictureAt)) _decoTextures.Add(picture = GameTexture.FromMftf(_device, new Pack(pictureAt.Pack).Entry(pictureAt.Entry)));
-                // 빛깔: 첫째 빛깔 번호(1 ~ 30)의 쌍 가운데 밝은 쪽으로 물들인다(두 빛깔을 조각마다 나눠 칠하는 법은 못 밝혔다 — 짐작)
+                // 빛깔: 줄 끝의 u8 둘이 빛깔 번호 둘(1 ~ 30)이고 번호마다 (밝은 빛, 어두운 빛) 쌍이다 — 돛단배 8 · 9 · 10 이 (7, 22) · (4, 12) · (11, 20).
+                // 모형은 조각이 하나뿐이라(w-648 에서 세어 봄) 두 빛깔은 조각이 아니라 그림(텍스처의 알파나 밝기)으로 갈릴 것이다 — 그 법은 못 밝혀 첫째 번호의 밝은 빛 하나로 물들인다(짐작)
                 var tint = Vector4.One;
                 int colour = table[row + 8], colours = start - 4 - 240;
                 if (DecoTint && colour is >= 1 and <= 30)

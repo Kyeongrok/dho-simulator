@@ -20,7 +20,7 @@ internal sealed class Aide
 
 /// <summary>
 /// 부관 — 주점에서 고용해 담당을 맡긴다. 이름 32명(표 131)과 담당 여섯(표 36)은 클라이언트의 것이고,
-/// 고용비 · 급여 · 담당의 효과 · 성장은 지은 규칙이다.
+/// 고용비는 gvdb 의 것(100,000 두캇)이고, 급여 · 담당의 효과 · 성장은 지은 규칙이다.
 /// </summary>
 internal sealed partial class Voyage
 {
@@ -46,13 +46,15 @@ internal sealed partial class Voyage
     {
         if (Data.Aides.Count == 0) return [];
         var random = new Random(City.Id * 31 + 7);
-        return Data.Aides.OrderBy(_ => random.Next()).Take(3).Where(a => Aides.All(h => h.Who.Id != a.Id)).ToList();
+        // 글에 고용 도시가 적힌 부관(한스 · 후란시느)은 그 도시에서 맨 앞에 나온다
+        var known = AideKits.Where(k => k.Cities.Contains(City.Name)).Select(k => new NamedData { Id = k.Id, Name = k.Name });
+        return known.Concat(Data.Aides.OrderBy(_ => random.Next()).Take(3)).Where(a => Aides.All(h => h.Who.Id != a.Id)).ToList();
     }
 
     /// <summary>주점이 있는 도시에서만 고용한다(시내 지도에 주점 표식이 있는가). 지도가 없는 도시는 된다고 본다.</summary>
-    public bool HasTavern => TownMap is not { Marks.Count: > 0 } map || map.Marks.Any(m => m.Place == 13);
+    public bool HasTavern => TownMap is not { Marks.Count: > 0 } map || map.Marks.Any(m => m.Place == 13) || AideKits.Any(k => k.Cities.Contains(City.Name));      // 글에 고용 도시로 적힌 곳(튀니스 — 시내 지도에 주점 표식이 없다)은 된다고 본다
 
-    public int AideCost(NamedData who) => 8000 + who.Id % 7 * 1500;
+    public int AideCost(NamedData who) => 100_000;      // gvdb: 부관 72명 모두 주점 주인에게 100,000 두캇(전에는 지은 값 8,000 ~ 17,000)
 
     /// <summary>바다에서 하루에 나가는 급여.</summary>
     public int AidePay(Aide aide) => (30 + aide.Level * 12) * (aide.Ship != null ? 2 : 1);
@@ -61,6 +63,11 @@ internal sealed partial class Voyage
     {
         if (!HasTavern) return "이 도시에는 주점이 없다";
         if (Aides.Count >= AideSlots) return "부관 자리가 찼다";
+        // 고용 조건(인벤 498/20820): 첫 부관 — 모험/교역/전투 중 하나가 20레벨 이상 · 둘째 부관 — 하나가 40레벨 이상이고 첫 부관이 20레벨 이상
+        int mine = Enumerable.Range(0, 3).Max(kind => LevelOf(ExpOf(kind)).Level);
+        if (Aides.Count == 0 && mine < 20) return "모험 · 교역 · 전투 중 하나가 20레벨이 되어야 한다";
+        if (Aides.Count == 1 && mine < 40) return "모험 · 교역 · 전투 중 하나가 40레벨이 되어야 한다";
+        if (Aides.Count == 1 && Aides[0].Level < 20) return "첫 부관이 20레벨이 되어야 한다";
         if (Money < AideCost(who)) return "돈이 모자라다";
         return null;
     }
@@ -72,7 +79,7 @@ internal sealed partial class Voyage
         // 아직 아무도 안 맡은 담당부터
         int duty = Enumerable.Range(0, 6).FirstOrDefault(d => Aides.All(a => a.Duty != d));
         Aides.Add(new Aide { Who = who, Duty = duty });
-        Say($"{who.Name}을(를) 부관으로 고용했다. 담당: {DutyName(duty)}");
+        Say($"{who.Name}을(를) 부관으로 고용했다. 담당: {DutyName(duty)}" + (AideKitNote(who) is { Length: > 0 } kit ? $" — {kit}" : ""));
     }
 
     public void DismissAide(Aide aide)
@@ -106,7 +113,7 @@ internal sealed partial class Voyage
             if ((int)aide.Trust > (int)before) TrustRose(aide);
             _aidePay += AidePay(aide) * days;
             if (aide.Level >= AideMaxLevel) continue;
-            aide.Exp += days * 10 * GainFactor;
+            aide.Exp += days * 10 * GainFactor * (1 + GearEffect("AideGrow") * 0.10);      // 장비 효과 「부관 성장 촉진」(gvdb 「副官成長促進」) — 「항해일수에 따른 부관 경험치에만 적용, 1랭크당 10%」(인벤 498/20820)
             while (aide.Level < AideMaxLevel && aide.Exp >= aide.Level * 40)
             {
                 aide.Exp -= aide.Level * 40;
@@ -127,6 +134,7 @@ internal sealed partial class Voyage
     private void TrustRose(Aide aide)
     {
         Say($"부관 {aide.Who.Name}의 신뢰도가 높아졌습니다.");
+        Studied("Trust");
         AideSpeech = (aide.Who, (int)aide.Trust % 4 == 1 ? TrustLines[0] : TrustLines[_random.Next(TrustLines.Length)], Clock + 5);
     }
 

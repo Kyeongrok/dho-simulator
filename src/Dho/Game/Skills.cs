@@ -25,7 +25,7 @@ internal sealed partial class Voyage
 
     /// <summary>랭크 — 내 직업의 전문 스킬이면 +1 이 붙는다(익힌 것만).</summary>
     public int Rank(int skillId) => Math.Max(skillId == _lentSkill || Battle is { Result: null } fought && fought.Lent.Contains(skillId) ? 1 : 0,
-        Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) + BoostRank(skillId, state.Rank) + GearRank(skillId) + (state.Refined ? RefineBoost : 0) : 0);
+        Skills.TryGetValue(skillId, out var state) ? state.Rank + ExpertBoost(skillId) + BoostRank(skillId, state.Rank) + GearRank(skillId) + AideRank(skillId) + (state.Refined ? RefineBoost : 0) : 0);
 
     // 스킬 대신 쓰는 도구(포획망 · 간이 인양 로프)를 쓰는 동안 그 스킬 — 랭크 1 로 친다(랭크는 자료가 없어 낚시밥처럼 1 로 본 것, 짐작)
     private int _lentSkill;
@@ -55,6 +55,13 @@ internal sealed partial class Voyage
                 else if (SeaSiteInReach()) SearchAtSea();
                 else { Say($"{tool}(으)로 찾을 것이 가까이 없다."); Cues.Enqueue("Error"); return false; }
                 return QuestStage == QuestStage.Discovered;
+            }
+            // 관찰 가이드(gvdb 「観察 — 付近に隠されている重要物の場所がわかる」) — 상륙지에서 한 번 둘러본다
+            if (rule.Effect == "Observe")
+            {
+                if (Dialog != Dialog.Ashore || LooksLeft <= 0) { Say($"{tool}은(는) 상륙지를 둘러볼 때 쓴다."); Cues.Enqueue("Error"); return false; }
+                LookAround();
+                return true;
             }
             return false;
         }

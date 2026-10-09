@@ -13,6 +13,8 @@ public sealed record Ship(int Id, string Name, string Description, int Model, in
 /// <summary>배 부품. Slot: 0 보조돛(A 가로돛, B 세로돛) · 1 장갑(A 장갑, B 속도 줄임) · 2 선수상(A ~ D 효과 넷) · 3 문장(수치 없음).</summary>
 /// <summary>주점의 차림 한 가지(표 37) — 갈래: 0 술 · 1 요리 · 2 음료 · 3 물담배.</summary>
 public sealed record TavernDish(int Id, string Name, string Description, int Kind);
+/// <summary>대학 연구의 할 일(표 64): 이름과 원본 설명 글(「1회 교역으로 10만 두캇 이상 흑자를 낸다」).</summary>
+public sealed record StudyTask(int Id, string Name, string Description);
 /// <summary>대포만: 장전 속도 · 탄속 · 폭발 범위(표 22 의 일곱째 · 다섯째 · 여섯째 값, 1 ~ 10 — 클수록 좋다: 「명품」이 늘 하나씩 높다).</summary>
 public sealed record ShipPart(int Id, string Name, string Description, int Slot, int A, int B, int C, int D, int Durability, int Reload = 0, int ShotSpeed = 0, int Blast = 0);
 /// <summary>
@@ -23,7 +25,7 @@ public sealed record ShipDeco(int Id, string Name, string Description, int[] Spo
 /// <summary>
 /// 선원 장비(표 139) — 줄 꼬리 26바이트: u8 갈래(0 · 1 · 2 — 번호대 2600 · 2601 · 2602 과 같다), s8 × 5 수치(뜻은 못 밝혔다), u8 내구, 나머지 19바이트는 안 풀었다.
 /// </summary>
-public sealed record CrewGear(int Id, string Name, string Description, int Kind, int[] Values, int Durability);
+public sealed record CrewGear(int Id, string Name, string Description, int Kind, int[] Values, int Durability, int Skill = 0);
 public sealed record Nation(int Id, string Name, string Description);
 public sealed record Job(int Id, string Name, string Description, int Line);
 
@@ -67,6 +69,7 @@ public sealed class DataTables
     /// <summary>부관의 담당(표 36): 0 항해장 · 1 감시 · 2 회계사 · 3 창고당번 · 4 부함장 · 5 선의.</summary>
     public IReadOnlyDictionary<int, string> Duties { get; }
     public List<TavernDish> TavernMenu { get; }
+    public List<StudyTask> StudyTasks { get; }
     /// <summary>상륙지 번호 → 세계지도 표식의 자리(세계 좌표, 뭍 위일 수 있다).</summary>
     public IReadOnlyDictionary<int, (int X, int Y)> LandingSpots { get; }
     /// <summary>뭍 탐색 지점(표 106): 상륙지마다 관찰 지점의 수와 채집 지점의 갈래(1 ~ 5, 갈래마다 셋).</summary>
@@ -83,6 +86,10 @@ public sealed class DataTables
     public IReadOnlyDictionary<int, string> Places { get; }
     /// <summary>아이템 표(14)의 이름 — 번호, 이름, 설명뿐인 표. 게임이 따로 다루지 않는 아이템(의뢰 알선서 · 책 · 부적 …)의 이름을 보이는 데 쓴다.</summary>
     public IReadOnlyDictionary<int, string> ItemNames { get; } = new Dictionary<int, string>();
+    /// <summary>선박 재질의 설명 글(표 30: 번호 · 이름 · 설명, 99줄) — 이름 → 설명. 번호는 gvdb 재질 목록의 번호와 달라 이름으로 잇는다.</summary>
+    public IReadOnlyDictionary<string, string> MaterialNotes { get; } = new Dictionary<string, string>();
+    /// <summary>그레이드 보너스의 설명 글(표 90: 번호 · 이름 · 설명, 32줄 — 이름이 ※ 인 줄은 뺀다) — 번호 → 설명.</summary>
+    public IReadOnlyDictionary<int, string> GradeBonusNotes { get; } = new Dictionary<int, string>();
     /// <summary>선박 데코(표 138) 321줄과 선원 장비(표 139) 214줄 — 이름이 「※」인 빈 줄까지 그대로.</summary>
     public IReadOnlyList<ShipDeco> Decos { get; }
     public IReadOnlyList<CrewGear> CrewGears { get; }
@@ -142,7 +149,7 @@ public sealed class DataTables
         // 문장(표 26): id(1100001 ~), 이름, 설명뿐 — 수치가 없다
         parts.AddRange(Rows(Table(26), (r, id) => new ShipPart(id, r.Text(id), r.Text(id), 3, 0, 0, 0, 0, 0)));
         // 대포(표 22): id(700100 ~), 이름, 설명, i32 × 10 — 문 수, 관통력, 다는 자리(0 선측 · 1 선수 · 2 선미), 사정거리, 탄속, ?, ?, 1, 내구, 탄 갈래.
-        // 자리와 탄 갈래는 설명 글(「선측에 8문」 · 「선수에 4문」 · 「사슬탄」)과 맞춰 본 것이고, 다섯째 ~ 일곱째는 gvdb 아이템 목록의 글과 맞는다(팔콘포 2문: 「弾速：8 · 炸裂範囲：1 · 装填速度：6」) — 탄속 · 폭발 범위 · 장전 속도. 게임은 이 셋을 아직 안 쓴다(장전 속도의 수가 클수록 빠른지 느린지 모른다)
+        // 자리와 탄 갈래는 설명 글(「선측에 8문」 · 「선수에 4문」 · 「사슬탄」)과 맞춰 본 것이고, 다섯째 ~ 일곱째는 gvdb 아이템 목록의 글과 맞는다(팔콘포 2문: 「弾速：8 · 炸裂範囲：1 · 装填速度：6」) — 탄속 · 폭발 범위 · 장전 속도. 게임은 장전 속도만 쓴다(Voyage.CannonReload — 수가 클수록 빠르다고 본 것과 곱의 크기는 지은 값); 탄속 · 폭발 범위는 안 쓴다
         parts.AddRange(Rows(Table(22), (r, id) =>
         {
             string name = r.Text(id), description = r.Text(id);
@@ -183,6 +190,7 @@ public sealed class DataTables
         Cultures = Rows(Table(1), (r, id) => (id, r.Text(id)));
         Pets = Rows(Table(47), (r, id) => { string name = r.Text(id); r.Skip(36); return (id, name); });
         TavernMenu = Rows(Table(37), (r, id) => new TavernDish(id, r.Text(id), r.Text(id), r.UInt16()));
+        StudyTasks = Rows(Table(64), (r, id) => new StudyTask(id, r.Text(id), r.Text(id)));
         // 세계지도의 표식(표 103): u32 id, u8 갈래(3 상륙지 · 4 해역 이름 · 7 · 8 · 9 ?), u16 대상 번호, u16 x, u16 y, 그 뒤 4바이트 0 — 15바이트 고정.
         // 자리는 640 × 320 짜리 세계지도 그림 위의 것이다: 세계 좌표 x ≈ (x × 25.6 + 8270) mod 16384, y = y × 25.6 (손으로 찍어 둔 상륙지 27곳과 맞춰 본 것)
         var spots = new Dictionary<int, (int X, int Y)>();
@@ -234,6 +242,10 @@ public sealed class DataTables
         Places = Rows(Table(PlaceTable), (r, id) => (Id: id, Name: r.Text(id))).ToDictionary(p => p.Id, p => p.Name);
         try { ItemNames = Rows(Table(14), (r, id) => { string name = r.Text(id); r.Text(id); return (Id: id, Name: name); }).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Name); }
         catch (Exception e) { Console.Error.WriteLine("ItemNames: " + e.Message); }
+        try { MaterialNotes = Rows(Table(30), (r, id) => (Name: r.Text(id), Note: r.Text(id))).Where(p => p.Name.Length > 0 && p.Note.Length > 0).GroupBy(p => p.Name).ToDictionary(p => p.Key, p => p.First().Note); }
+        catch (Exception e) { Console.Error.WriteLine("MaterialNotes: " + e.Message); }
+        try { GradeBonusNotes = Rows(Table(90), (r, id) => (Id: id, Name: r.Text(id), Note: r.Text(id))).Where(p => !p.Name.StartsWith('※') && p.Note.Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Note); }
+        catch (Exception e) { Console.Error.WriteLine("GradeBonusNotes: " + e.Message); }
         Decos = Rows(Table(138), (r, id) =>
         {
             string name = r.Text(id), description = r.Text(id);
@@ -248,8 +260,11 @@ public sealed class DataTables
             int kind = r.Byte();
             int[] values = [(sbyte)r.Byte(), (sbyte)r.Byte(), (sbyte)r.Byte(), (sbyte)r.Byte(), (sbyte)r.Byte()];
             int durability = r.Byte();
-            r.Skip(19);
-            return new CrewGear(id, name, description, kind, values, durability);
+            // 뒤 19바이트: 그림 갈래로 보이는 수 1 · **선박 스킬 번호 u16**(중량탄 → 2040 중량포격 · 강화 화염탄 → 2042 장갑열화탄 · 키 장인의 톱 → 2008 강화키 — 해전 글 「선원 장비 스킬 '%s'」의 그 스킬) · 0 열 개 · (갈래, 단계) 짝 셋
+            r.Byte();
+            int skill = r.UInt16();
+            r.Skip(16);
+            return new CrewGear(id, name, description, kind, values, durability, skill);
         });
     }
 

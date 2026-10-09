@@ -47,15 +47,18 @@ internal sealed partial class Voyage
             int study = real.Skills.Where(s => s.Name is not ("視認" or "探索" or "生態調査" or "開錠") && !s.Name.EndsWith('語')).Select(s => s.Rank).DefaultIfEmpty(1).Max();
             int look = real.Skills.Where(s => s.Name is "視認" or "探索" or "生態調査").Select(s => s.Rank).DefaultIfEmpty(0).Max();
             bool atSea = site == null && town == null && zoneId == 0;
+            // 원본의 지도 이름과 길잡이 글(클라이언트 지도 표 17 — 「카이로 건너편에 상륙. 안쪽의 기자지방. 유적 내부. 탐색，고고학 랭크 1」). 번호를 못 가린 지도는 이름만 원본 것이다
+            string title = Data.MapNames.GetValueOrDefault(real.MapId > 0 ? real.MapId : real.NameId) is { Length: > 0 } named ? named[0] : $"{kindName}의 지도";
+            string guide = real.MapId > 0 && Data.MapNames.GetValueOrDefault(real.MapId) is { Length: > 1 } told ? told[1].Replace("\n", " ").Trim().Trim((char)34) : "";
             for (int k = 0; k < Math.Min(real.Cities.Count, 8); k++)
             {
                 if (ports.Find(c => c.Id == real.Cities[k]) is not { } library) continue;
                 made.Add(new QuestData
                 {
-                    Id = MapQuestBase + n * 8 + k, Title = $"{kindName}의 지도", Client = $"{library.Name} 서고", CityId = library.Id, DiscoveryId = real.DiscoveryId, MapSkill = field.Id,
+                    Id = MapQuestBase + n * 8 + k, Title = title, Client = $"{library.Name} 서고", CityId = library.Id, DiscoveryId = real.DiscoveryId, MapSkill = field.Id,
                     SeaX = atSea ? real.X : 0, SeaY = atSea ? real.Y : 0, SeaZone = zoneId, LandingId = site?.Id ?? 0, SearchCity = town?.Id ?? 0,
                     NightOnly = real.Night, Rank = Math.Clamp(study, 1, most), FindRank = look,
-                    Request = $"{fieldName} 서적 사이에서 나온 지도다. {where} 쪽의 {kindName}을(를) 가리킨다.",
+                    Request = guide != "" ? guide : $"{fieldName} 서적 사이에서 나온 지도다. {where} 쪽의 {kindName}을(를) 가리킨다.",
                     Hint = site != null ? $"{where}에 상륙해 주변을 탐색한다." : town != null ? $"{where}에 입항해 「의뢰 탐색」을 한다."
                          : zoneId > 0 ? $"{where}에 나가 둘레를 살핀다(F)." + (real.Night ? " 밤에, 날씨가 거칠지 않을 때만 보인다." : "") : $"{where} ({real.X}, {real.Y}) 부근에서 둘레를 살핀다(F).",
                     LandingText = site != null ? $"{where}에 올랐다.\n지도에 그려진 자리를 찾아 둘레를 살핀다." : "",

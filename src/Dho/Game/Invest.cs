@@ -47,10 +47,11 @@ internal sealed partial class Voyage
         if (InvestBlocker(amount) != null) return;
         if (City.Nation == NationId && !Invested.ContainsKey(City.Id)) _homeShare.Add(City.Id);
         Money -= amount;
+        if (amount >= 100_000) Studied("BigInvest");      // 연구 과제 「거액 투자」(표 64: 100000 이상 투자)
         _investedAt = (City.Id, (int)(Clock / Settings.SecondsPerDay));
         int growth = GrowthOf(City);
         long before = InvestedIn(City);
-        Invested[City.Id] = before + amount;
+        Invested[City.Id] = before + (HasStudy("정치상인의 교섭술 1") ? (long)(amount * 1.1) : amount);      // 대학 스킬 「투자총액과 개인 투자금액의 증가량이 10% 상승한다」
         // 투자 보수(gvdb 도시 쪽의 「投資報酬 … 必要投資額」) — 쌓인 투자가 그 금액을 넘는 순간 한 번 받는다
         if (Data.TownFacts.TryGetValue(City.Id, out var fact) && fact is { InvestReward: > 0, InvestNeed: > 0 } && before < fact.InvestNeed && before + amount >= fact.InvestNeed)
         {

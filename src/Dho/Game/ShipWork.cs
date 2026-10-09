@@ -197,24 +197,15 @@ internal sealed partial class Voyage
 
     public const int MaxGrade = 8;
     /// <summary>
-    /// 그레이드 보너스 — 클라이언트 자료 표 90 의 번호 · 이름 · 설명 그대로(22 ~ 28 · 32 는 이름 없는 줄).
+    /// 그레이드 보너스 — 클라이언트 자료 표 90 의 번호 · 이름(설명 글은 실행 때 표에서 읽는다 — GameData.GradeBonusNotes)(22 ~ 28 · 32 는 이름 없는 줄).
     /// 조합할 때 고른다(화면 글 40506 「선택 보너스」). 크기(강화 +8% · 돛 +12 …)는 지은 것이다.
     /// </summary>
-    public static readonly (int Id, string Name, string Note)[] GradeBonuses =
+    public static readonly (int Id, string Name)[] GradeBonuses =
     [
-        (1, "내구력 강화", "선박 내구력 강화치를 증가시킨다."), (2, "세로돛성능 강화", "선박 세로돛성능 강화치를 증가시킨다."),
-        (3, "가로돛성능 강화", "선박 가로돛성능 강화치를 증가시킨다."), (4, "조력 강화", "선박 조력 강화치를 증가시킨다."),
-        (5, "선회 성능 강화", "선박 선회성 강화치를 증가시킨다."), (6, "내파성 강화", "선박 내파성 강화치를 증가시킨다."),
-        (7, "장갑 강화", "선박의 장갑 강화치를 증가시킨다."), (8, "선실적재량 강화", "선박 선실적재량 강화치를 증가시킨다."),
-        (9, "포실적재량 강화", "선박 포실적재량 강화치를 증가시킨다."), (10, "창고 용량 강화", "선박 창고 용량 강화치를 증가시킨다."),
-        (11, "선측포 추가", "선측포 슬롯을 추가한다. 최대 추가 가능 수는 선박 사이즈에 따라 달라진다."),
-        (12, "선수포 추가", "선수포 슬롯을 추가한다. +1까지만 추가 가능."), (13, "선미포 추가", "선미포 슬롯을 추가한다. +1까지만 추가 가능."),
-        (14, "스킬칸 추가1", "옵션 스킬 부여 가능 수가 +1 된다."), (15, "스킬칸 추가2", "옵션 스킬 부여 가능 수에 +1 추가된다."),
-        (16, "스킬 계승", "조합에 사용한 배에 부여된 옵션 스킬을 적용시킨다."),
-        (17, "포함 개조", "옵션 스킬 「포함 개조」를 적용시킨다."), (18, "장갑함 개조", "옵션 스킬 「장갑함 개조」를 적용시킨다."),
-        (19, "백병함 개조", "옵션 스킬 「백병함 개조」를 적용시킨다."), (20, "특수 화물선 개조", "옵션 스킬 「특수화물선 개조」를 적용시킨다."),
-        (21, "탐사선 개조", "옵션 스킬 「탐사선 개조」를 적용시킨다."),
-        (29, "가속 강화1", "선박의 가속도를 강화시킨다."), (30, "가속 강화2", "선박의 가속도를 더 강화시킨다."), (31, "가속 강화3", "선박의 가속도를 보다 더 강화시킨다."),
+        (1, "내구력 강화"), (2, "세로돛성능 강화"), (3, "가로돛성능 강화"), (4, "조력 강화"), (5, "선회 성능 강화"), (6, "내파성 강화"), (7, "장갑 강화"),
+        (8, "선실적재량 강화"), (9, "포실적재량 강화"), (10, "창고 용량 강화"), (11, "선측포 추가"), (12, "선수포 추가"), (13, "선미포 추가"),
+        (14, "스킬칸 추가1"), (15, "스킬칸 추가2"), (16, "스킬 계승"), (17, "포함 개조"), (18, "장갑함 개조"), (19, "백병함 개조"), (20, "특수 화물선 개조"), (21, "탐사선 개조"),
+        (29, "가속 강화1"), (30, "가속 강화2"), (31, "가속 강화3"),
     ];
 
     public static string BonusName(int bonus) => Array.Find(GradeBonuses, b => b.Id == bonus).Name ?? $"보너스 {bonus}";
@@ -233,7 +224,7 @@ internal sealed partial class Voyage
             && (id != 16 || InheritChoices(main, material).Count > 0)
             && (id != 4 || main.Ship.Kind == 2)                      // 조력은 노가 있는 배만
             && !(id is >= 17 and <= 21 && refitted))                 // 개조는 한 가지만(짐작)
-            .OrderBy(id => id == 16 ? 0 : 1).ToList();                // 스킬 계승을 맨 위에 — 재료 선박에 스킬이 있으면 그것이 먼저 골라져 있다
+            .OrderBy(id => id is >= 29 and <= 31 ? 0 : id == 16 ? 1 : 2).ToList();   // 가속 강화를 맨 위에(사용자, 2026-10-09), 그 다음 스킬 계승 — 맨 위의 것이 먼저 골라져 있다
     }
 
     /// <summary>스킬 계승으로 옮길 수 있는 재료 선박의 옵션 스킬 — 본배에 아직 없는 것.</summary>
@@ -371,7 +362,7 @@ internal sealed partial class Voyage
     /// <summary>
     /// 그레이드 초기화(화면 글 40524 「선박의 그레이드와 그레이드 경험치，성능을 초기화합니다」) — 함선 재설계 기술서 한 권.
     /// 그레이드 · 경험치 · 그레이드 보너스 · 강화치가 0 이 되고, 개조 보너스로 붙은 「○○ 개조」도 빠진다.
-    /// 그 밖의 옵션 스킬(계승으로 받은 것 포함)과 전용함 스킬 · 재질은 남긴다 — 이 가름은 내 판단이다.
+    /// 스킬 계승으로 받은 스킬도 보너스와 함께 빠진다(코드: Redesigned). 조선으로 붙인 옵션 스킬과 전용함 스킬 · 재질은 남긴다 — 이 가름은 내 판단이다.
     /// </summary>
     /// <summary>그레이드 초기화를 한 뒤의 강화 상태 — 배는 건드리지 않는다(미리 보기와 실제 초기화가 같이 쓴다).</summary>
     public ShipWork Redesigned(DockedShip ship)
@@ -588,6 +579,30 @@ internal sealed partial class Voyage
 
     public string OptionName(int skillId) => skillId is >= 2900 and <= 2904 ? BonusName(17 + skillId - 2900) : Data.OptionSkills.Find(s => s.SkillId == skillId)?.Name ?? SkillName(skillId);
 
+    /// <summary>
+    /// 선박 스킬 그림의 풍선 글 — 이름, 원본의 스킬 설명 글(실행 때 읽은 것), 이 게임에서 하는 일, 유효조건.
+    /// <paramref name="work"/> 를 주면 그 배의 전용함 스킬인지도 적는다.
+    /// </summary>
+    public string OptionTip(int skillId, ShipWork? work = null, string tail = "")
+    {
+        var lines = new List<string> { OptionName(skillId) + (work != null && skillId == work.Dedicated ? " (전용함 스킬)" : "") + tail };
+        string about = (skillId is >= 2900 and <= 2904 ? Data.GradeBonusNotes.GetValueOrDefault(17 + skillId - 2900)
+            : Data.Skills.Find(s => s.Id == skillId)?.Description is { Length: > 0 } told ? told : Data.SkillNotes.GetValueOrDefault(skillId)) ?? "";
+        about = about.Replace("\r", "").Replace("\n", " ").Trim();
+        for (int from = 0; from < about.Length; from += 34) lines.Add(about.Substring(from, Math.Min(34, about.Length - from)));
+        if (Data.OptionSkills.Find(s => s.SkillId == skillId) is { } option)
+        {
+            lines.Add(option.Effect == "" ? "이 게임에서는 아직 효과가 없다" : "이 게임에서: " + OptionNote(option));
+            if (OptionNeedLine(option) is { Length: > 0 } needs) lines.Add("유효조건: " + needs);
+        }
+        return string.Join("\n", lines);
+    }
+
+    /// <summary>그 배에 붙일 수 있다고 알려진 옵션 스킬 — 배 상세의 목록(변형 배는 바탕 배의 것)에 gvdb 의 이용자 보고를 더한 것. 자료가 없는 배는 빈 목록.</summary>
+    public List<OptionSkill> AttachableSkills(string shipName) =>
+        (Data.ShipDetail(shipName)?.Skills.Select(s => s.Name) ?? []).Concat(Data.ShipCombos.Where(c => c.Ship == shipName).Select(c => c.Skill)).Distinct()
+        .Select(name => Data.OptionSkills.Find(o => o.Name == name)).OfType<OptionSkill>().ToList();
+
     public static string OptionNote(OptionSkill skill) => skill.Effect switch
     {
         "Speed" => $"속도 +{skill.Amount * 100:0}%",
@@ -710,7 +725,7 @@ internal sealed partial class Voyage
             if (OptionFrom(parts) == null) return "이 재료 조합으로 붙는 옵션 스킬이 없다";
             return Money < WorkCost(parts) ? "돈이 모자라다" : null;
         }
-        if (Work.Times >= MaxTimesOf(Ship)) return "더는 강화할 수 없다";
+        if (Work.Times >= MaxTimesOf(Ship)) return Text(6853, "더는 강화할 수 없다");
         if (parts.Count + (wood > 0 ? 1 : 0) < 2) return "재료를 둘 이상 고른다";
         if (parts.Count + (wood > 0 ? 1 : 0) > 4) return "재료는 넷까지";
         if (wood > 0 && (WoodOf(wood) == null || Items.GetValueOrDefault(wood) <= 0)) return "그 선박재료가 없다";
@@ -725,7 +740,7 @@ internal sealed partial class Voyage
         bool skills = work.Skills.Exists(s => !work.BonusSkills.Contains(s) && s is not (>= 2900 and <= 2904));
         if (work.Times == 0 && !skills)
             return work.Skills.Count > 0 ? "지울 것이 없다 — 붙은 스킬은 그레이드 보너스(스킬 계승 · 개조)라 선박 조합의 「그레이드 초기화」로 지운다" : "지울 강화가 없다";
-        return Items.GetValueOrDefault(DismantleBook) <= 0 ? "특수조선 해체 기법서가 없다" : null;
+        return Items.GetValueOrDefault(DismantleBook) <= 0 ? Text(6839, "%s이(가) 있어야 한다").Replace("%s", ItemName(DismantleBook)) : null;
     }
 
     /// <summary>조선으로 붙인 옵션 스킬(그레이드 보너스의 스킬 · 전용함 스킬은 뺀다).</summary>

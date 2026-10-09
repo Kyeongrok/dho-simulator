@@ -120,7 +120,7 @@ internal sealed partial class Voyage
             {
                 // 해적이 이쪽을 처음 알아볼 때 한 번 정한다 — 열에 넷만 덤빈다(나머지는 제 길을 간다). 지은 값: 다 덤비면 포 없는 배는 바다를 못 다닌다
                 ship.Seen = true;
-                if (_random.NextDouble() >= 0.4 * (1 - Math.Min(0.8, Bonus("Watch"))) * (1 - Math.Min(0.9, Option("Ambush")))) ship.Fooled = true;      // 「고층 감시대」(원본 글: 높은 확률로 바다에서의 기습을 막는다)
+                if (_random.NextDouble() >= 0.4 * (1 - Math.Min(0.8, Bonus("Watch"))) * (1 - Math.Min(0.9, Option("Ambush") + GearEffect("Ambush") * 0.03))) ship.Fooled = true;      // 「고층 감시대」(원본 글: 높은 확률로 바다에서의 기습을 막는다)
                 else if (PetWards(ship)) ship.Fooled = true;      // 「경계」 스킬이 기습당할 확률을 낮춘다(스킬 설명 그대로, 랭크마다 4%는 지은 값)
             }
             if (ship.Monster > 0 && !ship.Hunting && !NoRaids && far < 7)
@@ -308,6 +308,9 @@ internal sealed partial class Voyage
     public SeaShip? ShipInReach() =>
         Mode != Mode.Sea ? null : SeaShips.Where(s => s.Sinking < 0 && (s.Kind == 1 || s.NationId != NationId) && Distance(s) < SeaShipReach).MinBy(Distance);
 
+    /// <summary>대본용 — 가장 가까운 바다 괴물과 싸움을 붙인다(해적 끄기 모드에서는 괴물이 덮치지 않는다).</summary>
+    public void FightMonsterForTest() { if (Battle == null && SeaShips.Where(s => s.Monster > 0 && s.Sinking < 0).MinBy(Distance) is { } beast) StartBattle(beast, false); }
+
     public void Attack()
     {
         if (ShipInReach() is { } ship && Battle == null) { Offend(ship); StartBattle(ship, true); }
@@ -389,6 +392,7 @@ internal sealed partial class Voyage
         else if (ammo == 6) hit *= 1.2;
         // 「화약학」(설명: 「화약류를 잘 다루게 된다. 유탄포의 효과가 상승한다」) — 화염탄 · 작렬탄 · 유탄에 랭크마다 +5%(지은 값)
         if (ammo is 4 or 10 or 17 or 18) { hit *= 1 + Bonus("Powder"); TrainEffect("Powder", 10); }
+        if (HasStudy("해군사관의 기술 1")) hit *= 1.1;      // 대학 스킬 「해상 NPC와의 전투에서 포격 데미지가 10% 증가한다」
         // 가까이 붙어 쏘면 기관포가 갑판을 쓸고(선원), 화염방사기가 불을 붙인다(내구) — 특수장비. 크기는 지은 것
         if (Distance(foe) < GunRange / 2)
         {
@@ -501,7 +505,7 @@ internal sealed partial class Voyage
     {
         if (Battle is not { Result: null, AidCalled: false } battle || !CanAid || battle.Foe.Monster > 0) return;
         (battle.AidCalled, battle.AidLeft, battle.AidIn) = (true, 3, 5);
-        battle.Log.Add("원군을 요청했다 — 곧 포격이 온다.");
+        battle.Log.Add(Text(3248, "원군이 왔습니다."));
         Say(battle.Log[^1]);
         TrainEffect("Aid", 20);
     }
@@ -518,7 +522,7 @@ internal sealed partial class Voyage
         if (Battle is not { Boarding: false, Result: null } battle || !CanMine || battle.MineIn > 0 || battle.Mines.Count >= 3) return;
         battle.Mines.Add((ShipX, ShipY, 0));
         battle.MineIn = 12;
-        battle.Log.Add("기뢰를 설치했다.");
+        battle.Log.Add("기뢰를 설치했다.");      // 원본에 설치했다는 글은 없다(못 할 때의 글 3251 · 3252 뿐)
         TrainEffect("Mine", 10);
     }
 
@@ -622,7 +626,7 @@ internal sealed partial class Voyage
             battle.FoeMines.RemoveAt(i);
             if (_random.NextDouble() < Bonus("MineSight"))
             {
-                battle.Log.Add("기뢰를 발견해 비켜 갔다.");
+                battle.Log.Add(Text(3253, "기뢰를 발견하였습니다!") + " " + Text(3254, "기뢰를 제거했습니다!"));
                 TrainEffect("MineSight", 15);
                 continue;
             }
@@ -630,7 +634,7 @@ internal sealed partial class Voyage
             double blast = (50 + _random.NextDouble() * 40) * PartDamage * (1 - Math.Min(0.5, RankByName("조타") * 0.03));
             Durability -= blast;
             battle.Hits.Add(new SeaHit { X = ShipX, Y = ShipY, Text = $"기뢰! −{blast:0}", OnMe = true });
-            battle.Log.Add(Durability <= 0 ? Text(20062, "기뢰에 의해 배가 침몰했습니다!") : $"기뢰를 밟았다! {Fill(Text(20010, "선체에 %d의 피해!"), $"{blast:0}")}");
+            battle.Log.Add(Durability <= 0 ? Text(20062, "기뢰에 의해 배가 침몰했습니다!") : $"{Text(3255, "기뢰에 접촉하였습니다!")} {Fill(Text(20010, "선체에 %d의 피해!"), $"{blast:0}")}");
             if (Durability <= 0) Say(Text(20062, "기뢰에 의해 배가 침몰했습니다!"));
             Cues.Enqueue("Cannon");
             CheckBattleEnd(battle);
@@ -669,7 +673,7 @@ internal sealed partial class Voyage
             // 서로 선원 수만큼 벤다 — 전투 레벨이 조금 거든다
             if ((battle.MeleeIn -= dt) > 0) return;
             battle.MeleeIn = 1.5;
-            double edge = 1 + LevelOf(BattleExp).Level * 0.01 + (GearPower(4) + GearPower(1)) * 0.05 + Option("Melee") + Study("Melee") + Bonus("Melee");      // 조교(특수장비 갈래 4 「接舷効果」)와 백병전 지원 장비(갈래 1 「白兵戦支援」 — gvdb 글로 확인, 곱 5%는 조교와 같이 둔 지은 값) · 선박 스킬이 거든다
+            double edge = 1 + LevelOf(BattleExp).Level * 0.01 + (GearPower(4) + GearPower(1)) * 0.05 + GearEffect("Melee") * 0.03 + Option("Melee") + Study("Melee") + Bonus("Melee");      // 조교(특수장비 갈래 4 「接舷効果」)와 백병전 지원 장비(갈래 1 「白兵戦支援」 — gvdb 글로 확인, 곱 5%는 조교와 같이 둔 지은 값) · 선박 스킬이 거든다
             // 한 합에 맞붙는 수는 적은 쪽의 선원 수다 — 선원이 서너 배 많은 배에 걸려도 두세 합에 전멸하지 않고 퇴각할 틈이 있다(지은 식).
             // 전에는 서로 제 선원 수만큼 베어서, 선원 40명인 배가 150명짜리 해적에게 걸리면 네 초 만에 졌다
             double front = Math.Min(Crew, foe.Crew);
@@ -689,11 +693,12 @@ internal sealed partial class Voyage
                 tactics = battle.Tactic switch { 0 => Text(20087, "적의 방어진때문에 돌격이 실패했습니다!"), 1 => Text(20090, "적 선원의 총격 때문에 방어가 무력화되었습니다!"), _ => Text(20080, "적의 돌격때문에 전술의 효과가 없었습니다!") } + "\n";
             }
             // 전술로 누른 합에는 「수탈」 스킬이 랭크마다 5%로 적선의 짐을 조금 빼앗는다(원본 글 20025, 확률과 양은 지은 값)
-            if (won == 2 && HoldFree > 0 && Data.Goods.Count > 0 && _random.NextDouble() < Bonus("Loot"))
+            if (won == 2 && HoldFree > 0 && Data.Goods.Count > 0 && _random.NextDouble() < Bonus("Loot") + GearEffect("Loot") * 0.03)
             {
                 var taken = Data.Goods[_random.Next(Data.Goods.Count)];
                 int some = Math.Min(HoldFree, 1 + _random.Next(5));
                 GiveGood(taken, some);
+                Studied("Loot");
                 tactics += $"{Text(20025, "적선에서 적재화물을 강탈했습니다!")} ({taken.Name} {some}개)\n";
                 TrainEffect("Loot", 10);
             }
@@ -803,6 +808,7 @@ internal sealed partial class Voyage
         int exp = 10 + foe.MaxDurability / 20 + foe.Guns, fame = Math.Max(1, exp / 4);
         int money = foe.Monster > 0 ? 0 : 500 + foe.MaxDurability * (foe.Kind == 0 ? 20 : 8);
         money = (int)(money * (1 + Bonus("Loot")));      // 수탈 스킬
+        if (HasStudy("현상금 사냥꾼의 기술 1")) money *= 2;      // 대학 스킬 「해상 NPC와의 전투 승리 시에 얻을 수 있는 두캇이 2배가 된다」
         Money += money;
         string loot = "";
         if (foe.Kind == 0 && HoldFree > 0 && Data.Goods.Count > 0)
@@ -819,8 +825,8 @@ internal sealed partial class Voyage
             double back = Math.Floor((battle.CrewAtStart - Crew) * Math.Min(0.8, Bonus("Rescue")));
             if (back >= 1) { Crew += back; rescued = $" 물에 빠진 선원 {back:0}명을 구조했다."; TrainEffect("Rescue", 15); }
         }
-        battle.Result = foe.Monster > 0 ? $"{(foe.Monster == 2 ? Text(3094, "크라켄이 사라졌습니다.") : Text(3096, "식인 상어는 사라져 갔습니다."))} (전투 경험 +{exp * GainFactor}, 명성 +{fame})"
-            : $"{Fill(foe.Durability <= 0 ? Text(20072, "적선 %s를 격침했습니다!") : Text(20073, "적선 %s를 나포했습니다!"), foe.Name)} {money:N0} 두캇{loot}을(를) 얻었다.{rescued} (전투 경험 +{exp * GainFactor}, 명성 +{fame})";
+        battle.Result = foe.Monster > 0 ? $"{(foe.Monster == 2 ? Text(3094, "크라켄이 사라졌습니다.") : Text(3096, "식인 상어는 사라져 갔습니다."))} (전투 경험 +{ExpShown(exp)}, 명성 +{fame})"
+            : $"{Fill(foe.Durability <= 0 ? Text(20072, "적선 %s를 격침했습니다!") : Text(20073, "적선 %s를 나포했습니다!"), foe.Name)} {money:N0} 두캇{loot}을(를) 얻었다.{rescued} (전투 경험 +{ExpShown(exp)}, 명성 +{fame})";
         Say(battle.Result);
         Studied("SeaWin");
         if (foe.Durability > 0) { Studied("WipeWin"); if (battle.Boarding) Studied("MeleeWin"); }

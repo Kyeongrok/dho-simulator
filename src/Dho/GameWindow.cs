@@ -421,7 +421,8 @@ internal sealed class GameWindow : IDisposable
         // 설정 파일에 없는 소리는 원본의 것을 기본으로 쓴다 — 사용자가 효과음 고르기에서 들어 보고 메모해 준 번호(묶음 0)
         if (!sounds.ContainsKey(cue) && cue is not ("Turn" or "Skill") && Array.Find(Dho.Data.GameSounds.Cues, c => c.Cue == cue) is { Default.Length: > 0 } known) sounds[cue] = known.Default;
         // 선회 소리의 옛 기본값(9:0)도 지은 것이었다 — 원본은 0:12(바다에서 배를 돌릴 때)
-        if (cue == "Turn" && sounds.GetValueOrDefault("Turn") is null or "9:0") sounds["Turn"] = "0:12";
+        // 조타 소리는 14:11(사용자, 2026-10-09) — 그 전의 기본값 0:12 · 9:0 이 설정에 남아 있으면 바꾼다
+        if (cue == "Turn" && sounds.GetValueOrDefault("Turn") is null or "9:0" or "0:12") sounds["Turn"] = "14:11";
         // 스킬 소리의 옛 기본값(5:0)은 지은 것이었다 — 원본은 0:6
         if (cue is "Skill" or "Sail" && sounds.GetValueOrDefault("Skill") == "5:0") sounds["Skill"] = "0:6";
         // 돛 조종 소리를 따로 안 정했으면 스킬 소리를 쓴다
@@ -465,7 +466,8 @@ internal sealed class GameWindow : IDisposable
         if (key is Win32.VK_UP or Win32.VK_DOWN && _hud.ListKey(key == Win32.VK_UP ? -1 : 1)) return;
         // 조합(Ctrl+W · Alt+T)으로 매인 일이 먼저, 없으면 글쇠 하나로 매인 일
         int combo = Hud.IsModifier(key) ? 0 : key | Mods();
-        string action = Hud.KeyActions.Select(a => a.Action).FirstOrDefault(a => Hud.KeyOf(_voyage.Data.Settings.Keys, a) == combo)
+        // Shift · Ctrl · Alt 만 누르면 combo 가 0 이다 — 0 은 「글쇠 없음」이라 글쇠를 안 맨 일(직업 일람 …)이 걸리면 안 된다
+        string action = (combo == 0 ? null : Hud.KeyActions.Select(a => a.Action).FirstOrDefault(a => Hud.KeyOf(_voyage.Data.Settings.Keys, a) == combo))
             ?? Hud.KeyActions.Select(a => a.Action).FirstOrDefault(a => Hud.KeyOf(_voyage.Data.Settings.Keys, a) == key) ?? "";
         if (action == "Fullscreen")
         {
@@ -516,6 +518,7 @@ internal sealed class GameWindow : IDisposable
             case "Nav": Toggle(Dialog.Nav); return;
             case "Dev": _hud.ToggleDev(); return;
             case "Warp": _hud.ToggleWarp(); return;
+            case "Wiki": _hud.ToggleWiki(); return;
             case "Jobs": Toggle(Dialog.Jobs); return;
             case "Equip": Toggle(Dialog.Equip); return;
             case "Aides": Toggle(Dialog.Aides); return;
@@ -680,6 +683,19 @@ internal sealed class GameWindow : IDisposable
         SyncIme();
         // 배가 장면의 원점이다
         while (_voyage.Cues.TryDequeue(out string? cue)) PlayCue(cue);
+        // 빗소리 — 바다에서 비가 오는 동안 「비」 소리(기본 9:16, 사용자 2026-10-09)가 끊김 없이 이어진다.
+        // 효과음과 따로 여는 장치에서 되풀이하니(Audio.LoopSound) 다른 소리가 나도 안 끊긴다 — 전에는 1.7초짜리를 때맞춰 다시 틀어 뚝뚝 끊겼다
+        if (!_scripted && _voyage.Created && _voyage.Mode == Mode.Sea && _voyage.Weather == Weather.Rain)
+        {
+            var rainSounds = _voyage.Data.Settings.Sounds;
+            if (!rainSounds.ContainsKey("Rain")) rainSounds["Rain"] = Array.Find(Dho.Data.GameSounds.Cues, c => c.Cue == "Rain")?.Default ?? "";
+            string rainKey = rainSounds["Rain"] ?? "";
+            var rainParts = rainKey.Split(':');
+            if (rainParts.Length == 2 && int.TryParse(rainParts[0], out int rainBank) && int.TryParse(rainParts[1], out int rainIndex))
+                (_rain ??= new Dho.Audio.LoopSound()).Play(rainKey, () => Dho.Data.GameSounds.Wave(rainBank, rainIndex));
+            else _rain?.Stop();
+        }
+        else _rain?.Stop();
         float sway = (float)Math.Sin(_voyage.Clock * 1.1);
         if (_yawGoal is { } yawGoal)
         {
@@ -1203,6 +1219,11 @@ internal sealed class GameWindow : IDisposable
     }
 
     private double _helmUntil;
+    private Dho.Audio.LoopSound? _rain;      // 되풀이되는 빗소리
+    private string _rainKey = "";
+    private Dictionary<string, double>? _soundSeconds;
+    /// <summary>그 효과음("묶음:차례")의 길이(초) — 목록은 처음 한 번만 훑는다.</summary>
+    private double SoundSeconds(string key, double fallback) => (_soundSeconds ??= Dho.Data.GameSounds.All().GroupBy(s => s.Key).ToDictionary(g => g.Key, g => g.First().Seconds)).TryGetValue(key, out double seconds) ? seconds : fallback;
 
     /// <summary>
     /// 바다에서 가까운 도시의 항구 장면을 그 도시 자리에 세운다 — 뭍에 도시가 보이게.
@@ -1247,9 +1268,31 @@ internal sealed class GameWindow : IDisposable
             // 항구 앞으로 다가오면 배 대는 자리를 바다 자리에 맞춘 제 모습으로 옮겨 온다
             var pivot = Vector3.Lerp(shown.Anchor, new Vector3(shown.Scene.Center.X, 0, shown.Scene.Center.Z), MathF.Min(1, away * 4));
             var target = new Vector3(x, 0, z);
+            float turn = 0;
             if (_voyage.Map.CityOnLand.TryGetValue(city.Id, out var land))
-                target = Vector3.Lerp(target, new Vector3((float)(WorldMap.DeltaX(_voyage.ShipX, land.X) * Terrain.Unit), 0, (float)((land.Y - _voyage.ShipY) * Terrain.Unit)), MathF.Min(1, away * 4));
-            shown.Scene.Draw(_scene, Matrix4x4.CreateTranslation(-pivot.X, 0, -pivot.Z) * Matrix4x4.CreateScale(grow) * Matrix4x4.CreateTranslation(target), skipGround: true);      // 키워 그리니 네모 바닥은 늘 뺀다
+            {
+                var seaAt = target;
+                var landAt = new Vector3((float)(WorldMap.DeltaX(_voyage.ShipX, land.X) * Terrain.Unit), 0, (float)((land.Y - _voyage.ShipY) * Terrain.Unit));
+                // 키운 도시가 바다 위로 삐져나오지 않게(사용자, 2026-10-08) — 지은 맞춤:
+                // 장면을 돌려 물가 쪽(배 대는 자리)이 세계의 바다 쪽을 보게 하고, 장면 가운데를 뭍 쪽으로 「가운데 ~ 물가」 거리(키운 만큼)보다 덜 들어가지 않게 민다.
+                // 그러면 키운 장면의 물가가 도시의 바다 자리를 넘지 않는다. 배 대는 자리가 없는 장면 · 뭍 자리를 모르는 도시는 전처럼.
+                var inScene = new Vector3(shown.Scene.Center.X, 0, shown.Scene.Center.Z) - shown.Anchor;
+                var inland = landAt - seaAt;
+                if (inScene.Length() > 1 && inland.Length() > 1e-3f)
+                {
+                    turn = MathF.Atan2(inland.X, inland.Z) - MathF.Atan2(inScene.X, inScene.Z);
+                    // 물가(배 대는 자리)를 도시의 바다 자리가 아니라 **바닷가**에 둔다 — 바다 자리에서 뭍 자리 쪽으로 가며 처음 뭍이 되는 곳.
+                    // 바다 자리는 물 한가운데라, 거기에 물가를 두면 부두 옆 건물들이 물 위에 섰다(암스테르담 — 사용자, 2026-10-09). 지은 맞춤
+                    double seaToLandX = WorldMap.DeltaX(city.SeaX, land.X), seaToLandY = land.Y - city.SeaY;
+                    float shore = 1;
+                    for (int step = 1; step <= 24; step++)
+                        if (_voyage.Map.IsLand(city.SeaX + seaToLandX * step / 24.0, city.SeaY + seaToLandY * step / 24.0)) { shore = step / 24f; break; }
+                    seaAt += inland * shore;
+                    landAt = seaAt + Vector3.Normalize(inland) * MathF.Max(inland.Length() * (1 - shore), inScene.Length() * grow);
+                }
+                target = Vector3.Lerp(seaAt, landAt, MathF.Min(1, away * 4));
+            }
+            shown.Scene.Draw(_scene, Matrix4x4.CreateTranslation(-pivot.X, 0, -pivot.Z) * Matrix4x4.CreateRotationY(turn) * Matrix4x4.CreateScale(grow) * Matrix4x4.CreateTranslation(target), skipGround: true);      // 키워 그리니 네모 바닥은 늘 뺀다
         }
     }
 
@@ -1674,16 +1717,29 @@ internal sealed class GameWindow : IDisposable
                 _voyage.ShowSail(int.Parse(sailLook[0]), int.Parse(sailLook[1]));
                 break;
             case "type": foreach (char c in argument) _hud.Type(c); break;
+            case "studycheck": _voyage.StudyCheckForTest(); break;
+            case "studyeffects": _voyage.StudyEffectsForTest(); break;      // 대본: 정치상인 투자 10% · 흑자 교역 10만 문턱
+            case "battlestudy": _voyage.BattleStudyForTest(); break;      // 대본: 싸움 중 — 해군사관 포격 10% · 현상금 사냥꾼 상금 2배
+            case "firedays": _voyage.FireDaysForTest(); break;      // 대본: 바다에서 — 화재가 항해 10일째부터 나는지
+            case "setcrew": _voyage.SetCrewForTest((int)Number()); break;      // 대본: 선원 수
+            case "studyskill": _voyage.StudyForTest(argument); break;      // 대본: 그 대학 스킬을 가진 것으로
             case "university": _voyage.Dialog = Dialog.University; break;
+            case "aideduty": if (_voyage.Aides.FirstOrDefault() is { } posted) { posted.Duty = (int)Number(); posted.Level = 18; _voyage.Say($"(시험) {posted.Who.Name} — 담당 {_voyage.DutyName(posted.Duty)} · 레벨 18 · 방화 {_voyage.AidePrevents(1)} · 봉제 보조 {_voyage.AideCraftSave(73)} · 봉제 +{_voyage.AideRank(73)} · 섬유 거래 +{_voyage.AideRank(57)}"); } break;      // 대본: 첫 부관의 담당을 바꾸고 스킬이 듣는지 적는다
+            case "aidekit": _voyage.AideKitForTest((int)Number()); break;      // 대본: 한스를 그 담당에 두고 화재 굴림을 센다
             case "hire": if (_voyage.AidesToHire().ElementAtOrDefault((int)Number()) is { } who) _voyage.HireAide(who); break;
             case "court": _voyage.Dialog = Dialog.Court; break;
             case "order": if (_voyage.OrdersOffered().ElementAtOrDefault((int)Number()) is { } royal) _voyage.AcceptOrder(royal); break;
             case "fulfil": _voyage.CompleteOrder(); break;
             case "buyitem": if (_voyage.ItemOf((int)Number()) is { } wares) _voyage.BuyItem(wares); break;
             case "addrecipe": if (_voyage.Data.Recipes.Find(r => r.Id == (int)Number()) is { } learned) _voyage.AddRecipe(learned); break;
+            case "produce10": if (_voyage.RuleOf((int)Number()) is { } batch) { if (_voyage.ProduceBlocker(batch, 10) is { } stuck) _voyage.Say($"(시험) 생산 못 함 — {stuck}"); _voyage.Produce(batch, 10); } break;      // 대본: 열 번 만든다
             case "produce": if (_voyage.RuleOf((int)Number()) is { } make) { if (_voyage.ProduceBlocker(make, 1) is { } why) _voyage.Say($"(시험) 생산 못 함 — {why}"); _voyage.Produce(make, 1); } else _voyage.Say("(시험) 그 번호의 레시피 규칙이 없다"); break;
             case "stuffed": _voyage.StuffedForTest(); break;
             case "battlelog": _voyage.PartsReportForTest(); break;
+            case "usefigure": _voyage.UseFigurehead(); break;
+            case "burncoal": _voyage.BurnCoalForTest(); break;
+            case "temperfail": _voyage.TemperFailForTest = Number() != 0; break;
+            case "fightmonster": _voyage.FightMonsterForTest(); break;
             case "dodgeall": _voyage.DodgeAllForTest = true; break;
             case "refined": _voyage.RefinedForTest((int)Number()); break;
             case "setvigour": _voyage.VigourForTest(Number()); break;
@@ -1783,6 +1839,12 @@ internal sealed class GameWindow : IDisposable
             case "hullmat": _voyage.SetMaterialForTest((int)Number()); break;
             case "warp": _voyage.WarpToSea((int)Number()); break;
             case "warpmenu": _hud.OpenWarp(argument == "city"); break;
+            case "wikibuilding": _hud.WikiBuildingForTest(argument); break;      // 대본: 건물로 거르기(빈 글이면 갈래 목록을 펼친다)
+            case "listkey": _hud.ListKey((int)Number()); break;      // 대본: 화살표 글쇠(1 아래 · -1 위)
+            case "wikikind": _hud.WikiKindForTest(argument); break;      // 대본: 위키의 갈래 탭
+            case "speedparts": File.AppendAllText(argument, string.Join("\n", new[] { 0, 90, 135, 180 }.Select(off => _voyage.SpeedPartsForTest(off))) + "\n\n"); break;      // 대본: 속도 식을 곱마다 풀어 파일에(speedparts:경로)
+            case "wiki": _hud.WikiForTest(argument); break;      // 대본: 도시 정보 검색 창을 그 낱말로
+            case "wikipick": _hud.WikiPickForTest(argument.Split(',')[0], int.Parse(argument.Split(',')[1])); break;      // 대본: wikipick:도시,2
             case "sea":                             // 바다 위의 자리로 옮긴다: sea:x,y
                 var seaAt = argument.Split(',');
                 _voyage.Teleport(double.Parse(seaAt[0], CultureInfo.InvariantCulture), double.Parse(seaAt[1], CultureInfo.InvariantCulture));
@@ -1920,6 +1982,7 @@ internal sealed class GameWindow : IDisposable
         foreach (var model in _keeperModels) model?.Dispose();
         _cursors?.Dispose();
         _ship?.Dispose();
+        _rain?.Dispose();
         _terrain?.Dispose();
         _scene?.Dispose();
         _gfx?.Dispose();

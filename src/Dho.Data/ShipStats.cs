@@ -186,7 +186,9 @@ public sealed record ShipStats(int Durability, int Hold, int MaxCrew, int MinCre
                 Hold: fact.Hold,
                 MaxCrew: Math.Max(2, fact.Cabin),
                 MinCrew: fact.MinCrew ?? Math.Max(1, (int)Math.Round(fact.Cabin * 0.2)),
-                Knots: rules.BaseKnots + (fact.VerticalSail + fact.HorizontalSail) / 80.0,
+                // 「적재량 10 당 적용되는 돛 수치가 세로/가로 −1/−1 — 적재량 1000 에 돛 500/500 이면 실제 돛은 400/400」(사용자가 준 항해속도 글, 2026-10-08):
+                // 창고가 큰 배일수록 같은 돛으로 느리다. 돛 수치 80 에 1노트 · 바탕 속도는 전부터의 지은 값
+                Knots: Math.Max(2, rules.BaseKnots + (fact.VerticalSail + fact.HorizontalSail - fact.Hold / 5.0) / 80.0),
                 TurnFactor: Math.Max(4, fact.Turn) / 12.0,
                 Price: cost,
                 SellPrice: (int)(cost * rules.SellRate))

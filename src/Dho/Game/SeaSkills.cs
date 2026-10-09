@@ -162,6 +162,7 @@ internal sealed partial class Voyage
         int count = Math.Min(school, HoldFree);
         if (Data.Goods.Find(g => g.Name == fish && g.Id is >= 1_601_000 and < 1_602_000) is not { } good) { Say($"{lead}아무것도 낚지 못했다."); return; }
         GiveGood(good, count);              // 「○○ N개를 실었다」는 글은 그쪽이 낸다
+        Studied("Outdoor");                 // 연구 과제 「야외 활동」 — 조달，낚시，채집으로 교역품을 입수
         // 숙련도 — 글에는 차례만 있다(다랑어 2 > 연어 5, 다랑어 2 > 상어 1, 여러 마리 > 한 마리). 그 차례가 나오게 지은 값: 5 × 어종 랭크^1.7 × 마릿수
         Train(rule.SkillId, 5 * Math.Pow(FishRanks[fish], 1.7) * count);
     }
@@ -311,6 +312,8 @@ internal sealed partial class Voyage
                 break;
             case "Rest":
                 Feast();
+                // 「주연」의 설명: 「주류 교역품을 선원에게 대접하여 피로도를 회복시킨다. 선원의 욕구 불만도 해소 가능」 — 욕구불만(재해 18)을 푼다
+                if (Disasters.Find(d => d.Data.Id == 18) is { } craving) End(craving);
                 break;
         }
     }

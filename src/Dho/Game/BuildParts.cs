@@ -85,11 +85,18 @@ internal sealed partial class Voyage
         return sum;
     }
 
+    /// <summary>
+    /// 선박재료(재질)를 넣을 칸이 있는가 — 재질은 칸 하나를 먹는다(사용자가 준 글, 2026-10-09: 「선박재질 + 조빌 넣고 강화 … 재질이 한 칸을 먹기 때문에 좀 손해」).
+    /// 어느 칸인지는 글에 없어 넷째 칸(둘째 선박 재료 칸)으로 잡았다 — 짐작. 그 갈래의 재료가 이미 둘 들어 있으면 못 넣는다.
+    /// </summary>
+    public bool WoodSlotFree(IReadOnlyList<int> picked) => picked.Count(p => BuildPartOf(p)?.Kind == BuildSlots[^1]) < BuildSlots.Count(k => k == BuildSlots[^1]);
+
     /// <summary>재료를 칸에 넣을 수 있는가 — 그 갈래의 빈 칸이 있어야 한다(넣을 칸의 차례, 없으면 -1).</summary>
-    public int BuildSlotFor(IReadOnlyList<int> picked, int item)
+    /// <param name="wood">함께 넣기로 한 선박재료(재질) — 재질은 넷째 칸(선박 재료 칸) 하나를 차지한다.</param>
+    public int BuildSlotFor(IReadOnlyList<int> picked, int item, int wood = 0)
     {
         if (BuildPartOf(item) is not { } part || !BuildPartFits(part)) return -1;
-        int used = picked.Count(p => BuildPartOf(p)?.Kind == part.Kind), room = BuildSlots.Count(k => k == part.Kind);
+        int used = picked.Count(p => BuildPartOf(p)?.Kind == part.Kind), room = BuildSlots.Count(k => k == part.Kind) - (wood > 0 && part.Kind == BuildSlots[^1] ? 1 : 0);
         return used < room && Items.GetValueOrDefault(item) > picked.Count(p => p == item) ? used : -1;
     }
 

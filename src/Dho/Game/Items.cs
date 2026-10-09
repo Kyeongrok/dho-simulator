@@ -277,7 +277,9 @@ internal sealed partial class Voyage
             if (gear.Stats[k] != 0) parts.Add($"{GearStatNames[k]} {gear.Stats[k]}" + (k < 2 && ForgedOf(gear.Id, k) is not 0 and var forged ? $"({forged:+0;-0})" : ""));
         if (Data.GearBoosts.TryGetValue(gear.Id, out var boosts))
             parts.AddRange(boosts.Select(b => $"{SkillName(b.Key)} +{b.Value}"));
-        if (Data.GearEffects.GetValueOrDefault(gear.Id)?.GetValueOrDefault("VigourSave") is > 0 and var save) parts.Add($"행동력 감소 억제 {save}");
+        if (Data.GearEffects.GetValueOrDefault(gear.Id) is { } worn)
+            foreach (var (key, label) in new[] { ("VigourSave", "행동력 감소 억제"), ("Speed", "항해속도 상승"), ("SupplySave", "물자 감소 억제"), ("Luck", "재해 발생률 감소"), ("Ambush", "기습 · 강습률 감소"), ("Melee", "백병전 전투력 상승"), ("Loot", "수탈률 상승"), ("AideGrow", "부관 성장 촉진") })
+                if (worn.GetValueOrDefault(key) is > 0 and var rank) parts.Add($"{label} {rank}");
         return parts.Count == 0 ? "" : "\n" + string.Join(" · ", parts);
     }
 
@@ -286,7 +288,7 @@ internal sealed partial class Voyage
         if (FoodOf(item) is { } food) return food.Description.Replace("\n", " ");
         if (BoosterOf(item) is { } booster) return booster.Description.Replace("\n", " ");
         if (DecoOf(item) is { } deco) return deco.Description.Replace("\n", " ");
-        if (CrewGearOf(item) is { } crewGear) return crewGear.Description.Replace("\n", " ");
+        if (CrewGearOf(item) is { } crewGear) return crewGear.Description.Replace("\n", " ") + (crewGear.Skill > 0 && Data.ShipSkillNames.GetValueOrDefault(crewGear.Skill) is { Length: > 0 } gearSkill ? $" 〔선박 스킬: {gearSkill}〕" : "");
         if (item < 1_000_000 && Data.Gear.Find(g => g.Id == item) is { } gear) return gear.Description.Replace("\n", " ") + GearLine(gear);
         if (Data.Papers.Find(p => p.Id == item) is { } paper)
             return paper.Description.Replace("\n", " ") + (BuildPartLine(item) is { Length: > 0 } build ? "  " + build : "") + (paper.Name.Contains("교환권") && (paper.Name.Contains("선박") || TicketShip(paper) != null) ? (TicketShip(paper) is { } gives ? $"  → {gives.Name}" : "  (바꿀 배를 못 찾았다)") : "");
@@ -343,6 +345,12 @@ internal sealed partial class Voyage
     public void AddItem(int item, int count = 1)
     {
         if (!Items.ContainsKey(item) && Items.Count >= ItemKinds) { Say($"소지품이 가득 찼다({ItemKinds}가지). {ItemName(item)}을(를) 받지 못했다."); Cues.Enqueue("Error"); return; }
+        if (item == CoalItem && Items.GetValueOrDefault(item) + count > CoalLimit)
+        {
+            // 석탄 연료는 한 사람이 200개까지(사용자가 준 증기선 글)
+            count = CoalLimit - Items.GetValueOrDefault(item);
+            if (count <= 0) { Say($"석탄 연료는 {CoalLimit}개까지만 가질 수 있다."); Cues.Enqueue("Error"); return; }
+        }
         Items[item] = Items.GetValueOrDefault(item) + count;
         Say(count > 1 ? $"{ItemName(item)} {count}개를 얻었다." : $"{ItemName(item)}을(를) 얻었다.");
     }
@@ -392,6 +400,12 @@ internal sealed partial class Voyage
                     if (stock <= 0) { Say($"{known.Name} — 창고가 가득 찼다."); Cues.Enqueue("Error"); return; }
                     Supplies[RepairSupply] = SupplyCount(RepairSupply) + stock;
                     Say($"{known.Name}을(를) 풀었다. 자재 {stock}개를 실었다.");
+                    break;
+                case "LevelCharm":
+                    UseLevelCharm(known);
+                    break;
+                case "Veil":
+                    UseVeil(known);
                     break;
                 case "ExpCharm":
                     UseExpCharm(known);
@@ -449,7 +463,7 @@ internal sealed partial class Voyage
             // 선박 교환권 — 항구에서 쓰면 그 배가 부두에 들어온다
             if (!ticket.Name.Contains("교환권") || TicketShip(ticket) is not { } given) { Say($"{ticket.Name} — 지금은 쓸 데가 없다."); return; }
             if (Mode != Mode.Port) { Say("선박 교환권은 항구에서 쓴다."); return; }
-            if (Dock.Count >= DockSlots) { Say("부두가 가득 찼다."); return; }
+            if (Dock.Count >= DockSlots) { Say(Text(6831, "부두가 가득 찼다.").TrimStart('※')); return; }
             // 교환권으로 받은 배에는 그 배에 붙일 수 있는 옵션 스킬 가운데 하나가 무작위로 붙어 있다
             // (배 상세를 모은 배는 거기 적힌 스킬 가운데, 못 모은 배는 옵션 스킬 전체 가운데)
             var fitted = new ShipWork();
@@ -464,7 +478,7 @@ internal sealed partial class Voyage
         {
             if (job.Id == JobId) { Say($"이미 {job.Name}이다."); return; }
             string before = JobName;
-            JobId = job.Id;
+            JobId = job.Id; Studied("Job");
             Say($"{ItemName(item)}을(를) 썼다. {before}에서 {job.Name}(으)로 전직했다!");
             Cues.Enqueue("JobChange");          // 효과음 0:9(사용자, 2026-10-07)
         }

@@ -81,6 +81,8 @@ internal sealed partial class Voyage
     // ── 항구의 보급 ──────────────────────────────────────────────────────────
 
     public int SupplyCount(int id) => Supplies.GetValueOrDefault(id);
+    /// <summary>실은 자재(2)를 버린다 — 물 · 식량처럼 적재화물 창에서.</summary>
+    public void DumpSupply(int id, int amount) { int drop = Math.Min(SupplyCount(id), amount); if (drop <= 0) return; Supplies[id] = SupplyCount(id) - drop; Say($"자재 {drop}을(를) 버렸다."); }
 
     /// <summary>보급 스킬로 깎인 물·식량 값.</summary>
     public int WaterPrice => (int)Math.Ceiling(Rules.WaterPrice * (1 - Math.Min(0.5, Bonus("Discount"))));
@@ -90,8 +92,8 @@ internal sealed partial class Voyage
     public void BuyFood(int amount) => Food += Buy(amount, FoodPrice, MaxFoodNow - Food);
 
     /// <summary>실은 물 · 식량을 내린다(버린다) — 물자가 창고를 차지하니 교역품 자리를 내려면 덜어야 한다. 값은 돌려받지 않는다.</summary>
-    public void DumpWater(int amount) { if (Mode == Mode.Port) Water = Math.Max(0, Water - amount); }
-    public void DumpFood(int amount) { if (Mode == Mode.Port) Food = Math.Max(0, Food - amount); }
+    public void DumpWater(int amount) { if (Water <= 0) return; double drop = Math.Min(Water, amount); Water -= drop; Say($"물 {drop:0}을(를) 버렸다."); }
+    public void DumpFood(int amount) { if (Food <= 0) return; double drop = Math.Min(Food, amount); Food -= drop; Say($"식량 {drop:0}을(를) 버렸다."); }
 
     /// <summary>창고와 소지금이 허락하는 만큼 사고, 산 수를 돌려준다.</summary>
     private int Buy(int amount, int price, double room)
@@ -156,7 +158,7 @@ internal sealed partial class Voyage
     private void End(ActiveDisaster disaster)
     {
         Disasters.Remove(disaster);
-        Studied("Cure");
+        Studied("Cure", 1, 0, disaster.Data.Id);
         Say(Text((uint)disaster.Data.EndText, $"{disaster.Data.Name} — 풀렸다."));
     }
 
@@ -173,6 +175,7 @@ internal sealed partial class Voyage
     {
         Weather = Weather.Storm;
         _stormDays = Rules.StormDays;
+        Studied("Storm");
         Say(Text(TextStorm, "폭풍이 몰아칩니다! 돛을 펴놓고 있으면 전복하고 맙니다!"));
         Say(StormProof ? $"이 배의 내파({Stats.WaveResist})라면 폭풍 속에서도 항해할 수 있다. (내파 {Rules.StormWaveResist} 이상)"
                        : $"내파 {Stats.WaveResist} — {Rules.StormWaveResist} 이상이어야 폭풍 속을 항해할 수 있다.");
@@ -185,8 +188,49 @@ internal sealed partial class Voyage
         Disasters.Add(new ActiveDisaster(data));
         Say(Text((uint)data.StartText, $"{data.Name} 발생!"));
         Cues.Enqueue($"Disaster{data.Id}");        // 재해마다 소리를 따로 맬 수 있다(안 매면 경고 소리)
-    }
+        if (data.Id == 1) BurnCargo();    }
 
+    /// <summary>부관의 재해 방지 스킬이 들을 때 재해 확률에 곱하는 값 — 「크게 낮춰 주지만 100% 막지는 못한다」(사용자가 준 글). 크기 0.2 는 지은 값.</summary>
+    public const double AideGuardFactor = 0.2;
+
+    /// <summary>
+    /// 화재가 나면 타는 교역품(섬유 · 직물 · 식료품 · 향신료 갈래)의 약 20%가 소실된다(사용자가 준 글, 2026-10-08).
+    /// 갈래는 클라이언트 교역품 갈래의 이름으로 가른다. 「장비품 내구도 감소 · 돛 손상」은 크기가 글에 없어 안 넣었다.
+    /// </summary>
+    private void BurnCargo()
+    {
+        int burnt = 0;
+        foreach (var (id, item) in Cargo.ToList())
+        {
+            if (Good(id) is not { } good || Data.GoodKinds.Find(k => k.Id == good.Kind)?.Name is not { } kind) continue;
+            if (!(kind.Contains("섬유") || kind.Contains("직물") || kind.Contains("식료") || kind.Contains("향신료"))) continue;
+            int lost = (int)Math.Round(item.Count * 0.2);
+            if (lost <= 0) continue;
+            item.Cost -= item.Cost * lost / item.Count;
+            item.Count -= lost;
+            burnt += lost;
+            if (item.Count == 0) Cargo.Remove(id);
+        }
+        if (burnt > 0) Say($"화재로 교역품 {burnt}개가 불탔다.");
+    }
+    /// <summary>대본용(바다에서) — 항해 9일째와 10일째에 하루치 재해 굴림을 600번씩 돌려 화재가 난 횟수를 적는다(화재는 10일째부터 — MinDays).</summary>
+    public void FireDaysForTest()
+    {
+        var keep = (Durability, Crew, Food, Water, Fatigue, SecondsAtSea, Weather);
+        int[] fires = new int[2];
+        for (int k = 0; k < 2; k++)
+            for (int n = 0; n < 600; n++)
+            {
+                (Durability, Crew, Food, Water, Fatigue, Weather) = (keep.Durability, keep.Crew, Math.Max(keep.Food, 50), Math.Max(keep.Water, 50), 0, Weather.Clear);
+                SecondsAtSea = (9 + k) * Settings.SecondsPerDay + 1;
+                Disasters.Clear();
+                UpdateHazards(Settings.SecondsPerDay);
+                if (Disasters.Exists(d => d.Data.Id == 1)) fires[k]++;
+            }
+        Disasters.Clear();
+        (Durability, Crew, Food, Water, Fatigue, SecondsAtSea, Weather) = keep;
+        Say($"(시험) 하루치 굴림 600번에 화재 — 항해 9일째 {fires[0]}번 · 10일째 {fires[1]}번");
+    }
     /// <summary>재해 때문에 속도에 곱해지는 값.</summary>
     private double DisasterSpeedFactor()
     {
@@ -210,7 +254,7 @@ internal sealed partial class Voyage
 
         // 물과 식량
         // 운용 스킬이 물과 식량을 아낀다
-        double ration = Crew * Rules.RationPerCrewDay * days * (1 - Math.Min(0.5, Bonus("Ration"))) * (1 - Math.Min(0.3, FormBonus("FormKeep"))) * AideRation;
+        double ration = Crew * Rules.RationPerCrewDay * days * (1 - Math.Min(0.5, Bonus("Ration"))) * (1 - Math.Min(0.3, FormBonus("FormKeep"))) * AideRation * (1 - Math.Min(0.3, GearEffect("SupplySave") * 0.03));
         Water = Math.Max(0, Water - ration);
         Food = Math.Max(0, Food - ration);
         // 날이 바뀔 때마다 그날 먹고 마신 양을 화면에 잠깐 띄운다(상태 줄의 물병 · 빵 곁)
@@ -290,9 +334,12 @@ internal sealed partial class Voyage
         {
             if (DaysAtSea < data.MinDays || Fatigue < data.MinFatigue || (data.NearLand && !nearLand)) continue;
             if (data.NearLand && Knots < 3) continue;        // 서 있는 배는 암초에 걸리지 않는다
+            double aideGuard = AidePrevents(data.Id) ? AideGuardFactor : 1;      // 부관스킬(방화 …) — 그 담당을 맡은 부관이 확률을 크게 낮춘다(다 막지는 못한다 — 사용자가 준 글, 2026-10-08)
             // 「양호실」(원본 글: 쥐，비위생 발생을 높은 확률로 미연에 방지한다) — 쥐(4) · 비위생(14)만
             double clean = data.Id is 4 or 14 ? 1 - Math.Min(1, Option("Hygiene")) : data.Id == 2 ? 1 - Math.Min(1, Option("FloodGuard")) : 1;      // 「수밀격벽」 · 「배수펌프」: 침수(2)만
-            if (Roll(data.ChancePerDay * clean * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck") + Study("Luck"))) * (PrayerOn(0) ? 0.7 : 1), days)) Begin(data);
+            // 「생존」의 설명: 「… 괴혈병，역병의 발생률 저하」 — 괴혈병(3) · 전염병(10)의 확률을 랭크마다 3% 낮춘다(60%까지 — 크기는 지은 값)
+            if (data.Id is 3 or 10 && Data.Skills.Find(s => s.Name == "생존") is { } survival) clean *= 1 - Math.Min(0.6, Rank(survival.Id) * 0.03);
+            if (Roll(data.ChancePerDay * aideGuard * clean * PartLuck * AideLuck * (1 - Math.Min(0.6, Option("Luck") + Study("Luck") + GearEffect("Luck") * 0.03)) * (PrayerOn(0) ? 0.7 : 1), days)) Begin(data);
         }
 
         if ((Durability <= 0 || Crew < 1) && !UseLifebuoy()) Wreck();
@@ -312,11 +359,13 @@ internal sealed partial class Voyage
     private void SeaEvents(double days, double hullScale)
     {
         if (Knots < 2) return;
+        if (Clock < _veilUntil) return;        // 천사의 베일 — 폭풍 · 눈보라 말고의 자연재해(높은 파도 · 횡파 · 돌풍)를 막는다
         // 날씨가 궂을수록 잦다
         double rough = Weather switch { Weather.Storm => 4, Weather.Rain => 2, Weather.Cloudy => 1.3, _ => 1 };
         if (Roll(0.05 * rough, days))
         {
-            if (HasOption("내파장갑")) Say(Text(3475, "내파장갑으로 높은 파도를 회피했습니다"));
+            if (SteamOn) Say("증기선 — 높은 파도를 헤치고 나아간다.");      // 증기선 효과: 높은 파도 · 횡파 · 돌풍을 막는다(사용자가 준 글)
+            else if (HasOption("내파장갑")) Say(Text(3475, "내파장갑으로 높은 파도를 회피했습니다"));
             else
             {
                 // 내파가 높을수록 덜 다친다
@@ -328,7 +377,8 @@ internal sealed partial class Voyage
         }
         if (Roll(0.05 * rough, days))
         {
-            if (HasOption("내파장갑")) Say(Text(3481, "내파장갑으로 측면 파도를 회피하였습니다"));
+            if (SteamOn) Say("증기선 — 측면의 파도에도 진로가 흔들리지 않는다.");
+            else if (HasOption("내파장갑")) Say(Text(3481, "내파장갑으로 측면 파도를 회피하였습니다"));
             else
             {
                 double shove = (_random.NextDouble() < 0.5 ? -1 : 1) * (0.25 + _random.NextDouble() * 0.35);
@@ -339,7 +389,8 @@ internal sealed partial class Voyage
         }
         if (Sail > 0 && Roll(0.04 * rough, days))
         {
-            if (HasOption("내풍마스트")) Say(Text(3473, "내풍마스트로 돌풍을 회피했습니다"));
+            if (SteamOn) Say("증기선 — 돌풍에도 속도가 죽지 않는다.");
+            else if (HasOption("내풍마스트")) Say(Text(3473, "내풍마스트로 돌풍을 회피했습니다"));
             else
             {
                 // 돛을 편 만큼 다친다 — 돛대가 흔들려 속도가 죽는다

@@ -22,7 +22,7 @@ internal sealed partial class Voyage
     {
         if (exp <= 0 && fame <= 0) return;
         int before = LevelOf(ExpOf(kind)).Level;
-        exp = Math.Max(0, exp) * GainFactor;
+        exp = ExpShown(exp);      // 바다짐승 시리즈를 쓴 동안 경험치 +10/30%
         fame = Math.Max(0, fame);
         if (kind == 0) (AdventureExp, AdventureFame) = (AdventureExp + exp, AdventureFame + fame);
         else if (kind == 1) (TradeExp, TradeFame) = (TradeExp + exp, TradeFame + fame);

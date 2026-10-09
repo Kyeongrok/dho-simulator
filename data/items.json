@@ -797,5 +797,201 @@
     "Effect": "AideMeal",
     "Amount": 9,
     "Price": 0
+  },
+  {
+    "Id": 1504012,
+    "Name": "석탄 연료",
+    "Effect": "Fuel",
+    "Amount": 0,
+    "Price": 100000
+  },
+  {
+    "Id": 1500189,
+    "Name": "상처용 약 꾸러미",
+    "Effect": "LandHeal",
+    "Amount": 25,
+    "Price": 0
+  },
+  {
+    "Id": 1500190,
+    "Name": "치료약 꾸러미",
+    "Effect": "LandHeal",
+    "Amount": 50,
+    "Price": 0
+  },
+  {
+    "Id": 1500191,
+    "Name": "비약 꾸러미",
+    "Effect": "LandHeal",
+    "Amount": 75,
+    "Price": 0
+  },
+  {
+    "Id": 1500074,
+    "Name": "다누의 기도",
+    "Effect": "LandHeal",
+    "Amount": 50,
+    "Price": 0
+  },
+  {
+    "Id": 1500465,
+    "Name": "경옥고",
+    "Effect": "LandHeal",
+    "Amount": 100,
+    "Price": 0
+  },
+  {
+    "Id": 1500034,
+    "Name": "암브로시아",
+    "Effect": "Fatigue",
+    "Amount": 60,
+    "Price": 0
+  },
+  {
+    "Id": 1500453,
+    "Name": "운세(말길)",
+    "Effect": "Fatigue",
+    "Amount": 40,
+    "Price": 0
+  },
+  {
+    "Id": 1500461,
+    "Name": "향도구",
+    "Effect": "Fatigue",
+    "Amount": 80,
+    "Price": 0
+  },
+  {
+    "Id": 1510231,
+    "Name": "역천사의 베일(30분)",
+    "Effect": "Veil",
+    "Amount": 0.5,
+    "Price": 0
+  },
+  {
+    "Id": 1510232,
+    "Name": "주천사의 베일(1시간)",
+    "Effect": "Veil",
+    "Amount": 1,
+    "Price": 0
+  },
+  {
+    "Id": 1510235,
+    "Name": "치천사의 베일(1일)",
+    "Effect": "Veil",
+    "Amount": 24,
+    "Price": 0
+  },
+  {
+    "Id": 1500078,
+    "Name": "탐험가용 관찰 가이드",
+    "Effect": "SkillTool",
+    "Amount": 35,
+    "Price": 0
+  },
+  {
+    "Id": 1500103,
+    "Name": "학자용 관찰 가이드",
+    "Effect": "SkillTool",
+    "Amount": 35,
+    "Price": 0
+  },
+  {
+    "Id": 1500107,
+    "Name": "예술가용 관찰 가이드",
+    "Effect": "SkillTool",
+    "Amount": 35,
+    "Price": 0
+  },
+  {
+    "Id": 1510241,
+    "Name": "뇌수의 부적(1시간)",
+    "Effect": "ExpCharm",
+    "Amount": 1,
+    "Power": 10,
+    "Price": 0
+  },
+  {
+    "Id": 1510246,
+    "Name": "뇌왕의 부적(1시간)",
+    "Effect": "ExpCharm",
+    "Amount": 1,
+    "Power": 30,
+    "Price": 0
+  },
+  {
+    "Id": 1510251,
+    "Name": "뇌신의 부적(1시간)",
+    "Effect": "ExpCharm",
+    "Amount": 1,
+    "Power": 50,
+    "Price": 0
+  },
+  {
+    "Id": 1510261,
+    "Name": "해수의 부적(1시간)",
+    "Effect": "LevelCharm",
+    "Amount": 1,
+    "Power": 10,
+    "Price": 0
+  },
+  {
+    "Id": 1510262,
+    "Name": "해수의 팬던트(5시간)",
+    "Effect": "LevelCharm",
+    "Amount": 5,
+    "Power": 10,
+    "Price": 0
+  },
+  {
+    "Id": 1510266,
+    "Name": "해왕의 부적(1시간)",
+    "Effect": "LevelCharm",
+    "Amount": 1,
+    "Power": 30,
+    "Price": 0
+  },
+  {
+    "Id": 1510268,
+    "Name": "해왕의 호부(7일)",
+    "Effect": "LevelCharm",
+    "Amount": 168,
+    "Power": 30,
+    "Price": 0
+  },
+  {
+    "Id": 1500005,
+    "Name": "포병대의 마음가짐",
+    "Effect": "BattleSkill",
+    "Amount": 114,
+    "Price": 0
+  },
+  {
+    "Id": 1500045,
+    "Name": "흑태자의 군기",
+    "Effect": "BattleSkill",
+    "Amount": 107,
+    "Price": 0
+  },
+  {
+    "Id": 1500056,
+    "Name": "사자왕의 깃발",
+    "Effect": "BattleSkill",
+    "Amount": 125,
+    "Price": 0
+  },
+  {
+    "Id": 1500477,
+    "Name": "전라좌수영기",
+    "Effect": "BattleSkill",
+    "Amount": 125,
+    "Price": 0
+  },
+  {
+    "Id": 1505276,
+    "Name": "페미컨",
+    "Effect": "Cure",
+    "Amount": 3,
+    "Price": 0
   }
 ]

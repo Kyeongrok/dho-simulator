@@ -101,6 +101,9 @@ public sealed class QuestFact
 {
     /// <summary>서고의 지도일 때 그 학문 갈래(gvdb 의 일본어 이름 — 「考古学」). 의뢰는 빈 글.</summary>
     public string Field { get; set; } = "";
+    /// <summary>서고의 지도만: 클라이언트 지도 표(17)의 번호 — 하나로 가려진 것(MapId, 설명까지 쓴다) · 이름만 같은 것(NameId). 모르면 0.</summary>
+    public int MapId { get; set; }
+    public int NameId { get; set; }
     /// <summary>gvdb 의 원본 의뢰 번호.</summary>
     public int Id { get; set; }
     public string Title { get; set; } = "";
@@ -217,6 +220,8 @@ public sealed class DisasterData
 public sealed class SupplyData
 {
     public int Id { get; set; }
+    /// <summary>같은 물건의 클라이언트 아이템 번호(소화모래 1500007 …) — 이름과 설명을 거기서 읽는다. 0 이면 없다.</summary>
+    public int ItemId { get; set; }
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
     public int Price { get; set; }
@@ -644,6 +649,8 @@ public sealed class ItemData
     /// Fatigue 피로를 Amount 만큼 풀기 · Repair 내구를 Amount % 고치기 · Cure 재해(Amount = 재해 번호) 풀기 · Lifebuoy 난파를 한 번 막고 내구 Amount % 로.</summary>
     public string Effect { get; set; } = "";
     public double Amount { get; set; }
+    /// <summary>ExpCharm 의 숙련도 덤(%) — 0 이면 100(번개 시리즈). 뇌수 10 · 뇌왕 30 · 뇌신 50(gvdb 글).</summary>
+    public int Power { get; set; }
     public int Price { get; set; }
     /// <summary>번호를 지어 붙인 아이템(돛 도료 91000xx)의 클라이언트 아이템 번호 — 파는 도시(gvdb)를 이 번호로 찾는다. 0 이면 Id 그대로.</summary>
     public int SoldAs { get; set; }
@@ -752,6 +759,10 @@ public sealed class SaveData
     /// <summary>번개 시리즈(숙련도 +100%)와 만복의 남은 초.</summary>
     public double CharmLeft { get; set; }
     public double StuffedLeft { get; set; }
+    public double VeilLeft { get; set; }
+    public int CharmPower { get; set; }
+    /// <summary>경험치 부적: [남은 초, 덤 %].</summary>
+    public double[] LevelCharm { get; set; } = [];
     /// <summary>기도 효과: 갈래(−1 없음)와 끝나는 날.</summary>
     public List<int> Prayer { get; set; } = [];
     /// <summary>나라의 정세: 나라, 갈래, 끝나는 날.</summary>
@@ -765,6 +776,8 @@ public sealed class SaveData
     public int DelegateCity { get; set; }
     /// <summary>바다 위에서 적은 저장 — [x, y, 뱃머리, 바다에서 보낸 초]. 항구에서 적었으면 빈 채.</summary>
     public double[] AtSea { get; set; } = [];
+    /// <summary>지나온 항로 — x, y 가 번갈아(정수로 줄여 적는다).</summary>
+    public int[] Track { get; set; } = [];
     public Dictionary<int, int> Hostility { get; set; } = [];
     // 대장간의 단련: 장비 · 대포 번호 → 더해진 (공격력 또는 관통력, 방어력)
     public Dictionary<int, int[]> Forged { get; set; } = [];
@@ -999,6 +1012,8 @@ public sealed class GameData
     /// 재질 표(ssjoy)와 아이템 이름을 다듬어 짝지은 것이다(98 가운데 98). 재질의 그림은 이 아이템의 그림이다.
     /// </summary>
     [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, int> MaterialItems { get; set; } = [];
+    /// <summary>선수상 번호 → 쓰는 효과(gvdb 아이템 목록의 「使用時効果」 글 그대로 — 消火 · 壊血病回復 …). 35개.</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, string> FigureheadUses { get; set; } = [];
 
     /// <summary>이름으로 찾는 배 상세 — 모으지 못한 배는 null.</summary>
     private readonly Dictionary<string, ShipDetailFact?> _detailByName = [];
@@ -1116,6 +1131,7 @@ public sealed class GameData
     public List<NamedData> Duties { get; set; } = [];
     public List<NamedData> Ammo { get; set; } = [];
     public List<TavernDish> TavernMenu { get; set; } = [];
+    public List<StudyTask> StudyTasks { get; set; } = [];
     /// <summary>호칭(표 35) — 이름과 설명(Description 은 NamedData 에 없어 Extra 에 둔다).</summary>
     public List<NamedData> Honors { get; set; } = [];
     /// <summary>문화권 이름(클라이언트 표 1) — 도시의 Culture.</summary>
@@ -1127,6 +1143,8 @@ public sealed class GameData
     /// <summary>大航海時代DB(gvdb.mydns.jp)에서 채운 진짜 의뢰 — <c>data\extracted\quest-facts.json</c>(<c>tools\gvo\gvdb_quests.py</c>).</summary>
     public List<QuestFact> QuestFacts { get; set; } = [];
     public List<QuestFact> MapFacts { get; set; } = [];
+    /// <summary>클라이언트 지도 표(17)의 이름과 설명 — 번호 → [이름, 설명]. <c>data\extracted\map-names.json</c>(도구 maps_client.py — 저장소에는 안 둔다).</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public Dictionary<int, string[]> MapNames { get; set; } = [];
     /// <summary>시내 장소 이름(표 40).</summary>
     public List<NamedData> Places { get; set; } = [];
     /// <summary>클라이언트 아이템 표의 이름(번호 → 이름).</summary>
@@ -1184,6 +1202,14 @@ public sealed class GameData
     /// <summary>스킬 번호 → 원본 설명 글(선박 스킬 따위, 스킬 창에 안 나오는 것들).</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public Dictionary<int, string> SkillNotes { get; set; } = [];
+    /// <summary>대학 스킬(스킬 표의 갈래 8)의 원본 설명 — 이름(빈칸을 뺀 것) → 설명. 연구 자료의 스킬 이름으로 찾는다.</summary>
+    public Dictionary<string, string> StudySkillNotes { get; set; } = [];
+    /// <summary>선박 재질의 원본 설명 글(클라이언트 표 30) — 재질 이름 → 설명.</summary>
+    public Dictionary<string, string> MaterialNotes { get; set; } = [];
+    /// <summary>그레이드 보너스의 원본 설명 글(클라이언트 표 90) — 보너스 번호 → 설명.</summary>
+    public Dictionary<int, string> GradeBonusNotes { get; set; } = [];
+    /// <summary>선박 스킬(스킬 표의 갈래 6)의 이름 — 번호 → 이름. 선원 장비가 가리키는 스킬의 이름을 보이는 데 쓴다.</summary>
+    public Dictionary<int, string> ShipSkillNames { get; set; } = [];
     public List<LandingData> Landings { get; set; } = [];
     public List<DiscoveryData> Discoveries { get; set; } = [];
     public List<NamedData> DiscoveryKinds { get; set; } = [];
@@ -1229,7 +1255,11 @@ public sealed class GameData
             data.BuildParts = Read<List<BuildPart>>(Path.Combine(extracted, "ship-parts-gvdb.json")) ?? [];
             data.ShipCombos = Read<List<ShipCombo>>(Path.Combine(extracted, "ship-combos-gvdb.json")) ?? [];
             // 익히는 스킬이 아닌 것들(선박 스킬 · 부관 스킬 · 효과)의 원본 설명 글 — tools\gvo\skills.py 의 표 6 에서 뽑아 둔다(없으면 빈 채)
-            data.SkillNotes = (Read<Dictionary<string, string>>(Path.Combine(extracted, "skill-notes.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
+            data.StudySkillNotes = Read<Dictionary<string, string>>(Path.Combine(extracted, "study-skill-notes.json")) ?? [];
+        data.MaterialNotes = Read<Dictionary<string, string>>(Path.Combine(extracted, "material-notes.json")) ?? [];
+        data.GradeBonusNotes = Read<Dictionary<int, string>>(Path.Combine(extracted, "grade-bonus-notes.json")) ?? [];
+        data.ShipSkillNames = (Read<Dictionary<string, string>>(Path.Combine(extracted, "ship-skill-names.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
+        data.SkillNotes = (Read<Dictionary<string, string>>(Path.Combine(extracted, "skill-notes.json")) ?? []).Where(n => int.TryParse(n.Key, out _)).ToDictionary(n => int.Parse(n.Key), n => n.Value);
             data.Ships = Read<List<ShipData>>(Path.Combine(extracted, "ships.json")) ?? [];
             data.Goods = Read<List<GoodData>>(Path.Combine(extracted, "goods.json")) ?? [];
             data.GoodKinds = Read<List<NamedData>>(Path.Combine(extracted, "good-kinds.json")) ?? [];
@@ -1242,6 +1272,20 @@ public sealed class GameData
         if (Read<List<ShipMaterial>>(Path.Combine(extracted, "material-facts.json")) is { Count: > 0 } materials) (data.ShipMaterials, data._materialsFromFacts) = (materials, true);
         data.ShipSkillFacts = Read<List<ShipSkillFact>>(Path.Combine(extracted, "shipskill-facts.json")) ?? [];
         data.ShipDetails = Read<List<ShipDetailFact>>(Path.Combine(extracted, "shipdetail-facts.json")) ?? [];
+        // 사용자가 가리킨 dhoguide.kr 배 쪽에서 뽑은 상세(tools\gvo\dhoguide_ship.py) — 없는 배는 새로, 있는 배는 빈 칸(상한 · 칸 수 · 횟수 · 스킬 조합)만 채운다
+        foreach (var guide in Read<List<ShipDetailFact>>(Path.Combine(extracted, "shipdetail-dhoguide.json")) ?? [])
+        {
+            if (data.ShipDetails.Find(d => d.Name == guide.Name) is not { } known) { data.ShipDetails.Add(guide); continue; }
+            if (known.Caps.Count == 0) known.Caps = guide.Caps;
+            if (known.Slots.Count == 0) known.Slots = guide.Slots;
+            if (known.Times == 0) (known.Times, known.Retimes) = (guide.Times, guide.Retimes);
+            if (known.Days == 0) known.Days = guide.Days;
+            foreach (var skill in guide.Skills)
+            {
+                if (known.Skills.Find(s => s.Name == skill.Name) is not { } listed) known.Skills.Add(skill);
+                else if (listed.Parts.Count == 0) listed.Parts = skill.Parts;
+            }
+        }
         data.Papers = Read<List<PaperItem>>(Path.Combine(extracted, "paper-items.json")) ?? [];
         // 아이템 표(items14.json)에서 이름으로 더 고른 것 — 구입 발주서 · 수표 · 변성연금의 책 · 재봉도구. 소지품 이름과 「아이템 추가」 목록에 선다
         foreach (var extra in (Read<List<PaperItem>>(Path.Combine(extracted, "items14.json")) ?? [])
@@ -1294,18 +1338,21 @@ public sealed class GameData
         data.GearModels = Read<List<GearModel>>(Path.Combine(extracted, "gear-models.json")) ?? [];
         data.Gear = Read<List<GearItem>>(Path.Combine(extracted, "gear-items.json")) ?? [];
         data.MaterialItems = Read<Dictionary<int, int>>(Path.Combine(extracted, "material-items.json")) ?? [];
+        data.FigureheadUses = Read<Dictionary<int, string>>(Path.Combine(extracted, "figurehead-uses-gvdb.json")) ?? [];
         data.JobFacts = Read<List<JobFact>>(Path.Combine(extracted, "job-facts.json")) ?? [];
         data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
         data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
         data.Ammo = Read<List<NamedData>>(Path.Combine(extracted, "ammo.json")) ?? [];
         data.TavernMenu = Read<List<TavernDish>>(Path.Combine(extracted, "tavern-menu.json")) ?? [];
+        data.StudyTasks = Read<List<StudyTask>>(Path.Combine(extracted, "study-tasks.json")) ?? [];
         data.Honors = Read<List<NamedData>>(Path.Combine(extracted, "honors.json")) ?? [];
         data.Cultures = Read<List<NamedData>>(Path.Combine(extracted, "cultures.json")) ?? [];
         data.Pets = Read<List<NamedData>>(Path.Combine(extracted, "pets.json")) ?? [];
         data.DiscoveryFacts = Read<List<DiscoveryFact>>(Path.Combine(extracted, "discovery-facts.json")) ?? [];
         data.QuestFacts = Read<List<QuestFact>>(Path.Combine(extracted, "quest-facts.json")) ?? [];
         data.MapFacts = Read<List<QuestFact>>(Path.Combine(extracted, "map-facts-gvdb.json")) ?? [];
+        data.MapNames = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "map-names.json")) ?? [];
         data.ShipParts = Read<List<ShipPart>>(Path.Combine(extracted, "ship-parts.json")) ?? [];
         }
         data.Decos = Read<List<ShipDeco>>(Path.Combine(extracted, "ship-decos.json")) ?? [];
@@ -1419,6 +1466,10 @@ public sealed class GameData
         Write(Path.Combine(extracted, "discovery-kinds.json"), DiscoveryKinds);
         Write(Path.Combine(extracted, "skills.json"), Skills);
         Write(Path.Combine(extracted, "skill-notes.json"), SkillNotes.ToDictionary(n => n.Key.ToString(), n => n.Value));
+        Write(Path.Combine(extracted, "study-skill-notes.json"), StudySkillNotes);
+        Write(Path.Combine(extracted, "material-notes.json"), MaterialNotes);
+        Write(Path.Combine(extracted, "grade-bonus-notes.json"), GradeBonusNotes);
+        Write(Path.Combine(extracted, "ship-skill-names.json"), ShipSkillNames.ToDictionary(n => n.Key.ToString(), n => n.Value));
         Write(Path.Combine(extracted, "ships.json"), Ships);
         Write(Path.Combine(extracted, "goods.json"), Goods);
         Write(Path.Combine(extracted, "good-kinds.json"), GoodKinds);
@@ -1433,6 +1484,7 @@ public sealed class GameData
         Write(Path.Combine(extracted, "duties.json"), Duties);
         Write(Path.Combine(extracted, "ammo.json"), Ammo);
         Write(Path.Combine(extracted, "tavern-menu.json"), TavernMenu);
+        Write(Path.Combine(extracted, "study-tasks.json"), StudyTasks);
         Write(Path.Combine(extracted, "honors.json"), Honors);
         Write(Path.Combine(extracted, "cultures.json"), Cultures);
         Write(Path.Combine(extracted, "pets.json"), Pets);
@@ -1514,6 +1566,10 @@ public sealed class GameData
             Id = s.Id, Name = s.Name, Description = s.Description, Group = s.Group, Cost = s.Cost,
         }).ToList();
         SkillNotes = tables.Skills.Where(s => s.Group > 3 && s.Description.Length > 0).GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First().Description);
+        ShipSkillNames = tables.Skills.Where(s => s.Group == 6 && s.Name.Length > 0 && !s.Name.StartsWith('※')).GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First().Name);
+        StudySkillNotes = tables.Skills.Where(s => s.Group == 8 && s.Description.Length > 0 && !s.Name.StartsWith('※')).GroupBy(s => s.Name.Replace(" ", "")).ToDictionary(g => g.Key, g => g.First().Description);
+        MaterialNotes = new Dictionary<string, string>(tables.MaterialNotes);
+        GradeBonusNotes = new Dictionary<int, string>(tables.GradeBonusNotes);
         Goods = tables.Goods.Select(g => new GoodData { Id = g.Id, Name = g.Name, Description = g.Description, Kind = g.Kind }).ToList();
         Nations = tables.Nations.Select(n => new NamedData { Id = n.Id, Name = n.Name }).ToList();
         Jobs = tables.Jobs.Select(j => new NamedData { Id = j.Id, Name = j.Name, Group = j.Line }).ToList();
@@ -1525,6 +1581,7 @@ public sealed class GameData
         Cultures = tables.Cultures.Select(c => new NamedData { Id = c.Id, Name = c.Name }).ToList();
         Honors = tables.Honors.Where(h => h.Name.Length > 0 && !h.Name.StartsWith('※')).Select(h => new NamedData { Id = h.Id, Name = h.Name, Extra = h.Description.Replace("\n", " ") }).ToList();
         TavernMenu = tables.TavernMenu.Where(m => m.Name.Length > 0 && !m.Name.StartsWith('※')).ToList();
+        StudyTasks = tables.StudyTasks.Where(m => m.Name.Length > 0 && !m.Name.StartsWith('※')).ToList();
         ShipParts = tables.ShipParts.Where(p => p.Name.Length > 0 && !p.Name.StartsWith('※')).ToList();
         Decos = tables.Decos.Where(d => d.Name.Length > 0 && !d.Name.StartsWith('※')).ToList();
         CrewGears = tables.CrewGears.Where(g => g.Name.Length > 0 && !g.Name.StartsWith('※')).ToList();
@@ -1604,7 +1661,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-21";
+    private const string ExtractVersion = "extracted-29";
 
     public static string RoomsOf(byte[] sceneTable, int cityId)
     {

@@ -59,7 +59,7 @@ internal sealed partial class Voyage
         (Ashore, _ashoreLooked, _gathered, Sail, Knots) = (site, 0, 0, 0, 0);
         Dialog = Dialog.Ashore;
         Say($"{site.Name}에 상륙했다.");
-        Studied("Outdoor");
+
     }
 
     public void DrawWater()
@@ -91,6 +91,7 @@ internal sealed partial class Voyage
                 if (_random.NextDouble() >= 0.3 + Bonus("Lockpick")) { Say(Text(3143, "자물쇠 열기에 실패했습니다…….")); GainExp(0, 10); return; }
                 found *= 5;
                 Say(Text(3142, "자물쇠 여는 방법을 알아냈습니다!"));
+                Studied("Lock");
                 FindWreckPiece("궤 안에서");
             }
             Money += found;
@@ -146,6 +147,7 @@ internal sealed partial class Voyage
         var good = wild[_random.Next(wild.Count)];
         int count = Math.Min(HoldFree, 1 + (int)Bonus("Gather") / 3 + _random.Next(2));
         GiveGood(good, count);
+        Studied("Outdoor");
         GainExp(0, 4);
         TrainEffect("Gather", 12);
         TrainEffect("March", 4);
@@ -290,7 +292,7 @@ internal sealed partial class Voyage
             int exp = 8 + fight.Level * 4, money = fight.Human ? 200 + fight.Level * 150 + _random.Next(300) : 0;
             Money += money;
             fight.Won = true;
-            fight.Result = $"{fight.Name}을(를) 물리쳤다!{(money > 0 ? $" {money:N0} 두캇을 얻었다." : "")} (전투 경험 +{exp * GainFactor})";
+            fight.Result = $"{fight.Name}을(를) 물리쳤다!{(money > 0 ? $" {money:N0} 두캇을 얻었다." : "")} (전투 경험 +{ExpShown(exp)})";
             Say(fight.Result);
             GainExp(2, exp, Math.Max(1, exp / 5));
             Cues.Enqueue("Done");

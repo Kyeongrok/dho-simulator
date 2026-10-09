@@ -12,16 +12,58 @@ internal sealed partial class Voyage
     // ── 번개 시리즈: 「일정 시간 스킬 숙련도 +100%」 — 이름의 시간(1시간 … 30일)만큼. 시간은 게임을 켜 둔 시간으로 센다(원본은 실제 시간 — 줄인 것)
     private double _charmUntil;
     public double CharmLeft => Math.Max(0, _charmUntil - Clock);
-    private double CharmFactor => Clock < _charmUntil ? 2 : 1;
+    // 덤의 크기(%) — 번개 100 · 뇌수 10 · 뇌왕 30 · 뇌신 50(gvdb 글). 크기가 다른 것을 겹쳐 쓰면 새것으로 바뀌고 시간도 새로 센다(원본이 어떻게 겹치는지는 모른다 — 짐작)
+    private int _charmPower = 100;
+    private double CharmFactor => Clock < _charmUntil ? 1 + _charmPower / 100.0 : 1;
 
     private void UseExpCharm(ItemData charm)
     {
-        _charmUntil = Math.Max(Clock, _charmUntil) + charm.Amount * 3600;
+        int power = charm.Power > 0 ? charm.Power : 100;
+        _charmUntil = (power == _charmPower ? Math.Max(Clock, _charmUntil) : Clock) + charm.Amount * 3600;
+        _charmPower = power;
         Cues.Enqueue("Skill");
-        Say($"{charm.Name}을(를) 썼다. 스킬 숙련도 +100% — 남은 시간 {LeftText(CharmLeft)}.");
+        Say($"{charm.Name}을(를) 썼다. 스킬 숙련도 +{power}% — 남은 시간 {LeftText(CharmLeft)}.");
     }
 
+    // ── 바다짐승 시리즈(해수 +10% · 해왕 +30% — gvdb 「○時間、経験値を10/30％多く獲得できる」): 모험 · 교역 · 전투 경험치가 그만큼 더 붙는다.
+    // 시간과 겹쳐 쓰는 법은 숙련도 부적과 같다(켜 둔 시간으로 센다 · 크기가 다르면 새것으로 — 줄인 것 · 짐작)
+    private double _levelCharmUntil;
+    private int _levelCharmPower;
+    public double LevelCharmLeft => Math.Max(0, _levelCharmUntil - Clock);
+    private double LevelCharmFactor => Clock < _levelCharmUntil ? 1 + _levelCharmPower / 100.0 : 1;
+
+    private void UseLevelCharm(ItemData charm)
+    {
+        _levelCharmUntil = (charm.Power == _levelCharmPower ? Math.Max(Clock, _levelCharmUntil) : Clock) + charm.Amount * 3600;
+        _levelCharmPower = charm.Power;
+        Cues.Enqueue("Skill");
+        Say($"{charm.Name}을(를) 썼다. 경험치 +{charm.Power}% — 남은 시간 {LeftText(LevelCharmLeft)}.");
+    }
+
+    /// <summary>글에 적는 경험치 — 모드의 배수와 경험치 부적의 덤을 받은 값(GainExp 가 실제로 더하는 값).</summary>
+    public int ExpShown(int exp) => (int)Math.Round(Math.Max(0, exp) * GainFactor * LevelCharmFactor);
+
+    /// <summary>지금 듣고 있는 부적 · 베일과 남은 시간 — HUD 의 이름 옆에 보인다(없으면 빈 글).</summary>
+    public string BuffText => string.Join("  ", new[]
+    {
+        CharmLeft > 0 ? $"숙련도 +{_charmPower}% {LeftText(CharmLeft)}" : "",
+        LevelCharmLeft > 0 ? $"경험치 +{_levelCharmPower}% {LeftText(LevelCharmLeft)}" : "",
+        VeilLeft > 0 ? $"재해 회피 {LeftText(VeilLeft)}" : "",
+    }.Where(t => t != ""));
+
     public static string LeftText(double seconds) => seconds >= 86400 ? $"{seconds / 86400:0.#}일" : seconds >= 3600 ? $"{seconds / 3600:0.#}시간" : $"{Math.Ceiling(seconds / 60):0}분";
+
+    // ── 천사의 베일(역천사 30분 · 주천사 1시간 · 치천사 1일 — gvdb 「自然災害回避 — 嵐や吹雪を除く自然災害から守る」): 그 동안 높은 파도 · 횡파 · 돌풍이 안 든다.
+    // 시간은 번개 시리즈처럼 게임을 켜 둔 시간으로 센다(줄인 것)
+    private double _veilUntil;
+    public double VeilLeft => Math.Max(0, _veilUntil - Clock);
+
+    private void UseVeil(ItemData veil)
+    {
+        _veilUntil = Math.Max(Clock, _veilUntil) + veil.Amount * 3600;
+        Cues.Enqueue("Skill");
+        Say($"{veil.Name}을(를) 썼다. 자연재해 회피 — 남은 시간 {LeftText(VeilLeft)}.");
+    }
 
     // ── 헤파이스토스의 가호(스킬 645): 「가호의 랭크에 따라 생산 시 일정 확률로 행동력을 소비하지 않는다」.
     // 확률은 자료가 없다 — 지은 값: 랭크마다 25%(3랭 75%. 글: 「3랭이면 행동력 음식 없이 랭작한다」). 원본은 켜서 일정 시간 가는 스킬인데 여기서는 가지고 있으면 늘 듣는다(줄인 것)

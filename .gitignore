@@ -38,6 +38,7 @@ data/extracted/*
 !data/extracted/sea-quests-gvdb.json
 !data/extracted/fish-finds-gvdb.json
 !data/extracted/wreck-finds-gvdb.json
+!data/extracted/figurehead-uses-gvdb.json
 !data/extracted/map-facts-gvdb.json
 !data/extracted/food-effects-gvdb.json
 !data/extracted/skill-learn-gvdb.json

@@ -103,7 +103,7 @@ internal sealed partial class Voyage
         3 => "돛에 그리는 문장(모양뿐이다)",
         4 => $"{CannonSpots[SpotOf(part)].Replace("포", "")} 관통{part.B} 사정{part.C} 장전{part.Reload} {AmmoName(part.D / 10)}",
         5 => $"{GearKinds[Math.Clamp(part.A, 0, GearKinds.Length - 1)]}" + (part.B > 0 ? $" {part.B}" : "") + (GearNote(part) is { Length: > 0 } does ? $" — {does}" : ""),
-        _ => $"재해 {part.A} · 피로 {part.B} · 장악 {part.C} · 회피 {part.D}",      // 재해 수호 · 피로 경감 · 선원 장악 · 포탄 회피
+        _ => $"재해 {part.A} · 피로 {part.B} · 장악 {part.C} · 회피 {part.D}" + (Data.FigureheadUses.TryGetValue(part.Id, out var use) && FigureheadCures.TryGetValue(use, out int cured) && Data.Disasters.Find(d => d.Id == cured) is { } harm ? $" · 쓰면 {harm.Name} 해소" : Data.FigureheadUses.TryGetValue(part.Id, out var chase) && FigureheadRepels.TryGetValue(chase, out int beast) ? $" · 쓰면 {(beast == 1 ? "상어" : "크라켄")} 격퇴" : ""),      // 재해 수호 · 피로 경감 · 선원 장악 · 포탄 회피
     };
 
     /// <summary>
@@ -154,7 +154,7 @@ internal sealed partial class Voyage
 
     // 선수상의 네 수치(클라이언트 표 27 의 A ~ D)는 gvdb 아이템 목록의 글과 값이 맞는다(팔바티상 5/6/1/4 = 「災害守護：5 疲労軽減：6 船員掌握：1 砲弾回避：4」):
     // A 재해 수호 · B 피로 경감 · C 선원 장악 · D 포탄 회피. 수치 1 이 얼마의 효과인지는 자료가 없다 — 아래 곱(3% · 3% · 2%)은 지은 값.
-    // 선원 장악은 이 게임에 선원의 충성이 없어 쓰이지 않는다. 「使用時効果」(세이렌 격퇴 · 크라켄 격퇴 · 소화 …)도 아직 없다
+    // 선원 장악은 이 게임에 선원의 충성이 없어 쓰이지 않는다. 「使用時効果」는 재해를 푸는 것만 이었다(아래 선수상의 쓰는 효과 — UseFigurehead)
     /// <summary>선수상의 「재해 수호」가 줄여 주는 재해 확률 배율.</summary>
     public double PartLuck => 1 - Math.Min(0.5, Parts.Where(p => p.Slot == 2).Sum(p => p.A) * 0.03);
     /// <summary>선수상의 「피로 경감」이 줄여 주는 피로 배율.</summary>
@@ -172,6 +172,56 @@ internal sealed partial class Voyage
             double mean = guns.Sum(p => (double)p.Reload * p.A) / Math.Max(1, guns.Sum(p => p.A));
             return Math.Clamp(1 - (mean - 4) * 0.05, 0.7, 1.2);
         }
+    }
+
+    // ── 선수상의 쓰는 효과(gvdb 「使用時効果」 35개) — 재해를 푸는 것만 잇는다: 일본어 글 → 이 게임의 재해 번호(data\disasters.json).
+    // 크라켄 격퇴 · 주술 · 피로 회복 · 충성도 상승 · 외과의술 · 구조 · 회피 따위는 받을 자리가 없어 안 잇는다.
+    // 원본에서 얼마 만에 다시 쓰는지는 자료가 없다 — 바다에서 하루에 한 번(지은 값)
+    private static readonly Dictionary<string, int> FigureheadCures = new()
+    {
+        ["消火"] = 1, ["浸水回復"] = 2, ["壊血病回復"] = 3, ["ネズミ退治"] = 4, ["駆除"] = 4, ["藻除去"] = 5, ["サメ撃退"] = 7,
+        ["疫病回復"] = 10, ["疾病回復"] = 10, ["セイレーン撃退"] = 12, ["タコ撃退"] = 13,
+    };
+    private double _figureheadUsedAt = double.MinValue;
+
+    /// <summary>단 선수상 가운데 재해를 푸는 것과 그 재해 — 없으면 null.</summary>
+    public (ShipPart Part, DisasterData Cures)? FigureheadCure =>
+        Parts.Where(p => p.Slot == 2).Select(p => Data.FigureheadUses.TryGetValue(p.Id, out var use) && FigureheadCures.TryGetValue(use, out int id) && Data.Disasters.Find(d => d.Id == id) is { } cures ? ((ShipPart, DisasterData)?)(p, cures) : null)
+            .FirstOrDefault(f => f != null);
+
+    public string? FigureheadBlocker =>
+        FigureheadCure is not { } use ? "쓸 수 있는 선수상이 없다"
+        : Clock - _figureheadUsedAt < Settings.SecondsPerDay ? "오늘은 이미 썼다"
+        : !Disasters.Exists(d => d.Data.Id == use.Cures.Id) ? $"{use.Cures.Name}이(가) 나지 않았다" : null;
+
+    // 바다 괴물을 쫓는 선수상(gvdb 「サメ撃退」 · 「クラーケン撃退」) → 괴물 갈래(1 상어 · 2 크라켄). 쓰면 싸우던 그 괴물이 물러가 싸움이 끝난다
+    // (얼마나 아프게 하는지 같은 크기를 짓지 않으려고 「격퇴 = 물러간다」로 옮겼다 — 전리품 · 경험은 없다). 하루에 한 번은 재해 쪽과 같이 센다
+    private static readonly Dictionary<string, int> FigureheadRepels = new() { ["サメ撃退"] = 1, ["クラーケン撃退"] = 2 };
+
+    /// <summary>단 선수상 가운데 지금 싸우는 괴물을 쫓는 것 — 없으면 null.</summary>
+    public ShipPart? FigureheadRepel =>
+        Battle is { Result: null, Foe.Monster: > 0 } fight
+            ? Parts.Find(p => p.Slot == 2 && Data.FigureheadUses.TryGetValue(p.Id, out var use) && FigureheadRepels.TryGetValue(use, out int kind) && kind == fight.Foe.Monster) : null;
+
+    /// <summary>선수상을 쓴다 — 싸우는 괴물을 쫓거나 그 재해를 푼다.</summary>
+    public void UseFigurehead()
+    {
+        if (FigureheadRepel is { } guard && Battle is { } fight)
+        {
+            if (Clock - _figureheadUsedAt < Settings.SecondsPerDay) { Say("선수상 — 오늘은 이미 썼다."); Cues.Enqueue("Error"); return; }
+            _figureheadUsedAt = Clock;
+            Say($"{guard.Name}의 가호!");
+            fight.Result = $"{fight.Foe.Name}이(가) 물러갔다.";
+            SeaShips.Remove(fight.Foe);
+            Say(fight.Result);
+            Dialog = Dialog.Battle;
+            return;
+        }
+        if (FigureheadBlocker is { } why) { Say($"선수상 — {why}."); Cues.Enqueue("Error"); return; }
+        var (part, cures) = FigureheadCure!.Value;
+        _figureheadUsedAt = Clock;
+        Say($"{part.Name}의 가호!");
+        End(Disasters.Find(d => d.Data.Id == cures.Id)!);
     }
 
     private int _dodged;

@@ -306,7 +306,7 @@ internal sealed partial class Voyage
         Say($"{plan.Hull}(으)로 {plan.Ship.Name}의 특수 조선을 맡겼다. 재질 {plan.MaterialName}, 건조일수 {BuildDays(plan.Ship)}일." + (skill == null ? "" : $" 옵션 스킬 「{skill.Name}」이(가) 붙는다."));
     }
 
-    public string? ReceiveBlocker => Ordered == null ? "맡겨 둔 배가 없다" : Ordered.DaysLeft > 0 ? $"{Math.Ceiling(Ordered.DaysLeft):0}일 더 걸린다" : Dock.Count >= DockSlots ? "부두에 둘 자리가 없다" : null;
+    public string? ReceiveBlocker => Ordered == null ? "맡겨 둔 배가 없다" : Ordered.DaysLeft > 0 ? $"{Math.Ceiling(Ordered.DaysLeft):0}일 더 걸린다" : Dock.Count >= DockSlots ? Text(6831, "부두에 둘 자리가 없다").TrimStart('※') : null;
 
     /// <summary>다 지어진 배를 받아 부두에 둔다.</summary>
     public void ReceiveShip()
@@ -332,6 +332,8 @@ internal sealed partial class Voyage
 
     /// <summary>대본용: 바다에서 날짜만 하루 넘긴다(물 · 식량 · 재해는 그대로) — 날마다 도는 것들(적대도 · 예항 · 정세 · 애완동물)을 시험한다.</summary>
     public void SkipSeaDayForTest() { if (Mode == Mode.Sea) Clock += Settings.SecondsPerDay; }
+    /// <summary>대본용 — 선원 수를 정한다(필요 선원에 못 미칠 때의 화면을 보려고).</summary>
+    public void SetCrewForTest(int crew) => Crew = crew;
 
     /// <summary>바다에서 보낸 날만큼 건조가 나아간다.</summary>
     private void UpdateBuild(double days)
@@ -389,7 +391,7 @@ internal sealed partial class Voyage
     /// <summary>배를 값 없이 부두에 받는다(소지품 창의 「선박 추가」).</summary>
     public void GiveShip(ShipData ship)
     {
-        if (Dock.Count >= DockSlots) { Say("부두에 둘 자리가 없다."); return; }
+        if (Dock.Count >= DockSlots) { Say(Text(6831, "부두에 둘 자리가 없다.").TrimStart('※')); return; }
         var work = new ShipWork();
         Dock.Add(new DockedShip { Ship = ship, Durability = Worked(StatsOf(ship, 0, 0), work, ship).Durability, Work = work });
         Say($"{ship.Name}을(를) 받아 부두에 매어 두었다. 선박교환에서 갈아탄다.");
@@ -405,7 +407,7 @@ internal sealed partial class Voyage
     {
         var stats = ShipStats.Of(ship, Settings.Ships);
         if (Money < ShipCost(ship)) return "돈이 모자라다";
-        if (Dock.Count >= DockSlots) return "부두에 둘 자리가 없다";
+        if (Dock.Count >= DockSlots) return Text(6831, "부두에 둘 자리가 없다").TrimStart('※');
         return null;
     }
 

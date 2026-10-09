@@ -18,6 +18,11 @@ from gvdb_recipes import squeeze
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "data", "extracted")
 
 
+# gvdb 의 「装備効果」 이름 → 게임의 효과 이름. 게임에 받을 자리가 있는 것만(南蛮貿易 · 特殊弾 · 副官成長 · スキル効果時間 · 陸地移動 · レリック 따위는 자리가 없다)
+WORN = {"行動力減少抑制": "VigourSave", "物資減少抑制": "SupplySave", "航行速度上昇": "Speed", "災害発生率減少": "Luck",
+        "奇襲・強襲率減少": "Ambush", "白兵戦闘力上昇": "Melee", "収奪率上昇": "Loot", "副官成長促進": "AideGrow"}
+
+
 def main():
     gear = {}
     for rid, name in wiki_gear.gear_names(gvo.LANG_JA).items():
@@ -44,11 +49,16 @@ def main():
                 unknown[m.group(1)] = unknown.get(m.group(1), 0) + 1
         # 「装備効果：行動力減少抑制 Rank 5」 — 장비 효과. 랭크가 안 적혀 있으면 1 로 본다
         worn = {}
-        for m in re.finditer(r"装備効果\s*[：:]\s*([^<\s]+)(?:\s*(?:Rank|R)\s*(\d+))?", c[7]):
+        # 랭크의 꼴이 여럿이다: 「Rank5」 · 「Rank 5」 · 「R4」 · 「（R3）」 · 「(R1)」 — 이름과 붙어 적히기도 한다(「航行速度上昇R4 (速度上昇+8%)」)
+        for m in re.finditer(r"装備効果\s*[：:]\s*([^<\s（(0-9R]+)[\s（(]*(?:(?:Rank|R)\s*(\d+))?", c[7]):
             effect_names[m.group(1)] = effect_names.get(m.group(1), 0) + 1
-            if m.group(1) == "行動力減少抑制":
-                worn["VigourSave"] = max(worn.get("VigourSave", 0), int(m.group(2) or 1))
-        if not boosts and not worn:
+            key = WORN.get(m.group(1))
+            if key:
+                worn[key] = max(worn.get(key, 0), int(m.group(2) or 1))
+        # 줄에 「+n」이 하나도 없으면 보정이 없는 장비다 — 빈 보정으로 적어 「자료 없음」 딱지가 안 뜨게 한다(악톤 따위).
+        # 「+n」은 있는데 못 읽은 꼴(「突撃 +1」 · 「装備効果：運用＋1」)은 모르는 채로 둔다
+        plain = not boosts and not worn and not re.search(r"[+＋]\s*\d", c[7])
+        if not boosts and not worn and not plain:
             continue
         ids = gear.get(squeeze(c[1]))
         if not ids:
@@ -57,6 +67,8 @@ def main():
         for rid in ids:
             if boosts:
                 found[rid] = boosts
+            elif plain:
+                found.setdefault(rid, {})
             if worn:
                 effects[rid] = worn
     print("장비", len(found), "· 이름을 못 이은 장비", no_gear, "· 못 이은 스킬 이름", sorted(unknown.items(), key=lambda x: -x[1])[:12])

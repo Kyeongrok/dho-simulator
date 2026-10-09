@@ -116,8 +116,6 @@ internal sealed partial class Voyage
     {
         switch (_interiorPlace)
         {
-            case 2: Say($"{InteriorHost}: 「교역 의뢰는 아직 없네. 장사에 쓸 기술이라면 가르쳐 주지.」"); LearnFrom(1); break;
-            case 3: Say($"{InteriorHost}: 「토벌 의뢰는 아직 없다. 싸우는 기술이라면 가르쳐 주마.」"); LearnFrom(2); break;
             case 29: Say($"{InteriorHost}: 「항해자 양성학교다. 수업은 아직 열지 않았다 — 조합에서 의뢰를 받으며 익히게.」"); break;
             case 16: Say($"{InteriorHost}: 「지도와 기록은 여기 다 있소. 찾는 곳이 있으면 모험가조합의 의뢰부터 받아 오시오.」"); break;
             case 201 or 202 or 203:
@@ -157,6 +155,18 @@ internal sealed partial class Voyage
     public double WindKnots { get; private set; } = 9;
 
     public double SecondsAtSea { get; private set; }
+
+    // 지나온 항로(내비게이션에 그린다) — 바다에서 여덟 칸 갈 때마다 한 점, 오래된 것부터 버린다(간격 · 개수는 지은 값)
+    private readonly List<(double X, double Y)> _track = [];
+    private const int TrackMost = 6000;
+    public IReadOnlyList<(double X, double Y)> Track => _track;
+    public void ClearTrack() => _track.Clear();
+    private void MarkTrack()
+    {
+        if (_track.Count > 0 && Math.Abs(WorldMap.DeltaX(_track[^1].X, ShipX)) + Math.Abs(ShipY - _track[^1].Y) < 8) return;
+        if (_track.Count >= TrackMost) _track.RemoveRange(0, TrackMost / 10);
+        _track.Add((ShipX, ShipY));
+    }
     public int DaysAtSea => (int)(SecondsAtSea / Settings.SecondsPerDay);
     /// <summary>하늘의 때. 0 = 자정, 0.5 = 한낮.</summary>
     public double SkyPhase { get; private set; }
@@ -409,6 +419,11 @@ internal sealed partial class Voyage
     public int TreatCost => (int)((200 + (int)Crew * 20) * (1 - Math.Min(0.45, Bonus("Chat"))));
 
     /// <summary>「노 젓기」(설명: 「조력을 가진 배의 속도가 빨라진다」) — 노가 있는 배만, 랭크마다 +2%(3할까지, 지은 값).</summary>
+    /// <summary>
+    /// 「돛 조종」의 항해속도 보너스 — 「홀수 랭크마다 1% (돛 조종 15랭 = 8% · 장비 · 부관까지 19랭 = 10%)」(사용자가 준 항해속도 글, 2026-10-08).
+    /// 전에는 랭크마다 3%(지은 값)였다. 스킬이 없으면 0.
+    /// </summary>
+    public double SailTrim => Data.SkillRules.Find(r => r.Effect == "Speed") is { } trim && SkillOn(trim.SkillId) && Rank(trim.SkillId) is > 0 and var rank ? (rank + 1) / 2 * 0.01 : 0;      // 켜 두는 스킬이다 — 켜져 있을 때만
     public double RowBoost => Stats.Rowing > 0 ? Math.Min(0.3, Bonus("Row")) : 0;
     public void Treat()
     {
@@ -500,6 +515,7 @@ internal sealed partial class Voyage
         HearLanguage();
         DiscoverPort(city);
         Studied("Voyage");
+        if (OnSteamship) Studied("SteamVoyage");
         if (days >= 1) GainMastery();
         if (days >= 15) Studied("LongVoyage");
         RestInPort();
@@ -655,7 +671,7 @@ internal sealed partial class Voyage
         Money += Quest!.Reward;
         _done.Add(Quest.Id);
         OrderOnReport();
-        Studied("Discover");
+        Studied("Discover", 1, Quest.Rank, QuestDiscovery?.Kind ?? 0);
         Say($"의뢰 「{Quest.Title}」을(를) 보고했다. 보수 {Quest.Reward:N0} 두캇.");
         // 의뢰마다 받는 아이템(gvdb 의 「入手アイテム」 — 거의 의뢰 알선서 몇 장)
         if (Quest.RewardItem > 0)
@@ -734,7 +750,7 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
 
         int daysBefore = DaysAtSea;
         SecondsAtSea += dt;
-        if (DaysAtSea != daysBefore) Say($"항해 {DaysAtSea}일째.");
+        if (DaysAtSea != daysBefore) { Say($"항해 {DaysAtSea}일째."); BurnCoal(); }
         UpdateHazards(dt);
         if (Mode != Mode.Sea) return;            // 난파해서 항구로 떠밀려 갔다
         TickSkills();
@@ -769,9 +785,12 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
         // 선원이 모자라거나 재해가 있으면 느려진다
         double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
         // 급하게 돌면 그만큼 속도가 죽는다
-        double target = Stats.Knots * Sail / SailSteps * windFactor * (0.6 + WindKnots / 22) * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
-                        * (1 + Bonus("Speed")) * (1 + RowBoost) * (1 + Math.Min(0.2, FormBonus("FormSail"))) * TowSpeed * DelegateBoost * PartSpeed * AideSpeed * (1 + Option("Speed")) * DashSpeed * (1 + BoostSpeed) * (1 + Study("Speed"));
-        Knots += (target - Knots) * Math.Min(1, dt * 0.8);
+        double target = Stats.Knots * Sail / SailSteps * windFactor * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
+                        * SteamSpeed * (1 + SailTrim) * (1 + GearEffect("Speed") * 0.02) * (1 + RowBoost) * (1 + Math.Min(0.2, FormBonus("FormSail"))) * TowSpeed * DelegateBoost * PartSpeed * AideSpeed * (1 + Option("Speed")) * DashSpeed * (1 + BoostSpeed) * (1 + Study("Speed"));
+        Knots += (target - Knots) * Math.Min(1, dt * 0.8 * SteamHaste);
+        // 「Auto Sailing !!」 — 바람을 제대로 받아 낼 수 있는 속도에 다다른 상태(사용자가 준 글, 2026-10-09): 급하게 돌거나 맞바람을 정면으로 받으면 풀리고 다시 속도가 붙어야 든다.
+        // 문턱(낼 속도의 95% · 선회 절반 · 맞바람 쪽 ±25도쯤)은 지은 값. 표시만 한다 — 속도는 이 상태로 달라지지 않는다(글의 「기본 항속의 약 1.5배」는 안 넣었다)
+        AutoSailing = Sail > 0 && target > 0.5 && Knots >= target * 0.95 && Math.Abs(TurnShare) < 0.5 && off > -0.9;
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;
         // 해류가 배를 떠민다 — 닻을 내리고 있으면 안 밀린다
@@ -788,24 +807,52 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
         {
             ShipX = WorldMap.WrapX(nextX);
             ShipY = nextY;
+            MarkTrack();
         }
         UpdateSeaShips(dt);
     }
 
     /// <summary>
-    /// 돛이 받는 바람(0.3 ~ 1) — 가로돛은 뒤바람에 세고 맞바람에 약하다, 세로돛은 옆바람에 가장 세고 맞바람에도 버틴다.
-    /// 배의 가로돛 · 세로돛 성능(원본의 값)의 몫대로 섞는다. 「순풍에는 가로돛, 역풍에는 세로돛」이라는 틀은 원본의 것이고 곡선의 값은 지은 것이다:
-    /// 가로돛 — 순풍 1.0 · 옆바람 0.65 · 맞바람 0.30, 세로돛 — 순풍 0.85 · 옆바람 1.0 · 맞바람 0.50.
+    /// 시험: 지금 배의 속도 식(위의 target)을 곱마다 풀어 적는다 — 뱃머리를 바람에 대한 각(0 = 순풍 · 180 = 맞바람)으로 놓고, 돛을 다 편 것으로 친다.
+    /// </summary>
+    public string SpeedPartsForTest(double offDegrees)
+    {
+        double windFactor = WindFactor(Math.Cos(offDegrees * Math.PI / 180));
+        double hands = Math.Clamp(Crew / Stats.MinCrew, 0.3, 1);
+        var parts = new (string Name, double Value)[]
+        {
+            ("배 속도(노트)", Stats.Knots), ("돛이 받는 바람(1 + 풍향 가중치 × 풍속 단계)", windFactor), ("선원", hands), ("재해", DisasterSpeedFactor()),
+            ("증기", SteamSpeed), ("돛 조정", 1 + SailTrim), ("장비 효과", 1 + GearEffect("Speed") * 0.02), ("노 젓기", 1 + RowBoost), ("진형", 1 + Math.Min(0.2, FormBonus("FormSail"))),
+            ("예항", TowSpeed), ("위임", DelegateBoost), ("부품", PartSpeed), ("부관", AideSpeed), ("옵션 스킬", 1 + Option("Speed")), ("급가속", DashSpeed), ("부스트", 1 + BoostSpeed), ("대학", 1 + Study("Speed")),
+        };
+        double total = parts.Aggregate(1.0, (sum, p) => sum * p.Value);
+        return $"{Ship.Name} 강화 {Work.Times} Grade {Work.Grade} 세로 {Stats.VerticalSail} 가로 {Stats.HorizontalSail} 내파 {Stats.WaveResist} 선원 {Crew:0}/{Stats.MinCrew} 바람 {WindKnots:0.#}노트 각 {offDegrees:0}도 → {total:0.00}노트\n  "
+            + string.Join(" × ", parts.Where(p => Math.Abs(p.Value - 1) > 1e-6).Select(p => $"{p.Name} {p.Value:0.###}"));
+    }
+
+    /// <summary>
+    /// 돛이 받는 바람 — 배 속도에 곱한다: 1 + 풍향 가중치 × 풍속 단계.
+    /// 사용자가 준 측정 글(인벤 「가로돛, 세로돛, 속도간의 상관관계」, 2022-09-28 — 대항해시대 오리진에서 잰 것)의 표:
+    /// 속도 = 풍향별 가중치 × 풍속 + 기본 속도, 가중치 ÷ 기본 속도가 순풍 0.053 ~ 0.082(가로돛 비중이 클수록 크다) · 측순풍 0.026 ~ 0.029 · 측역풍 0 안팎 · 역풍 −0.017 ~ −0.035(가로돛 비중이 클수록 더 깎인다).
+    /// 다섯 척의 값에 맞춘 직선(짐작): 순풍 0.045 + 0.055 × 가로돛 비중, 측순풍 0.028, 측역풍 0, 역풍 −(0.014 + 0.030 × 가로돛 비중) — 그 사이 각도는 곧게 잇는다(측순풍 45° · 측역풍 135° 로 봄).
+    /// 풍속 단계 = 풍속(노트) ÷ 3 은 지은 값(글의 풍속 1 ~ 4 가 이 게임의 몇 노트인지 모른다 — 보통 바람 9노트를 3 으로 봤다).
     /// </summary>
     public double WindFactor(double off)
     {
-        double square = 0.30 + 0.70 * Math.Clamp(0.5 + 0.5 * off, 0, 1);
-        double lateen = off >= 0 ? 1.0 - 0.15 * off : 1.0 + 0.5 * off;
         double v = Math.Max(0, Stats.VerticalSail), h = Math.Max(0, Stats.HorizontalSail);
-        return v + h <= 0 ? 0.35 + 0.65 * Math.Clamp(0.55 + 0.6 * off - 0.15 * off * off, 0, 1) : (square * h + lateen * v) / (v + h);
+        double square = v + h <= 0 ? 0.4 : h / (v + h);
+        double angle = Math.Acos(Math.Clamp(off, -1, 1)) * 180 / Math.PI;      // 0 = 순풍, 180 = 역풍
+        double fair = 0.045 + 0.055 * square, foul = -(0.014 + 0.030 * square);
+        double weight = angle <= 45 ? fair + (0.028 - fair) * angle / 45
+            : angle <= 135 ? 0.028 * (135 - angle) / 90
+            : foul * (angle - 135) / 45;
+        return Math.Max(0.3, 1 + weight * WindKnots / 3);
     }
 
     /// <summary>지금 뱃머리에서 돛이 받는 바람(%) — 화면의 바람 줄에 보인다.</summary>
+    /// <summary>바람을 받아 제 속도에 다다른 상태인가 — 화면의 「Auto Sailing !!」.</summary>
+    public bool AutoSailing { get; private set; }
+
     public int WindShare => (int)Math.Round(WindFactor(Math.Cos(Heading - WindDirection)) * 100);
 
     private bool Blocked(double x, double y)

@@ -151,7 +151,7 @@ internal sealed partial class Voyage
         return found.OrderBy(f => f.Item2).ToList();
     }
 
-    public int BuyPrice(GoodData good) => Math.Max(1, (int)(BasePrice(good) * MarketIndex(good, City) * (1 - Haggle) * (1 - Math.Min(0.2, Study("BuyCut"))) * (1 + TaxRate) * NewsPrice(City)));
+    public int BuyPrice(GoodData good) => Math.Max(1, (int)(BasePrice(good) * MarketIndex(good, City) * (1 - Haggle) * (1 - Math.Min(0.2, Study("BuyCut"))) * (1 - ClassCut(good)) * (1 + TaxRate) * NewsPrice(City)));
 
     /// <summary>
     /// 관세 — 교역품을 살 때 값에 붙고, 팔 때 값에서 떼인다(클라이언트 표 50 의 글: 「교역품 구입，매각 시의 관세」). 클라이언트에는 「관세 증가 · 감소」라는 말(화면 글 9542 · 9543)만 있고 세율은 없다.
@@ -275,7 +275,7 @@ internal sealed partial class Voyage
         if (!Cargo.TryGetValue(good.Id, out var item)) Cargo[good.Id] = item = new CargoItem();
         item.Count += count;
         item.Cost += (long)count * price;
-        Studied("Buy");
+        Studied("Buy", 1, 0, good.Kind);
     }
 
     /// <summary>적재화물파기 — 그 교역품을 바다에 버린다.</summary>
@@ -304,8 +304,10 @@ internal sealed partial class Voyage
             GainExp(1, (int)Math.Min(100_000, profit / 100 * famed), (int)Math.Min(1000, profit / 2000 * famed));      // 교역 명성은 이익 2000 에 1(지은 값)
             if (famed > 1) Say($"{CultureOf(Data.Specialties[good.Id])}의 명산품 — 교역 경험이 더 붙었다.");
             TrainEffect("Haggle", Math.Min(60, profit / 50.0));
-            Studied("Profit");
-            if (profit >= 50_000) Studied("BigProfit");
+            // 연구 과제(표 64): 흑자 교역 = 1회 교역으로 10만 두캇 이상 · 고수익 교역 = 100만 이상 · 일확천금 교역 = 1000만 이상
+            if (profit >= 100_000) Studied("Profit");
+            if (profit >= 1_000_000) Studied("HighProfit");
+            if (profit >= 10_000_000) Studied("BigProfit");
         }
         Say($"{good.Name} {count}개를 팔았다. ({(profit >= 0 ? "이익" : "손해")} {Math.Abs(profit):N0})");
     }

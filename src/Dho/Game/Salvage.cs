@@ -157,6 +157,7 @@ internal sealed partial class Voyage
         if (TowValue <= 0) return;
         Money += TowValue;
         WrecksSalvaged++;
+        Studied("Wreck");
         Say($"끌고 온 침몰선을 넘겼다 — {TowValue:N0} 두캇. ({Text(619, "누적인양수").Split('%')[0].Trim()} {WrecksSalvaged})");
         GainExp(0, 50, 10);
         // 원본 침몰선이면 그 침몰선의 인양품(gvdb 의 보상 칸에 적힌 것들) 가운데 하나를 받는다 — 무엇이 몇 개 나오는지는 자료가 없어 「아무것 하나」로 지었다

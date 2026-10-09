@@ -154,7 +154,7 @@ internal sealed partial class Voyage
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
+            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Track = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, VeilLeft = VeilLeft, CharmPower = _charmPower, LevelCharm = [LevelCharmLeft, _levelCharmPower], Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
@@ -221,7 +221,7 @@ internal sealed partial class Voyage
         // 배 자료가 바뀌어(위키 값으로 맞춘 뒤) 저장된 내구가 상한을 넘는 배가 있다 — 상한에 맞춘다
         foreach (var moored in Dock) moored.Durability = Math.Min(moored.Durability, StatsOf(moored).Durability);
         foreach (var saved in save.Aides)
-            if (saved.Length >= 4 && Data.Aides.Find(a => a.Id == (int)saved[0]) is { } who)
+            if (saved.Length >= 4 && AideById((int)saved[0]) is { } who)
                 Aides.Add(new Aide { Who = who, Duty = (int)saved[1], Level = (int)saved[2], Exp = saved[3], Ship = saved.Length >= 5 ? Dock.ElementAtOrDefault((int)saved[4] - 1) : null, Trust = saved.Length >= 6 ? saved[5] : 0 });
         Dock.RemoveAll(d => Aides.Any(a => a.Ship == d));       // 부관 선장의 배는 부두에서 빠져 있다
         Savings = Math.Max(0, save.Bank);
@@ -240,6 +240,9 @@ internal sealed partial class Voyage
         WreckPieces = save.WreckPieces;
         (TowValue, TowFrayed, _towWreck) = (save.TowValue, false, save.TowWreck);
         (_charmUntil, _stuffedUntil) = (save.CharmLeft > 0 ? Clock + save.CharmLeft : 0, save.StuffedLeft > 0 ? Clock + save.StuffedLeft : 0);
+        _veilUntil = save.VeilLeft > 0 ? Clock + save.VeilLeft : 0;
+        _charmPower = save.CharmPower > 0 ? save.CharmPower : 100;
+        (_levelCharmUntil, _levelCharmPower) = save.LevelCharm is { Length: 2 } lc && lc[0] > 0 ? (Clock + lc[0], (int)lc[1]) : (0, 0);
         (PetId, PetLove) = save.Pet is { Count: 2 } pet ? (pet[0], pet[1]) : (0, 0);
         Found.Clear();
         foreach (int id in save.Found ?? []) Found.Add(id);
@@ -250,6 +253,8 @@ internal sealed partial class Voyage
         News = save.News is { Count: 3 } news ? (news[0], news[1], news[2]) : default;
         (Prayer, PrayerUntil) = save.Prayer is { Count: 2 } prayed ? (prayed[0], prayed[1]) : (-1, 0);
         WreckAt = save.WreckX != 0 || save.WreckY != 0 ? (save.WreckX, save.WreckY) : null;
+        _track.Clear();
+        for (int k = 0; k + 1 < (save.Track?.Length ?? 0); k += 2) _track.Add((save.Track![k], save.Track[k + 1]));
         (WreckRaised, WreckFails, WrecksSalvaged) = (save.WreckState?.ElementAtOrDefault(0) ?? 0, save.WreckState?.ElementAtOrDefault(1) ?? 0, save.WreckState?.ElementAtOrDefault(2) ?? 0);
         Hostility.Clear();
         foreach (var (nation, value) in save.Hostility ?? []) Hostility[nation] = value;

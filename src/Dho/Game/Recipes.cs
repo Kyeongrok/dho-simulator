@@ -24,6 +24,9 @@ internal sealed partial class Voyage
         rule.OutputItem > 0 && rule.InputList().Any(i => i.Good == rule.OutputItem) && Data.Recipes.Find(r => r.Id == rule.RecipeId)?.Description is { } text && (text.Contains("소실") || text.Contains("사라진다"))
             ? (text.Contains("방어력") ? 1 : 0) : -1;
 
+    /// <summary>대본용 — 장비 연성이 늘 실패하게.</summary>
+    public bool TemperFailForTest { get; set; }
+
     private HashSet<int>? _partIds;
     public bool IsPartId(int id) => (_partIds ??= Data.ShipParts.Select(p => p.Id).ToHashSet()).Contains(id);
     public int HaveInput(int id) => IsGoodId(id) ? (Cargo.TryGetValue(id, out var item) ? item.Count : 0) : IsPartId(id) ? PartStock.Count(p => p.Id == id) : Items.GetValueOrDefault(id);
@@ -133,7 +136,7 @@ internal sealed partial class Voyage
 
     /// <summary>그 레시피를 times 번 만드는 데 드는 행동력 — 기본 5(사용자 확인), 그 스킬의 마이스터 호칭을 내걸었으면 20% 덜 든다(한 번에 4).</summary>
     public int ProduceVigourOf(RecipeRule rule, int times = 1) =>
-        (int)Math.Ceiling(Math.Max(1, ProduceVigour - VigourSave) * times * (RecipeSkill(rule) is { } craft && MeisterOf(craft.SkillId) ? 0.8 : 1));      // 장비의 행동력 감소 억제(랭크만큼, 1 까지)
+        (int)Math.Ceiling(Math.Max(1, ProduceVigour - VigourSave - (RecipeSkill(rule) is { } aided ? AideCraftSave(aided.SkillId) : 0)) * times * (RecipeSkill(rule) is { } craft && MeisterOf(craft.SkillId) ? 0.8 : 1));      // 장비의 행동력 감소 억제(랭크만큼, 1 까지)
 
     /// <summary>
     /// 생산 한 번에 오르는 숙련도 — 사용자가 준 원본의 식(2026-10-07):
@@ -182,6 +185,8 @@ internal sealed partial class Voyage
         // 연성한 생산 스킬은 재료를 아껴 준다 — 한 번마다 10%로 그 번의 재료가 안 든다(지은 값)
         int spared = RecipeSkill(rule) is { } craft && Refined(craft.SkillId) ? Enumerable.Range(0, times).Count(_ => _random.Next(100) < 10) : 0;
         if (spared > 0) Say($"연성한 솜씨로 재료를 {spared}번 아꼈다.");
+        // 대학 스킬 「○○의 기술 1」 — 재료 10% 감소(열 번에 한 번치가 안 든다)
+        if (RecipeSkill(rule) is { } learned && StudySpared(learned.SkillId, times) is > 0 and var studied) { spared = Math.Min(times - 1, spared + studied); Say($"대학에서 익힌 기술로 재료를 {studied}번치 아꼈다."); }
         foreach (var (good, count) in rule.InputList())
         {
             if (IsPartId(good)) { for (int k = 0; k < count * (times - spared); k++) PartStock.RemoveAt(PartStock.FindIndex(p => p.Id == good)); continue; }
@@ -223,7 +228,7 @@ internal sealed partial class Voyage
             int kept = 0, raised = 0;
             for (int k = 0; k < done; k++)
             {
-                if (_random.Next(100) < 20 && !GreatForTest) continue;
+                if (TemperFailForTest || _random.Next(100) < 20) continue;
                 kept++;
                 if (GearOf(rule.OutputItem) is not { } gear || ForgedOf(gear.Id, stat) >= ForgeLimit(gear.Stats.ElementAtOrDefault(stat))) continue;
                 if (!Forged.TryGetValue(gear.Id, out var added)) Forged[gear.Id] = added = [0, 0];
@@ -255,7 +260,8 @@ internal sealed partial class Voyage
         }
         Fatigue = Math.Min(100, Fatigue + 0.5 * times);
         if (RecipeSkill(rule) is { } used) Train(used.SkillId, ProduceExp(rule) * (times - great) + ProduceExp(rule, true) * great);      // 실패한 번도 성공만큼 오른다(실패 때의 양은 모른다)
-        Studied("Produce", times);
+        Studied("Produce", times, RecipeSkill(rule)?.Rank ?? 0, RecipeSkill(rule)?.SkillId ?? 0);
+        if (great > 0) Studied("Great", great, RecipeSkill(rule)?.Rank ?? 0, RecipeSkill(rule)?.SkillId ?? 0);
         GainMastery();
         if (great > 0) { Say(Text(16503, "생산 대성공!!") + (times > 1 ? $" ({great}번)" : "")); Cues.Enqueue("Done"); }
         string madeName = Data.ShipParts.Find(p => p.Id == rule.OutputItem)?.Name ?? (rule.OutputItem > 0 ? ItemName(rule.OutputItem) : Good(rule.Output)?.Name ?? "물건");

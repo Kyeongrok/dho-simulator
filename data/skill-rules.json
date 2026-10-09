@@ -1,5 +1,5 @@
 [
-  { "SkillId": 1, "Name": "돛 조종", "Effect": "Speed", "PerRank": 0.03, "Targets": [] },
+  { "SkillId": 1, "Name": "돛 조종", "Effect": "Speed", "PerRank": 0.005, "Targets": [] },
   { "SkillId": 100, "Name": "조타", "Effect": "Turn", "PerRank": 0.05, "Targets": [] },
   { "SkillId": 5, "Name": "측량", "Effect": "Survey", "PerRank": 0.1, "Targets": [] },
   { "SkillId": 11, "Name": "조달", "Effect": "Procure", "PerRank": 1, "Targets": [] },
@@ -25,7 +25,7 @@
   { "SkillId": 30, "Name": "천문학", "Effect": "Appraise", "PerRank": 0, "Targets": [18, 19] },
   { "SkillId": 8, "Name": "생존", "Effect": "CrewLoss", "PerRank": 0.05, "Targets": [] },
   { "SkillId": 19, "Name": "구제", "Effect": "Cure", "PerRank": 0.05, "Targets": [4, 5] },
-  { "SkillId": 123, "Name": "통솔", "Effect": "Cure", "PerRank": 0.05, "Targets": [9] },
+  { "SkillId": 123, "Name": "통솔", "Effect": "Cure", "PerRank": 0.05, "Targets": [9, 19] },
   { "SkillId": 36, "Name": "기타 연주", "Effect": "Cure", "PerRank": 0.05, "Targets": [8, 12, 17] },
   { "SkillId": 37, "Name": "피리 연주", "Effect": "Cure", "PerRank": 0.05, "Targets": [8, 12, 17] },
   { "SkillId": 38, "Name": "탬버린 연주", "Effect": "Cure", "PerRank": 0.05, "Targets": [8, 12, 17] },

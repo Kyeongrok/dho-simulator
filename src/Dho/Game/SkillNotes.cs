@@ -21,7 +21,7 @@ internal sealed partial class Voyage
         string Names(Func<int, string?> name) => string.Join(" · ", rule.Targets.Select(name).Where(n => !string.IsNullOrEmpty(n)));
         return rule.Effect switch
         {
-            "Speed" => $"배의 속도 랭크마다 +{pct}",
+            "Speed" => "항해속도 — 홀수 랭크마다 +1% (15랭 8% · 19랭 10%)",
             "Row" => $"조력이 있는 배의 속도 랭크마다 +{pct}",
             "Turn" => $"선회 랭크마다 +{pct}, 기뢰 피해 랭크마다 −3%",
             "Survey" => "켜 두면 주변 지도와 좌표가 보인다",

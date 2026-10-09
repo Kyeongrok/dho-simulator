@@ -18,8 +18,12 @@ internal sealed partial class Voyage
     /// <summary>(큰 바다 번호, 이름, 허가를 내주는 도시 — 0 이면 자국 본거지, 필요한 명성).</summary>
     public static readonly (int Ocean, string Name, int CityId, int Fame)[] PermitRules =
     [
-        (11, "중남미 동쪽 해안", 0, 1000), (12, "동남아시아", 70, 3000), (14, "중남미 서쪽 해안", 123, 6000), (18, "동아시아", 141, 10000),
+        (11, "중남미 동쪽 해안", 0, 1000), (IndianOcean, "인도양", 0, 16000), (12, "동남아시아", 70, 3000), (14, "중남미 서쪽 해안", 123, 6000), (18, "동아시아", 141, 10000),
     ];
+
+    // 인도양 입항허가에 필요한 명성 — 나라마다 다르다(사용자가 준 벨벳 글, 2026-10-08): 에스파니아 20000 · 포르투갈 16000 · 베네치아 14000 · 프랑스 14000 · 네덜란드 16000 · 잉글랜드 24000. 그 밖의 나라는 16000 으로 본다(짐작)
+    public const int IndianOcean = 10;
+    private int IndiaFame => NationId switch { 1 => 20000, 2 => 16000, 3 => 14000, 4 => 14000, 5 => 16000, 6 => 24000, _ => 16000 };
 
     public int TotalFame => AdventureFame + TradeFame + BattleFame;
 
@@ -40,7 +44,7 @@ internal sealed partial class Voyage
     {
         if (Mode != Mode.Port) return null;
         foreach (var rule in PermitRules)
-            if (!Permits.Contains(rule.Ocean) && (rule.CityId == 0 ? AtCourt : City.Id == rule.CityId)) return rule;
+            if (!Permits.Contains(rule.Ocean) && (rule.CityId == 0 ? AtCourt : City.Id == rule.CityId)) return rule.Ocean == IndianOcean ? rule with { Fame = IndiaFame } : rule;
         return null;
     }
 

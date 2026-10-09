@@ -22,6 +22,12 @@ internal sealed partial class Voyage
     /// 사용자가 준 글(2026-10-07): 「장비에 붙은 랭크만큼 행동력 소모 수치가 직접 차감됩니다(최소 1까지)」. 어느 장비에 몇 랭크인지는 gvdb 의 것.
     /// 여러 벌을 입었을 때는 가장 높은 것 하나만 친다(더하는지는 모른다).
     /// </summary>
+    /// <summary>
+    /// 입은 장비의 「장비 효과」(gvdb 아이템 목록의 「装備効果」) 랭크 — 같은 효과는 가장 높은 것 하나만 듣는다(행동력 감소 억제와 같은 식).
+    /// Speed 항해속도 상승(랭크마다 2% — gvdb 「R4 (速度上昇+8%)」 · 항해속도 글) · SupplySave 물자 감소 억제 · Luck 재해 발생률 감소 ·
+    /// Ambush 기습 · 강습률 감소 · Melee 백병전 전투력 상승 · Loot 수탈률 상승 · AideGrow 부관 성장 촉진 — 뒤의 여섯은 랭크 1 의 크기가 자료에 없어 랭크마다 3%로 둔다(지은 값).
+    /// </summary>
+    public int GearEffect(string effect) => Equipped.Where(e => e > 0 && Items.GetValueOrDefault(e) > 0).Select(e => Data.GearEffects.GetValueOrDefault(e)?.GetValueOrDefault(effect) ?? 0).DefaultIfEmpty(0).Max();
     public int VigourSave => Equipped.Where(e => e > 0 && Items.GetValueOrDefault(e) > 0).Select(e => Data.GearEffects.GetValueOrDefault(e)?.GetValueOrDefault("VigourSave") ?? 0).DefaultIfEmpty(0).Max();
 
     // 그 스킬을 한 번 쓰는 데 드는 행동력(장비의 행동력 감소 억제를 뺀 값)
