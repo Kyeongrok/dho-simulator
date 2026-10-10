@@ -218,6 +218,22 @@ internal sealed partial class Voyage
         return route;
     }
 
+    /// <summary>
+    /// 네비게이션의 자동 항로(사용자, 2026-10-10: 「도시안에서 from, to 도시 입력해서 따라가기 누르면 출항부터 입항까지」) —
+    /// 두 도시 사이의 항로가 없으면 길찾기로 만들고(있으면 그것을 쓴다), 항구에 있으면 출항해서, 그 항로를 끝까지 따라가 입항한다.
+    /// 항구에서는 떠나는 도시에 있어야 한다. 바다에서 걸면 가까운 구간부터 따라간다.
+    /// </summary>
+    public void AutoRoute(CityData from, CityData to)
+    {
+        if (from.Id == to.Id) { Say("떠나는 도시와 닿는 도시가 같다."); Cues.Enqueue("Error"); return; }
+        if (Mode == Mode.Port && City.Id != from.Id) { Say($"{from.Name}에 있어야 떠날 수 있다 — 지금은 {City.Name}이다."); Cues.Enqueue("Error"); return; }
+        if (Mode != Mode.Port && Mode != Mode.Sea) return;
+        var route = Data.Routes.FindLast(r => r.CityId == to.Id && r.Name.StartsWith($"{from.Name} → {to.Name}")) ?? MakeRouteBetween(from.Id, to.Id);
+        if (route == null) { Cues.Enqueue("Error"); return; }
+        if (Mode == Mode.Port) Depart();
+        if (Mode == Mode.Sea) FollowRoute(route);
+    }
+
     /// <summary>바닷길 — 8 단위 칸 위의 A*. 가로는 감긴다. 뭍에 붙은 칸은 세 배로 친다. 못 찾으면 null.</summary>
     private List<(double X, double Y)>? FindRoute(double fromX, double fromY, double toX, double toY)
     {

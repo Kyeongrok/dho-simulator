@@ -30,7 +30,20 @@ internal sealed partial class Voyage
     private VoyageRules Rules => Settings.Voyage;
 
     public double Durability { get; private set; }
-    public double Crew { get; private set; }
+    // 선원은 사람이라 늘 온 수다. 재해 · 전투의 손실은 소수로 깎여 오므로(하루 4% 따위) 모자란 몫을 모아 두었다가 한 명이 찰 때마다 한 명씩 줄인다
+    private const double SickGraceDays = 1;
+    private double _crew, _crewLost;
+    public double Crew
+    {
+        get => _crew;
+        private set
+        {
+            if (value >= _crew) { _crew = Math.Round(value); return; }
+            _crewLost += _crew - value;
+            double gone = Math.Floor(_crewLost + 1e-9);
+            (_crew, _crewLost) = (_crew - gone, _crewLost - gone);
+        }
+    }
     public double Water { get; private set; }
     /// <summary>지난 하루에 줄어든 물 · 식량의 양과 그것을 알린 때(Clock) — 화면이 몇 초 동안 보인다.</summary>
     public (double Used, double At) RationNote { get; private set; } = (0, -100);
@@ -85,8 +98,8 @@ internal sealed partial class Voyage
     public void DumpSupply(int id, int amount) { int drop = Math.Min(SupplyCount(id), amount); if (drop <= 0) return; Supplies[id] = SupplyCount(id) - drop; Say($"자재 {drop}을(를) 버렸다."); }
 
     /// <summary>보급 스킬로 깎인 물·식량 값.</summary>
-    public int WaterPrice => (int)Math.Ceiling(Rules.WaterPrice * (1 - Math.Min(0.5, Bonus("Discount"))));
-    public int FoodPrice => (int)Math.Ceiling(Rules.FoodPrice * (1 - Math.Min(0.5, Bonus("Discount"))));
+    public int WaterPrice => (int)Math.Ceiling(Rules.WaterPrice * (1 - Math.Min(0.6, Bonus("Discount"))));
+    public int FoodPrice => (int)Math.Ceiling(Rules.FoodPrice * (1 - Math.Min(0.6, Bonus("Discount"))));
 
     public void BuyWater(int amount) => Water += Buy(amount, WaterPrice, MaxWaterNow - Water);
     public void BuyFood(int amount) => Food += Buy(amount, FoodPrice, MaxFoodNow - Food);
@@ -322,8 +335,11 @@ internal sealed partial class Voyage
             Durability -= d.DurabilityPerDay * hullScale * days * PartDamage * fire;
             // 식인상어(7)는 소형 선박의 선원만 잡아간다 — 중형 · 대형을 타고 있으면 선원이 줄지 않는다(사용자가 준 이용자들의 글, 2026-10-10)
             double crewPerDay = d.Id == 7 && Ship.SizeClass > 1 ? 0 : d.CrewPerDay;
-            Crew -= crewPerDay * days * loss * crewScale * fire;
-            if (crewPerDay > 0) TrainEffect("CrewLoss", 40 * days);
+            // 병(괴혈병 3 · 전염병 10 · 비위생 14 · 영양부족 15)은 걸리자마자 사람이 죽지 않는다 — 하루는 앓기만 하고(피로만 는다), 그 안에 고치면 아무도 안 잃는다
+            // (사용자, 2026-10-11: 「바로 치료 스킬이나 아이템을 쓰면 안 죽었다」. 하루라는 길이는 자료가 없어 지은 값)
+            double crewDays = d.Id is 3 or 10 or 14 or 15 ? Math.Clamp(disaster.Days - SickGraceDays, 0, days) : days;
+            Crew -= crewPerDay * crewDays * loss * crewScale * fire;
+            if (crewPerDay > 0 && crewDays > 0) TrainEffect("CrewLoss", 40 * crewDays);
             Food = Math.Max(0, Food - d.FoodPerDay * days);
             Water = Math.Max(0, Water - d.WaterPerDay * days);
             Fatigue = Math.Min(100, Fatigue + d.FatiguePerDay * days);

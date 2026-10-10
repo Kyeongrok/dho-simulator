@@ -993,5 +993,12 @@
     "Effect": "Cure",
     "Amount": 3,
     "Price": 0
+  },
+  {
+    "Id": 1500946,
+    "Name": "가호의 수정(헤파이스토스의 가호)",
+    "Effect": "Hephaestus",
+    "Amount": 0.5,
+    "Price": 0
   }
 ]

@@ -12,14 +12,14 @@ internal sealed partial class Voyage
     private const int RepairSupply = 2;
 
     // 눌러 쓰는 스킬 — 뒤의 셋(재해 풀기 · 찾기 · 구조)은 원본에서도 눌러 쓰는 스킬이라 스킬 사용 창(F2)과 퀵슬롯에 선다(사용자, 2026-10-07)
-    private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest", "Speed", "Turn", "Gather", "Cure", "Find", "Rescue"];
+    private static readonly string[] ActiveEffects = ["Survey", "Procure", "Fish", "Repair", "Rest", "Turn", "Gather", "Cure", "Find", "Rescue"];
 
     /// <summary>
     /// 켜 두는 스킬 — 돛 조종 · 조타 · 낚시 · 조달. 켜면 한동안 켜져 있다가 시간이 끝나면 저절로 다시 쓴다(화면 오른쪽 가운데에 그림이 뜬다 — 끄려면 Ctrl+클릭),
     /// 켜져 있는 동안 돛 조종 · 조타는 효과가 걸리고 낚시 · 조달은 일정한 사이를 두고 저절로 된다.
     /// 켜져 있는 시간 · 사이 · 한꺼번에 켜는 수는 지은 값이다.
     /// </summary>
-    private static readonly string[] Sustained = ["Speed", "Turn", "Fish", "Procure", "Survey", "Gather"];
+    private static readonly string[] Sustained = ["Turn", "Fish", "Procure", "Survey", "Gather"];
     public const int MaxSkillsOn = 3;
     private const double OnSeconds = 180, TickSeconds = 15;
     private readonly Dictionary<int, (double Until, double Next)> _skillOn = new();

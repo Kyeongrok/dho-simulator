@@ -38,6 +38,8 @@ data/extracted/*
 !data/extracted/sea-quests-gvdb.json
 !data/extracted/fish-finds-gvdb.json
 !data/extracted/wreck-finds-gvdb.json
+# 일본 위키 스킬 일람에서 뽑은 것(tools\gvo\wiki_skills.py)
+!data/extracted/skill-facts-wiki.json
 !data/extracted/figurehead-uses-gvdb.json
 !data/extracted/map-facts-gvdb.json
 !data/extracted/food-effects-gvdb.json

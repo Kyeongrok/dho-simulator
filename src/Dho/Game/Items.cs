@@ -145,11 +145,27 @@ internal sealed partial class Voyage
             var entry = (pick < spots.Count ? spots[pick] : null) ?? spots[0];
             if (entry is { Length: 4 }) found.Add((gear.Part, entry, gear.Colors));
         }
+        // 무기 — 겉모습 줄(0000.bin 의 무기 구역 397줄)의 모형을 손 마디에 붙는 조각으로 더한다. 어느 무기가 어느 줄인지는 클라이언트에 없어(서버가 보낸다)
+        // 지금은 대본으로 줄 번호를 넣어 볼 때만 보인다(WeaponLookForTest)
+        if (WeaponLookForTest >= 0 && WeaponModel(WeaponLookForTest) is { } blade) found.Add(("weapon", blade, []));
         return found;
     }
 
+    /// <summary>대본용 — 무기 겉모습 줄 번호(0 ~ 396). -1 이면 없음.</summary>
+    public int WeaponLookForTest { get; set; } = -1;
+    private List<int[]?>? _weaponModels;
+    private int[]? WeaponModel(int look)
+    {
+        if (_weaponModels == null)
+        {
+            try { _weaponModels = System.Text.Json.JsonSerializer.Deserialize<List<int[]?>>(File.ReadAllText(Path.Combine(Data.Directory, "extracted", "weapon-models.json"))) ?? []; }
+            catch (Exception) { _weaponModels = []; }
+        }
+        return look >= 0 && look < _weaponModels.Count ? _weaponModels[look] : null;
+    }
+
     // 입은 장비를 한 줄로 — 겉모습이 바뀌었는지 가리는 데 쓴다
-    public string WornKey => string.Join(",", Equipped.Select(e => e > 0 && Items.GetValueOrDefault(e) > 0 ? e : 0));
+    public string WornKey => string.Join(",", Equipped.Select(e => e > 0 && Items.GetValueOrDefault(e) > 0 ? e : 0)) + (WeaponLookForTest >= 0 ? $",w{WeaponLookForTest}" : "");
 
     private Dictionary<int, PaperItem>? _foods;
     /// <summary>행동력 음식(아이템 표의 원본) — 없으면 null.</summary>
@@ -191,11 +207,22 @@ internal sealed partial class Voyage
     /// <summary>가진 장비 물품(소지품 가운데 장비 표의 것).</summary>
     public List<GearItem> GearOwned() => Items.Keys.OrderBy(id => id).Select(GearOf).OfType<GearItem>().ToList();
 
-    /// <summary>장비한다 — 같은 갈래에 있던 것은 벗겨진다. 이미 장비한 것을 고르면 벗는다.</summary>
+    /// <summary>
+    /// 내 몸 틀(성별)이 입을 수 있는 장비인가 — 겉모습 표에 그 장비의 모형이 내 몸 틀 것으로 있는가(짝수 틀 남자 · 홀수 틀 여자).
+    /// 모형 자료가 아예 없는 장비(무기 · 장신구 …)는 누구나 쓴다. 사용자, 2026-10-10: 「성별이 안맞으면 못입게 해야지」.
+    /// </summary>
+    public bool FitsBody(int item)
+    {
+        _gearModels ??= Data.GearModels.ToDictionary(g => g.Id);
+        return !_gearModels.TryGetValue(item, out var model) || model.Frames.Count == 0 || Looks[0] is < 0 or > 7 || model.Frames.TryGetValue($"{Looks[0]}", out var spots) && spots.Count > 0;
+    }
+
+    /// <summary>장비한다 — 같은 갈래에 있던 것은 벗겨진다. 이미 장비한 것을 고르면 벗는다. 내 성별이 못 입는 것은 안 입혀진다.</summary>
     public void Equip(int item)
     {
         if (GearOf(item) is not { } gear || Items.GetValueOrDefault(item) <= 0 || gear.Slot >= Equipped.Length) return;
         if (Equipped[gear.Slot] == item) { Equipped[gear.Slot] = 0; Say($"{gear.Name}을(를) 벗었다."); return; }
+        if (!FitsBody(item)) { Say($"{gear.Name}은(는) {(Looks[0] % 2 == 0 ? "여자" : "남자")}만 입을 수 있다."); Cues.Enqueue("Error"); return; }
         Equipped[gear.Slot] = item;
         Say($"{gear.Name}을(를) 장비했다.");
     }
@@ -270,9 +297,23 @@ internal sealed partial class Voyage
 
     // 장비의 수치와 올려 주는 스킬 — 장비 표 줄 꼬리의 다섯 칸은 공격력 · 방어력 · 정장도 · 변장도 · 내구도(무기 · 옷의 값과 위키의 적는 차례로 맞춤)
     public static readonly string[] GearStatNames = ["공격력", "방어력", "정장도", "변장도", "내구도"];
+    /// <summary>
+    /// 그 장비를 누가 입는가 — 겉모습 표에 남자 몸 틀(짝수) · 여자 몸 틀(홀수)의 모형이 있는가로 본다: 「♂」 · 「♀」 · 「♂♀」(남녀공용).
+    /// 모형 자료가 없는 장비(무기 · 장신구)는 빈 글. 원본의 툴팁이 이 기호를 보인다(사용자, 2026-10-11).
+    /// </summary>
+    public string GearSex(int item)
+    {
+        _gearModels ??= Data.GearModels.ToDictionary(g => g.Id);
+        if (!_gearModels.TryGetValue(item, out var model) || model.Frames.Count == 0) return "";
+        bool men = model.Frames.Any(f => int.TryParse(f.Key, out int frame) && frame % 2 == 0 && f.Value.Count > 0);
+        bool women = model.Frames.Any(f => int.TryParse(f.Key, out int frame) && frame % 2 == 1 && f.Value.Count > 0);
+        return men && women ? "♂♀" : men ? "♂" : women ? "♀" : "";
+    }
+
     public string GearLine(GearItem gear)
     {
         var parts = new List<string>();
+        if (GearSex(gear.Id) is { Length: > 0 } sex) parts.Add(sex);
         for (int k = 0; k < Math.Min(gear.Stats.Count, GearStatNames.Length); k++)
             if (gear.Stats[k] != 0) parts.Add($"{GearStatNames[k]} {gear.Stats[k]}" + (k < 2 && ForgedOf(gear.Id, k) is not 0 and var forged ? $"({forged:+0;-0})" : ""));
         if (Data.GearBoosts.TryGetValue(gear.Id, out var boosts))
@@ -356,6 +397,19 @@ internal sealed partial class Voyage
         Say(count > 1 ? $"{ItemName(item)} {count}개를 얻었다." : $"{ItemName(item)}을(를) 얻었다.");
     }
 
+    /// <summary>소지품을 버린다 — 가진 만큼까지. 다 버린 장비는 벗겨진다.</summary>
+    public void DiscardItem(int item, int count)
+    {
+        count = Math.Min(count, Items.GetValueOrDefault(item));
+        if (count <= 0) return;
+        string name = ItemName(item);
+        SpendItem(item, count);
+        if (!Items.ContainsKey(item))
+            for (int slot = 0; slot < Equipped.Length; slot++)
+                if (Equipped[slot] == item) Equipped[slot] = 0;
+        Say(count > 1 ? $"{name} {count}개를 버렸다." : $"{name}을(를) 버렸다.");
+    }
+
     public void UseItem(int item)
     {
         if (Items.GetValueOrDefault(item) <= 0) return;
@@ -408,6 +462,9 @@ internal sealed partial class Voyage
                     break;
                 case "Veil":
                     UseVeil(known);
+                    break;
+                case "Hephaestus":
+                    UseBlessing(known);
                     break;
                 case "ExpCharm":
                     UseExpCharm(known);
@@ -481,7 +538,9 @@ internal sealed partial class Voyage
         {
             if (job.Id == JobId) { Say($"이미 {job.Name}이다."); return; }
             string before = JobName;
+            var favoured = FavouredNow();
             JobId = job.Id; Studied("Job");
+            KeepMastery(favoured);
             Say($"{ItemName(item)}을(를) 썼다. {before}에서 {job.Name}(으)로 전직했다!");
             Cues.Enqueue("JobChange");          // 효과음 0:9(사용자, 2026-10-07)
         }

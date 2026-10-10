@@ -33,7 +33,9 @@ internal sealed partial class Voyage
     // 그 스킬을 한 번 쓰는 데 드는 행동력(장비의 행동력 감소 억제를 뺀 값)
     public int VigourCost(SkillRuleData rule) => Math.Max(1, VigourCostBase(rule) - VigourSave);
 
-    private static int VigourCostBase(SkillRuleData rule) => rule.Vigour > 0 ? rule.Vigour : rule.Effect switch
+    // 스킬마다의 값이 자료(gvdb 의 넷째 값 = 일본 위키 스킬 일람의 消費行動力 — 낚시 10 · 주연 5 · 채집 5 · 탐색 5 · 수리 10 …)에 있으면 그것, 없으면 아래의 지은 값
+    private int VigourCostBase(SkillRuleData rule) => rule.Vigour > 0 ? rule.Vigour
+        : Data.SkillLearn.TryGetValue(rule.SkillId, out var learnt) && learnt.Length >= 4 && learnt[3] > 0 ? learnt[3] : rule.Effect switch
     {
         "Speed" or "Turn" => 8,
         "Survey" => 5,

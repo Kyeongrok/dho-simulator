@@ -55,7 +55,7 @@ internal sealed partial class Voyage
         get => _townView;
         set
         {
-            _townView = value;
+            _townView = value || _inlandFrom != null;      // 내륙 도시에는 부두가 없다 — 늘 시내다
             if (!value) (Interior, InteriorName) = (0, "");
         }
     }
@@ -91,7 +91,9 @@ internal sealed partial class Voyage
             2 => (["상인조합"], "상인조합 마스터", Dialog.TradeGuild),
             3 => (["해양조합"], "해양조합 마스터", Dialog.SeaGuild),
             13 => (["주점"], "주점 주인", Dialog.Tavern),
-            29 => (["양성학교", "학교"], "교수", Dialog.University),
+            // 대학은 옥스포드의 강의실뿐이다. 다른 도시의 「학교경비」(29)는 항해자 양성학교 — 대학이 아니다(전에는 여기서 대학 창이 열렸다)
+            GatePlace when City.Id == OxfordCity => (["강의실"], "교수", Dialog.University),
+            29 => (["양성학교", "학교"], "교관", Dialog.None),
             16 => (["서고"], "학자", Dialog.Library),
             201 => (["교회", "성당"], "신부", Dialog.None),
             202 => (["모스크", "교회", "성당"], "이맘", Dialog.None),
@@ -105,7 +107,7 @@ internal sealed partial class Voyage
         if (kind is not { } k || RoomOf(k.Words) is not { } room) return false;
         (Interior, InteriorName, InteriorHost, InteriorDialog, _interiorPlace) = (room.Scene, room.Name, k.Host, k.Opens, place);
         Say($"{room.Name}에 들어섰다.");
-        if (place == 29) Cues.Enqueue("University");      // 대학으로 옮겨 가는 소리
+        if (k.Opens == Dialog.University) Cues.Enqueue("University");      // 대학으로 옮겨 가는 소리
         return true;
     }
 
@@ -156,14 +158,14 @@ internal sealed partial class Voyage
 
     public double SecondsAtSea { get; private set; }
 
-    // 지나온 항로(내비게이션에 그린다) — 바다에서 여덟 칸 갈 때마다 한 점, 오래된 것부터 버린다(간격 · 개수는 지은 값)
+    // 지나온 항로(네비게이션에 그린다) — 바다에서 여덟 칸 갈 때마다 한 점, 오래된 것부터 버린다(간격 · 개수는 지은 값)
     private readonly List<(double X, double Y)> _track = [];
     private const int TrackMost = 6000;
     public IReadOnlyList<(double X, double Y)> Track => _track;
     /// <summary>조선소 일을 할 수 있는가 — 항구이거나, 모드를 켜고 바다 위일 때.</summary>
     public bool YardOpen => Mode == Mode.Port || Mode == Mode.Sea && Data.Settings.ModYardAtSea;
     public void ClearTrack() { _track.Clear(); _turnMarks.Clear(); RouteLoaded = false; _routeGoal = null; }
-    /// <summary>지금의 조타 기록이 저장해 둔 항로를 불러온 것인가 — 내비게이션이 점들을 줄로 이어 보인다.</summary>
+    /// <summary>지금의 조타 기록이 저장해 둔 항로를 불러온 것인가 — 네비게이션이 점들을 줄로 이어 보인다.</summary>
     public bool RouteLoaded { get; private set; }
 
     // 조타 기록 — 키를 꺾은 자리와 그때 잡은 침로(사용자, 2026-10-09). 많아야 600개(지은 값), 넘으면 오래된 것부터 버린다
@@ -256,10 +258,10 @@ internal sealed partial class Voyage
         Say($"항로 「{name}」을(를) 저장했다. (지나온 점 {_track.Count}개 · 조타 기록 {_turnMarks.Count}개)");
     }
 
-    /// <summary>조타 기록 하나의 침로를 고친다 · 지운다(내비게이션의 조타 기록 창).</summary>
+    /// <summary>조타 기록 하나의 침로를 고친다 · 지운다(네비게이션의 조타 기록 창).</summary>
     public void SetTurnHeading(int index, double heading) { if (index >= 0 && index < _turnMarks.Count) _turnMarks[index] = _turnMarks[index] with { Heading = Normalize(heading) }; }
     public void RemoveTurn(int index) { if (index >= 0 && index < _turnMarks.Count) _turnMarks.RemoveAt(index); }
-    /// <summary>조타 기록의 자리를 옮긴다(침로 · 날짜는 그대로) — 내비게이션에서 항로를 편집할 때.</summary>
+    /// <summary>조타 기록의 자리를 옮긴다(침로 · 날짜는 그대로) — 네비게이션에서 항로를 편집할 때.</summary>
     public void MoveTurn(int index, double x, double y) { if (index >= 0 && index < _turnMarks.Count) _turnMarks[index] = _turnMarks[index] with { X = x, Y = y }; }
     /// <summary>조타 기록을 하나 끼워 넣는다 — index 번과 다음 번의 한가운데(침로는 다음 점 쪽), 끝 점 뒤라면 그 침로로 40 만큼 간 자리(지은 값). 넣은 자리의 번호를 돌려준다.</summary>
     public int InsertTurn(int index)
@@ -295,7 +297,7 @@ internal sealed partial class Voyage
         if (Mode != Mode.Sea || from < 0 || from >= _turnMarks.Count) return;
         CancelDelegate("조타 기록을 따라간다");
         (TurnFollow, TurnFollowAt, TurnFollowBack) = (true, from, back);
-        // 돛이 전개(다 편 것)가 아니면 다 펴고 간다(사용자, 2026-10-10) — 내비게이션 창이 열린 채 누르므로 ChangeSail(창이 열려 있으면 안 듣는다)을 거치지 않는다
+        // 돛이 전개(다 편 것)가 아니면 다 펴고 간다(사용자, 2026-10-10) — 네비게이션 창이 열린 채 누르므로 ChangeSail(창이 열려 있으면 안 듣는다)을 거치지 않는다
         if (Sail < SailSteps) { Sail = SailSteps; Cues.Enqueue("Sail"); Say("돛을 전개했다."); }
         Say(back ? $"조타 기록 {from + 1}번부터 거꾸로 따라간다. (1번까지)" : $"조타 기록 {from + 1}번부터 따라간다. (기록 {_turnMarks.Count}개)");
     }
@@ -362,6 +364,9 @@ internal sealed partial class Voyage
         if (!TurnFollow) return;
         // 끝 점을 지났고 목적지 항구가 있으면 그 항구 자리로 더 가서, 앞바다에 들면 입항한다
         var port = FollowPort;
+        // 목적지 앞바다에 들었으면 남은 점이 있어도 바로 입항한다 — 「입항한다」가 떴는데도 남은 점(물가 가까이 찍힌 끝 점)을 마저 밟으려고
+        // 뱃머리를 돌리다 좌초했다(사용자, 2026-10-11)
+        if (port == null && !TurnFollowBack && _routeGoal is { } goal && PortInReach() == goal) port = goal;
         if (port != null && PortInReach() == port)
         {
             TurnFollow = false;
@@ -621,6 +626,32 @@ internal sealed partial class Voyage
         _ => "",
     };
 
+    // ── 내륙 도시 옥스포드: 런던 시내의 「마차」(장소 2501)를 타고 간다 — 원본처럼 런던에서만 갈 수 있다(사용자, 2026-10-11).
+    // 배는 런던에 매어 둔 채다. 옥스포드의 「문지기」(장소 17)를 지나면 강의실이고 거기 교수가 대학 창을 연다. 돌아올 때는 옥스포드의 「항구」 표식(마차 타는 곳).
+    // 마차 삯 · 걸리는 날은 자료가 없어 두지 않았다(바로 닿는다 — 줄인 것)
+    public const int LondonCity = 6, OxfordCity = 186, CarriagePlace = 2501, GatePlace = 17;
+    private CityData? _inlandFrom;
+
+    /// <summary>배 없이 마차로 온 내륙 도시에 있는가 — 여기서는 출항할 수 없다.</summary>
+    public bool Inland => _inlandFrom != null;
+
+    private void GoInland(CityData to)
+    {
+        (_inlandFrom, City) = (City, to);
+        (Interior, InteriorName, Dialog) = (0, "", Dialog.None);
+        TownView = true;
+        Say($"마차를 타고 {to.Name}에 닿았다.");
+    }
+
+    private void LeaveInland()
+    {
+        if (_inlandFrom is not { } back) return;
+        (City, _inlandFrom) = (back, null);
+        (Interior, InteriorName, Dialog) = (0, "", Dialog.None);
+        TownView = true;
+        Say($"마차를 타고 {back.Name}에 돌아왔다.");
+    }
+
     public void Visit(TownMark mark, string? who = null)
     {
         string name = PlaceName(mark.Place);
@@ -636,7 +667,9 @@ internal sealed partial class Voyage
         if (mark.Place == Broker) { Speak(name, "일거리를 찾으시오?"); Dialog = Dialog.Broker; return; }      // 말은 제 글(원본 글을 옮기지 않는다)
         if (mark.Place == InsideSailor) { Dialog = Dialog.Recruit; return; }
         if (mark.Place == InsideMaid) { Speak(name, "어서 오세요! 오늘은 무엇을 드릴까요?"); return; }
-        if (mark.Place is 4 or 5) TownView = false;                          // 항구 · 항구(항구 앞) → 부두로
+        if (mark.Place == CarriagePlace && City.Id == LondonCity && _cities.TryGetValue(OxfordCity, out var oxford)) GoInland(oxford);
+        else if (mark.Place == 4 && _inlandFrom != null) LeaveInland();      // 내륙 도시의 「항구」 표식은 마차 타는 곳이다 — 떠나온 도시로 돌아간다
+        else if (mark.Place is 4 or 5) TownView = false;                     // 항구 · 항구(항구 앞) → 부두로
         else if (mark.Place is 9 or 30) Dialog = Dialog.ShipyardMenu;
         else if (mark.Place is 10 or 19 or 26 or 27 or 32) Dialog = Dialog.Trade;
         else if (mark.Place is 14 or 21 or 22 or 25) Dialog = Dialog.Bank;
@@ -751,7 +784,9 @@ internal sealed partial class Voyage
     /// 「돛 조종」의 항해속도 보너스 — 「홀수 랭크마다 1% (돛 조종 15랭 = 8% · 장비 · 부관까지 19랭 = 10%)」(사용자가 준 항해속도 글, 2026-10-08).
     /// 전에는 랭크마다 3%(지은 값)였다. 스킬이 없으면 0.
     /// </summary>
-    public double SailTrim => Data.SkillRules.Find(r => r.Effect == "Speed") is { } trim && SkillOn(trim.SkillId) && Rank(trim.SkillId) is > 0 and var rank ? (rank + 1) / 2 * 0.01 : 0;      // 켜 두는 스킬이다 — 켜져 있을 때만
+    public double SailTrim => Data.SkillRules.Find(r => r.Effect == "Speed") is { } trim && AutoSailing && Rank(trim.SkillId) is > 0 and var rank ? (rank + 1) / 2 * 0.01 : 0;      // 저절로 듣는 스킬이다(사용자가 준 글, 2026-10-11: 「항해 속도를 상승시켜주는 자동효과 스킬로 변경」) — 켜지 않아도, 행동력 없이
+    /// <summary>돛 조종을 익혔는가 — 익혔으면 돛을 펴는 것만으로 Auto Sailing 에 든다.</summary>
+    public bool KnowsSailTrim => Data.SkillRules.Find(r => r.Effect == "Speed") is { } trim && Rank(trim.SkillId) > 0;
     public double RowBoost => Stats.Rowing > 0 ? Math.Min(0.3, Bonus("Row")) : 0;
     public void Treat()
     {
@@ -794,6 +829,7 @@ internal sealed partial class Voyage
     {
         _skillOn.Clear();                        // 켜 둔 스킬은 뭍에 닿으면 꺼진다
         City = city;
+        _inlandFrom = null;
         TownView = false;
         (Interior, InteriorName) = (0, "");
         ShipX = city.SeaX;
@@ -809,6 +845,7 @@ internal sealed partial class Voyage
     {
         _translated.Clear();      // 번역메모는 떠나면 끝난다
         if (Mode != Mode.Port) return;
+        if (_inlandFrom is { } moored) { Say($"{City.Name}에는 항구가 없다 — 마차로 {moored.Name}에 돌아가야 출항할 수 있다."); Cues.Enqueue("Error"); return; }
         TownView = false;
         (Interior, InteriorName) = (0, "");
         Mode = Mode.Sea;
@@ -820,21 +857,39 @@ internal sealed partial class Voyage
         Say($"{City.Name}을(를) 출항했다.");
         RouteMakingDeparts();
         // 옵션: 출항하면 돛 조종을 켠다 — 스킬이 없거나 못 쓸 때(행동력 부족 따위)는 조용히 넘어간다
-        if (Settings.AutoSailTrim && Data.SkillRules.Find(r => r.Effect == "Speed") is { } trim && Rank(trim.SkillId) > 0 && SkillBlocker(trim) == null) UseSkill(trim);
     }
 
     /// <summary>항구 앞바다에 있으면 그 도시.</summary>
     public CityData? PortInReach()
     {
         if (Mode != Mode.Sea) return null;
+        // 항구의 바다 쪽 자리에서 입항 거리 안이거나, 도시 그 자체(뭍의 자리)에서 그 곱절 안이면 닿은 것으로 친다 — 도시가 뭍 안쪽에 그려진 항구(안평)는
+        // 바다 쪽 자리가 한쪽 물가에만 있어, 다른 쪽 물가로 다가가면 도시가 눈앞인데 입항이 안 떴다(사용자, 2026-10-11). 여럿이면 가장 가까운 것
+        CityData? near = null;
+        double nearest = double.MaxValue;
         foreach (var city in Data.Cities)
         {
             if (city.SeaX == 0 && city.SeaY == 0) continue;
-            double dx = WorldMap.DeltaX(ShipX, city.SeaX), dy = city.SeaY - ShipY;
-            if (dx * dx + dy * dy < Settings.PortRange * Settings.PortRange) return city;
+            double dx = WorldMap.DeltaX(ShipX, city.SeaX), dy = city.SeaY - ShipY, tx = WorldMap.DeltaX(ShipX, city.X), ty = city.Y - ShipY;
+            double far = Math.Min(Math.Sqrt(dx * dx + dy * dy), Math.Sqrt(tx * tx + ty * ty) / 2);
+            if (far < Settings.PortRange && far < nearest) (near, nearest) = (city, far);
         }
-        return null;
+        return near;
     }
+
+    // 자동 항로의 도시 목록 앞에 세우는 것 — 즐겨찾는 도시(목록에서 오른쪽 단추로 켜고 끈다)와 최근에 입항한 도시(새것부터 열둘)
+    public List<int> RecentCities { get; } = [];
+    public HashSet<int> FavoriteCities { get; } = [];
+    private const int RecentCityLimit = 12;
+
+    private void VisitedCity(int city)
+    {
+        RecentCities.Remove(city);
+        RecentCities.Insert(0, city);
+        if (RecentCities.Count > RecentCityLimit) RecentCities.RemoveRange(RecentCityLimit, RecentCities.Count - RecentCityLimit);
+    }
+
+    public void ToggleFavoriteCity(int city) { if (!FavoriteCities.Remove(city)) FavoriteCities.Add(city); }
 
     public void EnterPort()
     {
@@ -844,6 +899,7 @@ internal sealed partial class Voyage
         int days = DaysAtSea;
         RouteMakingArrives(city);
         MoorAt(city);
+        VisitedCity(city.Id);
         Say($"{city.Name}에 입항했다. (항해 {days}일)");
         DeliverTow();
         HearLanguage();
@@ -935,7 +991,8 @@ internal sealed partial class Voyage
             if (!IsNight) { Say("아직 밝아서 보이지 않는다 — 밤을 기다린다."); Cues.Enqueue("Error"); return; }
             if (Weather == Weather.Storm) { Say("날씨가 거칠어 하늘이 보이지 않는다."); Cues.Enqueue("Error"); return; }
         }
-        if (!SpendVigour(10)) { Say("행동력이 모자라다."); Cues.Enqueue("Error"); return; }
+        // 찾는 스킬(인식 · 탐색 · 생태 조사)의 행동력 — 자료로는 5(일본 위키), 익힌 것 가운데 가장 적은 값
+        if (!SpendVigour(Data.SkillRules.Where(r => r.Effect == "Find" && Rank(r.SkillId) > 0).Select(VigourCost).DefaultIfEmpty(10).Min())) { Say("행동력이 모자라다."); Cues.Enqueue("Error"); return; }
         QuestStage = QuestStage.Discovered;
         Dialog = Dialog.Discovery;
         if (QuestDiscovery is not { } found) return;
@@ -1145,9 +1202,6 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
         double target = Stats.Knots * Sail / SailSteps * windFactor * hands * DisasterSpeedFactor() * (1 - 0.3 * Math.Abs(TurnShare))
                         * SteamSpeed * (1 + SailTrim) * (1 + GearEffect("Speed") * 0.02) * (1 + RowBoost) * (1 + Math.Min(0.2, FormBonus("FormSail"))) * TowSpeed * DelegateBoost * PartSpeed * AideSpeed * (1 + Option("Speed")) * DashSpeed * (1 + BoostSpeed) * (1 + Study("Speed"));
         Knots += (target - Knots) * Math.Min(1, dt * 0.8 * SteamHaste);
-        // 「Auto Sailing !!」 — 바람을 제대로 받아 낼 수 있는 속도에 다다른 상태(사용자가 준 글, 2026-10-09): 급하게 돌거나 맞바람을 정면으로 받으면 풀리고 다시 속도가 붙어야 든다.
-        // 문턱(낼 속도의 95% · 선회 절반 · 맞바람 쪽 ±25도쯤)은 지은 값. 표시만 한다 — 속도는 이 상태로 달라지지 않는다(글의 「기본 항속의 약 1.5배」는 안 넣었다)
-        AutoSailing = Sail > 0 && target > 0.5 && Knots >= target * 0.95 && Math.Abs(TurnShare) < 0.5 && off > -0.9;
 
         double distance = Knots * Settings.UnitsPerKnotSecond * dt;
         // 해류가 배를 떠민다 — 닻을 내리고 있으면 안 밀린다
@@ -1211,8 +1265,12 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
     }
 
     /// <summary>지금 뱃머리에서 돛이 받는 바람(%) — 화면의 바람 줄에 보인다.</summary>
-    /// <summary>바람을 받아 제 속도에 다다른 상태인가 — 화면의 「Auto Sailing !!」.</summary>
-    public bool AutoSailing { get; private set; }
+    /// <summary>
+    /// 화면의 「Auto Sailing !!」 — 돛 조종을 익혔고 돛을 다 폈으면 바로 든다(사용자, 2026-10-11: 「돛 전개 되면 오토세일링 되면서 돛 조종 랭크에 맞게 항속이 올라가야지」;
+    /// 나무위키: 「돛 조종 스킬을 배운 상태에서 돛을 전개하면 무조건 Auto Sailing 모드」). 돛 조종의 속도 덤(홀수 랭크마다 +1%)은 이 상태일 때 붙는다.
+    /// 전에는 제 속도에 다다라야 들고 급선회 · 맞바람에 풀렸다 — 뺐다.
+    /// </summary>
+    public bool AutoSailing => Mode == Mode.Sea && KnowsSailTrim && Sail >= SailSteps;
 
     public int WindShare => (int)Math.Round(WindFactor(Math.Cos(Heading - WindDirection)) * 100);
 

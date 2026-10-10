@@ -152,9 +152,9 @@ internal sealed partial class Voyage
     /// 생산 한 번에 오르는 숙련도 — 사용자가 준 원본의 식(2026-10-07):
     /// 성공 = (레시피 요구 랭크 + 1 − 내 스킬 랭크) × 2, 0 이하면 1. 대성공 = (레시피 요구 랭크 + 2) × 2(내 랭크와 상관없다). 내 랭크가 요구 랭크보다 열 이상 높으면 0.
     /// 내 랭크는 부스트를 뺀 제 랭크로 본다(부스트로 제 랭크보다 높은 레시피를 만들면 많이 오른다).
-    /// 원본의 「랭크마다 필요한 숙련도」 표를 몰라 이쪽 표(기준값 × 랭크²)에 맞추려고 12.5 를 곱한다 — 같은 랭크 레시피가 전처럼 25 가 되게. 이 곱은 지은 값.
+    /// 여기에 모드의 「생산 · 조선 숙련도 곱」(기본 6.25 — 지은 값, 처음에는 12.5)을 곱한다. 필요 숙련도 표는 이제 원본 것(우대 랭크² × 100)이라 ×1 이 원본 그대로다.
     /// </summary>
-    public const double ProduceExpScale = 12.5;
+    public double ProduceExpScale => Math.Clamp(Data.Settings.ModCraftMastery, 1, 100) / 4.0;      // 모드의 「생산 · 조선 숙련도 곱」(기본 6.25)
 
     public int ProduceExp(RecipeRule rule, bool great = false)
     {
@@ -270,7 +270,6 @@ internal sealed partial class Voyage
                 Say($"대성공 — {Good(rule.GreatOutput)!.Name} {bonus}개가 나왔다.");
             }
         }
-        Fatigue = Math.Min(100, Fatigue + 0.5 * times);
         if (RecipeSkill(rule) is { } used) Train(used.SkillId, ProduceExp(rule) * (times - great) + ProduceExp(rule, true) * great);      // 실패한 번도 성공만큼 오른다(실패 때의 양은 모른다)
         Studied("Produce", times, RecipeSkill(rule)?.Rank ?? 0, RecipeSkill(rule)?.SkillId ?? 0);
         if (great > 0) Studied("Great", great, RecipeSkill(rule)?.Rank ?? 0, RecipeSkill(rule)?.SkillId ?? 0);

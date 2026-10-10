@@ -12,7 +12,7 @@ internal sealed partial class Voyage
     private static readonly int[] OrderSheets = [.. Enumerable.Range(1500205, 20), .. Enumerable.Range(1500228, 4)];
 
     /// <summary>「아이템 추가」의 증서 목록에 더 세우는 것 — 구입 발주서(카테고리 1 ~ 4) · 특별발주증서 · 천만 수표 · 변성연금의 책 둘 · 재봉도구 · 특별 위임 항해 허가증.</summary>
-    public static readonly int[] ExtraPapers = [.. Enumerable.Range(1500228, 4), OrderPaper, Check10M, OuroborosBook, UnicornBook, 1500052, SpecialPermit, .. Enumerable.Range(1510681, 6), CoalItem];
+    public static readonly int[] ExtraPapers = [.. Enumerable.Range(1500228, 4), OrderPaper, Check10M, OuroborosBook, UnicornBook, 1500052, SpecialPermit, .. Enumerable.Range(1510681, 6), CoalItem, 1500487];      // 끝의 것: 동아시아 조선 기법서(동아시아 고정 레시피의 재료 — 사용자, 2026-10-11)
 
     private string ItemText(int id) =>
         Data.Papers.Find(p => p.Id == id) is { } paper ? paper.Name + " " + paper.Description : ItemName(id);

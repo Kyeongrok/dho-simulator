@@ -93,7 +93,7 @@
   { "SkillId": 76, "Name": "바디 랭귀지", "Effect": "BodyTalk", "PerRank": 0, "Targets": [] },
   { "SkillId": 80, "Name": "도주", "Effect": "Flee", "PerRank": 0.05, "Targets": [] },
   { "SkillId": 31, "Name": "주연", "Effect": "Rest", "PerRank": 2, "Targets": [] },
-  { "SkillId": 13, "Name": "보급", "Effect": "Discount", "PerRank": 0.03, "Targets": [] },
+  { "SkillId": 13, "Name": "보급", "Effect": "Discount", "PerRank": 0.04, "Targets": [] },
   { "SkillId": 50, "Name": "회계", "Effect": "Haggle", "PerRank": 0.01, "Targets": [] },
   { "SkillId": 51, "Name": "식료품 거래", "Effect": "TradeKind", "PerRank": 0.25, "Targets": [0] },
   { "SkillId": 52, "Name": "조미료 거래", "Effect": "TradeKind", "PerRank": 0.25, "Targets": [1] },

@@ -84,6 +84,26 @@ internal sealed partial class Voyage
 
     public int ExpertBoost(int skillId) => IsExpert(skillId) ? 1 : 0;
 
+    /// <summary>
+    /// 제 랭크(부스트를 뺀 것)의 상한 — 내 직업이 우대하지 않는 스킬은 10, 우대 스킬은 설정의 최대 랭크(15), 전문 스킬은 그보다 하나 더(16)
+    /// (사용자가 준 기준, 2026-10-10: 「비우대 직업: 순수 10랭크가 최대 · 우대 직업: 순수 15 · 전문 직업: 순수 16」).
+    /// 전문의 16 은 제 랭크다 — 전문 +1 부스트와는 따로다(사용자, 2026-10-10: 「공예가 전문스킬이라 16랭까지 되어야 하는데」).
+    /// 이미 상한을 넘은 랭크는 깎지 않는다 — 숙련도만 더 안 오른다. 우대하는 직업으로 전직하면 다시 오른다.
+    /// </summary>
+    public const int UnfavoredSkillRank = 10;
+    public int SkillCap(int skillId)
+    {
+        // 스킬마다의 최고 랭크(일본 위키 스킬 일람의 最高ランク — 인식 · 고고학 17, 측량 16, 보급 15, 관찰 1, 언어학 10 …; 표에 없는 스킬은 0)
+        int top = Data.SkillFacts.GetValueOrDefault(skillId)?.Max ?? 0;
+        if (top > 0 && top < UnfavoredSkillRank) return top;
+        if (IsExpert(skillId)) return Math.Max(top, Settings.MaxSkillRank + 1);
+        if (IsFavored(skillId)) return top > 0 ? Math.Min(top, Settings.MaxSkillRank) : Settings.MaxSkillRank;
+        return Math.Min(UnfavoredSkillRank, Settings.MaxSkillRank);
+    }
+
+    /// <summary>상한이 직업 때문에 낮은가 — 우대하지 않는 직업이라 10 에서 멈추는 스킬(그 스킬의 최고 랭크가 본디 10 이하인 것은 아니다).</summary>
+    public bool JobCapped(int skillId) => !IsExpert(skillId) && !IsFavored(skillId) && (Data.SkillFacts.GetValueOrDefault(skillId)?.Max ?? 0) is 0 or > UnfavoredSkillRank;
+
     public string SkillName(int skillId) =>
         Data.Skills.Find(s => s.Id == skillId)?.Name ?? Data.SkillRules.Find(r => r.SkillId == skillId)?.Name ?? Data.AideSkillLabels.GetValueOrDefault(skillId) ?? $"스킬 {skillId}";
 
@@ -137,14 +157,17 @@ internal sealed partial class Voyage
         if (adventure < need[0]) lacks.Add($"모험 레벨 {need[0]}");
         if (trade < need[1]) lacks.Add($"교역 레벨 {need[1]}");
         if (battle < need[2]) lacks.Add($"전투 레벨 {need[2]}");
-        if (adventure + trade + battle < need[3]) lacks.Add($"레벨 합계 {need[3]}");
+        // 선행 스킬(일본 위키 스킬 일람의 習得条件 「他」 — 인식 ← 탐색 1, 채집 ← 탐색 2, 항해기술 ← 돛 조종 3 · 측량 1 …)
+        foreach (var prior in Data.SkillFacts.GetValueOrDefault(skill.Id)?.Needs ?? [])
+            if (prior.Length >= 2 && Rank(prior[0]) < prior[1]) lacks.Add($"{SkillName(prior[0])} 랭크 {prior[1]}");
         return lacks.Count == 0 ? null : string.Join(" · ", lacks) + " 필요";
     }
 
     /// <summary>배우는 조건을 적은 글(창에 보인다) — 「모험 7 · 합계 5」. 조건이 없으면 빈 글.</summary>
     public string LearnNeedText(SkillData skill) =>
         Data.SkillLearn.TryGetValue(skill.Id, out var need) && need.Length >= 4
-            ? string.Join(" · ", new[] { need[0] > 0 ? $"모험 {need[0]}" : "", need[1] > 0 ? $"교역 {need[1]}" : "", need[2] > 0 ? $"전투 {need[2]}" : "", need[3] > 0 ? $"합계 {need[3]}" : "" }.Where(t => t != ""))
+            ? string.Join(" · ", new[] { need[0] > 0 ? $"모험 {need[0]}" : "", need[1] > 0 ? $"교역 {need[1]}" : "", need[2] > 0 ? $"전투 {need[2]}" : "" }
+                .Concat((Data.SkillFacts.GetValueOrDefault(skill.Id)?.Needs ?? []).Where(p => p.Length >= 2).Select(p => $"{SkillName(p[0])} {p[1]}")).Where(t => t != ""))
             : "";
 
     /// <param name="taught">가르치는 사람을 따지지 않는다(대본 · 개발용).</param>
@@ -176,7 +199,7 @@ internal sealed partial class Voyage
         {
             if (Data.SkillRules.Find(r => r.Effect == "Shipbuilding") is not { } rule) return "";
             if (!Skills.TryGetValue(rule.SkillId, out var state)) return "조선 스킬 없음";
-            return state.Rank >= Settings.MaxSkillRank ? $"조선 Rank {state.Rank} (최대)" : $"조선 Rank {state.Rank}  {state.Exp:0}/{ExpToNext(state.Rank)}";
+            return state.Rank >= SkillCap(rule.SkillId) ? $"조선 Rank {state.Rank} (최대)" : $"조선 Rank {state.Rank}  {state.Exp:0}/{ExpToNext(state.Rank)}";
         }
     }
 
@@ -189,13 +212,14 @@ internal sealed partial class Voyage
     private void Train(int skillId, double exp)
     {
         if (Rankless(skillId)) return;
-        if (!Skills.TryGetValue(skillId, out var state) || state.Rank >= Settings.MaxSkillRank) return;
+        int cap = SkillCap(skillId);
+        if (!Skills.TryGetValue(skillId, out var state) || state.Rank >= cap) return;
         exp *= GainFactor * CharmFactor;      // 번개 시리즈를 쓴 동안 숙련도 +100%
         state.Exp += exp;
         // 숙련도가 오르면 기록에 알린다. 항해 중에 조금씩 오르는 것은 모아서 20 마다 한 번
         double gained = _gained[skillId] = _gained.GetValueOrDefault(skillId) + exp;
         bool ranked = false;
-        while (state.Rank < Settings.MaxSkillRank && state.Exp >= ExpNeed(state))
+        while (state.Rank < cap && state.Exp >= ExpNeed(state))
         {
             state.Exp -= ExpNeed(state);
             state.Rank++;
@@ -205,11 +229,12 @@ internal sealed partial class Voyage
         {
             _gained.Remove(skillId);
             if (!ranked) Cues.Enqueue("Mastery");      // 숙련도가 오를 때의 소리(0:4 — 사용자, 2026-10-07). 랭크가 오르면 그 소리(SkillUp)가 대신 난다
-            Say(state.Rank >= Settings.MaxSkillRank
+            Say(state.Rank >= cap
                 ? $"{SkillName(skillId)} 숙련도 +{gained:0}"
                 : $"{SkillName(skillId)} 숙련도 +{gained:0} ({state.Exp:0}/{ExpNeed(state)})");
         }
         if (ranked) { Say($"{SkillName(skillId)} 스킬이 랭크 {state.Rank}(이)가 되었다!"); Cues.Enqueue("SkillUp"); SkillUpNotice = (skillId, state.Rank, Clock); }
+        if (ranked && state.Rank >= cap && JobCapped(skillId)) Say($"{SkillName(skillId)} — 우대하지 않는 직업으로는 랭크 {cap} 까지다. 더 올리려면 이 스킬을 우대하는 직업이어야 한다.");
     }
 
     private void TrainEffect(string effect, double exp)

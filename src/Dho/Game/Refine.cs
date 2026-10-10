@@ -17,15 +17,36 @@ internal sealed partial class Voyage
     public bool Refined(int skillId) => Skills.TryGetValue(skillId, out var state) && state.Refined;
 
     /// <summary>다음 랭크까지의 숙련도 — 연성한 스킬은 8할.</summary>
-    public int ExpNeed(SkillState state) => (int)(ExpToNext(state.Rank) * (state.Refined ? 0.8 : 1));
+    /// 우대하지 않는 직업이면 곱절이 든다(일본 위키: 「優遇時 R×R×100 · 非優遇時 R×R×200」, 연성하면 R×R×80).
+    public int ExpNeed(SkillState state)
+    {
+        int skill = Skills.FirstOrDefault(s => ReferenceEquals(s.Value, state)).Key;
+        return (int)(ExpToNext(state.Rank) * (state.Refined ? 0.8 : 1) * (skill == 0 || IsFavored(skill) || IsExpert(skill) ? 1 : 2));
+    }
+
+    /// <summary>
+    /// 전직으로 우대가 바뀐 스킬의 숙련도를 맞춘다 — 우대 → 비우대는 곱절, 비우대 → 우대는 반(끝수는 버린다). 필요 숙련도도 같이 바뀌어 채운 몫은 그대로다
+    /// (일본 위키: 「優遇 R5 1000/2500 → 通常 R5 2000/5000 → 優遇 R5 1000/2500」).
+    /// </summary>
+    public void KeepMastery(Dictionary<int, bool> favouredBefore)
+    {
+        foreach (var (skill, state) in Skills)
+        {
+            bool before = favouredBefore.GetValueOrDefault(skill), now = IsFavored(skill) || IsExpert(skill);
+            if (before && !now) state.Exp *= 2;
+            else if (!before && now) state.Exp = Math.Floor(state.Exp / 2);
+        }
+    }
+    public Dictionary<int, bool> FavouredNow() => Skills.Keys.ToDictionary(k => k, k => IsFavored(k) || IsExpert(k));
 
     /// <summary>스킬 창에 연성 단추를 보일 것인가 — 아직 연성하지 않았고 끝 랭크인 스킬.</summary>
-    public bool CanRefineSoon(int skillId) => Skills.TryGetValue(skillId, out var state) && !state.Refined && state.Rank >= Settings.MaxSkillRank;
+    public bool CanRefineSoon(int skillId) => Skills.TryGetValue(skillId, out var state) && !state.Refined && state.Rank >= Settings.MaxSkillRank && (IsFavored(skillId) || IsExpert(skillId));
 
     public string? RefineBlocker(int skillId) =>
         !Skills.TryGetValue(skillId, out var state) ? "익히지 않았다"
         : state.Refined ? "이미 연성한 스킬이다"
         : state.Rank < Settings.MaxSkillRank ? $"랭크 {Settings.MaxSkillRank} 까지 올려야 한다"
+        : !IsFavored(skillId) && !IsExpert(skillId) ? "이 스킬을 우대하는 직업이어야 한다"      // 일본 위키: 「そのスキルが優遇または専門スキルである職業に就いていること」
         : Mode != Mode.Port || City.Id != RefineCity ? $"{Data.Cities.Find(c => c.Id == RefineCity)?.Name ?? "상트 페테르부르크"}에서 한다"
         : null;
 

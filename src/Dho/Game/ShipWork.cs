@@ -183,7 +183,8 @@ internal sealed partial class Voyage
             WaveResist = (int)Math.Round(stats.WaveResist + work.Wave * applied + (Has(6) ? 2 : 0) + (form == 1 ? g / 2 : 0)),
             Armor = stats.Armor + (int)work.Armor + (Has(7) ? 3 : 0) + (form == 5 ? g / 2 : 0),
             // 선실 · 포실 적재량 강화 — 한 번에 10%(적어도 선실 4 · 포실 2, 지은 값)
-            MaxCrew = stats.MaxCrew + (int)work.Cabin + (Has(8) ? Math.Max(4, (int)Math.Round(stats.MaxCrew * 0.1)) : 0),
+            // 선실이 줄어드는 강화(재료에 따라 −)를 해도 필요 선원보다 적게는 안 내려간다 — 적재 변경과 같은 바닥(기영: 필요 10 인데 선실 8 이 됐었다 — 사용자, 2026-10-11)
+            MaxCrew = Math.Max(stats.MinCrew, stats.MaxCrew + (int)work.Cabin + (Has(8) ? Math.Max(4, (int)Math.Round(stats.MaxCrew * 0.1)) : 0)),
             Guns = stats.Guns + (int)work.Guns + (Has(9) ? Math.Max(2, (int)Math.Round(stats.Guns * 0.1)) : 0),
             Hold = (int)Math.Round((stats.Hold + work.Hold * applied + (Has(10) ? stats.Hold * 0.08 : 0) + stats.Hold * formHold) * (1 + holdBonus)),
         };

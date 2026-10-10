@@ -94,17 +94,25 @@ internal sealed class ShipModel : IDisposable
         catch (Exception) { _spots = []; }
     }
 
-    /// <summary>단 데코를 바꾼다 — 자리 넷(앞쪽 현 첫째 · 둘째, 뒤쪽 현 첫째 · 둘째)마다 데코 표의 모형 번호(0 이면 없음).</summary>
-    public void SetDecos(int[] models)
+    /// <summary>
+    /// 단 데코를 바꾼다 — 자리 넷(앞쪽 현 첫째 · 둘째, 뒤쪽 현 첫째 · 둘째)마다 데코 표의 모형 번호(0 이면 없음).
+    /// mastKind 가 5 이상이면 마스트 톱의 장식(깃발이 아닌 것 — 스타 · 매의 목상 …)이다: 깃대 자리마다(돛대마다) 세우고 깃발은 안 건다(사용자, 2026-10-11).
+    /// 그 모형은 데코 모형 표에 없다 — 이름이 FLAGnn 인 모형 자원이고 nn 이 데코 표의 모형 칸(5 ~ 14)이다,
+    /// 그림은 데코 표의 덧칸 번호의 TEX_FLAGnn(깃발 그림과 같은 이름 줄 — 18 매의 목상 · 19 펌프킨 · 20 스타 …)이다.
+    /// </summary>
+    public void SetDecos(int[] models, int mastKind = 0, int mastPicture = 0)
     {
-        string key = string.Join(",", models);
+        if (models.Length < 5) models = [.. models, .. new int[5 - models.Length]];
+        models[4] = mastKind > 4 ? mastKind : 0;
+        string key = string.Join(",", models) + $"/{mastPicture}";
         if (key == _decoKey) return;
         _decoKey = key;
         foreach (var part in _decoParts) part.Mesh.Dispose();
         foreach (var texture in _decoTextures) texture.Dispose();
         _decoParts.Clear();
         _decoTextures.Clear();
-        if (_spots.Length < 15) return;
+        _mastDeco = false;      // 장식의 모형이 실제로 섰을 때만 깃발을 내린다(모형을 못 찾는 장식 — 11 ~ 14 — 은 깃발이 그대로 걸린다)
+        if (_spots.Length < 15 && models[4] <= 0) return;
         try
         {
             // 데코의 모형 표 — 배 모형 표(0001\0002.bin)의 맨 끝: u32 줄 수(306), 10바이트 줄 = u16 모형 자원(갈래 0x300) · u16 그림 자원(0x301) · u16 둘째 그림 · u16 0 · u8 × 2 빛깔 번호.
@@ -113,33 +121,43 @@ internal sealed class ShipModel : IDisposable
             int rows = 0, start = 0;
             for (int n = 1; table.Length - 4 - n * 10 > 0; n++)
                 if (BinaryPrimitives.ReadInt32LittleEndian(table.AsSpan(table.Length - 4 - n * 10)) == n) (rows, start) = (n, table.Length - n * 10);
-            for (int slot = 0; slot < Math.Min(4, models.Length); slot++)
+            for (int slot = 0; slot < Math.Min(5, models.Length); slot++)
             {
-                if (models[slot] <= 0 || models[slot] >= rows) continue;
-                int row = start + models[slot] * 10;
+                if (slot < 4 && _spots.Length < 15) continue;
+                if (models[slot] <= 0 || (slot < 4 && models[slot] >= rows)) continue;
+                int row = slot < 4 ? start + models[slot] * 10 : start;
                 int U16(int at) => BinaryPrimitives.ReadUInt16LittleEndian(table.AsSpan(at));
-                if (!_index!.TryGetValue((0x300, U16(row)), out var model)) continue;
+                (string Pack, int Entry) model;
+                if (slot == 4) { if (FlagModel(models[slot]) is not { } top) continue; model = top; }
+                else if (!_index!.TryGetValue((0x300, U16(row)), out model)) continue;
                 ID3D11ShaderResourceView? picture = null;
-                if (_index.TryGetValue((0x301, U16(row + 2)), out var pictureAt)) _decoTextures.Add(picture = GameTexture.FromMftf(_device, new Pack(pictureAt.Pack).Entry(pictureAt.Entry)));
+                if (slot == 4) { if (FlagPicture(mastPicture) is { } named) _decoTextures.Add(picture = GameTexture.FromMftf(_device, new Pack(named.Pack).Entry(named.Entry))); }
+                else if (_index.TryGetValue((0x301, U16(row + 2)), out var pictureAt)) _decoTextures.Add(picture = GameTexture.FromMftf(_device, new Pack(pictureAt.Pack).Entry(pictureAt.Entry)));
                 // 빛깔: 줄 끝의 u8 둘이 빛깔 번호 둘(1 ~ 30)이고 번호마다 (밝은 빛, 어두운 빛) 쌍이다 — 돛단배 8 · 9 · 10 이 (7, 22) · (4, 12) · (11, 20).
                 // 모형은 조각이 하나뿐이라(w-648 에서 세어 봄) 두 빛깔은 조각이 아니라 그림(텍스처의 알파나 밝기)으로 갈릴 것이다 — 그 법은 못 밝혀 첫째 번호의 밝은 빛 하나로 물들인다(짐작)
                 var tint = Vector4.One;
-                int colour = table[row + 8], colours = start - 4 - 240;
+                int colour = slot < 4 ? table[row + 8] : 0, colours = start - 4 - 240;
                 if (DecoTint && colour is >= 1 and <= 30)
                 {
                     uint argb = BinaryPrimitives.ReadUInt32LittleEndian(table.AsSpan(colours + (colour - 1) * 8));
                     tint = new Vector4((argb >> 16 & 255) / 255f, (argb >> 8 & 255) / 255f, (argb & 255) / 255f, 1);
                 }
                 var data = new Pack(model.Pack).Entry(model.Entry);
-                foreach (int group in slot < 2 ? (int[])[5, 9] : [6, 8])
+                // 붙일 자리들 — 현의 것은 양쪽 현의 그 칸, 마스트 톱의 것은 깃대 자리마다
+                var places = new List<Matrix4x4>();
+                if (slot == 4) places.AddRange(_flagSpots.Select(Matrix4x4.CreateTranslation));      // 돛대마다 하나씩(원본 화면 — 사용자, 2026-10-11; 처음에는 가장 높은 깃대 하나에만 세웠다)
+                else
+                    foreach (int group in slot < 2 ? (int[])[5, 9] : [6, 8])
+                        if (_spots[group].Length > slot % 2) places.Add(_spots[group][slot % 2]);
+                foreach (var place in places)
                 {
-                    if (_spots[group].Length <= slot % 2) continue;
                     int before = _parts.Count;
                     var (min, max) = (_min, _max);
                     _decoLoading = true;
                     try { Load(_device, data, isHull: false); } finally { _decoLoading = false; }
                     (_min, _max) = (min, max);                      // 데코는 배의 크기에 안 넣는다
-                    for (int i = before; i < _parts.Count; i++) _decoParts.Add((_parts[i].Mesh, picture ?? _parts[i].Texture, _spots[group][slot % 2], tint));
+                    for (int i = before; i < _parts.Count; i++) _decoParts.Add((_parts[i].Mesh, picture ?? _parts[i].Texture, place, tint));
+                    if (slot == 4 && _parts.Count > before) _mastDeco = true;
                     _parts.RemoveRange(before, _parts.Count - before);
                 }
             }
@@ -150,7 +168,50 @@ internal sealed class ShipModel : IDisposable
     // 깃발 — 돛대 뼈대의 마디 가운데 이름이 FLAG… 인 자리(돛대 꼭대기 따위)에 나라 깃발을 단다.
     // 깃발 모형은 못 찾아서(FLAG05 부터만 이름 붙은 모형이 있다) 뒤로 나부끼는 띠를 지어 세운다. 그림은 sh0005 의 TEX_FLAG01 ~ 08:
     // 01 흰 깃발, 02 ~ 08 = 나라 1 ~ 7(에스파니아 · 포르투갈 · 베네치아 · 프랑스 · 네덜란드 · 잉글랜드 · 오스만 — 그림을 보고 맞춤).
+    // 깃발 그림 — 이름이 TEX_FLAGnn 인 그림 자원(갈래 0x301)을 번호로. 01 ~ 08 은 나라 깃발, 그 뒤는 데코의 깃발과 마스트 톱 장식의 그림이다
+    private static Dictionary<int, (string Pack, int Entry)>? _flagPictures;
+    private static (string Pack, int Entry)? FlagPicture(int number)
+    {
+        if (_flagPictures == null)
+        {
+            _flagPictures = [];
+            foreach (var (key, at) in _index ?? [])
+            {
+                if (key.Group != 0x301) continue;
+                try
+                {
+                    var pack = new Pack(at.Pack);
+                    string head = System.Text.Encoding.ASCII.GetString(pack.Slice(at.Entry, 0, Math.Min(400, pack.Size(at.Entry))));
+                    int name = head.IndexOf("TEX_FLAG", StringComparison.Ordinal);
+                    if (name >= 0 && int.TryParse(new string(head.Skip(name + 8).TakeWhile(char.IsDigit).ToArray()), out int found)) _flagPictures.TryAdd(found, at);
+                }
+                catch (Exception) { }
+            }
+        }
+        return _flagPictures.TryGetValue(number, out var hit) ? hit : null;
+    }
+    // 마스트 톱 장식의 모형 — 이름이 FLAGnn 인 모형 자원(갈래 0x300). nn 은 데코 표의 모형 칸(5 ~ 14)
+    private static Dictionary<int, (string Pack, int Entry)>? _flagModels;
+    private static (string Pack, int Entry)? FlagModel(int number)
+    {
+        if (_flagModels == null)
+        {
+            _flagModels = [];
+            foreach (var (key, at) in _index ?? [])
+            {
+                if (key.Group != 0x300) continue;
+                try
+                {
+                    string name = NameOf(new Pack(at.Pack), at.Entry);
+                    if (name.StartsWith("FLAG", StringComparison.OrdinalIgnoreCase) && int.TryParse(new string(name.Skip(4).TakeWhile(char.IsDigit).ToArray()), out int found)) _flagModels.TryAdd(found, at);
+                }
+                catch (Exception) { }
+            }
+        }
+        return _flagModels.TryGetValue(number, out var hit) ? hit : null;
+    }
     private readonly List<Vector3> _flagSpots = [];
+    private bool _mastDeco;      // 마스트 톱에 장식을 달았다 — 깃발 대신 그것이 선다
     private Mesh? _flagMesh;
     private ID3D11ShaderResourceView? _flagTexture;
     private int _flagNation = -1;
@@ -181,7 +242,13 @@ internal sealed class ShipModel : IDisposable
         _flagTexture?.Dispose();
         _flagTexture = null;
         // 깃발 그림 묶음에서 깃발은 앞의 여덟 장뿐이다(0 무지, 1 ~ 7 나라 번호대로 — 에스파니아 … 오스만; 그 뒤 조각은 깃발이 아니다). 여덟째 나라부터와 해적 · 인물 깃발은 그림을 아직 못 찾아 무지로 건다
-        try { var flags = new Pack(@"0001\sh0005.bin"); _flagTexture = GameTexture.FromMftf(_device, flags.Entry(nation is >= 1 and <= 7 ? nation : 0)); } catch (Exception) { }
+        try
+        {
+            // 여덟째부터(데코의 깃발 — TEX_FLAG09 …)는 이름으로 찾는다. 번호는 나라 차례 + 1 이다
+            if (nation >= 8 && FlagPicture(nation + 1) is { } named) _flagTexture = GameTexture.FromMftf(_device, new Pack(named.Pack).Entry(named.Entry));
+            else { var flags = new Pack(@"0001\sh0005.bin"); _flagTexture = GameTexture.FromMftf(_device, flags.Entry(nation is >= 1 and <= 7 ? nation : 0)); }
+        }
+        catch (Exception) { }
         if (_flagMesh != null || _flagSpots.Count == 0) return;
         // 띠 하나: 깃대에서 뒤(−z)로, 조금 물결치게 여섯 마디
         var builder = new MeshBuilder();
@@ -637,7 +704,7 @@ internal sealed class ShipModel : IDisposable
             if (texture == _hullTexture && DyeDebug == null && _hullBase >= 2 && dye is 0 or 4 && Wood() is { } timber) (plate, colour) = (timber, Vector4.One);
             scene.Draw(mesh, world, colour, plate, cloth: texture == _sailTexture);
         }
-        if (_flagMesh != null && _flagTexture != null) scene.Draw(_flagMesh, world, null, _flagTexture, cloth: true);
+        if (_flagMesh != null && _flagTexture != null && !_mastDeco) scene.Draw(_flagMesh, world, null, _flagTexture, cloth: true);
         foreach (var (mesh, texture, at, tint) in _decoParts) scene.Draw(mesh, at * world, texture == null ? new Vector4(0.6f, 0.5f, 0.35f, 1) : tint, texture);
         // 주름은 돛 그림에 곱해진다(원본 텍스처단의 연산이 MODULATE), 문장은 그 위에 얹힌다
         scene.Multiply();

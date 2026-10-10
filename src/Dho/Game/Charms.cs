@@ -49,6 +49,7 @@ internal sealed partial class Voyage
         CharmLeft > 0 ? $"숙련도 +{_charmPower}% {LeftText(CharmLeft)}" : "",
         LevelCharmLeft > 0 ? $"경험치 +{_levelCharmPower}% {LeftText(LevelCharmLeft)}" : "",
         VeilLeft > 0 ? $"재해 회피 {LeftText(VeilLeft)}" : "",
+        BlessLeft > 0 ? $"헤파이스토스의 가호 {BlessRank}랭크 {LeftText(BlessLeft)}" : "",
     }.Where(t => t != ""));
 
     public static string LeftText(double seconds) => seconds >= 86400 ? $"{seconds / 86400:0.#}일" : seconds >= 3600 ? $"{seconds / 3600:0.#}시간" : $"{Math.Ceiling(seconds / 60):0}분";
@@ -68,7 +69,27 @@ internal sealed partial class Voyage
     // ── 헤파이스토스의 가호(스킬 645): 「가호의 랭크에 따라 생산 시 일정 확률로 행동력을 소비하지 않는다」.
     // 확률은 자료가 없다 — 지은 값: 랭크마다 25%(3랭 75%. 글: 「3랭이면 행동력 음식 없이 랭작한다」). 원본은 켜서 일정 시간 가는 스킬인데 여기서는 가지고 있으면 늘 듣는다(줄인 것)
     public const int HephaestusSkill = 645;
-    public double VigourFreeChance => Math.Min(0.75, Rank(HephaestusSkill) * 0.25);
+    public double VigourFreeChance => Math.Max(Math.Min(0.75, Rank(HephaestusSkill) * 0.25), BlessLeft > 0 ? BlessChance : 0);
+
+    // ── 가호의 수정(아이템 1500946, 클라이언트 설명 「가호를 선택해 받을 수 있는 신기한 수정」): 쓰면 헤파이스토스의 가호가 30분 듣는다.
+    // 공략 글(인벤): 「사용하게 되면 랭크에 따라 30분간 생산시 행동력을 소모하지 않는다 · 40번 사용하면 3랭크 · 3랭크면 100%」.
+    // 2랭크가 되는 번수(20)와 1 · 2랭크의 확률(1/3 · 2/3)은 자료가 없어 지은 값이다. 가호는 헤파이스토스 하나만 있다(원본은 여럿 가운데 고른다 — 줄인 것).
+    // 시간은 다른 부적처럼 게임을 켜 둔 시간으로 센다
+    private double _blessUntil;
+    public int BlessUses { get; private set; }
+    public double BlessLeft => Math.Max(0, _blessUntil - Clock);
+    public int BlessRank => BlessUses >= 40 ? 3 : BlessUses >= 20 ? 2 : BlessUses > 0 ? 1 : 0;
+    private double BlessChance => BlessRank >= 3 ? 1 : BlessRank / 3.0;
+
+    private void UseBlessing(ItemData crystal)
+    {
+        int before = BlessRank;
+        BlessUses++;
+        _blessUntil = Math.Max(Clock, _blessUntil) + crystal.Amount * 3600;
+        Cues.Enqueue("Skill");
+        Say($"{crystal.Name}을(를) 썼다. 헤파이스토스의 가호 {BlessRank}랭크({BlessUses}번째) — 생산할 때 {BlessChance * 100:0}% 확률로 행동력이 안 든다. 남은 시간 {LeftText(BlessLeft)}."
+            + (BlessRank > before && before > 0 ? " 가호의 랭크가 올랐다!" : ""));
+    }
 
     // 생산 times 번 가운데 가호로 행동력이 안 든 번 수
     private int VigourFreeTimes(int times)

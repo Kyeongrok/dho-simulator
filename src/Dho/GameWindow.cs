@@ -357,7 +357,7 @@ internal sealed class GameWindow : IDisposable
                 _orbiting = false;
                 Win32.ReleaseCapture();
                 // 바다에서 끌지 않고 오른쪽 단추만 누르면 카메라가 뱃머리 쪽을 보게 배 뒤로 돈다
-                // 내비게이션이 열려 있으면 그 지도 위의 오른쪽 클릭(「이 방향으로 키 돌리기」)이라 카메라는 그대로 둔다
+                // 네비게이션이 열려 있으면 그 지도 위의 오른쪽 클릭(「이 방향으로 키 돌리기」)이라 카메라는 그대로 둔다
                 if (_orbitMoved < 6) _rightClicked = true;
                 if (_orbitMoved < 6 && _voyage.Mode == Mode.Sea && _voyage.Dialog != Dialog.Nav) _yawGoal = -(float)_voyage.Heading;
                 return IntPtr.Zero;
@@ -423,7 +423,6 @@ internal sealed class GameWindow : IDisposable
     // 지금 입은 장비를 그 몸 틀의 모형으로
     private List<Worn> WornNow(int frame) =>
         _voyage.WornModels(frame).Select(w => new Worn(w.Part, w.Entry[0], w.Entry[1], w.Entry[2], w.Entry[3], w.Colors)).ToList();
-
     private void PlayCue(string cue)
     {
         var sounds = _voyage.Data.Settings.Sounds;
@@ -890,7 +889,7 @@ internal sealed class GameWindow : IDisposable
                         * Matrix4x4.CreateTranslation(0, sway * 60f - _sunk, 0);
         // 재해의 모습을 그릴 자리 — 배의 가운데 · 뱃머리 쪽 · 돛대 꼭대기 쪽이 화면의 어디인가
         _hud.ShipOnScreen = null;
-        _hud.CameraHeading = -_yaw;      // 카메라가 보는 쪽 = 카메라가 물러난 쪽(_yaw)의 맞은편 — 내비게이션의 하늘빛 줄
+        _hud.CameraHeading = -_yaw;      // 카메라가 보는 쪽 = 카메라가 물러난 쪽(_yaw)의 맞은편 — 네비게이션의 하늘빛 줄
         if (_voyage.Mode == Mode.Sea && !town)
         {
             (float X, float Y)? Spot(Vector3 p)
@@ -924,7 +923,8 @@ internal sealed class GameWindow : IDisposable
         var mastTop = _voyage.DecoOf(_voyage.DecoOn[0]);
         // 깃발 데코의 차례는 「무지의 깃발」이 1 이라 나라 번호보다 하나 크다(2 에스파니아 … 7 잉글랜드 · 8 오스만) — 그대로 넘겨 잉글랜드 국기에 오스만기가 걸렸었다
         _ship.SetFlag(mastTop is { Kind: 0, Model: 4 } ? mastTop.Extra - 1 : _voyage.NationId);
-        _ship.SetDecos([.. Enumerable.Range(1, 4).Select(k => _voyage.DecoOf(_voyage.DecoOn[k])?.Model ?? 0)]);
+        // 마스트 톱의 깃발 아닌 장식(스타 · 매의 목상 …) — 모형 칸(5 ~ 14)과 그림 번호(덧칸 — TEX_FLAGnn)를 넘긴다
+        _ship.SetDecos([.. Enumerable.Range(1, 4).Select(k => _voyage.DecoOf(_voyage.DecoOn[k])?.Model ?? 0)], mastTop is { Kind: 0, Model: > 4 } ? mastTop.Model : 0, mastTop?.Extra ?? 0);
         // 단 문장을 돛에 그린다
         _ship.SetEmblem(_voyage.Parts.Find(p => p.Slot == 3) is { } crest ? crest.Id - 1_100_000 : 0);
         if (_sailShown != (_ship, _voyage.SailPattern, _voyage.SailTint))
@@ -1942,6 +1942,10 @@ internal sealed class GameWindow : IDisposable
             case "fatigue": _voyage.SetFatigueForTest(Number()); break;
             case "tradeguild": _voyage.Dialog = Dialog.TradeGuild; break;
             case "nanban": _voyage.Dialog = Dialog.Nanban; break;
+            case "weaponlook": _voyage.WeaponLookForTest = (int)Number(); break;      // 대본: 무기 겉모습 줄을 내 모습에 붙여 본다
+            case "jobpick": _hud.JobPickForTest(); break;
+            case "navauto": { var ends = argument.Split(','); _voyage.Dialog = Dialog.Nav; _hud.NavAutoForTest(ends[0], ends.ElementAtOrDefault(1) ?? ""); break; }      // 대본: 네비게이션의 자동 항로 칸에 두 도시를 적는다
+            case "autoroute": { var ends = argument.Split(','); if (_voyage.Data.Cities.Find(c => c.Id == int.Parse(ends[0])) is { } leave && _voyage.Data.Cities.Find(c => c.Id == int.Parse(ends[1])) is { } reach) _voyage.AutoRoute(leave, reach); break; }
             case "yardrecipes": _voyage.Dialog = Dialog.YardRecipes; break;
             case "makeroute": { var ends = argument.Split(','); _voyage.MakeRouteBetween(int.Parse(ends[0]), int.Parse(ends[1])); break; }      // 대본: 두 도시 사이의 항로를 길찾기로 만들어 저장한다
             case "nanbantest": _voyage.NanbanForTest((int)Number()); break;
@@ -2019,9 +2023,9 @@ internal sealed class GameWindow : IDisposable
                 }
                 break;
             case "bento": _hud.BentoForTest(); break;
-            case "navroutes": _hud.NavRoutesForTest(); break;      // 대본: 내비게이션의 항로 목록을 편다
+            case "navroutes": _hud.NavRoutesForTest(); break;      // 대본: 네비게이션의 항로 목록을 편다
             case "navrouteopen": _hud.NavRouteOpenForTest(); break;      // 대본: 맨 나중에 저장한 항로를 편집으로 연다(파일은 안 바꾼다)
-            case "navturn": _hud.NavTurnPickForTest((int)Number()); break;      // 대본: 내비게이션에서 조타 기록 N 번을 고른다
+            case "navturn": _hud.NavTurnPickForTest((int)Number()); break;      // 대본: 네비게이션에서 조타 기록 N 번을 고른다
             case "wikifocus": _hud.WikiFocusForTest(); break;
             case "wikipick": _hud.WikiPickForTest(argument.Split(',')[0], int.Parse(argument.Split(',')[1])); break;      // 대본: wikipick:도시,2
             case "sea":                             // 바다 위의 자리로 옮긴다: sea:x,y
@@ -2039,6 +2043,8 @@ internal sealed class GameWindow : IDisposable
             case "specialbuild": _voyage.Dialog = Dialog.SpecialBuild; break;
             case "hull": _hud.OpenHullBuild(); break;
             case "equip": _voyage.Dialog = Dialog.Equip; break;
+            case "wear": { int worn = (int)Number(); _voyage.AddItem(worn); _voyage.Equip(worn); break; }      // 대본: 그 장비를 하나 넣고 입는다
+            case "frame": _voyage.Looks[0] = (int)Number(); break;      // 대본: 몸 틀(0 ~ 7)을 바꾼다
             case "bonus": _voyage.Work.Bonuses.Add((int)Number()); _voyage.Work.Grade++; _voyage.AddMastery(1, true); break;
             case "hullbuild": _voyage.Dialog = Dialog.HullBuild; break;
             case "yardmenu": _voyage.Dialog = Dialog.ShipyardMenu; break;

@@ -268,6 +268,14 @@ public sealed class SkillData
 /// <summary>
 /// 스킬이 게임에서 하는 일. 랭크별 효과 수치는 클라이언트에 없어 지은 값이다.
 /// </summary>
+/// <summary>일본 위키의 스킬 일람 한 줄 — 최고 랭크(最高ランク)와 선행 스킬([스킬 번호, 랭크]).</summary>
+public sealed class SkillFact
+{
+    public string Name { get; set; } = "";
+    public int Max { get; set; }
+    public List<int[]> Needs { get; set; } = [];
+}
+
 public sealed class SkillRuleData
 {
     public int SkillId { get; set; }
@@ -837,6 +845,9 @@ public sealed class SaveData
     public int FleetDay { get; set; } = -1;
     public int ExileDay { get; set; } = -1;
     public int Infamy { get; set; }
+    /// <summary>최근에 입항한 도시(새것부터)와 즐겨찾는 도시 — 자동 항로의 도시 목록 앞에 선다.</summary>
+    public List<int> RecentCities { get; set; } = [];
+    public List<int> FavoriteCities { get; set; } = [];
     /// <summary>침몰선: 조각지도 수, 알아낸 자리(없으면 0, 0), 올린 정도 · 실패 · 누적.</summary>
     public int WreckPieces { get; set; }
     public double WreckX { get; set; }
@@ -849,6 +860,8 @@ public sealed class SaveData
     public double CharmLeft { get; set; }
     public double StuffedLeft { get; set; }
     public double VeilLeft { get; set; }
+    /// <summary>헤파이스토스의 가호(가호의 수정): [남은 초, 쓴 번수].</summary>
+    public double[] Bless { get; set; } = [];
     public int CharmPower { get; set; }
     /// <summary>경험치 부적: [남은 초, 덤 %].</summary>
     public double[] LevelCharm { get; set; } = [];
@@ -1003,6 +1016,11 @@ public sealed class SettingsData
     public int ModLevelUpMax { get; set; } = 10;
     /// <summary>모드: 소유물품의 상한(가짓수, 10 ~ 1000, 10개 단위). 기본 100.</summary>
     public int ModItemLimit { get; set; } = 100;
+    /// <summary>
+    /// 생산 · 조선으로 얻는 숙련도에 곱하는 값 — 4분의 1 단위(25 = ×6.25, 4 = ×1 원본 식 그대로). 원본에 없는 지은 곱이다.
+    /// 처음에는 12.5 였고 반으로 줄였다(사용자, 2026-10-11: 「12.5 니가 지은거니까 절반으로 줄여 … 모드에서도 수정 할 수 있게」).
+    /// </summary>
+    public int ModCraftMastery { get; set; } = 25;
     // 모드: 서고에서 「지도 찾기」를 한 번 할 때 지도를 찾을 확률(%) — 지은 값, 기본 70
     public int ModMapSearch { get; set; } = 70;
     // 모드: 항해 중 물결 · 거품 무늬가 뒤로 흘러가는 빠르기(1노트에 초당 이 값만큼 — 지은 값, 기본 3, 0 ~ 10)
@@ -1305,9 +1323,15 @@ public sealed class GameData
     /// <summary>요리 아이템 번호 → [행동력, 피로를 푸는 양] — gvdb 의 아이템 설명(「行動力：+20 / 疲労度：-12」, tools\gvo\gvdb_food.py). 241가지.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public Dictionary<int, int[]> FoodEffects { get; set; } = [];
-    /// <summary>스킬 번호 → 배우는 조건 [모험 · 교역 · 전투 레벨, 레벨 합계] — gvdb 아이템 목록의 「習得条件：1/0/0/合計10」. 92가지.</summary>
+    /// <summary>
+    /// 스킬 번호 → [배우는 데 드는 모험 · 교역 · 전투 레벨, 쓰는 데 드는 행동력] — gvdb 아이템 목록. 92가지.
+    /// 넷째 값은 전에 「레벨 합계」로 읽었는데 일본 위키 스킬 일람의 消費行動力 과 같은 값이다(측량 5 · 낚시 10 · 회피 20 · 돌격 25 …) — 행동력이다(2026-10-11).
+    /// </summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public Dictionary<int, int[]> SkillLearn { get; set; } = [];
+    /// <summary>스킬 번호 → 최고 랭크와 선행 스킬 — 일본 위키(gvo.gamedb.info 의 Skill/List)의 스킬 일람 표(tools\gvo\wiki_skills.py). 지금은 모험 스킬 33가지.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Dictionary<int, SkillFact> SkillFacts { get; set; } = [];
     /// <summary>발견물 번호 → 랭크(★ 1 ~ 5) — gvdb 의 발견물 목록(tools\gvo\gvdb_discovery.py). 클라이언트 표에는 난이도만 있다.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
     public Dictionary<int, int> DiscoveryRanks { get; set; } = [];
@@ -1480,6 +1504,7 @@ public sealed class GameData
         data.ItemNotes = Read<Dictionary<int, string>>(Path.Combine(extracted, "item-notes.json")) ?? new Dictionary<int, string>();
         data.FoodEffects = Read<Dictionary<int, int[]>>(Path.Combine(extracted, "food-effects-gvdb.json")) ?? [];
         data.SkillLearn = Read<Dictionary<int, int[]>>(Path.Combine(extracted, "skill-learn-gvdb.json")) ?? [];
+        data.SkillFacts = Read<Dictionary<int, SkillFact>>(Path.Combine(extracted, "skill-facts-wiki.json")) ?? [];
         data.TradeQuests = Read<List<TradeQuest>>(Path.Combine(extracted, "trade-quests-gvdb.json")) ?? [];
         data.FishFinds = Read<List<FishFind>>(Path.Combine(extracted, "fish-finds-gvdb.json")) ?? [];
         data.WreckFinds = Read<List<FishFind>>(Path.Combine(extracted, "wreck-finds-gvdb.json")) ?? [];
@@ -1622,9 +1647,11 @@ public sealed class GameData
 
     /// <summary>직접 지은 것과 뽑은 것을 모두 적는다.</summary>
     /// <summary>설정만 적는다(게임에서 해상도를 바꿨을 때).</summary>
-    public void SaveSettings() => Write(Path.Combine(Directory, "settings.json"), Settings);
+    // 파일을 다른 프로그램(또 하나 띄운 게임 · 편집기)이 잡고 있어 끝내 못 적어도 게임은 죽지 않는다 — 바뀐 설정은 메모리에 남아 다음에 적을 때 들어간다
+    // (2026-10-10: 모드 창의 다이얼을 누르는 순간 다른 실행이 settings.json 을 읽고 있어 IOException 으로 게임이 꺼졌다)
+    public void SaveSettings() { try { Write(Path.Combine(Directory, "settings.json"), Settings); } catch (IOException) { } }
 
-    /// <summary>이름 붙여 둔 항로들(조타 기록을 떠 둔 것) — data\routes.json. 내비게이션에서 저장하고 불러온다.</summary>
+    /// <summary>이름 붙여 둔 항로들(조타 기록을 떠 둔 것) — data\routes.json. 네비게이션에서 저장하고 불러온다.</summary>
     public List<SavedRoute> Routes { get; private set; } = [];
     /// <summary>남만 무역의 자료(<c>data\nanban.json</c>).</summary>
     public NanbanBook Nanban { get; private set; } = new();
@@ -1997,5 +2024,14 @@ public sealed class GameData
     private static T? Read<T>(string path) where T : class =>
         File.Exists(path) ? JsonSerializer.Deserialize<T>(File.ReadAllText(path), Json) : null;
 
-    private static void Write<T>(string path, T value) => File.WriteAllText(path, JsonSerializer.Serialize(value, Json));
+    // 다른 프로그램이 그 파일을 잠깐 잡고 있으면(공유 위반) 조금 기다렸다 다시 적는다 — 다섯 번까지
+    private static void Write<T>(string path, T value)
+    {
+        string text = JsonSerializer.Serialize(value, Json);
+        for (int attempt = 0; ; attempt++)
+        {
+            try { File.WriteAllText(path, text); return; }
+            catch (IOException) when (attempt < 4) { Thread.Sleep(40); }
+        }
+    }
 }

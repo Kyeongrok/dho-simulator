@@ -130,7 +130,7 @@ internal sealed partial class Voyage
         new SaveData
         {
             Name = PlayerName, Male = Male, NationId = NationId, JobId = JobId, Money = Money,
-            CityId = City.Id, ShipId = Ship.Id, Durability = Durability, Crew = Crew, Water = Water, Food = Food,
+            CityId = (_inlandFrom ?? City).Id, ShipId = Ship.Id, Durability = Durability, Crew = Crew, Water = Water, Food = Food,
             Clock = Clock, SkyPhase = SkyPhase,
             AdventureExp = AdventureExp, AdventureFame = AdventureFame, TradeExp = TradeExp, BattleExp = BattleExp, TradeFame = TradeFame, BattleFame = BattleFame,
             Skills = Skills.ToDictionary(s => s.Key, s => new[] { s.Value.Rank, s.Value.Exp, s.Value.Refined ? 1 : 0 }),
@@ -154,7 +154,7 @@ internal sealed partial class Voyage
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Track = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })], Turns = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI), m.Day })], Follow = TurnFollow ? [TurnFollowAt, TurnFollowBack ? 1 : 0] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, VeilLeft = VeilLeft, CharmPower = _charmPower, LevelCharm = [LevelCharmLeft, _levelCharmPower], Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], NanbanMerit = new(NanbanMerit), NanbanGift = new(NanbanGift), NanbanGiftGood = new(NanbanGiftGood), Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
+            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Track = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })], Turns = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI), m.Day })], Follow = TurnFollow ? [TurnFollowAt, TurnFollowBack ? 1 : 0] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, RecentCities = [.. RecentCities], FavoriteCities = [.. FavoriteCities], WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, VeilLeft = VeilLeft, Bless = [BlessLeft, BlessUses], CharmPower = _charmPower, LevelCharm = [LevelCharmLeft, _levelCharmPower], Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], NanbanMerit = new(NanbanMerit), NanbanGift = new(NanbanGift), NanbanGiftGood = new(NanbanGiftGood), Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
@@ -246,10 +246,13 @@ internal sealed partial class Voyage
         _fleetDay = save.FleetDay;
         ExileDay = save.ExileDay;
         Infamy = save.Infamy;
+        RecentCities.Clear(); RecentCities.AddRange(save.RecentCities);
+        FavoriteCities.Clear(); FavoriteCities.UnionWith(save.FavoriteCities);
         WreckPieces = save.WreckPieces;
         (TowValue, TowFrayed, _towWreck) = (save.TowValue, false, save.TowWreck);
         (_charmUntil, _stuffedUntil) = (save.CharmLeft > 0 ? Clock + save.CharmLeft : 0, save.StuffedLeft > 0 ? Clock + save.StuffedLeft : 0);
         _veilUntil = save.VeilLeft > 0 ? Clock + save.VeilLeft : 0;
+        (_blessUntil, BlessUses) = save.Bless is { Length: 2 } bless ? (bless[0] > 0 ? Clock + bless[0] : 0, (int)bless[1]) : (0, 0);
         _charmPower = save.CharmPower > 0 ? save.CharmPower : 100;
         (_levelCharmUntil, _levelCharmPower) = save.LevelCharm is { Length: 2 } lc && lc[0] > 0 ? (Clock + lc[0], (int)lc[1]) : (0, 0);
         (PetId, PetLove) = save.Pet is { Count: 2 } pet ? (pet[0], pet[1]) : (0, 0);
