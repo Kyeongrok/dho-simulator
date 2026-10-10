@@ -160,7 +160,11 @@ internal sealed partial class Voyage
     private readonly List<(double X, double Y)> _track = [];
     private const int TrackMost = 6000;
     public IReadOnlyList<(double X, double Y)> Track => _track;
-    public void ClearTrack() { _track.Clear(); _turnMarks.Clear(); }
+    /// <summary>조선소 일을 할 수 있는가 — 항구이거나, 모드를 켜고 바다 위일 때.</summary>
+    public bool YardOpen => Mode == Mode.Port || Mode == Mode.Sea && Data.Settings.ModYardAtSea;
+    public void ClearTrack() { _track.Clear(); _turnMarks.Clear(); RouteLoaded = false; }
+    /// <summary>지금의 조타 기록이 저장해 둔 항로를 불러온 것인가 — 내비게이션이 점들을 줄로 이어 보인다.</summary>
+    public bool RouteLoaded { get; private set; }
 
     // 조타 기록 — 키를 꺾은 자리와 그때 잡은 침로(사용자, 2026-10-09). 많아야 600개(지은 값), 넘으면 오래된 것부터 버린다
     private readonly List<(double X, double Y, double Heading, int Day)> _turnMarks = [];
@@ -183,15 +187,22 @@ internal sealed partial class Voyage
         StopFollow();
         _turnMarks.Clear();
         for (int k = 0; k + 2 < route.Points.Count; k += 3) _turnMarks.Add((route.Points[k], route.Points[k + 1], route.Points[k + 2] * Math.PI / 180, 0));
-        // 항로 만들기로 저장한 것은 지나온 점도 들어 있다 — 지도의 지나온 항로로 함께 보인다
-        if (route.Trail.Count >= 4)
-        {
-            _track.Clear();
-            for (int k = 0; k + 1 < route.Trail.Count; k += 2) _track.Add((route.Trail[k], route.Trail[k + 1]));
-        }
+        // 불러온 항로는 점들을 이은 줄로 보인다(사용자, 2026-10-10) — 전에는 그 항로를 만들 때 지나온 자취를 「지나온 항로」에 덮어 보였다. 이제 지나온 항로는 건드리지 않는다
+        RouteLoaded = true;
         Say($"항로 「{route.Name}」을(를) 불러왔다. (조타 기록 {_turnMarks.Count}개)");
     }
     public void RemoveRoute(SavedRoute route) { Data.Routes.Remove(route); Data.SaveRoutes(); }
+    /// <summary>항로를 복제한다 — 같은 점들로 「이름 (복제)」를 그 항로 바로 아래에 넣는다(사용자, 2026-10-10).</summary>
+    public SavedRoute CopyRoute(SavedRoute route)
+    {
+        string name = $"{route.Name} (복제)";
+        for (int n = 2; Data.Routes.Exists(r => r.Name == name); n++) name = $"{route.Name} (복제 {n})";
+        var copy = new SavedRoute { Name = name, Saved = $"{DateTime.Now:yyyy-MM-dd HH:mm}", Points = [.. route.Points], Trail = [.. route.Trail] };
+        Data.Routes.Insert(Math.Max(0, Data.Routes.IndexOf(route)) + 1, copy);
+        Data.SaveRoutes();
+        Say($"항로 「{route.Name}」을(를) 복제했다 — 「{name}」.");
+        return copy;
+    }
 
     // 항로 만들기(사용자, 2026-10-09) — 켜면 그때까지의 조타 기록을 항로로 저장해 두고 새로 적기 시작한다.
     // 도시를 떠나서 도시에 들 때까지가 항로 하나: 입항하면 「떠난 도시 → 든 도시」로 저절로 저장되고(지나온 점과 조타 기록), 다음 출항부터 새 항로가 된다.
@@ -270,11 +281,64 @@ internal sealed partial class Voyage
         (TurnFollow, TurnFollowAt, TurnFollowBack) = (true, from, back);
         Say(back ? $"조타 기록 {from + 1}번부터 거꾸로 따라간다. (1번까지)" : $"조타 기록 {from + 1}번부터 따라간다. (기록 {_turnMarks.Count}개)");
     }
+    /// <summary>
+    /// 저장해 둔 항로를 골라 그대로 따라간다(사용자, 2026-10-10: 「출항 후 항로 선택 해서 자동이동 할 수 있게 해」) — 그 항로를 불러와,
+    /// 배에서 가장 가까운 구간의 앞쪽 점부터 끝 점(목적지)까지 차례로 간다.
+    /// </summary>
+    public void FollowRoute(SavedRoute route)
+    {
+        if (Mode != Mode.Sea) { Say("바다에 나가야 항로를 따라갈 수 있다."); Cues.Enqueue("Error"); return; }
+        LoadRoute(route);
+        if (_turnMarks.Count == 0) return;
+        // 어디서부터: 가장 가까운 「점」으로 가면 항로 한가운데에서 걸었을 때 지나온 점으로 되돌아간다(사용자, 2026-10-10: 「여기에서 따라가기 했더니 다시 리스본 앞바다로 가네」).
+        // 그래서 배에서 가장 가까운 「구간」을 찾아 그 구간의 앞쪽 점부터 간다. 가는 쪽은 짐작하지 않는다 — 항로의 목적지는 끝 점이니 늘 끝 점 쪽으로 간다
+        // (사용자: 「가는중인지 오는중인지를 니가 모르나? 목적지는 정해져있는데」; 되짚어 가려면 점을 눌러 「여기부터 거꾸로 따라가기」)
+        int start = 0;
+        double best = double.MaxValue;
+        for (int k = 0; k + 1 < _turnMarks.Count; k++)
+        {
+            var (a, b) = (_turnMarks[k], _turnMarks[k + 1]);
+            // 배를 원점으로 놓고 본 구간(가로는 세계의 가장자리를 넘어 가까운 쪽으로)
+            double ax = WorldMap.DeltaX(ShipX, a.X), ay = a.Y - ShipY, bx = ax + WorldMap.DeltaX(a.X, b.X), by = ay + (b.Y - a.Y);
+            double sx = bx - ax, sy = by - ay, length = sx * sx + sy * sy;
+            double t = length < 1e-9 ? 0 : Math.Clamp(-(ax * sx + ay * sy) / length, 0, 1);
+            double px = ax + sx * t, py = ay + sy * t, far = px * px + py * py;
+            if (far >= best) continue;
+            best = far;
+            start = k + 1;
+        }
+        if (Sail == 0) ChangeSail(SailSteps);      // 돛이 접혀 있으면 펴고 간다
+        FollowTurns(start);
+    }
     public void StopFollow(string why = "")
     {
         if (!TurnFollow) return;
         TurnFollow = false;
         Say(why == "" ? "조타 기록 따라가기를 멈췄다." : $"조타 기록 따라가기를 멈췄다 — {why}.");
+    }
+    // 바다에서 선원이 줄면 까닭이 무엇이든(파도 · 바람 · 굶주림 · 병 · 싸움 …) 기록 창에 알린다(사용자, 2026-10-10).
+    // 조금씩 줄 때 줄마다 쏟아지지 않게 1.5초 동안 준 것을 모아 한 줄로 적는다. 배를 갈아타 정원에 맞춰 준 것도 함께 잡힌다
+    private int _crewNoted = -1;
+    private double _crewNotedAt;
+    private void CrewNotice()
+    {
+        int now = (int)Math.Ceiling(Crew);
+        if (_crewNoted < 0 || now > _crewNoted) { (_crewNoted, _crewNotedAt) = (now, Clock); return; }
+        if (now == _crewNoted || Clock - _crewNotedAt < 1.5) return;
+        Say($"선원이 {_crewNoted - now}명 줄었다. (남은 선원 {now}명)");
+        (_crewNoted, _crewNotedAt) = (now, Clock);
+    }
+    // 해역이 바뀌면 기록 창에 알린다(사용자, 2026-10-10). 출항한 첫 해역은 알리지 않는다(출항 글이 이미 있다)
+    private string _zoneNoted = "";
+    /// <summary>해역 네모를 보일 때까지의 시각(Clock) — 해역에 들어선 뒤 몇 초.</summary>
+    public double ZoneCardUntil { get; private set; }
+    private void ZoneNotice()
+    {
+        string zone = SeaName;
+        if (zone == _zoneNoted || zone == "") return;
+        if (_zoneNoted != "") Say($"해역이 바뀌었다 — {zone}.");
+        _zoneNoted = zone;
+        ZoneCardUntil = Clock + 6;      // 원본처럼 왼쪽 위에 해역 · 항해일수 · 날씨 네모가 잠깐 뜬다(출항한 첫 해역에서도)
     }
     private void TickFollow()
     {
@@ -287,10 +351,65 @@ internal sealed partial class Voyage
             // 앞으로 갈 때는 그 자리에 적힌 침로를 잡는다. 거꾸로 갈 때 적힌 침로는 온 쪽의 것이라 쓰지 않고, 다음 기록 쪽을 보게 둔다
             if (!TurnFollowBack) TargetHeading = next.Heading;
             TurnFollowAt += TurnFollowBack ? -1 : 1;
-            if (TurnFollowAt < 0 || TurnFollowAt >= _turnMarks.Count) StopFollow("끝까지 왔다");
+            if (TurnFollowAt < 0 || TurnFollowAt >= _turnMarks.Count)
+            {
+                // 끝 점에 닿으면 돛을 내린다 — 그대로 두면 마지막 침로로 계속 가다 뭍에 걸렸다(지은 처리)
+                StopFollow("끝까지 왔다");
+                if (Sail > 0) { Sail = 0; Say("돛을 내렸다."); }
+            }
             return;
         }
-        TargetHeading = Normalize(Math.Atan2(dx, -dy));
+        // 바람 · 해류에 밀려 다음 점으로 가는 곧은 길이 땅에 걸리면(사용자, 2026-10-10) 항로 줄로 먼저 돌아간다:
+        // 앞 점 → 다음 점의 줄 위에서, 배에서 땅에 안 걸리고 보이는 가장 앞쪽 자리를 겨눈다(지은 셈). 셈이 무거워 0.4초에 한 번만 다시 잡는다
+        if (Clock - _followAimAt > 0.4 || _followAimFor != TurnFollowAt)
+        {
+            (_followAimAt, _followAimFor, _followAim) = (Clock, TurnFollowAt, null);
+            _followAimShip = (ShipX, ShipY);
+            int before = TurnFollowAt + (TurnFollowBack ? 1 : -1);
+            if (before >= 0 && before < _turnMarks.Count && !SeaBetween(ShipX, ShipY, dx, dy))
+            {
+                var prev = _turnMarks[before];
+                double lx = WorldMap.DeltaX(prev.X, next.X), ly = next.Y - prev.Y;
+                for (int k = 15; k >= 0; k--)
+                {
+                    double ax = WorldMap.DeltaX(ShipX, prev.X) + lx * k / 16, ay = prev.Y + ly * k / 16 - ShipY;
+                    if (!SeaBetween(ShipX, ShipY, ax, ay)) continue;
+                    _followAim = (ax, ay);
+                    break;
+                }
+            }
+        }
+        if (_followAim is { } aim && Math.Abs(aim.X) + Math.Abs(aim.Y) > 3) (dx, dy) = (aim.X - WorldMap.DeltaX(_followAimShip.X, ShipX), aim.Y - (ShipY - _followAimShip.Y));
+        // 바로 앞이 땅이면 비켜 간다 — 가려는 쪽에서 좌우로 10도씩 벌려 가며 앞 30 이 바다인 첫 쪽으로(항로 줄 자체가 곶 · 물목에 스칠 때; 지은 셈)
+        double want = Math.Atan2(dx, -dy), reach = Math.Min(30, Math.Sqrt(dx * dx + dy * dy));
+        if (Clock - _followDodgeAt > 0.2)
+        {
+            (_followDodgeAt, _followDodge) = (Clock, 0);
+            for (int k = 0; k <= 18; k++)
+            {
+                double turn = (k + 1) / 2 * (k % 2 == 0 ? 1 : -1) * Math.PI / 18, way = want + turn;
+                if (!SeaBetween(ShipX, ShipY, Math.Sin(way) * reach, -Math.Cos(way) * reach)) continue;
+                _followDodge = turn;
+                break;
+            }
+        }
+        TargetHeading = Normalize(want + _followDodge);
+        if (Environment.GetEnvironmentVariable("DHO_FOLLOW") != null && Clock - _followSaidAt > 3 && (_followSaidAt = Clock) > 0) Say($"(시험) 배 {ShipX:0.0},{ShipY:0.0} 침로 {Heading * 180 / Math.PI:0} 겨눔 {want * 180 / Math.PI:0} 비킴 {_followDodge * 180 / Math.PI:0} 속도 {Knots:0.0} 돛 {Sail} 해류 {_currentX:0.00},{_currentY:0.00} 제자리땅 {Map.IsLand(ShipX, ShipY)} 앞3땅 {Map.IsLand(ShipX + Math.Sin(Heading) * 3, ShipY - Math.Cos(Heading) * 3)} 앞길 {SeaBetween(ShipX, ShipY, Math.Sin(Heading) * 30, -Math.Cos(Heading) * 30)} 돛단 {SailSteps}");
+    }
+    private double _followDodgeAt = double.MinValue, _followDodge, _followSaidAt;
+    private double _followAimAt = double.MinValue;
+    private int _followAimFor = -1;
+    private (double X, double Y)? _followAim;
+    private (double X, double Y) _followAimShip;
+    /// <summary>(x, y)에서 (dx, dy)만큼 곧게 가는 길이 모두 바다인가 — 0.5 마다 한 번씩 본다(성기게 보면 뭍 칸의 모서리를 건너뛴다).</summary>
+    private bool SeaBetween(double x, double y, double dx, double dy)
+    {
+        double length = Math.Sqrt(dx * dx + dy * dy);
+        if (length < 1e-6) return !Map.IsLand(x, y);
+        // 배 바로 앞 4 는 0.1 마다 — 뭍 칸의 모서리를 0.4 쯤 스치는 것도 잡아야 한다(틱마다 0.04 씩 가다 거기 걸려 섰다). 그 뒤는 0.5 마다
+        for (double t = 0.1; t <= length; t += t < 4 ? 0.1 : 0.5)
+            if (Map.IsLand(WorldMap.WrapX(x + dx * t / length), y + dy * t / length)) return false;
+        return !Map.IsLand(WorldMap.WrapX(x + dx), y + dy);
     }
     private void MarkTurn()
     {
@@ -319,6 +438,15 @@ internal sealed partial class Voyage
     /// <summary>받아 둔 의뢰. 한 번에 하나.</summary>
     public QuestData? Quest { get; private set; }
     public QuestStage QuestStage { get; private set; }
+    /// <summary>받은 모험 의뢰(또는 지도)를 포기한다 — 받은 선급금은 돌려준다(가진 만큼; 지은 처리).</summary>
+    public void AbandonQuest()
+    {
+        if (Quest is not { } dropped) return;
+        int back = (int)Math.Min(Money, dropped.Advance);
+        Money -= back;
+        Say($"의뢰 「{dropped.Title}」을(를) 포기했다." + (back > 0 ? $" 선급금 {back:N0} 두캇을 돌려주었다." : ""));
+        (Quest, QuestStage) = (null, QuestStage.None);
+    }
     /// <summary>조합 창에서 고른 의뢰(아직 받기 전).</summary>
     public QuestData? Offered { get; set; }
     private readonly HashSet<int> _done = [];
@@ -440,10 +568,34 @@ internal sealed partial class Voyage
     public string PlaceName(int place) => place == Broker ? "의뢰 중개인" : place == InsideMaster ? InteriorHost : place == InsideMaid ? "여급" : place == InsideSailor ? "뱃사람" : place == InsideExit ? "출구" : Data.Places.Find(p => p.Id == place)?.Name ?? (place > 1000 ? "저택" : $"장소 {place}");
 
     /// <summary>시내에서 그 시설에 닿았을 때 — 하는 일이 있는 곳이면 창을 연다.</summary>
-    public void Visit(TownMark mark)
+    /// <summary>시내 사람이 방금 한 말 — 머리 위 말풍선으로 몇 초 보인다(원본 화면처럼; 사용자, 2026-10-10). 기록에도 「이름 : 말」로 남는다.</summary>
+    public (string Who, string Words, double Until)? Speech { get; private set; }
+    public void Speak(string who, string words)
+    {
+        Speech = (who, words, Clock + 6);
+        Say($"{who} : {words}");
+    }
+
+    /// <summary>시설 사람의 인사말 — 말을 걸면 머리 위 말풍선으로 뜬다. 모두 제 글이다(원본 글을 옮기지 않는다).</summary>
+    private static string Greeting(int place) => place switch
+    {
+        1 => "어서 오게. 새 의뢰가 들어와 있네.",
+        3 => "바다가 시끄럽네. 손을 빌려주겠나?",
+        9 or 30 => "배를 보러 왔소? 천천히 둘러보시오.",
+        10 or 19 or 26 or 27 or 32 => "어서 오시오. 오늘 시세가 괜찮소.",
+        14 or 21 or 22 or 25 => "맡기실 건가요, 찾으실 건가요?",
+        11 or 31 => "필요한 물건이 있으면 말씀하시오.",
+        12 => "쇠는 달궈져 있소. 무엇을 벼릴까?",
+        13 => "어서 오시오! 한잔하고 가시오.",
+        20 or 401 => "이 도시에 힘을 보태 주시겠소?",
+        _ => "",
+    };
+
+    public void Visit(TownMark mark, string? who = null)
     {
         string name = PlaceName(mark.Place);
         if (mark.Place is not (InsideMaster or InsideMaid or InsideSailor)) Say($"{name}에 왔다.");
+        if (who != null && Greeting(mark.Place) is { Length: > 0 } hello) Speak(who, hello);
         if (mark.Place == InsideMaster)
         {
             if (InteriorDialog == Dialog.None) TalkInside();
@@ -451,9 +603,9 @@ internal sealed partial class Voyage
             return;
         }
         if (mark.Place == InsideExit) { LeaveInterior(); return; }
-        if (mark.Place == Broker) { Dialog = Dialog.Broker; return; }
+        if (mark.Place == Broker) { Speak(name, "일거리를 찾으시오?"); Dialog = Dialog.Broker; return; }      // 말은 제 글(원본 글을 옮기지 않는다)
         if (mark.Place == InsideSailor) { Dialog = Dialog.Recruit; return; }
-        if (mark.Place == InsideMaid) { Say("여급: 「어서 오세요! 오늘은 무엇을 드릴까요?」"); return; }
+        if (mark.Place == InsideMaid) { Speak(name, "어서 오세요! 오늘은 무엇을 드릴까요?"); return; }
         if (mark.Place is 4 or 5) TownView = false;                          // 항구 · 항구(항구 앞) → 부두로
         else if (mark.Place is 9 or 30) Dialog = Dialog.ShipyardMenu;
         else if (mark.Place is 10 or 19 or 26 or 27 or 32) Dialog = Dialog.Trade;
@@ -633,6 +785,8 @@ internal sealed partial class Voyage
         Dialog = Dialog.None;
         SecondsAtSea = 0;
         Sail = 1;
+        _crewNoted = -1;      // 항구에서 달라진 선원 수는 「줄었다」로 치지 않는다
+        _zoneNoted = "";
         Say($"{City.Name}을(를) 출항했다.");
         RouteMakingDeparts();
         // 옵션: 출항하면 돛 조종을 켠다 — 스킬이 없거나 못 쓸 때(행동력 부족 따위)는 조용히 넘어간다
@@ -664,10 +818,13 @@ internal sealed partial class Voyage
         DeliverTow();
         HearLanguage();
         DiscoverPort(city);
-        Studied("Voyage");
-        if (OnSteamship) Studied("SteamVoyage");
+        // 나가자마자 되돌아온 것(하루도 안 지난 항해)은 연구의 항해로 안 센다 — 제자리에서 논문이 써지지 않게(하루는 지은 문턱)
+        if (days >= 1) Studied("Voyage");
+        if (days >= 1 && OnSteamship) Studied("SteamVoyage");
+        if (days >= 1 && (Bonus("Watch") > 0 || Bonus("Lookout") > 0)) Studied("Patrol");      // 연구 과제 「순시 항해」 — 「경계，감시 스킬을 사용해 항해」: 게임의 두 스킬은 늘 듣는 것이라, 가진 채 항해를 마치면 센다(짐작)
         if (days >= 1) GainMastery();
         if (days >= 15) Studied("LongVoyage");
+        if (days >= 40) Studied("UltraVoyage");      // 연구 과제 「초 장거리 항해」 — 설명에는 「(초 장거리)」뿐이라 40일은 지은 값
         RestInPort();
         OrderOnArrive();
     }
@@ -912,6 +1069,8 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
         UpdateDelegate(dt, steer);
         if (steer != 0) StopFollow("키를 잡았다");
         TickFollow();
+        CrewNotice();
+        ZoneNotice();
         // 조타 글쇠 — 설정의 각(1도 단위)이 있으면 한 번 누를 때 그만큼만 꺾고(누르고 있으면 0.25초마다 되풀이), 0 이면 누르는 동안 계속 돈다
         if (steer != 0 && Settings.SteerStep > 0)
         {
@@ -965,11 +1124,15 @@ if (Dialog != Dialog.Trade && _sheetsMarked.Count > 0) _sheetsMarked.Clear();   
         double drift = Sail > 0 ? Settings.UnitsPerKnotSecond * dt : 0;
         double nextX = ShipX + Math.Sin(Heading) * distance + _currentX * drift;
         double nextY = ShipY - Math.Cos(Heading) * distance - _currentY * drift;
+        // 해류가 뭍 쪽으로 밀어 막힌 것이면 해류 몫만 뺀다 — 뱃머리 쪽이 바다인데도 해류 때문에 꼼짝 못 하던 것을 푼다(뭍이 떠밀림을 막는다고 본다)
+        if (Blocked(nextX, nextY) && !Blocked(ShipX + Math.Sin(Heading) * distance, ShipY - Math.Cos(Heading) * distance))
+            (nextX, nextY) = (ShipX + Math.Sin(Heading) * distance, ShipY - Math.Cos(Heading) * distance);
         if (Blocked(nextX, nextY))
         {
             if (Knots > 1) Say("육지에 막혔다. 뱃머리를 돌려야 한다.");
+            if (Environment.GetEnvironmentVariable("DHO_FOLLOW") != null && Clock - _followSaidAt > 2.5) Say($"(시험막힘) dt {dt:0.000} 거리 {distance:0.00} 떠밀림 {drift:0.00} 속도 {Knots:0.00} 낼속도 {target:0.00} 다음 {nextX:0.0},{nextY:0.0} 땅 {Map.IsLand(nextX, nextY)} 앞 {Map.IsLand(nextX + Math.Sin(Heading) * 3, nextY - Math.Cos(Heading) * 3)}");
             Knots = 0;
-            Sail = Math.Min(Sail, 1);
+            if (!TurnFollow) Sail = Math.Min(Sail, 1);      // 항로를 따라가는 중에는 스스로 비켜 가니 돛을 줄이지 않는다(줄이면 그 뒤 내내 느리다)
         }
         else
         {

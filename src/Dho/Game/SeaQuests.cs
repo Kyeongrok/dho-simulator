@@ -15,6 +15,8 @@ internal sealed partial class Voyage
     /// <summary>맡은 해사 의뢰 · 받은 도시 · 가라앉힌 수 · 가라앉혀야 하는 수.</summary>
     public SeaQuest? SeaJob { get; private set; }
     public int SeaGiver { get; private set; }
+    /// <summary>받은 해사 의뢰를 포기한다.</summary>
+    public void AbandonSea() { if (SeaJob is not { } dropped) return; Say($"의뢰 「{SeaTitle(dropped)}」을(를) 포기했다."); SeaJob = null; }
     public int SeaSunk { get; private set; }
     public int SeaNeed { get; private set; }
     private readonly HashSet<int> _seaDone = [];

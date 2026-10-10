@@ -13,6 +13,8 @@ internal sealed partial class Voyage
     /// <summary>맡은 교역 의뢰와 받은 도시, 건넸는가.</summary>
     public TradeQuest? TradeJob { get; private set; }
     public int TradeGiver { get; private set; }
+    /// <summary>받은 교역 의뢰를 포기한다.</summary>
+    public void AbandonTrade() { if (TradeJob is not { } dropped) return; Say($"의뢰 「{TradeTitle(dropped)}」을(를) 포기했다."); TradeJob = null; }
     public bool TradeDelivered { get; private set; }
     private readonly HashSet<int> _tradeDone = [];
 

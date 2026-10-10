@@ -25,6 +25,8 @@ internal struct FrameConstants
     public Vector3 WaterColor; public float Pad3;
     public Vector2 WorldOffset; public Vector2 ShipPosition;
     public Vector2 ShipDirection; public float ShipSpeed; public float WaveScale;
+    public float WakeStyle; public float MateCount; public Vector2 PadWake;      // MateCount: 물살을 함께 그릴 부관 선장의 배 수(0 ~ 2)
+    public Vector4 MateA; public Vector4 MateB;      // 그 배들 — xy 내 배에서 본 자리(세계 단위) · zw 뱃머리 방향      // 물살 모양(모드 창에서 고른 번호) — 바다 셰이더가 읽는다
 }
 
 /// <summary>그리는 물체마다 올리는 값. HLSL 의 <c>cbuffer Object</c> 와 짝.</summary>

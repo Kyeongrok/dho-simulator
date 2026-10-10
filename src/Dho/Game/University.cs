@@ -3,9 +3,12 @@ using Dho.Data;
 namespace Dho.Game;
 
 /// <summary>
-/// 대학 — 전공을 정하고, 그 전공의 연구를 하나 골라, 연구가 바라는 행동(항해 · 교역 · 발견 · 수리 …)을 횟수만큼 하면
-/// 연구가 끝나 학점과 대학 스킬을 얻는다. 연구 목록은 ssjoy 에서 모은 것이고, 행동 가운데 이 게임에 있는 것만 진행된다
-/// (할 일의 이름 → 게임의 사건은 EventOf; 할 일이 모두 이어진 연구만 고를 수 있다 — 226건 가운데 133건). 얻은 스킬의 효과는 원본 설명 글에 크기가 있는 것만 넣었다(StudyEffects · HasStudy 를 쓰는 자리들) — 나머지는 이름과 설명만 보인다.
+/// 대학 — 전공을 정하고, 그 전공의 연구(논문 테마)를 하나 골라, 연구 행동(항해 · 교역 · 발견 · 수리 …)으로 논문을 쓴다:
+/// 행동 한 번에 그 행동에 적힌 쪽만큼 써지고, 필요 페이지에 닿으면 연구가 끝나 학점과 대학 스킬을 얻는다(w-927).
+/// 연구 목록은 ssjoy 에서 모은 것 + 클라이언트의 연구 값 표(67)이고, 행동 가운데 이 게임에 있는 것만 진행된다
+/// (행동의 이름 → 게임의 사건은 EventOf; 그런 행동이 하나라도 든 연구를 고를 수 있다 — 303건 가운데 275건).
+/// 원본에 있고 여기 없는 것(화면 글로 본 것 — 분석 글 84 의 w-928): 연구동 고르기 · 소비 학점 · 논문 제출 횟수 조건 · 대학 레벨 · 학회,
+/// 그리고 학과(항해장 · 감시 · 회계사 …)의 연구는 부관을 골라 시키는 것이다 — 여기서는 주인공의 전공처럼 보인다. 얻은 스킬의 효과는 원본 설명 글에 크기가 있는 것만 넣었다(StudyEffects · HasStudy 를 쓰는 자리들) — 나머지는 이름과 설명만 보인다.
 /// </summary>
 internal sealed partial class Voyage
 {
@@ -28,7 +31,7 @@ internal sealed partial class Voyage
         "대성공 생산" => "Great",
         // 표 64 의 설명대로: 악천 항해 = 폭풍，눈보라가 칠 때 해상에 있다 · 선원 교류 = 동행한 부관의 신뢰도가 증가 · 직업 실습 = 전직 · 자물쇠 따기 = 보물상자를 연다 · 수탈 실전 = 수탈을 한다 · 침몰선조사 = 침몰선 조사를 완료
         "악천 항해" => "Storm", "선원 교류" => "Trust", "직업 실습" => "Job", "자물쇠 따기" => "Lock", "수탈 실전" => "Loot", "침몰선조사" => "Wreck",
-        "고수익 교역" => "HighProfit", "거액 투자" => "BigInvest", "증기선 항해" => "SteamVoyage",
+        "고수익 교역" => "HighProfit", "거액 투자" => "BigInvest", "서고 조사" => "Library", "인명 구조 실전" => "Rescue", "공격 전술" => "Tactic", "순시 항해" => "Patrol", "초 장거리 항해" => "UltraVoyage", "증기선 항해" => "SteamVoyage",
         "코스 요리 만끽" => "Course",              // 주점에서 요리를 먹는 일로 본다(짐작)
         "야외 활동" => "Outdoor",                  // 「조달，낚시，채집으로 교역품을 입수한다」(표 64) — 채집 · 낚시로 물건을 얻을 때
         // 해전 · 육상전이 생기면서 할 수 있게 된 것들(이름은 연구 자료의 것 — 「관통 포격」 · 「근거리 포격」은 해전의 그 일이다)
@@ -43,9 +46,9 @@ internal sealed partial class Voyage
         _ => null,
     };
 
-    /// <summary>이 게임에서 끝낼 수 있는 연구인가 — 바라는 행동이 모두 있는 것이어야 하고, 직업 연구는 그 직업이어야 한다.</summary>
+    /// <summary>이 게임에서 끝낼 수 있는 연구인가 — 연구 행동 가운데 게임에 있는 것이 하나라도 있어야 하고, 직업 연구는 그 직업이어야 한다.</summary>
     public bool CanStudy(ResearchFact research) =>
-        research.Actions.Count > 0 && research.Actions.All(a => EventOf(a.Name) != null) &&
+        research.Actions.Exists(a => EventOf(a.Name) != null && a.Count > 0) &&      // 어느 행동으로든 논문이 써지니 하나만 있어도 된다(w-927)
         (research.Job == "" || research.Job == (Data.Jobs.Find(j => j.Id == JobId)?.Name ?? ""));
 
     /// <summary>고를 수 있는 전공들 — 끝낼 수 있는 연구가 하나라도 있는 것.</summary>
@@ -59,6 +62,15 @@ internal sealed partial class Voyage
         Major = major;
         if (Studying != null && Studying.Major != major) { Studying = null; StudyProgress.Clear(); }
         Say($"전공을 「{major}」(으)로 정했다.");
+    }
+
+    /// <summary>하던 연구를 그만둔다 — 쓰던 논문은 버려진다(원본의 「연구 중단」 · 「파기」; 화면이 한 번 더 묻는다).</summary>
+    public void DropResearch()
+    {
+        if (Studying is not { } research) return;
+        Say($"연구 「{research.Name}」을(를) 그만두었다." + (StudyPages > 0 ? $" (쓴 {StudyPages:N0}쪽을 버렸다)" : ""));
+        Studying = null;
+        StudyProgress.Clear();
     }
 
     public void StartResearch(ResearchFact research)
@@ -93,16 +105,59 @@ internal sealed partial class Voyage
         };
     }
 
+    /// <summary>연구를 마친 알림 — 화면 위쪽 가운데에 잠깐 뜬다(제목 · 내용 · 뜬 시각).</summary>
+    public (string Title, string Text, double At) StudyNotice { get; private set; } = ("", "", -100);
+
+    /// <summary>그 번호의 연구에 게임에 있는 행동이 하나라도 있는가(직업 조건은 안 본다 — 위키 목록이 흐리게 적는 데 쓴다).</summary>
+    public bool StudyHasWay(int no) => Data.Research.Find(r => r.No == no)?.Actions.Exists(a => EventOf(a.Name) != null && a.Count > 0) ?? false;
+
+    /// <summary>
+    /// 그 연구 행동을 이 게임이 어떻게 세는지 — 원본 설명과 다르거나 문턱을 지어 넣은 것만(없으면 빈 글).
+    /// 문턱은 세는 자리의 값과 같아야 한다: 항해는 Voyage.EnterPort(하루 · 15일 · 40일), 포격 거리는 SeaShips 의 Fire(사거리의 0.6 밖 · 0.35 안).
+    /// </summary>
+    public static string StudyWayNote(string action) => action switch
+    {
+        "보통 항해" => "하루 이상 항해하고 입항하면 한 번",
+        "장거리 항해" => "15일 이상 항해하고 입항하면 한 번",
+        "초 장거리 항해" => "40일 이상 항해하고 입항하면 한 번",
+        "증기선 항해" => "증기선으로 하루 이상 항해하고 입항하면 한 번",
+        "순시 항해" => "경계나 감시 스킬을 가진 채 하루 이상 항해하고 입항하면 한 번",
+        "서고 조사" => "그날 읽을 수 있는 책을 다 읽으면 한 번",
+        "공격 전술" => "기뢰나 충각으로 적선을 가라앉히면 한 번",
+        "인명 구조 실전" => "해전에서 구조 · 외과의술 스킬이 선원을 살리면 한 번",
+        "장거리 포격" => "사거리의 6할보다 먼 적에게 포를 쏘면 한 번",
+        "근거리 포격" => "사거리의 3할 5푼보다 가까운 적에게 포를 쏘면 한 번",
+        "코스 요리 만끽" => "주점에서 요리를 먹으면 한 번",
+        _ => "",
+    };
+
+    /// <summary>게임에 있는 연구 행동인가(화면이 없는 행동을 「(없음)」으로 적는다).</summary>
+    public bool HasStudyAction(string action) => EventOf(action) != null;
+
+    /// <summary>하고 있는 연구의 논문에 쓴 페이지(행동별로 쓴 것의 합).</summary>
+    public int StudyPages => StudyProgress.Values.Sum();
+
     private void Studied(string happened, int times = 1, int level = 0, int kind = 0)
     {
+        // 연구 = 논문 쓰기(w-926 · w-927): 연구 행동을 한 번 하면 그 행동에 적힌 수만큼 논문이 써지고, 쓴 페이지가 필요 페이지(Pages)에 닿으면 끝난다.
+        // 근거: 원본 화면 글 3222 · 1480 「필요 페이지 수」 · 1481 「기술 페이지 수」, 그리고 자료의 값(쉬운 행동 1 · 어려운 행동 96 · 480 에 필요 4,800 —
+        // 필요 페이지가 행동의 수로 늘 나누어떨어진다). 원본 규칙을 글과 값으로 미루어 읽은 것(짐작)이다. StudyProgress 는 행동별로 쓴 페이지다(전에는 횟수였다).
+        // 원본은 논문이 완성되면 대학에 보고해야 학점을 받는다(글 3223) — 여기서는 완성되는 자리에서 바로 받는다.
         if (Studying is not { } research) return;
+        int before = StudyPages;
         foreach (var action in research.Actions.Where(a => EventOf(a.Name) == happened && Fits(a.Name, level, kind)))
-            StudyProgress[action.Name] = Math.Min(action.Count, StudyProgress.GetValueOrDefault(action.Name) + times);
-        if (!research.Actions.All(a => StudyProgress.GetValueOrDefault(a.Name) >= a.Count)) return;
+            StudyProgress[action.Name] = StudyProgress.GetValueOrDefault(action.Name) + action.Count * times;
+        int wrote = StudyPages - before, need = Math.Max(1, research.Pages);
+        if (wrote <= 0) return;
+        // 포격처럼 잦은 행동이 기록을 덮지 않게 — 쓴 페이지가 필요의 열에 하나를 넘길 때(또는 한 번에 스무에 하나 넘게 썼을 때)만 알린다
+        if (StudyPages < need && (wrote * 20 >= need || before * 10 / need != StudyPages * 10 / need))
+            Say($"{Fill(Text(3222, "논문을 %d쪽 썼다."), $"{wrote}")} ({Math.Min(StudyPages, need):N0} / {need:N0})");
+        if (StudyPages < need) return;
         StudyDone.Add(research.No);
         Credits += research.Credit;
-        Say($"연구 「{research.Name}」을(를) 마쳤다! 학점 {research.Credit:N0}, 대학 스킬 「{research.Skill}」.");
+        Say($"{Text(3445, "논문을 다 썼다!")} 「{research.Name}」 — 학점 {research.Credit:N0}, 대학 스킬 「{research.Skill}」.");
         Cues.Enqueue("StudyDone");
+        StudyNotice = (Text(3445, "논문을 다 썼다!"), $"「{research.Name}」  학점 +{research.Credit:N0}" + (research.Skill != "" ? $"  ·  {research.Skill}" : ""), Clock);
         Studying = null;
         StudyProgress.Clear();
     }
@@ -156,8 +211,8 @@ internal sealed partial class Voyage
     public int StudySpared(int craftSkill, int times) =>
         Array.Find(CraftStudies, c => c.Craft == craftSkill) is { Skills: not null } study && study.Skills.Any(HasStudy) ? Math.Min(times - 1, times / 10) : 0;
 
-    /// <summary>대학 스킬의 원본 설명 글(클라이언트 스킬 표) — 없으면 빈 글.</summary>
-    public string StudySkillNote(string skill) => Data.StudySkillNotes.GetValueOrDefault(skill.Replace(" ", ""))?.Replace("\n", " ").Trim() ?? "";
+    /// <summary>대학 스킬의 원본 설명 글(클라이언트 스킬 표) — 없으면 빈 글. 학과의 스킬 연구가 주는 것은 보통 스킬과 이름 · 설명이 같은 줄(스킬 표 6200 + 스킬 번호)이라, 대학 스킬 글이 없으면 그 스킬의 설명을 준다.</summary>
+    public string StudySkillNote(string skill) => (Data.StudySkillNotes.GetValueOrDefault(skill.Replace(" ", "")) ?? Data.Skills.Find(s => s.Name == skill)?.Description)?.Replace("\n", " ").Trim() ?? "";
 
     /// <summary>할 일의 원본 설명 글(클라이언트 표 64) — 없으면 빈 글.</summary>
     public string StudyTaskNote(string action) => Data.StudyTasks.Find(t => t.Name.Trim() == action.Trim())?.Description.Replace("\n", " ").Trim() ?? "";
@@ -165,9 +220,9 @@ internal sealed partial class Voyage
     /// <summary>대본용 — 끝낼 수 있는 연구 수를 적고, 「교역품 3종 구입」이 든 연구를 잡아 1종(식료품)과 3종(섬유) 구입 사건을 넣어 진행이 어떻게 되는지 적는다.</summary>
     public void StudyCheckForTest()
     {
-        int all = Data.Research.Count, able = Data.Research.Count(r => r.Actions.Count > 0 && r.Actions.All(a => EventOf(a.Name) != null));
-        Say($"(시험) 연구 {all}건 가운데 할 일이 모두 게임에 있는 것 {able}건");
-        if (Data.Research.Find(r => r.Actions.Exists(a => a.Name == "교역품 3종 구입") && r.Actions.All(a => EventOf(a.Name) != null)) is not { } research) { Say("(시험) 「교역품 3종 구입」이 든 연구가 없다"); return; }
+        int all = Data.Research.Count, able = Data.Research.Count(r => r.Actions.Exists(a => EventOf(a.Name) != null && a.Count > 0));
+        Say($"(시험) 연구 {all}건 가운데 게임에 있는 행동이 하나라도 든 것 {able}건");
+        if (Data.Research.Find(r => r.Actions.Exists(a => a.Name == "교역품 3종 구입")) is not { } research) { Say("(시험) 「교역품 3종 구입」이 든 연구가 없다"); return; }
         (Studying, _) = (research, 0); StudyProgress.Clear();
         Studied("Buy", 1, 0, 0);
         int afterFood = StudyProgress.GetValueOrDefault("교역품 3종 구입");
@@ -233,6 +288,48 @@ internal sealed partial class Voyage
         CheckBattleEnd(battle);
         Say($"(시험) 승리 상금 — 스킬 없는 식의 값 {plain:N0} · 현상금 사냥꾼의 기술로 받은 돈 {Money - before:N0}");
         Say(shots);
+    }
+    /// <summary>대본용 — 「서고 조사」가 든 연구를 잡고, 이 도시 서고의 첫 책을 오늘 읽을 수 있는 만큼 실제 길(ReadBook)로 읽어 진행이 오르는지 적는다.</summary>
+    public void StudyHooksForTest()
+    {
+        if (Data.Research.Find(r => r.Actions.Exists(a => a.Name == "서고 조사")) is not { } research) { Say("(시험) 「서고 조사」가 든 연구가 없다"); return; }
+        foreach (var rule in Data.SkillRules.Where(r => r.Effect is "Appraise" or "Language" or "BookLanguage")) SetRankForTest(rule.SkillId, 1);
+        Money += 100_000;
+        (Studying, _) = (research, 0); StudyProgress.Clear();
+        var book = Books().FirstOrDefault();
+        if (book == null || ReadBlocker(book) is { } why0 && why0 != "") { Say($"(시험) 책을 못 읽는다 — {(book == null ? "책이 없다" : ReadBlocker(book))}"); (Studying, _) = (null, 0); return; }
+        int read = 0, midway = -1;
+        while (ReadBlocker(book) == null) { ReadBook(book); read++; if (BooksLeft == 1) midway = StudyProgress.GetValueOrDefault("서고 조사"); }
+        Say($"(시험) 「{research.Name}」 — 책 {read}권을 읽어 「서고 조사」 {StudyProgress.GetValueOrDefault("서고 조사")} (한 권 남았을 때 {midway})");
+        (Studying, _) = (null, 0); StudyProgress.Clear();
+    }
+    /// <summary>대본용 — 그 이름의 연구를 (전공을 맞춰) 시작하고, 게임에 있는 첫 행동을 세 번 한 것으로 넣는다(대학 창의 「쓴 페이지」 줄을 보려고).</summary>
+    public void StudyStartForTest(string name)
+    {
+        if (Data.Research.Find(r => r.Name == name) is not { } research) { Say($"(시험) 연구 「{name}」이 없다"); return; }
+        ChooseMajor(research.Major);
+        StartResearch(research);
+        if (Studying != research || research.Actions.Find(a => EventOf(a.Name) != null) is not { } first) { Say("(시험) 연구를 시작하지 못했다"); return; }
+        Studied(EventOf(first.Name)!, 3);
+        Say($"(시험) 「{first.Name}」 세 번 — 쓴 페이지 {StudyPages} / {research.Pages}");
+        // 목록의 ✓ · n/m 표시를 보려고 — 이름 차례로 앞의 두 전공에서 연구 하나씩을 마친 것으로 둔다
+        foreach (string major in Majors().Take(2)) StudyDone.Add(ResearchOf(major)[0].No);
+    }
+    /// <summary>대본용 — 그 이름의 연구를 시작해 게임에 있는 첫 행동으로 필요 페이지를 다 채운다(끝나는 알림을 보려고).</summary>
+    public void StudyFinishForTest(string name)
+    {
+        if (Data.Research.Find(r => r.Name == name) is not { } research) { Say($"(시험) 연구 「{name}」이 없다"); return; }
+        ChooseMajor(research.Major);
+        StartResearch(research);
+        if (Studying != research || research.Actions.Find(a => EventOf(a.Name) != null && a.Count > 0) is not { } first) { Say("(시험) 연구를 시작하지 못했다"); return; }
+        Studied(EventOf(first.Name)!, (research.Pages + first.Count - 1) / first.Count);
+    }
+    /// <summary>대본용 — 그 행동이 든 연구를 잡는다(전공은 안 따진다). 뒤이어 실제 길(입항 · 해전)을 타게 해 studyreport 로 진행을 본다.</summary>
+    public void StudyHoldForTest(string action)
+    {
+        if (Data.Research.Find(r => r.Actions.Exists(a => a.Name == action)) is not { } research) { Say($"(시험) 「{action}」이 든 연구가 없다"); return; }
+        Studying = research; StudyProgress.Clear();
+        Say($"(시험) 「{research.Name}」을 잡았다 ({string.Join(" · ", research.Actions.Select(a => $"{a.Name} +{a.Count}"))} / 필요 {research.Pages})");
     }
     public void StudyForTest(string skill)
     {

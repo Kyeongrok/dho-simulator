@@ -39,7 +39,7 @@ internal sealed partial class Voyage
     public const int PartStockLimit = 30;
 
     public string? FitBlocker(ShipPart part) =>
-        Mode != Mode.Port ? "항구에서만 단다"
+        !YardOpen ? "항구에서만 단다"
         : part.Slot == 4 ? (Parts.Count(p => p.Slot == 4 && SpotOf(p) == SpotOf(part)) >= CannonSlots(SpotOf(part)) ? $"{CannonSpots[SpotOf(part)]} 칸이 {(CannonSlots(SpotOf(part)) == 0 ? "없다" : "찼다")}" : null)
         : Parts.Count(p => p.Slot == part.Slot) >= SlotsOf(part.Slot) ? $"{SlotName[part.Slot]} 칸이 찼다" : null;
 
@@ -55,7 +55,7 @@ internal sealed partial class Voyage
     /// <summary>배에서 떼어 가진 부품으로 돌린다.</summary>
     public void Unfit(ShipPart part)
     {
-        if (Mode != Mode.Port || PartStock.Count >= PartStockLimit || !Parts.Remove(part)) return;
+        if (!YardOpen || PartStock.Count >= PartStockLimit || !Parts.Remove(part)) return;
         PartStock.Add(part);
         Cues.Enqueue("Part");
         Say($"{part.Name}을(를) 떼었다.");
@@ -130,7 +130,7 @@ internal sealed partial class Voyage
 
     public void BuyPart(ShipPart part)
     {
-        if (Mode != Mode.Port || PartBlocker(part) != null) return;
+        if (!YardOpen || PartBlocker(part) != null) return;
         Money -= PartPrice(part);
         Cues.Enqueue("Buy");
         PartStock.Add(part);
@@ -140,7 +140,7 @@ internal sealed partial class Voyage
     /// <summary>떼어서 반값에 판다.</summary>
     public void SellPart(ShipPart part)
     {
-        if (Mode != Mode.Port || !PartStock.Remove(part)) return;
+        if (!YardOpen || !PartStock.Remove(part)) return;
         Money += PartPrice(part) / 2;
         Say($"{part.Name}을(를) 팔았다. ({PartPrice(part) / 2:N0} 두캇)");
     }

@@ -154,7 +154,7 @@ internal sealed partial class Voyage
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Track = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })], Turns = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI), m.Day })], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, VeilLeft = VeilLeft, CharmPower = _charmPower, LevelCharm = [LevelCharmLeft, _levelCharmPower], Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
+            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Track = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })], Turns = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI), m.Day })], Follow = TurnFollow ? [TurnFollowAt, TurnFollowBack ? 1 : 0] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, VeilLeft = VeilLeft, CharmPower = _charmPower, LevelCharm = [LevelCharmLeft, _levelCharmPower], Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
@@ -310,6 +310,12 @@ internal sealed partial class Voyage
             Depart();
             (ShipX, ShipY, Heading, TargetHeading, SecondsAtSea, Sail) = (WorldMap.WrapX(sea[0]), sea[1], sea[2], sea[2], sea[3], 0);
             Say($"{SeaName} — 바다 위에서 이어 한다. (항해 {DaysAtSea}일째, 닻을 내리고 있다)");
+            // 항로를 따라가던 중이었으면 돛을 펴고 이어서 따라간다
+            if (save.Follow is { Length: >= 2 } follow && follow[0] >= 0 && follow[0] < _turnMarks.Count)
+            {
+                ChangeSail(SailSteps);
+                FollowTurns(follow[0], follow[1] != 0);
+            }
         }
     }
 }

@@ -53,6 +53,11 @@ internal static class Win32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool ImmAssociateContextEx(IntPtr hWnd, IntPtr hIMC, uint flags);
 
+    // 입력기의 지금 상태(한/영) 읽기 — 변환 상태의 IME_CMODE_NATIVE(1) 비트가 서 있으면 한글
+    [DllImport("imm32.dll")] public static extern IntPtr ImmGetContext(IntPtr hWnd);
+    [DllImport("imm32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool ImmGetConversionStatus(IntPtr hIMC, out uint conversion, out uint sentence);
+    [DllImport("imm32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool ImmReleaseContext(IntPtr hWnd, IntPtr hIMC);
+
     [DllImport("user32.dll")]
     public static extern uint GetDpiForWindow(IntPtr hWnd);
 

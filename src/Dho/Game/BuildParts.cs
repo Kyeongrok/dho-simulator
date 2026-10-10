@@ -184,7 +184,7 @@ internal sealed partial class Voyage
     /// <summary>재료를 넣어 옵션 스킬만 붙인다 — 강화 성능은 변하지 않고 강화 횟수도 안 쓴다(클라이언트 글 49203, 횟수는 짐작).</summary>
     public void GrantWith(IReadOnlyList<int> items)
     {
-        if (Mode != Mode.Port || GrantBlocker(items) != null || BuildOption(items) is not { } given) return;
+        if (!YardOpen || GrantBlocker(items) != null || BuildOption(items) is not { } given) return;
         foreach (int item in items)
             if (--Items[item] <= 0) Items.Remove(item);
         Work.Skills.Add(given.SkillId);
@@ -197,7 +197,7 @@ internal sealed partial class Voyage
     /// <summary>재료를 넣어 강화한다 — 능력치마다 범위 안에서 붙고(조타 숙련도의 한계까지), 조합이 맞으면 옵션 스킬이 붙는다.</summary>
     public void StrengthenWith(IReadOnlyList<int> items, int wood = 0, int? load = null)
     {
-        if (Mode != Mode.Port || BuildBlocker(items, wood) != null) return;
+        if (!YardOpen || BuildBlocker(items, wood) != null) return;
         var gained = new List<string>();
         if (OverWork && _random.Next(100) >= OverWorkChance(items))
         {

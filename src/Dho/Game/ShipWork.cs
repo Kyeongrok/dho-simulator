@@ -379,7 +379,7 @@ internal sealed partial class Voyage
 
     public void Redesign(DockedShip ship)
     {
-        if (Mode != Mode.Port || !Held(ship) || RedesignBlocker(ship) != null) return;
+        if (!YardOpen || !Held(ship) || RedesignBlocker(ship) != null) return;
         if (--Items[RedesignBook] <= 0) Items.Remove(RedesignBook);
         var work = ship.Work;
         var reset = Redesigned(ship);
@@ -453,7 +453,7 @@ internal sealed partial class Voyage
 
     private void CombineInto(DockedShip main, DockedShip material, int bonus, int inherit)
     {
-        if (Mode != Mode.Port || !Held(main) || !Dock.Contains(material) || CombineBlocker(main, material) != null) return;
+        if (!YardOpen || !Held(main) || !Dock.Contains(material) || CombineBlocker(main, material) != null) return;
         int chance = CombineChance(main, material);
         bool guarded = RefitGuard;
         (RefitBook, RefitGuard) = (null, false);       // 책과 지시서는 조합 한 번에 듣고 사라진다
@@ -662,7 +662,7 @@ internal sealed partial class Voyage
 
     public void GrantByCombo(OptionSkill skill)
     {
-        if (Mode != Mode.Port || ComboBlocker(skill) != null || RealCombo(skill) is not { } items) return;
+        if (!YardOpen || ComboBlocker(skill) != null || RealCombo(skill) is not { } items) return;
         foreach (int item in items)
             if (--Items[item] <= 0) Items.Remove(item);
         Work.Skills.Add(skill.SkillId);
@@ -758,7 +758,7 @@ internal sealed partial class Voyage
     /// </summary>
     public void ClearOptionSkills()
     {
-        if (Mode != Mode.Port || ClearableSkills(Work) is not { Count: > 0 } gone) return;
+        if (!YardOpen || ClearableSkills(Work) is not { Count: > 0 } gone) return;
         Work.Skills.RemoveAll(gone.Contains);
         Stats = Worked(StatsOf(Ship, ShipMaterialId, ShipLoad), Work, Ship);
         Cues.Enqueue("Part");
@@ -768,7 +768,7 @@ internal sealed partial class Voyage
     /// <summary>성능초기화 — 타고 있는 배의 강화치를 모두 0 으로(재질은 남는다). 되돌릴 수 없다.</summary>
     public void ResetWork()
     {
-        if (Mode != Mode.Port || ResetBlocker(Work) != null) return;
+        if (!YardOpen || ResetBlocker(Work) != null) return;
         // 원본은 특수조선 해체 기법서 한 권이 든다 — 이 게임에서는 들지 않는다(사용자, 2026-10-09)
         // 지워지는 것은 강화치와 (조선으로 붙인) 옵션 스킬뿐 — 재질 · 그레이드와 그 보너스 · 선박 형식 · 전용함 스킬 · 조타 숙련도는 남는다(원본의 안내 글 6843).
         // 그레이드 보너스로 들어온 스킬(스킬 계승 · 개조)도 보너스의 일부라 남는다
@@ -818,7 +818,7 @@ internal sealed partial class Voyage
 
     public void Strengthen(IReadOnlyCollection<int> parts, int wood = 0, bool skillOnly = false)
     {
-        if (Mode != Mode.Port || WorkBlocker(parts, wood, skillOnly) != null) return;
+        if (!YardOpen || WorkBlocker(parts, wood, skillOnly) != null) return;
         if (skillOnly && OptionFrom(parts) is { } given)
         {
             // 옵션 스킬 부여 — 스킬만 붙고 강화 성능은 변하지 않는다(클라이언트 글 49203)

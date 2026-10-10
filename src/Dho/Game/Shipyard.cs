@@ -225,7 +225,7 @@ internal sealed partial class Voyage
     public void OrderShip(ShipData ship, int material, int load)
     {
         load = Math.Clamp(load, -LoadReach, LoadReach);
-        if (Mode != Mode.Port || BuildBlocker(ship, material, load) != null) return;
+        if (!YardOpen || BuildBlocker(ship, material, load) != null) return;
         Money -= BuildCost(ship, material);
         if (IsSpecial(material) && WoodItemOwned(material) is > 0 and var wood && --Items[wood] <= 0) Items.Remove(wood);
         Ordered = new ShipOrder { Ship = ship, Material = material, Load = load, DaysLeft = BuildDays(ship) };
@@ -295,7 +295,7 @@ internal sealed partial class Voyage
     /// <summary>특수 조선의 신규건조를 맡긴다 — 선체와 고른 재료가 든다. 날이 차면 「선박 받기」로 받는다.</summary>
     public void OrderHull(HullPlan plan, IReadOnlyCollection<int> materials)
     {
-        if (Mode != Mode.Port || HullBlocker(plan, materials) != null) return;
+        if (!YardOpen || HullBlocker(plan, materials) != null) return;
         var skill = HullSkill(plan, materials);
         Money -= BuildCost(plan.Ship, plan.Material);
         foreach (int used in materials.Append(plan.HullItem))
@@ -311,7 +311,7 @@ internal sealed partial class Voyage
     /// <summary>다 지어진 배를 받아 부두에 둔다.</summary>
     public void ReceiveShip()
     {
-        if (Mode != Mode.Port || ReceiveBlocker != null || Ordered is not { } order) return;
+        if (!YardOpen || ReceiveBlocker != null || Ordered is not { } order) return;
         Cues.Enqueue("Bank");                 // 맡긴 배를 받을 때도 은행 저금과 같은 소리(0:14)
         var stats = StatsOf(order.Ship, order.Material, order.Load);
         var work = new ShipWork { Over = OverAfter(0, 0, order.Load) };      // 건조 때 조선 랭크 % 를 넘겨 적재를 바꿨으면 오버
@@ -324,7 +324,7 @@ internal sealed partial class Voyage
     /// <summary>항구에서 하루를 보낸다 — 맡긴 배의 건조가 하루 나아가고, 교역소의 재고와 시세도 하루만큼 흐른다.</summary>
     public void PassDay()
     {
-        if (Mode != Mode.Port) return;
+        if (!YardOpen) return;
         Clock += Settings.SecondsPerDay;
         UpdateBuild(1);
         Say("하루가 지났다." + (Ordered is { DaysLeft: > 0 } order ? $" (건조 {Math.Ceiling(order.DaysLeft):0}일 남음)" : ""));
@@ -432,7 +432,7 @@ internal sealed partial class Voyage
 
     public void BeginWork(DockedShip docked)
     {
-        if (Mode != Mode.Port || Working || !Dock.Remove(docked)) return;
+        if (!YardOpen || Working || !Dock.Remove(docked)) return;
         _workCrew = Crew;
         Board(docked.Ship, docked.Durability, docked.Parts, docked.Material, docked.Load, docked.Work, docked.SailPattern, docked.SailTint);
         _workHome = Dock[^1];
@@ -454,7 +454,7 @@ internal sealed partial class Voyage
     /// <summary>선박교환 — 부두의 배로 갈아탄다. 타던 배가 부두에 남는다.</summary>
     public void SwapShip(DockedShip docked)
     {
-        if (Mode != Mode.Port || !Dock.Remove(docked)) return;
+        if (!YardOpen || !Dock.Remove(docked)) return;
         if (SwapBlocker(docked) != null) { Dock.Add(docked); return; }
         Say($"{Ship.Name}에서 {docked.Ship.Name}(으)로 갈아탔다.");
         Board(docked.Ship, docked.Durability, docked.Parts, docked.Material, docked.Load, docked.Work, docked.SailPattern, docked.SailTint);
@@ -469,7 +469,7 @@ internal sealed partial class Voyage
 
     public void SellDocked(DockedShip docked)
     {
-        if (Mode != Mode.Port || !Dock.Remove(docked)) return;
+        if (!YardOpen || !Dock.Remove(docked)) return;
         Money += DockedPrice(docked);
         Say($"{docked.Ship.Name}을(를) 팔았다. ({DockedPrice(docked):N0} 두캇)");
     }
@@ -480,7 +480,7 @@ internal sealed partial class Voyage
     public void BuyShip(ShipData ship, int grade = 0)
     {
         grade = Math.Clamp(grade, 0, MaxGrade);
-        if (Mode != Mode.Port || ShipBlocker(ship) != null || Money < ShipCostAt(ship, grade)) return;
+        if (!YardOpen || ShipBlocker(ship) != null || Money < ShipCostAt(ship, grade)) return;
         // 사기만 한다 — 산 배는 부두에 매어 두고, 타는 것은 선박교환에서 한다
         Money -= ShipCostAt(ship, grade);
         var work = new ShipWork { Grade = grade };

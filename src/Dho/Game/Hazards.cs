@@ -118,10 +118,11 @@ internal sealed partial class Voyage
 
     public void Repair()
     {
-        if (Mode != Mode.Port || RepairCost == 0 || Money < RepairCost) return;
+        if (!YardOpen || RepairCost == 0 || Money < RepairCost) return;
         Money -= RepairCost;
         Durability = Stats.Durability;
         Say("배를 수리했다.");
+        Cues.Enqueue("Repair");
         Studied("Repair");
     }
 
@@ -318,8 +319,10 @@ internal sealed partial class Voyage
             // 「내화벽」(원본 글: 화재로 인한 피해를 크게 줄일 수 있다) — 화재(1)의 피해만
             double fire = d.Id == 1 ? 1 - Math.Min(0.9, Option("FireGuard")) : 1;
             Durability -= d.DurabilityPerDay * hullScale * days * PartDamage * fire;
-            Crew -= d.CrewPerDay * days * loss * crewScale * fire;
-            if (d.CrewPerDay > 0) TrainEffect("CrewLoss", 40 * days);
+            // 식인상어(7)는 소형 선박의 선원만 잡아간다 — 중형 · 대형을 타고 있으면 선원이 줄지 않는다(사용자가 준 이용자들의 글, 2026-10-10)
+            double crewPerDay = d.Id == 7 && Ship.SizeClass > 1 ? 0 : d.CrewPerDay;
+            Crew -= crewPerDay * days * loss * crewScale * fire;
+            if (crewPerDay > 0) TrainEffect("CrewLoss", 40 * days);
             Food = Math.Max(0, Food - d.FoodPerDay * days);
             Water = Math.Max(0, Water - d.WaterPerDay * days);
             Fatigue = Math.Min(100, Fatigue + d.FatiguePerDay * days);

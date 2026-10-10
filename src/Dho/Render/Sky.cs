@@ -20,13 +20,20 @@ internal readonly record struct Sky(
         // 밤에도 초저녁보다 어두워지지 않는다(원본의 밤은 푸르스름할 뿐 캄캄하지 않다) — 빛깔을 고르는 값에 바닥을 둔다
         day = MathF.Max(day, 0.28f);
         var zenith = Vector3.Lerp(new Vector3(0.03f, 0.05f, 0.16f), new Vector3(0.24f, 0.38f, 0.82f), day);
-        var horizon = Vector3.Lerp(new Vector3(0.08f, 0.12f, 0.27f), new Vector3(0.62f, 0.73f, 0.94f), day);
+        var horizon = Vector3.Lerp(new Vector3(0.08f, 0.12f, 0.27f), new Vector3(0.72f, 0.82f, 0.96f), day);      // 낮의 수평선은 원본 화면처럼 하얗게 뜬 하늘빛(전에는 0.62 · 0.73 · 0.94)
         var water = Vector3.Lerp(new Vector3(0.012f, 0.03f, 0.13f), new Vector3(0.06f, 0.16f, 0.46f), day);
         // 원본 화면에서 본 빛깔: 동틀녘은 보랏빛 하늘에 분홍 수평선, 해 질 녘은 잿빛 보라 하늘에 주황 수평선, 바다는 둘 다 짙은 남보라
         bool rising = MathF.Cos(angle) > 0;
         horizon = Vector3.Lerp(horizon, rising ? new Vector3(0.62f, 0.42f, 0.56f) : new Vector3(0.95f, 0.62f, 0.34f), dusk * 0.8f);
         zenith = Vector3.Lerp(zenith, rising ? new Vector3(0.30f, 0.27f, 0.60f) : new Vector3(0.48f, 0.43f, 0.62f), dusk * 0.75f);
         water = Vector3.Lerp(water, rising ? new Vector3(0.09f, 0.09f, 0.33f) : new Vector3(0.11f, 0.12f, 0.28f), dusk * 0.7f);
+
+        // 해가 막 떠오른 때(수평선 바로 위) — 원본 화면(사용자, 2026-10-10)에서 본 빛깔: 수평선은 살구빛, 위로 갈수록 옅은 파랑, 바다는 잿빛이 도는 어두운 남색.
+        // 그보다 앞선 동틀녘의 보랏빛은 위의 것 그대로 두고, 해가 올라온 뒤의 짧은 동안만 이 빛으로 넘어간다(빛깔 · 문턱은 화면을 보고 지은 값)
+        float low = rising ? Smooth(0.0f, 0.07f, elevation) * (1 - Smooth(0.22f, 0.50f, elevation)) : 0;
+        horizon = Vector3.Lerp(horizon, new Vector3(0.98f, 0.86f, 0.72f), low * 0.85f);
+        zenith = Vector3.Lerp(zenith, new Vector3(0.50f, 0.66f, 0.92f), low * 0.8f);
+        water = Vector3.Lerp(water, new Vector3(0.12f, 0.16f, 0.30f), low * 0.75f);
 
         // 해가 지면 달빛(해의 맞은편)으로 비춘다
         bool moon = elevation < -0.04f;

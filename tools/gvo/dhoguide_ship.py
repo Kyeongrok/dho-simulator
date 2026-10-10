@@ -53,9 +53,15 @@ def parse(path):
     for row in tables.get("선박 스킬", [])[1:]:
         if row and row[0] not in ("", "-", "돛", "선박 스킬"):      # 머리 줄이 두 줄이다
             skills.append({"Name": row[0], "Parts": [c for c in row[1:] if c not in ("", "-")]})
+    # 「특수 건조 도시」 표: 선체 · 조선 랭크 · 기본 재질 · 지역 · 도시 — 그 선체를 그 도시 조선소에 가져가면 짓는다(게임의 「특수 조선」이 읽는다)
+    special = []
+    for row in tables.get("특수 건조 도시", [])[1:]:
+        if len(row) >= 5 and row[0] not in ("", "-", "선체"):
+            for city in [c.strip() for c in row[4].split(",") if c.strip()]:      # 도시가 여럿이면 쉼표로 이어 적혀 있다(클레르몽: 산업도시 넷)
+                special.append({"Hull": row[0], "Rank": int(row[1]) if row[1].isdigit() else 0, "Material": "" if row[2] in ("", "-") else row[2], "City": city})
     return {
         "No": 0, "Name": name.group(1) if name else "", "Times": int(times.group(1)) if times else 0, "Retimes": int(times.group(2)) if times else 0,
-        "Days": int(days.group(1)) if days else 0, "Caps": caps, "Slots": slots, "Skills": skills, "Hull": "", "Special": [], "Borrowed": "",
+        "Days": int(days.group(1)) if days else 0, "Caps": caps, "Slots": slots, "Skills": skills, "Hull": special[0]["Hull"] if special else "", "Special": special, "Borrowed": "",
     }
 
 

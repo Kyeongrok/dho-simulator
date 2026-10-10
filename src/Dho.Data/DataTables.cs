@@ -15,6 +15,8 @@ public sealed record Ship(int Id, string Name, string Description, int Model, in
 public sealed record TavernDish(int Id, string Name, string Description, int Kind);
 /// <summary>대학 연구의 할 일(표 64): 이름과 원본 설명 글(「1회 교역으로 10만 두캇 이상 흑자를 낸다」).</summary>
 public sealed record StudyTask(int Id, string Name, string Description);
+/// <summary>대학 연구 하나(표 67) — 연구동 · 전공(둘 다 표 65 의 번호), 행동 셋(갈래 번호 · 횟수), 필요 페이지, 학점의 두 배로 보이는 값, 얻는 스킬 번호.</summary>
+public sealed record StudyRow(int Id, int Hall, int Major, int[] Kinds, int[] Counts, int Pages, int Credit2, int Skill, string Name);
 /// <summary>대포만: 장전 속도 · 탄속 · 폭발 범위(표 22 의 일곱째 · 다섯째 · 여섯째 값, 1 ~ 10 — 클수록 좋다: 「명품」이 늘 하나씩 높다).</summary>
 public sealed record ShipPart(int Id, string Name, string Description, int Slot, int A, int B, int C, int D, int Durability, int Reload = 0, int ShotSpeed = 0, int Blast = 0);
 /// <summary>
@@ -98,6 +100,25 @@ public sealed class DataTables
     public IReadOnlyDictionary<int, string[]> Legends { get; } = new Dictionary<int, string[]>();
     /// <summary>역사적 사건(표 85) — 번호 → 이름 · 본문 · 갈래 값(글로). 사건 n 의 결말은 표 87 의 3n−2 · 3n−1 · 3n(이름으로 맞춰 봤다).</summary>
     public IReadOnlyDictionary<int, string[]> HistoryEvents { get; } = new Dictionary<int, string[]>();
+    /// <summary>별 이름(표 142) — 번호 → 이름. 번호 ÷ 10 이 별자리(1 ~ 45), 일의 자리가 그 안의 차례.</summary>
+    public IReadOnlyDictionary<int, string> StarNames { get; } = new Dictionary<int, string>();
+    /// <summary>별자리 이야기(표 144) — 번호 → 글. 번호 ÷ 100 이 별자리, 아래 두 자리가 몇째 글.</summary>
+    public IReadOnlyDictionary<int, string> StarTales { get; } = new Dictionary<int, string>();
+    /// <summary>위인(표 149) — 번호(1 ~ 11) → 이름 · 소개 글. 일감(표 148 — 번호 → 이름)은 위인마다 넷씩 차례로(1 ~ 4 가 첫 위인; 전부 찍어 확인).</summary>
+    public IReadOnlyDictionary<int, string[]> Greats { get; } = new Dictionary<int, string[]>();
+    public IReadOnlyDictionary<int, string> GreatTasks { get; } = new Dictionary<int, string>();
+    /// <summary>조사 주제(표 134) — 번호(1 ~ 13) → 제목 · 글. 정보 조각(표 133 — 번호 → 이름 · 설명)은 번호 ÷ 100 이 주제(주제마다 15 개; 전부 찍어 확인).</summary>
+    public IReadOnlyDictionary<int, string[]> DigTopics { get; } = new Dictionary<int, string[]>();
+    public IReadOnlyDictionary<int, string[]> DigClues { get; } = new Dictionary<int, string[]>();
+    /// <summary>큰 바다 이름(표 9) — 번호(1 ~ 26) → 이름. 해역(표 8)의 Ocean 이 이 번호다.</summary>
+    public IReadOnlyDictionary<int, string> OceanNames { get; } = new Dictionary<int, string>();
+    /// <summary>대학 연구의 값(표 67)과 연구동 · 학과 · 전공 이름(표 65).</summary>
+    public IReadOnlyList<StudyRow> StudyRows { get; } = [];
+    public IReadOnlyDictionary<int, string> StudyHalls { get; } = new Dictionary<int, string>();
+    /// <summary>전공에 붙은 스킬과 랭크(표 65) — 전공 이름 → [스킬 번호, 랭크, 스킬 번호, 랭크 …].</summary>
+    public IReadOnlyDictionary<string, int[]> StudyMajorSkills { get; } = new Dictionary<string, int[]>();
+    /// <summary>강의(표 66) — 번호 → 이름 · 설명 · 묶는 전공 이름(둘이나 셋; 표 65 의 이름).</summary>
+    public IReadOnlyDictionary<int, string[]> StudyLectures { get; } = new Dictionary<int, string[]>();
     /// <summary>대해적(표 94) — 번호(201 ~ 210) → 이름 · 설명.</summary>
     public IReadOnlyDictionary<int, string[]> GreatPirates { get; } = new Dictionary<int, string[]>();
     /// <summary>테마(표 83) — 번호 → 이름 · 설명. 이야기(표 81)를 묶는 윗갈래.</summary>
@@ -274,6 +295,57 @@ public sealed class DataTables
         catch (Exception e) { Console.Error.WriteLine("HistoryEvents: " + e.Message); }
         try { GreatPirates = Rows(Table(94), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id) })).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts); }
         catch (Exception e) { Console.Error.WriteLine("GreatPirates: " + e.Message); }
+        try
+        {
+            StarNames = Rows(Table(142), (r, id) => (Id: id, Name: r.Text(id))).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Name);
+            StarTales = Rows(Table(144), (r, id) => (Id: id, Name: r.Text(id))).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Name);
+        }
+        catch (Exception e) { Console.Error.WriteLine("Stars: " + e.Message); }
+        try
+        {
+            Greats = Rows(Table(149), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id) })).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts);
+            GreatTasks = Rows(Table(148), (r, id) => (Id: id, Name: r.Text(id))).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Name);
+            DigTopics = Rows(Table(134), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id) })).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts);
+            DigClues = Rows(Table(133), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id) })).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts);
+        }
+        catch (Exception e) { Console.Error.WriteLine("Greats: " + e.Message); }
+        try { OceanNames = Rows(Table(9), (r, id) => (Id: id, Name: r.Text(id))).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Name); }
+        catch (Exception e) { Console.Error.WriteLine("OceanNames: " + e.Message); }
+        try
+        {
+            // 표 65 의 번호 뒤 39 바이트: u8 갈래(2 = 전공) · u8 단계 · u16 둘 · [u16 스킬 · u16 랭크] × 8 · u8 — 스킬 목록은 전공 줄에서만 믿는다(w-921)
+            var halls = Rows(Table(65), (r, id) =>
+            {
+                int kind = r.Byte(); r.Skip(5);
+                var pairs = new List<int>();
+                for (int i = 0; i < 8; i++) { int skill = r.UInt16(), rank = r.UInt16(); if (kind == 2 && skill != 0) { pairs.Add(skill); pairs.Add(rank); } }
+                r.Skip(1);
+                string name = r.Text(id); r.Text(id);
+                return (Id: id, Name: name, Pairs: pairs.ToArray());
+            }).GroupBy(p => p.Id).Select(g => g.First()).ToList();
+            StudyHalls = halls.ToDictionary(p => p.Id, p => p.Name);
+            StudyMajorSkills = halls.Where(p => p.Pairs.Length > 0).GroupBy(p => p.Name).ToDictionary(g => g.Key, g => g.First().Pairs);
+            StudyRows = Rows(Table(67), (r, id) =>
+            {
+                int hall = r.UInt16(), major = r.UInt16();
+                int[] kinds = new int[3], counts = new int[3];
+                for (int i = 0; i < 3; i++) { kinds[i] = r.Byte(); counts[i] = r.UInt16(); }
+                int pages = r.UInt16(), credit2 = r.UInt16(), skill = r.UInt16();
+                return new StudyRow(id, hall, major, kinds, counts, pages, credit2, skill, r.Text(id));
+            });
+        }
+        catch (Exception e) { Console.Error.WriteLine("StudyRows: " + e.Message); }
+        try
+        {
+            StudyLectures = Rows(Table(66), (r, id) =>
+            {
+                int[] majors = [r.UInt16(), r.UInt16(), r.UInt16()];
+                r.Skip(9);      // u16 넷(100 · 120 · 150 — 뜻 모름) + u8
+                string name = r.Text(id), about = r.Text(id);
+                return (Id: id, Texts: new[] { name, about }.Concat(majors.Where(m => m != 0).Select(m => StudyHalls.GetValueOrDefault(m, ""))).ToArray());
+            }).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts);
+        }
+        catch (Exception e) { Console.Error.WriteLine("StudyLectures: " + e.Message); }
         try
         {
             Themes = Rows(Table(83), (r, id) => (Id: id, Texts: new[] { r.Text(id), r.Text(id) })).Where(p => p.Texts[0].Length > 0).GroupBy(p => p.Id).ToDictionary(p => p.Key, p => p.First().Texts);

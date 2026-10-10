@@ -180,7 +180,8 @@ internal sealed class ShipModel : IDisposable
         _flagNation = nation;
         _flagTexture?.Dispose();
         _flagTexture = null;
-        try { _flagTexture = GameTexture.FromMftf(_device, new Pack(@"0001\sh0005.bin").Entry(nation is >= 1 and <= 7 ? nation : 0)); } catch (Exception) { }
+        // 깃발 그림 묶음에서 깃발은 앞의 여덟 장뿐이다(0 무지, 1 ~ 7 나라 번호대로 — 에스파니아 … 오스만; 그 뒤 조각은 깃발이 아니다). 여덟째 나라부터와 해적 · 인물 깃발은 그림을 아직 못 찾아 무지로 건다
+        try { var flags = new Pack(@"0001\sh0005.bin"); _flagTexture = GameTexture.FromMftf(_device, flags.Entry(nation is >= 1 and <= 7 ? nation : 0)); } catch (Exception) { }
         if (_flagMesh != null || _flagSpots.Count == 0) return;
         // 띠 하나: 깃대에서 뒤(−z)로, 조금 물결치게 여섯 마디
         var builder = new MeshBuilder();

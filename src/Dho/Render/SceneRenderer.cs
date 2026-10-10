@@ -22,6 +22,8 @@ internal sealed class SceneRenderer : IDisposable
             float3 WaterColor; float Pad3;
             float2 WorldOffset; float2 ShipPosition;
             float2 ShipDirection; float ShipSpeed; float WaveScale;
+            float WakeStyle; float MateCount; float2 PadWake;
+            float4 MateA; float4 MateB;
         };
         cbuffer Object : register(b1)
         {
@@ -123,10 +125,13 @@ internal sealed class SceneRenderer : IDisposable
             float sun = saturate(dot(dir, trueSun));
             float3 sunTint = lerp(float3(1.0, 0.55, 0.30), float3(1.0, 0.96, 0.88), saturate(trueSun.y * 3.0));
             color += sunTint * (pow(sun, 1800.0) * 1.6 + pow(sun, 60.0) * 0.10) * sunUp;      // a smaller disc and a tighter glow
-            // low red sun: a faint flare ring around it
+            // after screenshots of the original: no red ring - a wide soft white haze around the sun, and a large faint halo once it is up (numbers made up)
             float low = saturate((sunTint.r - sunTint.b) * 2.5) * sunUp;
-            float ring = smoothstep(0.018, 0.0, abs(acos(min(sun, 0.9999)) - 0.11));
-            color += float3(1.0, 0.35, 0.30) * ring * low * 0.16;
+            float3 hazeTint = lerp(float3(1.0, 0.97, 0.92), float3(1.0, 0.90, 0.78), low);
+            color += hazeTint * (pow(sun, 10.0) * 0.20 + pow(sun, 4.0) * 0.07) * sunUp;
+            float away = acos(min(sun, 0.9999));
+            float halo = smoothstep(0.05, 0.0, abs(away - 0.24)) * saturate(trueSun.y * 4.0);
+            color += float3(1.0, 1.0, 1.0) * halo * 0.07 * sunUp;
 
             float2 sphere = float2(atan2(dir.z, dir.x), asin(clamp(dir.y, -1, 1))) * 110.0;
             float2 cell = floor(sphere);
@@ -231,31 +236,75 @@ internal sealed class SceneRenderer : IDisposable
 
             float3 halfway = normalize(v + SunDirection);
             color += SunColor * pow(saturate(dot(n, halfway)), 140.0) * 0.10;
+            // a bright band on the water under the sun, strongest when the sun is low (after screenshots of the original; numbers made up)
+            float3 trueSun = normalize(float3(cos(SunAngle) * 0.8, sin(SunAngle), 0.45));
+            float2 sunFlat = normalize(trueSun.xz);
+            float towards = saturate(dot(normalize(-v.xz + float2(0.0001, 0.0)), sunFlat));
+            float sunLow = saturate(trueSun.y * 8.0 + 0.2) * saturate(1.25 - trueSun.y * 1.6);
+            float grazing = pow(1.0 - saturate(v.y), 3.0);
+            float band = pow(towards, 60.0) * (0.5 + 0.5 * grazing) * sunLow;
+            color += lerp(float3(1.0, 0.86, 0.66), float3(1.0, 0.97, 0.90), saturate(trueSun.y * 3.0)) * band * (0.55 + 0.45 * crest) * 1.0;
 
-            float2 rel = i.world.xz / K;      // the ship sits at the origin
-            float along = dot(rel, ShipDirection);
-            float across = dot(rel, float2(-ShipDirection.y, ShipDirection.x));
+            // the player's ship sits at the origin; the aide captains' ships (MateA, MateB) get the same wake.
+            // mates are done first and the player's ship last, so along / across left behind serve the hull paint below
+            float2 rel = i.world.xz / K;
+            float along = 0.0, across = 0.0;
+            for (int boat = 2; boat >= 0; boat--)
+            {
+            if (boat > 0 && float(boat) > MateCount + 0.5) continue;
+            float2 org = boat == 0 ? float2(0.0, 0.0) : (boat == 1 ? MateA.xy : MateB.xy) / K;
+            float2 dir = boat == 0 ? ShipDirection : (boat == 1 ? MateA.zw : MateB.zw);
+            rel = i.world.xz / K - org;
+            along = dot(rel, dir);
+            across = dot(rel, float2(-dir.y, dir.x));
             float hull = saturate(1.0 - length(float2(across / 16.0, along / 44.0)));
             float behind = saturate(-along / 420.0);
             // bow wave: two bands of foam that leave the bow and open into a V; faster = longer, wider, whiter (shape after the original's look, numbers made up)
+            // WakeStyle picks one of the candidate looks (mod window): 0 V bands, 1 hull foam only, 2 long straight trail, 3 wide V with ripples inside,
+            // 4 soft glow without foam, 5 bow spray and a short trail, 6 wide milky band astern (after the original). All shapes and numbers are made up.
+            float st = WakeStyle;
+            float wArms = 1.25, wSides = 1.3, wAstern = 1.0, wStreak = 0.6, openK = 1.0, reachK = 1.0, trailK = 1.0, glow = 0.0;
+            if (st > 0.5 && st < 1.5) { wArms = 0.0; wSides = 0.9; wAstern = 0.0; wStreak = 0.0; }
+            else if (st > 1.5 && st < 2.5) { wArms = 0.25; wSides = 1.0; wAstern = 1.7; wStreak = 0.25; reachK = 0.45; trailK = 2.6; }
+            else if (st > 2.5 && st < 3.5) { wArms = 1.1; wSides = 1.0; wAstern = 0.35; wStreak = 0.0; openK = 2.1; reachK = 1.5; }
+            else if (st > 3.5 && st < 4.5) { wArms = 0.0; wSides = 0.45; wAstern = 0.0; wStreak = 0.0; openK = 1.3; reachK = 1.2; glow = 1.0; }
+            else if (st > 4.5 && st < 5.5) { wArms = 0.55; wSides = 1.2; wAstern = 0.9; wStreak = 0.35; reachK = 0.3; trailK = 0.45; }
+            else if (st > 5.5) { wArms = 0.0; wSides = 0.7; wAstern = 0.0; wStreak = 0.0; }
             float back = 40.0 - along;
-            float reach = 90.0 + 520.0 * ShipSpeed;
-            float armAt = 9.0 + back * (0.16 + 0.10 * ShipSpeed);
+            float reach = (90.0 + 520.0 * ShipSpeed) * reachK;
+            float armAt = 9.0 + back * (0.16 + 0.10 * ShipSpeed) * openK;
             float armWide = 5.0 + back * 0.11;
             float arms = saturate(1.0 - abs(abs(across) - armAt) / armWide) * step(0.0, back) * saturate(1.0 - back / reach);
-            float astern = saturate(1.0 - abs(across) / (8.0 + behind * 40.0)) * step(along, -30.0) * (1.0 - behind);
+            float behindT = saturate(-along / (420.0 * trailK));
+            float astern = saturate(1.0 - abs(across) / (8.0 + behindT * 40.0)) * step(along, -30.0) * (1.0 - behindT);
+            // style 3: transverse ripples between the arms; style 5: a burst of spray at the bow
+            float inside = saturate(1.0 - abs(across) / max(armAt, 1.0)) * step(0.0, back) * saturate(1.0 - back / reach);
+            float ripples = (st > 2.5 && st < 3.5) ? inside * (0.5 + 0.5 * sin(back * 0.22 - Time * 2.5)) * 0.4 : 0.0;
+            float spray = (st > 4.5 && st < 5.5) ? saturate(1.0 - length(float2(across / 15.0, (along - 44.0) / 20.0))) * 1.6 : 0.0;
             // noise needs small coordinates: far from the world origin the hash loses precision and the foam smears into streaks
             float2 q = frac(pf / 512.0) * 512.0;
             float drift = frac(Time / 640.0) * 640.0;
             float foamNoise = Noise(q * 0.22 + drift * 0.4) * 0.6 + Noise(q * 0.7 - drift * 0.8) * 0.4;
             // water cut by the hull: a narrow band of foam hugging the waterline along the ship's length
             float sides = saturate(1.0 - abs(abs(across) - 9.0) / 5.0) * saturate(1.0 - abs(along) / 48.0);
-            float foam = saturate(hull * 0.5 * (0.3 + ShipSpeed) + (sides * 1.3 + arms * 1.25 + astern * 1.0) * saturate(ShipSpeed * 2.5)) * smoothstep(0.26, 0.66, foamNoise + hull * 0.3 + arms * 0.08);
+            float foam = saturate(hull * 0.5 * (0.3 + ShipSpeed) + (sides * wSides + arms * wArms + astern * wAstern + ripples + spray) * saturate(ShipSpeed * 2.5)) * smoothstep(0.26, 0.66, foamNoise + hull * 0.3 + arms * 0.08);
             color = lerp(color, (Ambient + SunColor) * 0.9, saturate(foam) * 0.85);
+            // style 6: after a screenshot of the original - one wide, long, milky band of foam astern that widens slowly and fades (numbers made up)
+            if (st > 5.5)
+            {
+                float mistT = saturate(-along / (700.0 + 900.0 * ShipSpeed));
+                float mistWide = 12.0 + mistT * 46.0;
+                float mist = smoothstep(1.0, 0.3, abs(across) / mistWide) * step(along, 20.0) * pow(1.0 - mistT, 1.3);
+                float grain = Noise(q * 0.5 - drift * 0.6) * 0.5 + foamNoise * 0.5;
+                color = lerp(color, (Ambient + SunColor) * 0.85, saturate(mist * (0.3 + 0.75 * grain) * saturate(ShipSpeed * 2.5)) * 0.8);
+            }
             // speed lines: thin pale-blue streaks running astern beside the hull once the ship is fast (after the original's look; numbers made up)
             float streakNoise = Noise(float2(across * 1.5, (along + dot(ShipPosition, ShipDirection)) * 0.012));
             float streak = smoothstep(0.66, 0.8, streakNoise) * saturate(1.0 - abs(abs(across) - 20.0) / 15.0) * saturate(1.0 - abs(along + 50.0) / 150.0) * saturate((ShipSpeed - 0.5) * 2.5);
-            color += float3(0.55, 0.75, 1.0) * (Ambient + SunColor) * streak * 0.6;
+            color += float3(0.55, 0.75, 1.0) * (Ambient + SunColor) * streak * wStreak;
+            // style 4: no foam, the V and the trail only lighten the water
+            color += (Ambient + SunColor) * glow * 0.16 * saturate(arms + astern * 0.7) * saturate(ShipSpeed * 2.5);
+            }
 
             // hull effect paint: light shimmering on the water around the ship (Pad1..3 = colour, 0 = none)
             float3 aura = float3(Pad1, Pad2, Pad3);

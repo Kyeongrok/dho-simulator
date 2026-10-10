@@ -14,6 +14,7 @@ internal struct Pointer
     public bool Consumed;     // 어느 창이 이미 받아 갔다
     public bool Ctrl;         // Ctrl 을 누른 채다(켜 둔 스킬을 Ctrl+클릭으로 끈다)
     public bool Down;         // 왼쪽 단추를 누르고 있다(스크롤바 끌기)
+    public bool RightClicked; // 이번 프레임에 오른쪽 단추를 (끌지 않고) 눌렀다 뗐다
 }
 
 /// <summary>
@@ -196,6 +197,37 @@ internal sealed class Canvas : IDisposable
     }
 
     /// <summary>이 네모 안의 클릭은 뒤의 바다로 새지 않게 한다.</summary>
+    /// <summary>모서리가 둥근 네모.</summary>
+    public void Round(float x, float y, float w, float h, float radius, Color4 color, bool filled = true, float stroke = 1.2f)
+    {
+        _brush.Color = color;
+        var shape = new RoundedRectangle { Rect = new System.Drawing.RectangleF(x, y, w, h), RadiusX = radius, RadiusY = radius };
+        if (filled) _gfx.D2D.FillRoundedRectangle(shape, _brush);
+        else _gfx.D2D.DrawRoundedRectangle(shape, _brush, stroke);
+    }
+
+    /// <summary>
+    /// 닫기 단추 — 원본의 은빛 둥근 단추(화면 부품 1045)를 본떠 그린다: 은빛 바탕에 위쪽 윤, 검붉은 글. 올리면 1046 처럼 청록빛이 돈다(사용자, 2026-10-10).
+    /// 그림을 그대로 쓰지 않고 그려서 글 · 크기를 마음대로 한다. 빛깔은 눈으로 본떠 지은 값.
+    /// </summary>
+    public bool CloseButton(string label, float x, float y, float w, float h, bool enabled = true, float size = 15f)
+    {
+        bool hover = enabled && Hover(x, y, w, h);
+        float r = Math.Min(h / 2.4f, 12);
+        Round(x, y, w, h, r, hover ? new Color4(0.16f, 0.52f, 0.50f, 1) : new Color4(0.36f, 0.40f, 0.48f, 1));                        // 테두리 겸 아래 그늘
+        Round(x + 1.5f, y + 1.5f, w - 3, h - 3.5f, r - 1, hover ? new Color4(0.42f, 0.86f, 0.80f, 1) : new Color4(0.74f, 0.78f, 0.84f, 1));      // 바탕
+        Round(x + 3, y + 2.5f, w - 6, h * 0.45f, r - 2, hover ? new Color4(0.72f, 0.97f, 0.93f, 0.9f) : new Color4(0.93f, 0.95f, 0.98f, 0.9f));   // 위쪽 윤
+        Text(label, x, y + (h - size * 1.35f) / 2, w, h, size, enabled ? new Color4(0.50f, 0.06f, 0.10f, 1) : new Color4(0.45f, 0.45f, 0.5f, 1), 1, true, false);      // 밝은 바탕이라 글 그림자는 뺀다
+        if (hover && Pointer.Clicked)
+        {
+            Pointer.Consumed = true;
+            Pointer.Clicked = false;
+            Pressed = true;
+            return true;
+        }
+        return false;
+    }
+
     public void Block(float x, float y, float w, float h)
     {
         if (Hover(x, y, w, h)) Pointer.Consumed = true;

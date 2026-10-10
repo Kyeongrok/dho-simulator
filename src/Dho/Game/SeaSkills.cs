@@ -161,6 +161,8 @@ internal sealed partial class Voyage
     private void CatchFish(SkillRuleData rule, string lead)
     {
         if (HoldFree <= 0) { Say($"{lead}선창이 가득 차 낚은 것을 실을 수 없다."); return; }
+        // 식인상어가 돌고 있는 동안은 물고기가 잡히지 않는다(사용자가 준 이용자들의 글, 2026-10-10)
+        if (Disasters.Exists(d => d.Data.Id == 7)) { Say($"{lead}상어 때문에 아무것도 낚이지 않는다."); return; }
         int rank = Math.Max(Rank(rule.SkillId), _baitRank);
         if (TryFishFind(rank, lead)) { Train(rule.SkillId, 20 * rank); return; }      // 그 자리의 낚시 발견물 — 숙련도는 지은 값
         // 내 랭크로 낚을 수 있는 어종만 — 가장 높은 것이 올라오는 몫은 랭크가 높을수록 크다(7랭 60% → 15랭 90% 를 곧게 이은 것, 그 밖의 랭크는 짐작)
@@ -202,12 +204,20 @@ internal sealed partial class Voyage
         Data.Conversions.TryGetValue(good.Id, out var to) && to.Length >= 2 && to[0] is >= 0 and <= 2 ? (to[0], to[1])
         : good.Id is >= 1_601_000 and < 1_602_000 ? (1, 1) : null;
 
-    /// <summary>실은 것을 모두(들어가는 만큼) 물자로 돌린다.</summary>
-    public void ConvertGood(GoodData good)
+    /// <summary>지금 그 교역품을 몇 개까지 물자로 돌릴 수 있는가 — 실은 수와 물자가 들어갈 자리 가운데 작은 쪽.</summary>
+    public int ConvertMost(GoodData good)
     {
-        if (ConvertOf(good) is not { } to || !Cargo.TryGetValue(good.Id, out var item) || item.Count <= 0) return;
+        if (ConvertOf(good) is not { } to || !Cargo.TryGetValue(good.Id, out var item) || item.Count <= 0) return 0;
         double room = to.Kind switch { 0 => MaxWaterNow - Water, 1 => MaxFoodNow - Food, _ => 9999 };
-        int count = (int)Math.Min(item.Count, Math.Ceiling(room / to.Each));
+        return (int)Math.Max(0, Math.Min(item.Count, Math.Ceiling(room / to.Each)));
+    }
+
+    /// <summary>실은 것을 물자로 돌린다 — 몇 개인지 안 정하면 모두(들어가는 만큼).</summary>
+    public void ConvertGood(GoodData good, int wanted = int.MaxValue)
+    {
+        if (ConvertOf(good) is not { } to || !Cargo.TryGetValue(good.Id, out var item) || item.Count <= 0 || wanted <= 0) return;
+        double room = to.Kind switch { 0 => MaxWaterNow - Water, 1 => MaxFoodNow - Food, _ => 9999 };
+        int count = (int)Math.Min(Math.Min(item.Count, wanted), Math.Ceiling(room / to.Each));
         if (count <= 0) { Say($"{ConvertNames[to.Kind]}이(가) 가득 차 있다."); Cues.Enqueue("Error"); return; }
         double gain = Math.Min(room, count * to.Each);
         item.Cost -= item.Cost * count / item.Count;
@@ -326,6 +336,7 @@ internal sealed partial class Voyage
                 Durability += mend;
                 Fatigue = Math.Min(100, Fatigue + 4);
                 Say($"{name}: 자재를 써서 배를 고쳤다. (내구 +{mend:0})");
+                Cues.Enqueue("Repair");
                 Train(rule.SkillId, 30);
                 break;
             case "Rest":

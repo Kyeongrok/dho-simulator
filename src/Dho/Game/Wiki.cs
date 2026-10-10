@@ -13,9 +13,20 @@ internal sealed partial class Voyage
     /// <summary>쪽의 한 줄 — Kind 가 있으면 눌러서 그 쪽으로 간다. Head 는 묶음의 머리 줄.</summary>
     internal readonly record struct WikiLine(string Text, string Kind = "", int Id = 0, bool Head = false);
 
+    // 별자리 번호(1 ~ 45) → 이름. 원본 표에는 이름이 없어 발견물(천문)의 이름을 열쇠로 적는다 — 이야기 글의 첫머리와 별 발견물의 설명으로 하나씩 맞춘 것(w-890).
+    // 발견물 표의 띄어쓰기 그대로다(「작은곰 자리」 따위). 발견물에 그 이름이 없으면 그냥 글로만 보인다
+    private static readonly string[] ConstellationNames =
+    [
+        "작은곰 자리", "안드로메다 자리", "이리자리", "큰곰자리", "카시오페이아자리", "황새치자리", "왕관자리", "마차부 자리", "공작자리", "고래 자리",
+        "케페우스 자리", "켄타우로스자리", "두루미자리", "고물 자리", "돛자리", "남십자자리", "나침반 자리", "용골자리", "용자리", "육분의자리",
+        "사자자리", "게자리", "작은사자자리", "살쾡이자리", "기린자리", "쌍둥이자리", "황소자리", "작은개자리", "오리온자리", "페르세우스 자리",
+        "백조자리", "작은여우자리", "거문고자리", "화살자리", "독수리자리", "처녀자리", "천칭자리", "목동 자리", "머리털 자리", "사냥개자리",
+        "삼각형자리", "산양자리", "물고기자리", "에리다누스 자리", "페가수스자리",
+    ];
+    private static string ConstellationName(int group) => group >= 1 && group <= ConstellationNames.Length ? ConstellationNames[group - 1] : $"별자리 {group}";
     /// <summary>낱말이 이름에 든 것들 — 도시 · 교역품 · 아이템 · 배 차례. 낱말이 비면 도시 전부.</summary>
     /// <summary>위키의 갈래들 — 탭의 차례.</summary>
-    public static readonly string[] WikiKinds = ["도시", "교역품", "아이템", "배", "스킬", "레시피", "발견물", "의뢰", "직업", "부품", "상륙지", "재질", "해역", "부관", "역사"];
+    public static readonly string[] WikiKinds = ["도시", "교역품", "아이템", "배", "스킬", "레시피", "발견물", "의뢰", "직업", "부품", "상륙지", "재질", "해역", "부관", "역사", "연구"];
 
     /// <summary>낱말이 이름에 든 것들. <paramref name="kind"/> 를 주면 그 갈래만(낱말이 비면 그 갈래 전부), 안 주고 낱말도 비면 도시 전부.</summary>
     public List<(string Kind, int Id, string Name)> WikiFind(string word, string building, string kind)
@@ -37,10 +48,14 @@ internal sealed partial class Voyage
         if (kind is "" or "부관") all.AddRange(Data.AideFacts.Where(a => a.Name != "" && (Hit(a.Name) || Hit(a.Job))).OrderBy(a => a.Name).Select(a => ("부관", a.Doc, a.Job is "" or "-" ? a.Name : $"{a.Name} — {a.Job}")));      // 이름 옆에 직업 — 직업 이름으로도 찾아진다
         if (kind is "" or "역사") all.AddRange(Data.HistoryEvents.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 3000, e.Value[0] + " (사건)")));      // 역사적 사건(표 85) — 3000 을 더했다(지은 번호)
         if (kind is "" or "역사") all.AddRange(Data.Themes.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 4000, e.Value[0] + " (테마)")));      // 테마(표 83) — 4000 을 더했다(지은 번호)
+        if (kind is "" or "역사") all.AddRange(Data.StarTales.Keys.Select(k => k / 100).Distinct().OrderBy(g => g).Select(g => (Group: g, Name: ConstellationName(g))).Where(c => Hit(c.Name)).Select(c => ("역사", c.Group + 6000, c.Name + " (별자리)")));      // 별자리(표 142 · 144) — 6000 을 더했다(지은 번호)
+        if (kind is "" or "역사") all.AddRange(Data.Greats.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 7000, e.Value[0] + " (위인)")));      // 위인(표 149) — 7000 을 더했다(지은 번호)
+        if (kind is "" or "역사") all.AddRange(Data.DigTopics.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 8000, e.Value[0] + " (조사 주제)")));      // 조사 주제(표 134) — 8000 을 더했다(지은 번호)
         if (kind is "" or "역사") all.AddRange(Data.GreatPirates.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 5000, e.Value[0] + " (대해적)")));      // 대해적(표 94) — 5000 을 더했다(지은 번호)
         if (kind is "" or "역사") all.AddRange(Data.HistoryEnds.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key, e.Value[0])));      // 역사적 사건의 결말(표 87)
         if (kind is "" or "역사") all.AddRange(Data.Legends.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 1000, e.Value[0])));      // 전승(표 124) — 결말과 번호가 겹쳐 1000 을 더했다(지은 번호)
         if (kind is "" or "역사") all.AddRange(Data.Tales.Where(e => Hit(e.Value[0])).OrderBy(e => e.Key).Select(e => ("역사", e.Key + 2000, e.Value[0])));      // 단계가 있는 이야기(표 81) — 2000 을 더했다(지은 번호)
+        if (kind is "" or "연구") all.AddRange(Data.Research.Where(r => r.Name != "" && (Hit(r.Name) || Hit(r.Major) || Hit(r.Skill))).OrderBy(r => r.Name).Select(r => ("연구", r.No, r.Name)));      // 대학 연구 — 전공 · 얻는 스킬 이름으로도 찾아진다
         if (kind is "" or "직업") all.AddRange(Data.JobFacts.Where(j => j.Name != "" && Hit(j.Name)).OrderBy(j => j.Name).Select(j => ("직업", j.No, j.Name)));
         if (kind is "" or "부품") all.AddRange(Data.ShipParts.Where(p => p.Name != "" && Hit(p.Name)).GroupBy(p => p.Id).Select(g => g.First()).OrderBy(p => p.Slot).ThenBy(p => p.Name).Select(p => ("부품", p.Id, p.Name)));
         if (kind is "" or "상륙지") all.AddRange(Data.Landings.Where(l => l.Name != "" && Hit(l.Name)).GroupBy(l => l.Id).Select(g => g.First()).OrderBy(l => l.Name).Select(l => ("상륙지", l.Id, l.Name)));
@@ -165,9 +180,14 @@ internal sealed partial class Voyage
                 foreach (var pay in pays) lines.Add(new($"{Good(pay.Key.Good)?.Name}  {pay.Value:N0}", "교역품", pay.Key.Good));
                 if (Data.PartShops.TryGetValue(id, out var partShop) && partShop.Count > 0)
                 {
-                    Head($"파는 선박부품 {partShop.Count}가지");
-                    foreach (var sold in partShop.OrderBy(s => s.Value))
-                        if (Data.ShipParts.Find(p => p.Id == sold.Key) is { } soldPart) lines.Add(new(soldPart.Name + (sold.Value > 0 ? $"  {sold.Value:N0}" : ""), "부품", soldPart.Id));
+                    // 원본의 도시 정보 창처럼 갈래(대포 · 보조돛 · 특수장비 · 장갑 · 장식)마다 머리를 따로 단다 — 갈래 이름은 게임의 부품 갈래 이름
+                    var soldParts = partShop.Select(s => (Part: Data.ShipParts.Find(p => p.Id == s.Key), Price: s.Value)).Where(s => s.Part != null).ToList();
+                    foreach (var slotGroup in soldParts.GroupBy(s => Math.Clamp(s.Part!.Slot, 0, SlotName.Length - 1)).OrderBy(g => g.Key))
+                    {
+                        Head($"파는 {SlotName[slotGroup.Key]} {slotGroup.Count()}가지 (선박부품)");      // 머리 단추가 갈래 이름으로 뜨게 갈래를 앞에
+                        foreach (var sold in slotGroup.OrderBy(s => s.Price))
+                            lines.Add(new(sold.Part!.Name + (sold.Price > 0 ? $"  {sold.Price:N0}" : ""), "부품", sold.Part.Id));
+                    }
                 }
                 var kinds = WikiBuildingsOf(city);
                 if (kinds.Count > 0) Head($"건물 {kinds.Count}가지");
@@ -254,6 +274,8 @@ internal sealed partial class Voyage
                 var needing = Data.RecipeRules.Where(r => r.Name != "" && r.Skill.StartsWith(name + " ")).OrderBy(r => r.Skill.Length).ThenBy(r => r.Skill).ToList();
                 if (needing.Count > 0) Head($"이 스킬로 만드는 레시피 {needing.Count}건" + (needing.Count > 30 ? " (30건만)" : ""));
                 foreach (var rule in needing.Take(30)) lines.Add(new($"{rule.Name}  {rule.Skill[(name.Length + 1)..]}", "레시피", rule.RecipeId));
+                var studies = Data.Research.Where(r => r.Skill != "" && r.Skill.Replace(" ", "") == name.Replace(" ", "")).OrderBy(r => r.Level).ThenBy(r => r.Name).ToList();
+                if (studies.Count > 0) { Head($"이 스킬의 대학 연구 {studies.Count}건"); foreach (var paper in studies) lines.Add(new(paper.Name, "연구", paper.No)); }
                 break;
             }
             case "직업" when Data.JobFacts.Find(j => j.No == id) is { } job:
@@ -263,6 +285,8 @@ internal sealed partial class Voyage
                 if (job.Expert != "") { Head("전문 스킬"); lines.Add(new(job.Expert, "스킬", Data.Skills.Find(s => s.Name == job.Expert)?.Id ?? 0)); }
                 Head($"우대 스킬 {job.Skills.Count}가지");
                 foreach (string liked in job.Skills) lines.Add(new(liked, "스킬", Data.Skills.Find(s => s.Name == liked)?.Id ?? 0));
+                var jobStudies = Data.Research.Where(r => r.Job == job.Name).OrderBy(r => r.Level).ThenBy(r => r.Name).ToList();
+                if (jobStudies.Count > 0) { Head($"이 직업의 대학 연구 {jobStudies.Count}건"); foreach (var paper in jobStudies) lines.Add(new(paper.Name, "연구", paper.No)); }
                 break;
             }
             case "부품" when Data.ShipParts.Find(p => p.Id == id) is { } part:
@@ -312,6 +336,77 @@ internal sealed partial class Voyage
                 if (Data.Discoveries.Find(d => d.Id == quest.DiscoveryId) is { } target) lines.Add(new(target.Name + "  (발견물)", "발견물", target.Id));
                 if (quest.Request != "") { Head("의뢰 내용"); WikiProse(lines, quest.Request); }
                 if (quest.Hint != "") { Head("실마리"); WikiProse(lines, quest.Hint); }
+                break;
+            }
+            case "연구" when Data.Research.Find(r => r.No == id) is { } study:
+            {
+                // 대학 연구 — 연구 자료(위키)와 클라이언트의 연구 값 표(67)에서 온 것. 행동의 설명은 연구 과제 표(64), 스킬의 설명은 스킬 표의 글이다
+                lines.Add(new(string.Join(" · ", new[] { study.Hall != "" ? study.Hall : $"연구동 Lv {study.Level}", study.Job }.Where(t => t != ""))));
+                lines.Add(new($"전공: {study.Major}"));
+                lines.Add(new($"필요 페이지 {study.Pages:N0} · 학점 {study.Credit:N0}"));
+                if (Data.MajorSkills.TryGetValue(study.Major, out int[]? needed))
+                {
+                    // 전공에 붙은 스킬과 랭크(표 65) — 전공에 드는 조건으로 보이나 모두인지 하나라도인지는 자료에 없다(게임은 막지 않는다)
+                    Head($"전공의 스킬 (Rank {needed[1]})");
+                    for (int n = 0; n + 1 < needed.Length; n += 2) lines.Add(new(Data.Skills.Find(s => s.Id == needed[n])?.Name ?? $"스킬 {needed[n]}", "스킬", needed[n]));
+                }
+                Head("연구 행동 (한 번에 써지는 쪽)");
+                foreach (var act in study.Actions)
+                {
+                    lines.Add(new($"{act.Name} +{act.Count:N0}쪽" + (EventOf(act.Name) == null ? "  (게임에 없다)" : "")));
+                    if (StudyTaskNote(act.Name) is { Length: > 0 } told) WikiProse(lines, told);
+                    if (StudyWayNote(act.Name) is { Length: > 0 } counted) WikiProse(lines, "게임에서는: " + counted);
+                }
+                if (study.Skill != "")
+                {
+                    Head("얻는 스킬");
+                    if (Data.Skills.Find(s => s.Name == study.Skill) is { } plain) lines.Add(new(study.Skill, "스킬", plain.Id)); else lines.Add(new(study.Skill));
+                    if (StudySkillNote(study.Skill) is { Length: > 0 } note) WikiProse(lines, note);
+                    if (StudyNote(study.Skill) is { } effect) lines.Add(new($"게임의 효과: {effect}"));
+                }
+                lines.Add(new(StudyDone.Contains(study.No) ? "마친 연구다." : study.Actions.Exists(a => EventOf(a.Name) != null && a.Count > 0) ? "이 게임에서 끝낼 수 있다." : "이 게임에 없는 행동뿐이라 끝낼 수 없다."));
+                var mates = Data.Research.Where(r => r.Major == study.Major && r.No != study.No).OrderBy(r => r.Level).ToList();
+                if (mates.Count > 0) { Head("같은 전공의 연구"); foreach (var mate in mates) lines.Add(new(mate.Name, "연구", mate.No)); }
+                // 강의(표 66) — 같은 갈래의 전공 둘이나 셋을 묶은 것. 이름 · 설명과 묶인 전공만 보인다(강의의 수치 넷은 뜻을 모른다)
+                if (Data.Lectures.Values.FirstOrDefault(l => l.Skip(2).Contains(study.Major)) is { } lecture)
+                {
+                    Head("강의");
+                    lines.Add(new(lecture[0]));
+                    if (lecture[1] != "") WikiProse(lines, lecture[1]);
+                    lines.Add(new("전공: " + string.Join(" · ", lecture.Skip(2))));
+                }
+                break;
+            }
+            case "역사" when id > 8000 && Data.DigTopics.TryGetValue(id - 8000, out string[]? topic):
+            {
+                // 조사 주제 — 원본의 표 134(제목 · 글)와 그 주제에서 모으는 정보 조각(표 133 — 번호 ÷ 100 이 주제). 조사하는 기능은 게임에 아직 없다
+                lines.Add(new("조사 주제(글만 보인다)"));
+                if (topic.Length > 1 && topic[1] != "") WikiProse(lines, topic[1]);
+                var scraps = Data.DigClues.Where(c => c.Key / 100 == id - 8000).OrderBy(c => c.Key).Select(c => c.Value).ToList();
+                if (scraps.Count > 0) Head($"정보 조각 {scraps.Count}개");
+                foreach (string[] scrap in scraps) { lines.Add(new("· " + scrap[0])); if (scrap.Length > 1 && scrap[1] != "") WikiProse(lines, scrap[1]); }
+                break;
+            }
+            case "역사" when id > 7000 && Data.Greats.TryGetValue(id - 7000, out string[]? great):
+            {
+                // 위인 — 원본의 표 149(이름 · 소개 글)와 일감 이름(표 148 — 위인마다 넷씩 차례로). 일감을 하는 기능은 게임에 아직 없다
+                lines.Add(new("위인(글만 보인다)"));
+                if (great.Length > 1 && great[1] != "") WikiProse(lines, great[1]);
+                var chores = Enumerable.Range((id - 7001) * 4 + 1, 4).Where(Data.GreatTasks.ContainsKey).Select(n => Data.GreatTasks[n]).ToList();
+                if (chores.Count > 0) Head("일감");
+                for (int n = 0; n < chores.Count; n++) lines.Add(new($"{n + 1}. {chores[n].Trim()}"));
+                break;
+            }
+            case "역사" when id > 6000 && Data.StarTales.Keys.Any(k => k / 100 == id - 6000):
+            {
+                // 별자리 — 원본의 표 144(이야기 글들)와 표 142(그 별자리의 별 이름). 이름은 표에 없어 천문 발견물의 이름에서 찾는다(ConstellationName)
+                lines.Add(new("별자리(글만 보인다)"));
+                foreach (var tale in Data.StarTales.Where(t => t.Key / 100 == id - 6000).OrderBy(t => t.Key)) WikiProse(lines, tale.Value);
+                var lights = Data.StarNames.Where(s => s.Key / 10 == id - 6000 && s.Value != "" && s.Value != "없음").OrderBy(s => s.Key).Select(s => s.Value).ToList();
+                if (lights.Count > 0) Head($"별 {lights.Count}개");
+                foreach (string light in lights)
+                    lines.Add(Data.Discoveries.Find(d => d.Name == light) is { } seenStar ? new(light, "발견물", seenStar.Id) : new(light));
+                if (Data.Discoveries.Find(d => d.Name == ConstellationName(id - 6000)) is { } seenSign) { Head("발견물"); lines.Add(new(seenSign.Name, "발견물", seenSign.Id)); }
                 break;
             }
             case "역사" when id > 5000 && Data.GreatPirates.TryGetValue(id - 5000, out string[]? corsair):
@@ -413,6 +508,13 @@ internal sealed partial class Voyage
             case "해역" when Data.Seas.Find(sea => sea.Id == id) is { } waters:
             {
                 // 해역 — 낚이는 어종(낚시 표), 이 해역에 항구 앞바다가 든 도시, 배 대는 자리가 든 상륙지
+                // 큰 바다(표 9) — 이 해역이 든 큰 바다의 이름과, 같은 큰 바다의 다른 해역들(누르면 그 해역 쪽)
+                if (Data.OceanNames.TryGetValue(waters.Group, out string? ocean) && ocean != "")
+                {
+                    lines.Add(new($"큰 바다 — {ocean}"));
+                    var sisters = Data.Seas.Where(s => s.Group == waters.Group && s.Id != waters.Id && s.Name != "").OrderBy(s => s.Name).ToList();
+                    if (sisters.Count > 0) { Head($"같은 큰 바다의 해역 {sisters.Count}곳"); foreach (var sister in sisters) lines.Add(new(sister.Name, "해역", sister.Id)); }
+                }
                 var catches = FishGrounds.TryGetValue(waters.Name, out var ground) ? ground : CommonFish;
                 Head("낚이는 어종");
                 foreach (string fish in catches)
@@ -477,6 +579,17 @@ internal sealed partial class Voyage
                 var yards = Data.Shipyards.Where(y => y.Value.ContainsKey(ship.Name) && _cities.ContainsKey(y.Key)).OrderBy(y => CityName(y.Key)).ToList();
                 Head($"파는 조선소 {yards.Count}곳");
                 foreach (var yard in yards) lines.Add(new(CityName(yard.Key) + (yard.Value[ship.Name] > 0 ? $"  {yard.Value[ship.Name]:N0}" : ""), "도시", yard.Key));
+                // 특수 조선으로 짓는 배 — 그 선체를 그 도시의 조선소 주인에게 가져간다(배 상세의 「특수 건조 도시」; 사용자, 2026-10-10: 「배 기영 얻는법이 없네」)
+                if (Data.ShipDetails.Find(d => d.Name == ship.Name) is { Special.Count: > 0 } built)
+                {
+                    Head($"특수 조선 {built.Special.Count}곳 — 선체를 가져가 짓는다");
+                    foreach (var way in built.Special)
+                    {
+                        int town = Data.Cities.Find(c => c.Name == way.City)?.Id ?? 0;
+                        string told = $"{way.City} — {way.Hull}" + (way.Rank > 0 ? $" · 조선 랭크 {way.Rank}" : "") + (way.Material != "" ? $" · {way.Material}" : "");
+                        if (town != 0) lines.Add(new(told, "도시", town)); else lines.Add(new(told));
+                    }
+                }
                 // 조선소에서 안 파는 배의 얻는 길 — 이 배로 바뀌는 선박 교환권(아이템 이름 · 설명에서 읽은 것)
                 var tickets = ShipTickets().Where(ticket => TicketShip(ticket)?.Name == ship.Name).ToList();
                 if (tickets.Count > 0) Head("이 배를 주는 교환권");

@@ -64,5 +64,6 @@ internal sealed partial class Voyage
         if (!quiet) Say($"{Fill(Text(7407, "「%s」열람"), book.Name + " 서적")} — {ReadsWith()}(으)로 읽었다. ({Text(907, "열람료")} {BookFee:N0} 두캇, 남은 열람 {BooksLeft}권)");
         if (_random.NextDouble() < 0.05) FindWreckPiece("서적 사이에서");
         MaybeFindMap(book);
+        if (BooksLeft <= 0) Studied("Library");      // 연구 과제 「서고 조사」 — 「서고에서 두통이 올 때까지 책을 읽는다」: 그날 읽을 수 있는 것을 다 읽었을 때
     }
 }

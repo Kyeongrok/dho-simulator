@@ -106,6 +106,8 @@ internal sealed class PortScene : IDisposable
     public static float SeaBaseLimit;
     /// <summary>확인용: 바다에서 보는 장면을 읽을 때 면 묶음마다의 꼭대기 높이.</summary>
     public static readonly List<float> SeaBases = [];
+    /// <summary>바닥에 깔린 납작한 네모들(가로 · 세로 자리의 작은 쪽 · 큰 쪽 구석) — 시내 장면에서만 모은다.</summary>
+    public List<(Vector2 Low, Vector2 High)> FlatPatches { get; } = [];
     private readonly HashSet<MeshBuilder> _ground = [];
     private readonly HashSet<Mesh> _groundMeshes = [];      // 바닥 조각 — 먼바다에서 도시를 키워 그릴 때는 뺀다
 
@@ -265,6 +267,34 @@ internal sealed class PortScene : IDisposable
                 if (indices < 0 || (long)indices + (firstIndex + triangles * 3) * 2L > data.Length
                     || (firstIndex + triangles * 3) * 2 > I32(indexTable + indexBuffer * 8 + 4)
                     || vertices < 0 || (long)vertices + (long)vertexCount * stride > data.Length || stride < 20) continue;
+
+                // 개발용: DHO_DRAWS 에 파일 길을 주면 그리기 레코드마다 텍스처와 자리(상자)를 적는다 — 깔개 같은 물체의 자리를 찾을 때 쓴다
+                if (Environment.GetEnvironmentVariable("DHO_DRAWS") is { Length: > 0 } dumpTo)
+                {
+                    Vector3 lowest = new(float.MaxValue), highest = new(float.MinValue);
+                    for (int i = 0; i < triangles * 3; i++)
+                    {
+                        int v = U16(indices + (firstIndex + i) * 2);
+                        int p = vertices + (v < vertexCount ? v : 0) * stride;
+                        var corner = Vector3.Transform(new Vector3(F32(p), F32(p + 4), F32(p + 8)), transform);
+                        (lowest, highest) = (Vector3.Min(lowest, corner), Vector3.Max(highest, corner));
+                    }
+                    File.AppendAllText(dumpTo, FormattableString.Invariant($"{textureSet} {texture} {triangles} {data[record + 9]} {lowest.X:0} {highest.X:0} {lowest.Y:0} {highest.Y:0} {lowest.Z:0} {highest.Z:0}") + Environment.NewLine);
+                }
+                // 바닥에 깔린 납작한 네모(깔개 따위)를 모아 둔다 — 시내 장면에서만. 조선소 사람들을 깔개 위에 세우는 데 쓴다
+                if (_grid != null && triangles <= 16)
+                {
+                    Vector3 lowest = new(float.MaxValue), highest = new(float.MinValue);
+                    for (int i = 0; i < triangles * 3; i++)
+                    {
+                        int v = U16(indices + (firstIndex + i) * 2);
+                        int p = vertices + (v < vertexCount ? v : 0) * stride;
+                        var corner = Vector3.Transform(new Vector3(F32(p), F32(p + 4), F32(p + 8)), transform);
+                        (lowest, highest) = (Vector3.Min(lowest, corner), Vector3.Max(highest, corner));
+                    }
+                    if (highest.Y - lowest.Y < 5 && MathF.Min(highest.X - lowest.X, highest.Z - lowest.Z) >= 120 && MathF.Max(highest.X - lowest.X, highest.Z - lowest.Z) <= 1500)
+                        FlatPatches.Add((new Vector2(lowest.X, lowest.Z), new Vector2(highest.X, highest.Z)));
+                }
 
                 if (_fadeGround && !ground)
                 {

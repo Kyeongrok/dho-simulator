@@ -386,6 +386,7 @@ internal sealed partial class Voyage
                 case "Repair" when Durability < Stats.Durability:
                     Durability = Math.Min(Stats.Durability, Durability + Stats.Durability * known.Amount / 100);
                     Say($"{known.Name}(으)로 배를 고쳤다.");
+                    Cues.Enqueue("Repair");
                     break;
                 case "Bait":
                     // 낚시밥 — 낚시 스킬이 없어도 한 번 낚는다(클라이언트 설명: 「도시나 해상에서 낚시를 할 수 있는 미끼」 · gvdb: 쓰면 걸리는 효과 「釣り」)

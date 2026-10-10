@@ -234,6 +234,30 @@ internal sealed partial class Voyage
     /// <summary>대본용: 가까이에 배 한 척을 띄운다(kind 가 0 이상이면 그 갈래로).</summary>
     public void SpawnForTest(int kind, double far = 3) => SpawnSeaShip(kind, far);
 
+    /// <summary>대본용 — 싸움 중에 부른다. 「공격 전술」이 든 연구를 잡고, 적의 내구를 1 로 낮춘 뒤 적 자리에 다 익은 기뢰를 놓는다(다음 틱에 터져 가라앉는다 — 실제 길). 끝난 뒤 studyreport 로 진행을 본다.</summary>
+    public void MineStudyForTest()
+    {
+        if (Battle is not { Result: null } battle) { Say("(시험) 싸움이 없다"); return; }
+        if (Data.Research.Find(r => r.Actions.Exists(a => a.Name == "공격 전술")) is not { } research) { Say("(시험) 「공격 전술」이 든 연구가 없다"); return; }
+        Studying = research; StudyProgress.Clear();
+        battle.Foe.Durability = 1;
+        battle.Mines.Add((battle.Foe.X, battle.Foe.Y, 3));
+        Say($"(시험) 「{research.Name}」을 잡고 적 자리에 기뢰를 놓았다");
+    }
+    /// <summary>대본용 — 싸움 중에 부른다. 「인명 구조 실전」이 든 연구를 잡고 구조(18) 랭크를 준 뒤 선원을 열 명 잃은 것으로 두고, 기뢰로 싸움을 끝낸다(이긴 자리에서 구조가 탄다 — 실제 길).</summary>
+    public void RescueStudyForTest()
+    {
+        if (Battle is not { Result: null } battle) { Say("(시험) 싸움이 없다"); return; }
+        if (Data.Research.Find(r => r.Actions.Exists(a => a.Name == "인명 구조 실전")) is not { } research) { Say("(시험) 「인명 구조 실전」이 든 연구가 없다"); return; }
+        SetRankForTest(18, 5);
+        Studying = research; StudyProgress.Clear();
+        Crew = Math.Max(1, battle.CrewAtStart - 10);
+        battle.Foe.Durability = 1;
+        battle.Mines.Add((battle.Foe.X, battle.Foe.Y, 3));
+        Say($"(시험) 「{research.Name}」을 잡고 선원 10 명을 잃은 것으로 둔 뒤 기뢰를 놓았다 (구조 효과 {Bonus("Rescue"):0.00})");
+    }
+    public void StudyReportForTest() => Say($"(시험) 연구 진행: {(Studying == null ? "연구 없음(끝났거나 안 잡음)" : Studying.Name)} — {string.Join(" · ", StudyProgress.Select(p => $"{p.Key} {p.Value}"))}");
+
     /// <summary>대본용: 뱃머리를 싸우는 적에게 돌리고 8노트로 민다 — 충각을 시험한다.</summary>
     public void RamForTest()
     {
@@ -332,7 +356,15 @@ internal sealed partial class Voyage
         {
             int at = text.IndexOf('%');
             if (at < 0 || at + 1 >= text.Length) break;
-            text = text[..at] + value + text[(at + 2)..];
+            string rest = text[(at + 2)..];
+            // 원본 글은 끼우는 말 뒤의 토씨가 한 꼴로 박혀 있다(「%s를」) — 끼운 말의 받침에 맞춰 고른다(뒤가 빈칸인 한 글자 토씨만, 끝 글자가 한글일 때만)
+            if (rest.Length >= 2 && rest[1] == ' ' && "를을와과는은가이".Contains(rest[0]) && value.TrimEnd('」', '』', ')', ']', ' ') is { Length: > 0 } word && word[^1] is >= '가' and <= '힣')
+            {
+                bool closed = (word[^1] - 0xAC00) % 28 != 0;
+                char fitted = rest[0] switch { '를' or '을' => closed ? '을' : '를', '와' or '과' => closed ? '과' : '와', '는' or '은' => closed ? '은' : '는', _ => closed ? '이' : '가' };
+                rest = fitted + rest[1..];
+            }
+            text = text[..at] + value + rest;
         }
         // 글에 섞인 빛깔 표시(0 · 1 · 2 바이트)는 뺀다
         return string.Concat(text.Where(c => c >= ' '));
@@ -599,6 +631,7 @@ internal sealed partial class Voyage
             foe.Durability -= blast;
             battle.Mines.RemoveAt(i);
             battle.Hits.Add(new SeaHit { X = foe.X, Y = foe.Y, Text = $"기뢰! −{blast:0}" });
+            if (foe.Durability <= 0) Studied("Tactic");      // 연구 과제 「공격 전술」 — 기뢰 또는 충각으로 적선을 침몰(충각은 아래 충각 자리에서 센다)
             battle.Log.Add(foe.Durability <= 0 ? Fill(Text(20071, "적선 %s가 기뢰에 의해 격침되었습니다!"), foe.Name) : $"{foe.Name}이(가) 기뢰를 밟았다 — 선체에 {blast:0}의 피해");
             Cues.Enqueue("Cannon");
             CheckBattleEnd(battle);
@@ -651,6 +684,7 @@ internal sealed partial class Voyage
                 Water -= 1;
                 battle.Hits.Add(new SeaHit { X = ShipX, Y = ShipY, Text = $"선원 +{healed:0}", OnMe = true });
                 TrainEffect("Surgery", 8);
+                Studied("Rescue");      // 연구 과제 「인명 구조 실전」 — 「구조 스킬，외과의술 스킬을 사용한다」
             }
         }
         battle.BoardIn = Math.Max(0, battle.BoardIn - dt);
@@ -755,6 +789,7 @@ internal sealed partial class Voyage
             battle.RamIn = 10;
             Knots *= 0.3;
             battle.Hits.Add(new SeaHit { X = foe.X, Y = foe.Y, Text = $"충각! −{crash:0}" });
+            if (foe.Durability <= 0) Studied("Tactic");      // 연구 과제 「공격 전술」 — 충각으로 침몰
             battle.Log.Add($"충각으로 들이받았다 — 적의 내구 −{crash:0}");
             Cues.Enqueue("Cannon");
             CheckBattleEnd(battle);
@@ -820,10 +855,13 @@ internal sealed partial class Voyage
         }
         // 「구조」: 이긴 뒤 물에 빠진 선원을 건진다 — 이 싸움에서 잃은 선원의 랭크마다 5%(지은 값, 8할까지)
         string rescued = "";
-        if (Bonus("Rescue") > 0 && battle.CrewAtStart - Crew >= 1)
+        // 식인상어가 돌고 있으면 물에 빠진 선원은 구하지 못한다 — 상어는 배 위의 선원은 못 건드리고 물에 떨어진 선원만 공격한다(사용자, 2026-10-10)
+        bool sharks = Disasters.Exists(d => d.Data.Id == 7);
+        if (sharks && Bonus("Rescue") > 0 && battle.CrewAtStart - Crew >= 1) rescued = " 물에 빠진 선원들은 상어 때문에 구하지 못했다.";
+        if (!sharks && Bonus("Rescue") > 0 && battle.CrewAtStart - Crew >= 1)
         {
             double back = Math.Floor((battle.CrewAtStart - Crew) * Math.Min(0.8, Bonus("Rescue")));
-            if (back >= 1) { Crew += back; rescued = $" 물에 빠진 선원 {back:0}명을 구조했다."; TrainEffect("Rescue", 15); }
+            if (back >= 1) { Crew += back; rescued = $" 물에 빠진 선원 {back:0}명을 구조했다."; TrainEffect("Rescue", 15); Studied("Rescue"); }
         }
         battle.Result = foe.Monster > 0 ? $"{(foe.Monster == 2 ? Text(3094, "크라켄이 사라졌습니다.") : Text(3096, "식인 상어는 사라져 갔습니다."))} (전투 경험 +{ExpShown(exp)}, 명성 +{fame})"
             : $"{Fill(foe.Durability <= 0 ? Text(20072, "적선 %s를 격침했습니다!") : Text(20073, "적선 %s를 나포했습니다!"), foe.Name)} {money:N0} 두캇{loot}을(를) 얻었다.{rescued} (전투 경험 +{ExpShown(exp)}, 명성 +{fame})";

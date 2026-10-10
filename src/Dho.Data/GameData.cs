@@ -498,6 +498,8 @@ public sealed class ResearchFact
     public int Pages { get; set; }
     public string Skill { get; set; } = "";
     public int Credit { get; set; }
+    /// <summary>연구동 · 학과 이름(표 65) — 클라이언트 표에서 온 연구에만 있다.</summary>
+    public string Hall { get; set; } = "";
 }
 
 /// <summary>직업 하나 — 우대 스킬들과 전문 스킬(하나), 전직 비용.</summary>
@@ -819,6 +821,8 @@ public sealed class SaveData
     public int[] Track { get; set; } = [];
     /// <summary>조타 기록 — x, y, 침로(도), 항해 며칠째가 차례로.</summary>
     public int[] Turns { get; set; } = [];
+    /// <summary>항로를 따라가던 중에 적은 저장 — [다음 점 차례, 거꾸로면 1]. 아니면 빈 채.</summary>
+    public int[] Follow { get; set; } = [];
     public Dictionary<int, int> Hostility { get; set; } = [];
     // 대장간의 단련: 장비 · 대포 번호 → 더해진 (공격력 또는 관통력, 방어력)
     public Dictionary<int, int[]> Forged { get; set; } = [];
@@ -918,6 +922,8 @@ public sealed class SettingsData
     public bool ModWorkOnBoard { get; set; }
     // 모드: 타고 있는 배도 선박 조합의 강화 선박으로 고를 수 있다(재료로는 못 쓴다)
     public bool ModCombineOnBoard { get; set; }
+    // 모드: 바다 위에서도 조선소 일을 한다(선박 메뉴에 「조선소」가 생긴다; 파는 배는 마지막에 들른 도시 것)
+    public bool ModYardAtSea { get; set; }
     // 모드: 해적선이 쫓아와 싸움을 걸지 않는다
     public bool ModNoPirates { get; set; }
     // 모드: 창마다 오른쪽 위에 적는 창 이름 — 0 없음 · 1 아이디(WndShipSwap) · 2 보조 아이디(Wnd012)
@@ -950,6 +956,8 @@ public sealed class SettingsData
     public int ModMapSearch { get; set; } = 70;
     // 모드: 항해 중 물결 · 거품 무늬가 뒤로 흘러가는 빠르기(1노트에 초당 이 값만큼 — 지은 값, 기본 3, 0 ~ 10)
     public int ModSeaFlow { get; set; } = 3;
+    /// <summary>물살 모양(모드 창 「바다」 탭) — 0 V 띠(처음 것) · 1 선체 거품만 · 2 길고 곧은 항적 · 3 넓은 V 와 안쪽 물결 · 4 거품 없이 밝은 띠 · 5 뱃머리 물보라와 짧은 항적. 모두 지은 모양.</summary>
+    public int ModWakeStyle { get; set; }
     [System.Text.Json.Serialization.JsonIgnore]
     public int Gain => ModGain is >= 1 and <= 3 ? ModGain : ModTripleGain ? 3 : 1;
     /// <summary>단축키 — 하는 일의 이름 → 글쇠(가상 키 번호). 없는 것은 기본값을 쓴다. 게임의 「단축키 등록」에서 바꾼다.</summary>
@@ -1277,6 +1285,22 @@ public sealed class GameData
     public Dictionary<int, string[]> HistoryEvents { get; set; } = [];
     /// <summary>대해적(표 94) — 번호 → 이름 · 설명. 위키의 「역사」 갈래가 글만 보인다(바다에 나타나는 규칙은 없다).</summary>
     public Dictionary<int, string[]> GreatPirates { get; set; } = [];
+    /// <summary>별 이름(표 142 — 번호 ÷ 10 이 별자리) · 별자리 이야기(표 144 — 번호 ÷ 100 이 별자리). 위키의 「역사」 갈래가 별자리로 묶어 보인다.</summary>
+    public Dictionary<int, string> StarNames { get; set; } = [];
+    public Dictionary<int, string> StarTales { get; set; } = [];
+    /// <summary>위인(표 149) · 위인의 일감 이름(표 148 — 넷씩 차례로) · 조사 주제(표 134) · 정보 조각(표 133 — 번호 ÷ 100 이 주제). 위키의 「역사」 갈래가 글만 보인다.</summary>
+    public Dictionary<int, string[]> Greats { get; set; } = [];
+    public Dictionary<int, string> GreatTasks { get; set; } = [];
+    public Dictionary<int, string[]> DigTopics { get; set; } = [];
+    public Dictionary<int, string[]> DigClues { get; set; } = [];
+    /// <summary>큰 바다 이름(표 9) — 해역의 Group 이 이 번호다. 위키의 「해역」 쪽이 보인다.</summary>
+    public Dictionary<int, string> OceanNames { get; set; } = [];
+    /// <summary>클라이언트의 연구 값 표(67)에서 만든 연구 목록 — Research 에 이름이 없는 것만 더해진다(번호는 1000 + 표의 번호).</summary>
+    public List<ResearchFact> ResearchTable { get; set; } = [];
+    /// <summary>강의(표 66) — 번호 → 이름 · 설명 · 묶는 전공 이름들. 위키의 「연구」 쪽이 보인다.</summary>
+    public Dictionary<int, string[]> Lectures { get; set; } = [];
+    /// <summary>전공에 붙은 스킬과 랭크(표 65) — 전공 이름 → [스킬 번호, 랭크 …]. 전공에 드는 조건으로 보이나 「모두/하나라도」를 몰라 보이기만 한다.</summary>
+    public Dictionary<string, int[]> MajorSkills { get; set; } = [];
     /// <summary>테마(표 83) — 번호 → 이름 · 설명. 위키의 「역사」 갈래가 보인다.</summary>
     public Dictionary<int, string[]> Themes { get; set; } = [];
     /// <summary>테마의 단서(표 84) — 번호 → 이름 · 설명. 설명 글에 든 테마 이름으로 테마에 잇는다(숫자 칸은 없다).</summary>
@@ -1343,6 +1367,15 @@ public sealed class GameData
         data.HistoryEvents = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "history-events.json")) ?? [];
         data.Themes = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "themes.json")) ?? [];
         data.GreatPirates = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "great-pirates.json")) ?? [];
+        data.StarNames = Read<Dictionary<int, string>>(Path.Combine(extracted, "star-names.json")) ?? [];
+        data.StarTales = Read<Dictionary<int, string>>(Path.Combine(extracted, "star-tales.json")) ?? [];
+        data.Greats = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "greats.json")) ?? [];
+        data.GreatTasks = Read<Dictionary<int, string>>(Path.Combine(extracted, "great-tasks.json")) ?? [];
+        data.DigTopics = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "dig-topics.json")) ?? [];
+        data.DigClues = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "dig-clues.json")) ?? [];
+        data.OceanNames = Read<Dictionary<int, string>>(Path.Combine(extracted, "ocean-names.json")) ?? [];
+        data.Lectures = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "lectures.json")) ?? [];
+        data.MajorSkills = Read<Dictionary<string, int[]>>(Path.Combine(extracted, "major-skills.json")) ?? [];
         data.ThemeClues = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "theme-clues.json")) ?? [];
         data.Tales = Read<Dictionary<int, string[]>>(Path.Combine(extracted, "tales.json")) ?? [];
         data.TaleSteps = Read<Dictionary<int, string>>(Path.Combine(extracted, "tale-steps.json")) ?? [];
@@ -1369,6 +1402,7 @@ public sealed class GameData
             if (known.Slots.Count == 0) known.Slots = guide.Slots;
             if (known.Times == 0) (known.Times, known.Retimes) = (guide.Times, guide.Retimes);
             if (known.Days == 0) known.Days = guide.Days;
+            if (known.Special.Count == 0 && guide.Special.Count > 0) (known.Hull, known.Special) = (guide.Hull, guide.Special);      // 특수 건조 도시(선체 · 도시) — 기영 따위 조선소에서 안 파는 배의 얻는 길
             foreach (var skill in guide.Skills)
             {
                 if (known.Skills.Find(s => s.Name == skill.Name) is not { } listed) known.Skills.Add(skill);
@@ -1431,6 +1465,21 @@ public sealed class GameData
         data.JobFacts = Read<List<JobFact>>(Path.Combine(extracted, "job-facts.json")) ?? [];
         data.AideFacts = Read<List<AideFact>>(Path.Combine(extracted, "aides-dhoguide.json")) ?? [];
         data.Research = Read<List<ResearchFact>>(Path.Combine(extracted, "research-facts.json")) ?? [];
+        data.ResearchTable = Read<List<ResearchFact>>(Path.Combine(extracted, "research-table.json")) ?? [];
+        // 이름은 쉼표 꼴(， · ,)과 띄어쓰기가 서로 달라, 그것을 지우고 견준다
+        static string StudyKey(string name) => new(name.Where(c => !char.IsWhiteSpace(c) && !char.IsPunctuation(c) && !char.IsSymbol(c)).ToArray());
+        // 같은 연구가 두 자료에 다 있으면(이름이 같거나 — 연구 자료의 이름에 오타가 셋 있다 — 전공과 얻는 스킬이 같으면) 클라이언트 표가 원본이니
+        // 행동 · 필요 페이지 · 연구동 이름은 표의 것으로 덮는다. 번호 · 직업 · 학점 · 스킬 이름은 연구 자료의 것을 둔다(저장과 효과가 그 번호 · 이름을 쓴다).
+        var taken = new HashSet<ResearchFact>();
+        foreach (var known in data.Research)
+        {
+            string key = StudyKey(known.Name), skill = known.Skill.Replace(" ", "");
+            var row = data.ResearchTable.Find(r => StudyKey(r.Name) == key) ?? data.ResearchTable.Find(r => !taken.Contains(r) && r.Major == known.Major && skill != "" && r.Skill.Replace(" ", "") == skill);
+            if (row == null) continue;
+            taken.Add(row);
+            (known.Actions, known.Pages, known.Hall) = (row.Actions, row.Pages, row.Hall);
+        }
+        data.Research.AddRange(data.ResearchTable.Where(r => !taken.Contains(r)));
         data.Aides = Read<List<NamedData>>(Path.Combine(extracted, "aides.json")) ?? [];
         data.Duties = Read<List<NamedData>>(Path.Combine(extracted, "duties.json")) ?? [];
         data.Ammo = Read<List<NamedData>>(Path.Combine(extracted, "ammo.json")) ?? [];
@@ -1570,6 +1619,16 @@ public sealed class GameData
         Write(Path.Combine(extracted, "history-events.json"), HistoryEvents);
         Write(Path.Combine(extracted, "themes.json"), Themes);
         Write(Path.Combine(extracted, "great-pirates.json"), GreatPirates);
+        Write(Path.Combine(extracted, "star-names.json"), StarNames);
+        Write(Path.Combine(extracted, "star-tales.json"), StarTales);
+        Write(Path.Combine(extracted, "greats.json"), Greats);
+        Write(Path.Combine(extracted, "great-tasks.json"), GreatTasks);
+        Write(Path.Combine(extracted, "dig-topics.json"), DigTopics);
+        Write(Path.Combine(extracted, "dig-clues.json"), DigClues);
+        Write(Path.Combine(extracted, "ocean-names.json"), OceanNames);
+        Write(Path.Combine(extracted, "research-table.json"), ResearchTable);
+        Write(Path.Combine(extracted, "lectures.json"), Lectures);
+        Write(Path.Combine(extracted, "major-skills.json"), MajorSkills);
         Write(Path.Combine(extracted, "theme-clues.json"), ThemeClues);
         Write(Path.Combine(extracted, "tales.json"), Tales);
         Write(Path.Combine(extracted, "tale-steps.json"), TaleSteps);
@@ -1682,6 +1741,27 @@ public sealed class GameData
         HistoryEvents = new Dictionary<int, string[]>(tables.HistoryEvents);
         Themes = new Dictionary<int, string[]>(tables.Themes);
         GreatPirates = new Dictionary<int, string[]>(tables.GreatPirates);
+        StarNames = new Dictionary<int, string>(tables.StarNames);
+        StarTales = new Dictionary<int, string>(tables.StarTales);
+        Greats = new Dictionary<int, string[]>(tables.Greats);
+        GreatTasks = new Dictionary<int, string>(tables.GreatTasks);
+        DigTopics = new Dictionary<int, string[]>(tables.DigTopics);
+        DigClues = new Dictionary<int, string[]>(tables.DigClues);
+        OceanNames = new Dictionary<int, string>(tables.OceanNames);
+        Lectures = new Dictionary<int, string[]>(tables.StudyLectures);
+        MajorSkills = new Dictionary<string, int[]>(tables.StudyMajorSkills);
+        // 표 67 의 연구 — 전공 · 연구동은 표 65 의 이름, 얻는 스킬은 스킬 표의 이름, 학점은 표 값의 절반(연구 자료와 205 건 가운데 199 건이 그렇게 맞는다 — 짐작),
+        // 연구동 레벨은 기초 · 초급 1 … 특별 · 최상급 4, 학과(190 ~)의 것은 1 로 둔다(지은 값). 직업 연구의 직업은 여기서는 알 수 없다(그런 연구는 모두 연구 자료 쪽에 있다).
+        // 행동의 갈래 번호는 연구 과제 표(64)의 번호다(104 가지 — w-907). 전각 쉼표는 연구 자료의 꼴(", ")로 맞춘다
+        var taskNames = tables.StudyTasks.GroupBy(t => t.Id).ToDictionary(g => g.Key, g => g.First().Name.Replace("，", ", ").Trim());
+        var skillNames = tables.Skills.Where(s => s.Name.Length > 0).GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First().Name);
+        ResearchTable = tables.StudyRows.Where(r => r.Name.Length > 0 && !r.Name.StartsWith('※')).Select(r => new ResearchFact
+        {
+            No = 1000 + r.Id, Name = r.Name, Level = r.Hall is >= 1 and <= 4 ? r.Hall : r.Hall is >= 60 and <= 63 ? r.Hall - 59 : 1,
+            Major = tables.StudyHalls.GetValueOrDefault(r.Major, ""), Hall = tables.StudyHalls.GetValueOrDefault(r.Hall, ""),
+            Actions = Enumerable.Range(0, 3).Where(i => r.Kinds[i] > 0).Select(i => new ResearchAction { Name = taskNames.GetValueOrDefault(r.Kinds[i], $"행동 {r.Kinds[i]}"), Count = r.Counts[i] }).ToList(),
+            Pages = r.Pages, Credit = r.Credit2 / 2, Skill = skillNames.GetValueOrDefault(r.Skill, ""),
+        }).ToList();
         ThemeClues = new Dictionary<int, string[]>(tables.ThemeClues);
         Tales = new Dictionary<int, string[]>(tables.Tales);
         TaleSteps = new Dictionary<int, string>(tables.TaleSteps);
@@ -1776,7 +1856,7 @@ public sealed class GameData
     }
 
     /// <summary>뽑은 것의 판 — 뽑는 칸이 늘면 이름을 바꿔 다시 뽑게 한다.</summary>
-    private const string ExtractVersion = "extracted-38";
+    private const string ExtractVersion = "extracted-45";
 
     public static string RoomsOf(byte[] sceneTable, int cityId)
     {
