@@ -55,7 +55,16 @@ internal sealed partial class Voyage
     public bool OwnsBook(RecipeBook book) => Items.GetValueOrDefault(book.ItemId) > 0;
 
     /// <summary>그 레시피를 쓸 수 있는가 — 책에 든 것은 책을 가졌을 때, 아니면 낱개로 얻었을 때.</summary>
-    public bool KnowsRecipe(int recipe) => BooksOf(recipe) is { Count: > 0 } books ? books.Exists(OwnsBook) : Recipes.Contains(recipe);
+    public bool KnowsRecipe(int recipe) => RuleOf(recipe) is { Cities.Length: > 0 } local ? MakesHere(local)
+        : BooksOf(recipe) is { Count: > 0 } books ? books.Exists(OwnsBook) : Recipes.Contains(recipe);
+
+    /// <summary>
+    /// 고정 레시피 — 레시피 책이 아니라 그 도시의 조선소 주인 · 조선공에게 가서 만든다(사용자, 2026-10-10: 「레시피 아이템이 있는게 아니야 도시에 가서 하는거야」).
+    /// 레시피 목록에는 안 뜬다 — 그 도시의 조선소 주인에게 말을 걸면(조선소주인 차림의 「제조」) 뜬다(사용자: 「조선소나 거기 가면 npc한테 말걸면 떠야지」).
+    /// 조선공의 것(선실 설계법 · 강화판 제조법)도 조선소 주인 차림에 함께 둔다(조선공에게 말을 거는 자리가 없다 — 줄인 것).
+    /// </summary>
+    public bool MakesHere(RecipeRule rule) => Mode == Mode.Port && rule.CityList().Contains(City.Name);
+    public List<int> LocalRecipes() => Mode != Mode.Port ? [] : [.. Data.RecipeRules.Where(r => r.Cities.Length > 0 && MakesHere(r)).Select(r => r.RecipeId)];
 
     /// <summary>지금 쓸 수 있는 레시피 전부 — 가진 책의 것과 낱개로 얻은 것.</summary>
     public List<int> KnownRecipes() =>
@@ -101,9 +110,10 @@ internal sealed partial class Voyage
     }
 
     /// <summary>레시피가 요구하는 스킬(번호와 랭크). 없으면 null.</summary>
-    public (int SkillId, int Rank)? RecipeSkill(RecipeRule rule)
+    public (int SkillId, int Rank)? RecipeSkill(RecipeRule rule) => SkillOf(rule.Skill);
+    public (int SkillId, int Rank)? SkillOf(string text)
     {
-        var parts = rule.Skill.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var parts = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 2 || !int.TryParse(parts[^1], out int rank)) return null;
         string name = string.Join(' ', parts[..^1]);
         return Data.Skills.Find(s => s.Name == name) is { } skill ? (skill.Id, rank) : null;
@@ -158,6 +168,8 @@ internal sealed partial class Voyage
 
     public string? ProduceBlocker(RecipeRule rule, int times)
     {
+        if (rule.Cities.Length > 0 && !MakesHere(rule)) return $"{string.Join(" · ", rule.CityList())}의 조선소에서만 만든다";
+        if (SkillOf(rule.Skill2) is { } also && Rank(also.SkillId) < also.Rank) return $"{SkillName(also.SkillId)} 랭크 {also.Rank} 이 있어야 한다";
         if (!KnowsRecipe(rule.RecipeId)) return BooksOf(rule.RecipeId) is { Count: > 0 } books ? $"레시피 책 「{books[0].Name}」이(가) 있어야 한다" : "레시피가 없다";
         if (rule.Facility != "" && LabTier(rule.Facility) == 0) return $"{LabName(rule.Facility)}가 있어야 한다 — {(rule.Facility == "Furnace" ? "화로를 사용한 연금술" : "실험대에서 진행하는 연금술")}";
         if (rule.ToolList().FirstOrDefault(tool => Items.GetValueOrDefault(tool) <= 0) is > 0 and var missing) return $"도구 「{ItemName(missing)}」이(가) 있어야 한다";

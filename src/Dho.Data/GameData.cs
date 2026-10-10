@@ -471,6 +471,11 @@ public sealed class RecipeRule
     public bool RankGuessed { get; set; }
     /// <summary>한 번 만들 때마다 하나씩 닳는 아이템(번호를 쉼표로) — 재봉도구 따위.</summary>
     public string Consumes { get; set; } = "";
+    /// <summary>고정 레시피 — 책 없이 이 도시들(이름을 쉼표로)의 조선소 주인 · 조선공에게 가서 만든다. 비면 보통 레시피.</summary>
+    public string Cities { get; set; } = "";
+    public IEnumerable<string> CityList() => Cities.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    /// <summary>함께 갖춰야 하는 둘째 스킬과 랭크 — "공예 12" 꼴(동아시아 선체: 조선 15 · 공예 12). 숙련도는 Skill 쪽만 오른다.</summary>
+    public string Skill2 { get; set; } = "";
     public IEnumerable<int> ConsumeList() =>
         Consumes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(t => int.TryParse(t, out _)).Select(int.Parse);
     /// <summary>이용자 사이트(gvdb)의 값으로 채운 것 — <c>data\extracted\recipe-inputs.json</c>. 저장소의 recipes.json 에는 적지 않는다.</summary>
@@ -557,6 +562,49 @@ public sealed class SavedRoute
     public List<int> Points { get; set; } = [];
     /// <summary>지나온 점들(x, y 를 차례로) — 「항로 만들기」로 저장한 항로에만 있다.</summary>
     public List<int> Trail { get; set; } = [];
+    /// <summary>목적지 도시 — 「항로 만들기」로 입항해 저장한 항로에 적힌다. 0 이면 모른다(끝 점 앞의 항구를 찾는다).</summary>
+    public int CityId { get; set; }
+}
+
+// 남만 무역(data\nanban.json) — 나라마다 도시(열리는 공헌도 · 내주는 남만품)와 반기는 교역품(가치).
+public sealed class NanbanBook
+{
+    public string Note { get; set; } = "";
+    /// <summary>가장 좋은 교환비(건넨 수에 곱한다).</summary>
+    public double Ratio { get; set; } = 0.33;
+    public int GiftGoal { get; set; } = 1000;
+    public int GiftPerGood { get; set; } = 2;
+    public int GiftPerSpecialty { get; set; } = 10;
+    public int MeritPerGood { get; set; } = 1;
+    public int ValueFull { get; set; } = 3000;
+    public double CallChance { get; set; } = 0.1;
+    public int CallPapers { get; set; } = 5;
+    public List<NanbanLand> Lands { get; set; } = [];
+}
+public sealed class NanbanLand
+{
+    public string Name { get; set; } = "";
+    public List<NanbanCity> Cities { get; set; } = [];
+    public List<NanbanWant> Wants { get; set; } = [];
+}
+public sealed class NanbanCity
+{
+    public string City { get; set; } = "";
+    public int Need { get; set; }
+    public List<NanbanGood> Goods { get; set; } = [];
+}
+public sealed class NanbanGood
+{
+    public string Name { get; set; } = "";
+    public int Need { get; set; }
+    public List<string> Favoured { get; set; } = [];
+}
+public sealed class NanbanWant
+{
+    public string Name { get; set; } = "";
+    public int Value { get; set; }
+    /// <summary>이 교역품의 가치가 곱절이 되는 도시 상태(글의 표 — 아직 안 쓴다).</summary>
+    public string Bonus { get; set; } = "";
 }
 
 // 지은 값을 진짜 값으로 채워 달라는 요청 하나 — 게임에서 「지은 값」 표시를 누르면 data\wiki-requests.json 에 쌓인다.
@@ -828,6 +876,10 @@ public sealed class SaveData
     public Dictionary<int, int[]> Forged { get; set; } = [];
     // 얻은 입항 허가(큰 바다의 번호)
     public List<int> Permits { get; set; } = [];
+    // 남만 무역 — 나라 이름 → 공헌도 · 선물도 · 선물로 고른 교역품
+    public Dictionary<string, int> NanbanMerit { get; set; } = [];
+    public Dictionary<string, int> NanbanGift { get; set; } = [];
+    public Dictionary<string, int> NanbanGiftGood { get; set; } = [];
     // 내건 호칭, 물리친 해적 · 군함의 수
     public int[] Honor { get; set; } = [0, 0, 0];
     /// <summary>은행에 맡긴 돈.</summary>
@@ -894,11 +946,6 @@ public sealed class SettingsData
     public bool Fullscreen { get; set; }
     /// <summary>화면 글과 창의 배율. 0 이면 윈도의 배율(175% 면 1.75)을 따른다.</summary>
     public double UiScale { get; set; }
-    /// <summary>내비게이션의 뱃머리 방향 선 — 길이 · 두께(픽셀). 창의 단추로 바꾼다.</summary>
-    public int NavLineLength { get; set; } = 18;
-    /// <summary>방향 선을 지도 끝까지 긋는다(사용자, 2026-10-09: 「방향선이 지도 끝에 닿게 하는 옵션」) — 켜면 길이 값은 안 쓴다.</summary>
-    public bool NavLineEndless { get; set; }
-    public int NavLineWidth { get; set; } = 2;
     /// <summary>배경음 크기(0 ~ 1). 0 이면 끈다.</summary>
     public double MusicVolume { get; set; } = 0.5;
     /// <summary>그림 단추(오른쪽 위 단추 줄 · 항구 단추 · 가장자리 둥근 단추)의 배율(0.5 ~ 2.5) — 글과 창의 배율과 따로 논다.</summary>
@@ -952,6 +999,10 @@ public sealed class SettingsData
     public int ModGain { get; set; }
     /// <summary>모드: 선장이 경험을 얻을 때 부관이 같은 갈래로 얻는 몫(0 ~ 100, %). 기본 10 — 지은 값.</summary>
     public int ModAideShare { get; set; } = 10;
+    /// <summary>모드: 경험을 한 번 얻을 때 오를 수 있는 레벨의 상한(0 ~ 30, 0 이면 없음). 기본 10 — 사용자가 정한 값.</summary>
+    public int ModLevelUpMax { get; set; } = 10;
+    /// <summary>모드: 소유물품의 상한(가짓수, 10 ~ 1000, 10개 단위). 기본 100.</summary>
+    public int ModItemLimit { get; set; } = 100;
     // 모드: 서고에서 「지도 찾기」를 한 번 할 때 지도를 찾을 확률(%) — 지은 값, 기본 70
     public int ModMapSearch { get; set; } = 70;
     // 모드: 항해 중 물결 · 거품 무늬가 뒤로 흘러가는 빠르기(1노트에 초당 이 값만큼 — 지은 값, 기본 3, 0 ~ 10)
@@ -1539,6 +1590,7 @@ public sealed class GameData
         data.Disasters = Read<List<DisasterData>>(Path.Combine(directory, "disasters.json")) ?? [];
         data.WikiRequests = Read<List<WikiRequest>>(Path.Combine(directory, "wiki-requests.json")) ?? [];
         data.Routes = Read<List<SavedRoute>>(Path.Combine(directory, "routes.json")) ?? [];
+        data.Nanban = Read<NanbanBook>(Path.Combine(directory, "nanban.json")) ?? new NanbanBook();
         data.SeaClimates = Read<List<SeaClimate>>(Path.Combine(directory, "sea-climates.json")) ?? [];
         data.Supplies = Read<List<SupplyData>>(Path.Combine(directory, "supplies.json")) ?? [];
         data.SkillRules = Read<List<SkillRuleData>>(Path.Combine(directory, "skill-rules.json")) ?? [];
@@ -1574,6 +1626,8 @@ public sealed class GameData
 
     /// <summary>이름 붙여 둔 항로들(조타 기록을 떠 둔 것) — data\routes.json. 내비게이션에서 저장하고 불러온다.</summary>
     public List<SavedRoute> Routes { get; private set; } = [];
+    /// <summary>남만 무역의 자료(<c>data\nanban.json</c>).</summary>
+    public NanbanBook Nanban { get; private set; } = new();
     public void SaveRoutes() { try { Write(Path.Combine(Directory, "routes.json"), Routes); } catch (Exception) { } }
 
     public void Save()

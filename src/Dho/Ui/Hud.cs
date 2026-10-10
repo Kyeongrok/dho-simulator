@@ -311,7 +311,10 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             line += 46;
             Dial($"선박 조합 성공률  +{Math.Clamp(settings.ModCombineBonus, 0, 50)}%", "셈한 성공률에 이만큼 더한다(0 ~ 50). 0 이면 그대로.", Math.Clamp(settings.ModCombineBonus, 0, 50), 50, v => settings.ModCombineBonus = v);
             Dial($"초과 강화 성공률  +{Math.Clamp(settings.ModOverWorkBonus, 0, 50)}%", "강화 횟수를 다 쓴 뒤의 강화. 0 이면 그대로.", Math.Clamp(settings.ModOverWorkBonus, 0, 50), 50, v => settings.ModOverWorkBonus = v);
-            Dial($"부관의 경험 몫  {Math.Clamp(settings.ModAideShare, 0, 100)}%", "선장이 얻은 경험의 이만큼을 부관도 얻는다. 0 이면 없음.", Math.Clamp(settings.ModAideShare, 0, 100), 100, v => settings.ModAideShare = v);
+            Dial($"부관의 경험 몫  {Math.Clamp(settings.ModAideShare, 0, 100)}%", "선장이 얻은 경험의 이만큼을 부관도 얻는다. 0 = 없음.", Math.Clamp(settings.ModAideShare, 0, 100), 100, v => settings.ModAideShare = v);
+            Dial(Math.Clamp(settings.ModLevelUpMax, 0, 30) is var levelUps and > 0 ? $"한 번에 오르는 레벨  {levelUps}까지" : "한 번에 오르는 레벨  제한 없음", "한 번 얻은 경험으로 이보다 많이는 못 오른다. 0 = 없음.", Math.Clamp(settings.ModLevelUpMax, 0, 30), 30, v => settings.ModLevelUpMax = v);
+            // 소유물품 상한 — 다이얼의 한 칸이 10개다(−1 · +1 = 10개, −10 · +10 = 100개)
+            Dial($"소유물품 상한  {voyage.ItemKinds}", "소지품 가짓수의 상한. ±1 = 10개, ±10 = 100개.", voyage.ItemKinds / 10, 100, v => settings.ModItemLimit = Math.Max(1, v) * 10);
             // 서고의 「지도 찾기」 확률 — 한 번 찾을 때 지도가 나올 확률(0 ~ 100, 지은 값)
             Dial($"서고 지도 찾기 확률  {Math.Clamp(settings.ModMapSearch, 0, 100)}%", "서고에서 「지도 찾기」 한 번에 지도가 나올 확률.", Math.Clamp(settings.ModMapSearch, 0, 100), 100, v => settings.ModMapSearch = v);
         }
@@ -377,7 +380,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     }
 
     /// <summary>대본용: 모드 창을 연다.</summary>
-    public void OpenMod() => _modOpen = true;
+    public void OpenMod(int tab = -1) => (_modOpen, _modTab) = (true, tab < 0 ? _modTab : tab);
 
     private bool _warpOpen, _warpSearching;
     private string _warpSearch = "";
@@ -1751,7 +1754,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         canvas.Text(memo == "" && !noting ? "누르고 적는다 (예: 돛 펴는 소리)" : memo + (noting && (int)(voyage.Clock * 2) % 2 == 0 ? "|" : ""), lx + 50, my + 3, lw - 56, 20, 13, memo == "" && !noting ? Canvas.Dim : Canvas.White);
         // 넷째 줄은 ◀ ▶ 로 고르는 그 밖의 소리 — 재해마다의 소리도 여기서 맨다(안 매면 재해는 경고 소리로 난다)
         var disasterCues = voyage.Data.Disasters.Select(d => ($"Disaster{d.Id}", d.Name));
-        (string Cue, string Label)[] more = [.. disasterCues, ("Storm", "폭풍"), ("Warn", "경고"), ("Click", "누름"), ("Quest", "퀘스트"), ("Error", "오류"), ("Done", "완료"), ("SkillUp", "레벨업"), ("Mastery", "숙련도"),
+        (string Cue, string Label)[] more = [.. disasterCues, ("Storm", "폭풍"), ("Warn", "경고"), ("Click", "누름"), ("Quest", "퀘스트"), ("Error", "오류"), ("Done", "완료"), ("SkillUp", "레벨업"), ("Mastery", "숙련도"), ("Recover", "재해 회복"),
             ("Eat", "음식"), ("Door", "입구"), ("Open", "문 열기"), ("Buy", "구매"), ("Bank", "저금"), ("Part", "부품"), ("Drunk", "술"), ("StudyDone", "연구 완료"), ("University", "대학")];
         _moreCue = (_moreCue % more.Length + more.Length) % more.Length;
         (string Cue, string Label)[] cues = [("Turn", "선회"), ("Sail", "돛 조종"), ("Skill", "그 밖의 스킬"), more[_moreCue]];
@@ -1860,17 +1863,14 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             }
             Bars(68, 84);
             Disasters();
-            // 해역에 들어서면 왼쪽 위에 「해역 · 항해일수 · 날씨」 네모가 몇 초 뜬다 — 원본 화면(사용자, 2026-10-10)처럼 이름과 막대 위를 덮는다. 빛깔 · 크기 · 머무는 시간은 지은 값
+            // 해역에 들어서면 해역 이름 네모가 몇 초 뜬다 — 얻은 것 알림(낚시)이 뜨는 자리, 화면 위쪽 가운데에(사용자, 2026-10-10: 「해역만 나오고 요 자리에 뜨게」). 빛깔 · 크기 · 머무는 시간은 지은 값
             if (voyage.Clock < voyage.ZoneCardUntil)
             {
                 float fade = (float)Math.Clamp(voyage.ZoneCardUntil - voyage.Clock, 0, 1);
-                float cw = Math.Max(150, voyage.SeaName.Sum(c => c >= 0x1100 ? 17f : 9f) + 30);
-                canvas.Fill(4, 74, cw, 96, new Color4(0.16f, 0.18f, 0.30f, 0.96f * fade));
-                canvas.Frame(4, 74, cw, 96, new Color4(0.45f, 0.48f, 0.62f, 0.9f * fade), 1.2f);
-                var ink = new Color4(1, 1, 1, fade);
-                canvas.Text(voyage.SeaName, 14, 80, cw - 16, 24, 17, ink);
-                canvas.Text($"항해일수:{voyage.DaysAtSea}일", 14, 108, cw - 16, 24, 17, ink);
-                canvas.Text((voyage.Weather == Weather.Clear ? "☀" : storm ? "⚡" : "☁") + voyage.WeatherName, 14, 136, cw - 16, 24, 17, ink);
+                float cw = Math.Max(150, voyage.SeaName.Sum(c => c >= 0x1100 ? 17f : 9f) + 44), cx = (canvas.Width - cw) / 2, cy = canvas.Height * 0.24f;
+                canvas.Fill(cx, cy, cw, 40, new Color4(0.16f, 0.18f, 0.30f, 0.96f * fade));
+                canvas.Frame(cx, cy, cw, 40, new Color4(0.45f, 0.48f, 0.62f, 0.9f * fade), 1.2f);
+                canvas.Text(voyage.SeaName, cx, cy + 8, cw, 24, 17, new Color4(1, 1, 1, fade), 1);
             }
         }
     }
@@ -2118,6 +2118,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             (208, "왕궁 (칙명)", voyage.AtCourt || voyage.Order != null, () => voyage.Dialog = Dialog.Court),
             (262, $"투자 ({voyage.InvestHost})", voyage.CanInvestHere, () => voyage.Dialog = Dialog.Invest),
             (250, "개인농장", voyage.AtFarm, () => voyage.Dialog = Dialog.Farm),
+            (193, "무역 상인 (남만 무역)", voyage.NanbanLandHere != null, () => voyage.Dialog = Dialog.Nanban),      // 동아시아의 도시에서만 켜진다 — 그림(193 선물 상자)은 지은 짝
             (187, "대장간", true, () => voyage.Dialog = Dialog.Forge),
             (220, voyage.GuildName, true, () => voyage.Dialog = Dialog.Guild),      // 조합은 뒤쪽으로 옮겼다 — 그림(220)은 지은 짝
             (208, voyage.PermitOffered() is { } permit ? $"집정관 — {permit.Name} 입항 허가 (명성 {voyage.TotalFame:N0} / {permit.Fame:N0})" : "집정관 (입항 허가)", voyage.PermitOffered() is { CityId: not 0 } offered && voyage.TotalFame >= offered.Fame, voyage.TakePermit),
@@ -2836,6 +2837,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         if (voyage.Dialog == Dialog.TavernMenu) { TavernMenuWindow(); return; }
         if (voyage.Dialog == Dialog.FleetReport) { FleetReportWindow(); return; }
         if (voyage.Dialog == Dialog.Exile) { ExileWindow(); return; }
+        if (voyage.Dialog == Dialog.Nanban) { NanbanWindow(); return; }
+        if (voyage.Dialog == Dialog.YardRecipes) { YardRecipesWindow(); return; }
         if (voyage.Dialog == Dialog.Library) { LibraryWindow(); return; }
         if (voyage.Dialog == Dialog.FoundList) { FoundWindow(); return; }
         if (voyage.Dialog != Dialog.Trade && voyage.SheetsMarkedAll > 0) voyage.ClearMarkedSheets();      // 교역 창이 닫혔으면(Esc 따위) 걸어 둔 발주서를 푼다
@@ -3589,7 +3592,12 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             // 「전부」는 행동력이 닿는 데까지
             int all = Math.Min(can, (int)(voyage.Vigour / (voyage.ProduceVigourOf(open, 100) / 100.0)));
             if (canvas.Button(voyage.Text(56, "전부"), x + 202, y + h - 50, 70, 34, all > 0 && voyage.ProduceBlocker(open, all) == null, 14)) voyage.Produce(open, all);
-            if (canvas.Button("목록으로", x + 290, y + h - 50, 100, 34, true, 14)) _recipeOpen = null;
+            // 「목록으로」 · 창 위에서 오른쪽 단추(사용자, 2026-10-10) — 앞의 목록으로 돌아간다. 조선소 주인의 제조법에서 연 것은 그 목록으로
+            if (canvas.Button("목록으로", x + 290, y + h - 50, 100, 34, true, 14) || (canvas.Pointer.RightClicked && canvas.Hover(x, y, w, h)))
+            {
+                if (open.Cities.Length > 0 && voyage.MakesHere(open)) voyage.Dialog = Dialog.YardRecipes;
+                _recipeOpen = null;
+            }
             return;
         }
 
@@ -3610,7 +3618,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         {
             if (_recipeSearch == "") return true;
             bool Has(string? text) => text != null && text.Contains(_recipeSearch, StringComparison.OrdinalIgnoreCase);
-            if (Has(voyage.Data.Recipes.Find(r => r.Id == id)?.Name)) return true;
+            if (Has(voyage.Data.Recipes.Find(r => r.Id == id)?.Name) || Has(voyage.RuleOf(id)?.Name)) return true;
             if (voyage.RuleOf(id) is not { } made) return false;
             return Has(made.OutputItem > 0 ? voyage.ItemName(made.OutputItem) : voyage.Good(made.Output)?.Name) || made.InputList().Any(i => Has(voyage.Good(i.Item1)?.Name));
         }
@@ -3626,7 +3634,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             bool hover = rule != null && canvas.Hover(x + 16, row, w - 32, 52);
             canvas.Fill(x + 16, row, w - 32, 52, hover ? new Color4(0.12f, 0.62f, 0.55f, 0.95f) : new Color4(0.04f, 0.07f, 0.2f, 0.85f));
             canvas.Image("sb17:book", () => (_itemIcons ??= new ImageSet(@"0010\0001\sb")).Pixels(17, 1700000), x + 20, row + 4, 44, 44);
-            canvas.Text(recipe?.Name ?? $"레시피 {id}", x + 72, row + 2, 300, 22, 15, Canvas.White);
+            canvas.Text(recipe?.Name ?? rule?.Name ?? $"레시피 {id}", x + 72, row + 2, 300, 22, 15, Canvas.White);
             if (rule == null) canvas.Text("만들 것이 정해지지 않았다", x + 72, row + 26, 300, 20, 12, Canvas.Dim);
             else
             {
@@ -3723,7 +3731,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             _itemPage = Math.Clamp(_itemPage, 0, pages - 1);
             canvas.Fill(x + 20, y + 44, 150, 24, new Color4(0.72f, 0.76f, 0.84f, 0.92f));
             canvas.Text(voyage.Text(739, "소유물품"), x + 20, y + 45, 150, 22, 15, new Color4(0.05f, 0.08f, 0.2f, 1), 1, true, false);
-            canvas.Text($"{total} / 100", x + 180, y + 46, 100, 22, 14, total > 100 ? new Color4(1f, 0.5f, 0.45f, 1) : Canvas.Dim);
+            canvas.Text($"{total} / {voyage.ItemKinds}", x + 180, y + 46, 100, 22, 14, total > voyage.ItemKinds ? new Color4(1f, 0.5f, 0.45f, 1) : Canvas.Dim);
             int pointed = -1;
             for (int k = 0; k < columns * lines; k++)
             {
@@ -3885,7 +3893,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         if (_itemTab == 3)
         {
             // 「아이템 추가」: 갈래(전체 · 전직증 · 레시피 · 재질 …)와 그 안의 거르기, 이름으로 찾기. 「전체」는 모든 갈래에서 찾는다
-            string[] kinds = ["전체", "전직", "레시피", "재질", "도료", "증서", "교환", "조빌", "의상", "연금"];
+            string[] kinds = ["전체", "전직", "레시피", "재질", "도료", "증서", "교환", "조빌", "장비품", "연금"];
             int kind = _addAll ? 0 : _addLab ? 9 : _addGear ? 8 : _addShipItems ? 7 : _addTickets ? 6 : _addPapers ? 5 : _addDyes ? 4 : _addMaterials ? 3 : _addRecipes ? 2 : 1;
             bool Chip(string text, float cx, float cy, float cw, bool on)
             {
@@ -3916,12 +3924,20 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             _addGroup = Math.Clamp(_addGroup, 0, groups.Length - 1);
             for (int i = 0; i < groups.Length && groups.Length > 1; i++)
                 if (Chip(groups[i], x + 20 + i * 84, y + 42, 80, _addGroup == i)) (_addGroup, _itemPage) = (i, 0);
+            // 장비품: 스킬을 하나 골라 그 스킬을 올려 주는(부스트) 장비품만 남긴다(사용자, 2026-10-10) — 단추를 누르면 목록 자리에 스킬들이 뜬다
+            if (kind == 8)
+            {
+                string chosen = _gearSkill == 0 ? "전체" : voyage.SkillName(_gearSkill);
+                if (Chip($"부스트 스킬: {chosen} {(_gearSkillOpen ? "▲" : "▼")}", x + w - 20 - 250, y + 42, _gearSkill == 0 ? 250 : 222, _gearSkill != 0 || _gearSkillOpen)) _gearSkillOpen = !_gearSkillOpen;
+                if (_gearSkill != 0 && Chip("✕", x + w - 20 - 24, y + 42, 24, false)) (_gearSkill, _gearSkillOpen, _itemPage) = (0, false, 0);
+            }
+            else _gearSkillOpen = false;
             row = y + 72;
         }
         bool Found(string name) => _addSearch == "" || name.Contains(_addSearch, StringComparison.OrdinalIgnoreCase);
         int addPage = Math.Max(4, (int)((h - 72 - 58) / 32));      // 창 높이에 드는 만큼
         // 아이템 추가의 목록은 줄마다 바탕빛을 번갈아 — 긴 줄을 눈으로 따라가기 쉽게
-        if (_itemTab == 3)
+        if (_itemTab == 3 && !(_addGear && _gearSkillOpen))
             for (int k = 0; k < addPage; k++)
                 canvas.Fill(x + 14, row - 3 + k * 32, w - 28, 32, k % 2 == 0 ? new Color4(0.10f, 0.14f, 0.34f, 0.55f) : new Color4(0.03f, 0.05f, 0.16f, 0.35f));
         if (_itemTab != 3) { }
@@ -3948,7 +3964,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 foreach (var tool in voyage.Data.Items.Where(i => i.Effect is not ("SailPaint" or "Paper"))) Put("도구", tool.Id, tool.Name, voyage.ItemNote(tool.Id));
                 foreach (var ticket in voyage.ShipTickets()) Put("교환", ticket.Id, ticket.Name + (voyage.TicketShip(ticket) is { } gives ? $" → {gives.Name}" : ""), ticket.Description.Replace("\n", " "));
                 foreach (var part in voyage.Data.Papers.Where(p => p.Id is >= Voyage.ShipItems and < Voyage.ShipItems + 100_000)) Put("조빌", part.Id, part.Name, voyage.ItemNote(part.Id));      // 설명 + 강화 범위(「세로돛성능 강화 +40~+50」) — 찾기에도 걸린다
-                foreach (var worn in voyage.Data.Gear) Put("의상", worn.Id, worn.Name, worn.Description.Replace("\n", " ") + voyage.GearLine(worn).Replace("\n", "  "));      // 스킬 보정도 찾는 말에 걸린다
+                foreach (var worn in voyage.Data.Gear) Put("장비품", worn.Id, worn.Name, worn.Description.Replace("\n", " ") + voyage.GearLine(worn).Replace("\n", "  "));      // 스킬 보정도 찾는 말에 걸린다
                 foreach (var part in voyage.Data.ShipParts) Put("부품", part.Id, part.Name, $"[{Voyage.SlotName[Math.Clamp(part.Slot, 0, Voyage.SlotName.Length - 1)]}] {voyage.PartNote(part)} — " + part.Description.Replace("\n", " "));
                 foreach (var paint in voyage.Data.Papers.Where(p => p.Id is >= Voyage.HullEffectPaint and < Voyage.HullEffectPaint + 15)) Put("도료", paint.Id, paint.Name, $"[{Voyage.HullEffects[paint.Id - Voyage.HullEffectPaint].Name} 빛] " + paint.Description.Replace("\n", " "));
                 foreach (var good in voyage.Data.Goods)
@@ -4032,12 +4048,37 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                     if (voyage.Data.Recipes.Find(r => r.Id == rule.RecipeId) is { } recipe) voyage.AddRecipe(recipe);
             Pages(pages);
         }
+        else if (_addGear && _gearSkillOpen)
+        {
+            // 부스트 스킬 고르기 — 장비품이 올려 주는 스킬들을 이름 차례로 늘어놓는다(찾는 말이 있으면 그 말이 든 스킬만)
+            var lifting = voyage.Data.GearBoosts.Values.SelectMany(b => b.Keys).Distinct().Select(id => (Id: id, Name: voyage.SkillName(id)))
+                .Where(k => k.Name != "" && Found(k.Name)).OrderBy(k => k.Name, StringComparer.Ordinal).ToList();
+            const int columns = 8;
+            float cell = (w - 40) / columns;
+            // 칸마다 스킬 아이콘과 이름(사용자, 2026-10-10: 「아이콘을 달아줘야지」) — 「전체」 칸에는 아이콘이 없다
+            bool Cell(int skill, string text, int at, bool on)
+            {
+                float cx = x + 20 + at % columns * cell, cy = row + at / columns * 30, cw = cell - 4;
+                bool over = canvas.Hover(cx, cy, cw, 27);
+                canvas.Fill(cx, cy, cw, 27, on ? new Color4(0.16f, 0.62f, 0.72f, 0.98f) : over ? new Color4(0.22f, 0.32f, 0.66f, 0.95f) : new Color4(0.06f, 0.10f, 0.28f, 0.9f));
+                if (skill != 0) SkillIcon(skill, cx + 2, cy, 1, 0.8f);
+                canvas.Text(text, cx + (skill != 0 ? 26 : 0), cy + 4, cw - (skill != 0 ? 28 : 0), 20, text.Length > 6 ? 11 : 12, Canvas.White, skill != 0 ? 0 : 1);
+                return over && canvas.Pointer.Clicked;
+            }
+            if (Cell(0, "전체", 0, _gearSkill == 0)) (_gearSkill, _gearSkillOpen, _itemPage) = (0, false, 0);
+            for (int i = 0; i < lifting.Count; i++)
+                if (Cell(lifting[i].Id, lifting[i].Name, i + 1, _gearSkill == lifting[i].Id)) (_gearSkill, _gearSkillOpen, _itemPage) = (lifting[i].Id, false, 0);
+            if (lifting.Count == 0) canvas.Text("찾는 말에 맞는 스킬이 없다.", x + 20, row + 30, w - 40, 22, 14, Canvas.Dim);
+        }
         else if (_addGear)
         {
             // 의상 · 장비 — 장비 표(15). 번호의 십만 자리가 갈래이자 그림 무리(0 옷 · 1 모자 · 2 신발 · 3 장갑 · 4 무기 · 5 장신구)
             // 찾는 말은 이름뿐 아니라 올려 주는 스킬의 이름에서도 찾는다(「봉제」를 치면 봉제를 올려 주는 장비)
             var sought = _addSearch == "" ? null : voyage.Data.Skills.Where(k => Found(k.Name)).Select(k => k.Id).ToHashSet();
             var gear = voyage.Data.Gear.Where(g => (Found(g.Name) || (sought is { Count: > 0 } && voyage.Data.GearBoosts.TryGetValue(g.Id, out var lifts) && lifts.Keys.Any(sought.Contains))) && (_addGroup == 0 || (_addGroup == 7 ? voyage.Data.GearBoosts.ContainsKey(g.Id) : g.Id / 100000 == _addGroup - 1))).ToList();      // 7 = 스킬을 올려 주는 것만
+            // 부스트 스킬을 골랐으면 그 스킬을 올려 주는 것만, 많이 올려 주는 차례로
+            if (_gearSkill != 0)
+                gear = [.. gear.Where(g => voyage.Data.GearBoosts.TryGetValue(g.Id, out var lifted2) && lifted2.ContainsKey(_gearSkill)).OrderByDescending(g => voyage.Data.GearBoosts[g.Id][_gearSkill])];
             int pages = Math.Max(1, (gear.Count + addPage - 1) / addPage);
             _itemPage = Math.Clamp(_itemPage, 0, pages - 1);
             foreach (var worn in gear.Skip(_itemPage * addPage).Take(addPage))
@@ -4054,7 +4095,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 if (AddWithCount(x + w - 110, row)) voyage.AddItem(id, _addCount);
                 row += 32;
             }
-            if (gear.Count == 0) canvas.Text(voyage.Data.Gear.Count == 0 ? "의상 목록(data\\extracted\\gear-items.json)이 없다." : "여기에 맞는 것이 없다.", x + 20, row, w - 40, 24, 14, Canvas.Dim);
+            if (gear.Count == 0) canvas.Text(voyage.Data.Gear.Count == 0 ? "장비품 목록(data\\extracted\\gear-items.json)이 없다." : "여기에 맞는 것이 없다.", x + 20, row, w - 40, 24, 14, Canvas.Dim);
             Pages(pages);
         }
         else if (_addShipItems)
@@ -5511,6 +5552,12 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     private Aide? _captainFor;
     private int _captainTop;      // 임명 창의 배 목록에서 맨 위에 보이는 줄(일곱 척씩 넘긴다)
     /// <summary>대본용: 아이템 추가의 의상 갈래를 그 찾는 말로 연다.</summary>
+    /// <summary>대본용 — 아이템 추가 「장비품」에서 부스트 스킬을 고른다(이름). "?" 면 고르는 목록을 편다.</summary>
+    public void GearSkillForTest(string name)
+    {
+        GearSearchForTest("");
+        (_gearSkill, _gearSkillOpen) = (name == "?" ? 0 : voyage.Data.Skills.Find(k => k.Name == name)?.Id ?? 0, name == "?");
+    }
     public void GearSearchForTest(string word) => (_itemTab, _addAll, _addRecipes, _addMaterials, _addDyes, _addPapers, _addTickets, _addShipItems, _addGear, _addLab, _itemPage, _addGroup, _addSearch) = (3, false, false, false, false, false, false, false, true, false, 0, 0, word);
     /// <summary>대본용: 적재화물 창에서 그 차례의 교역품을 고른다.</summary>
     public void CargoPickForTest(int index) => _cargoChosen = index;
@@ -6849,11 +6896,19 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     /// </summary>
     private void ShipyardMenu()
     {
-        const float w = 396, h = 164;
+        // 이 도시의 고정 레시피(동아시아 선체 제조법 …)가 있으면 차림 아래에 「제조」 줄이 하나 더 선다
+        var local = voyage.LocalRecipes();
+        const float w = 396;
+        float h = local.Count > 0 ? 204 : 164;
         float x = canvas.Width - w - 8, y = canvas.Height - h - 8;
         canvas.Panel(x, y, w, h);
         canvas.Block(x, y, w, h);
         canvas.Text("조선소주인", x + 12, y + 6, 200, 24, 17, Canvas.White);
+        if (local.Count > 0)
+        {
+            string kinds = string.Join(" · ", local.Select(id => voyage.RuleOf(id)!.Name.Split(" — ")[0]).Distinct());
+            if (canvas.Button($"제조 — {kinds}", x + 10, y + 158, w - 20, 36, true, 13)) { voyage.Dialog = Dialog.YardRecipes; return; }
+        }
         // 맡긴 배의 건조일수를 기다리지 않고 넘긴다(도시 메뉴의 「날짜 +1」과 같은 일)
         if (canvas.Button("날짜 +1", x + 104, y + 6, 66, 26, true, 12)) voyage.PassDay();
         if (voyage.Ordered == null) canvas.Text(voyage.ShipbuildingLine, x + 176, y + 9, w - 188, 20, 13, Canvas.Gold, 2);
@@ -8321,18 +8376,17 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             canvas.Circle(me.X, me.Y, pulse, new Color4(1f, 0.25f, 0.2f, 0.9f), false, 2);
             if (voyage.Mode == Mode.Sea)
             {
-                float reach = voyage.Data.Settings.NavLineLength, thick = voyage.Data.Settings.NavLineWidth;
-                // 무한 — 그 쪽으로 지도 그림의 끝에 닿을 때까지
+                // 방향 선은 두께 1, 그 쪽으로 지도 그림의 끝에 닿을 때까지(사용자, 2026-10-10: 「두께 1 고정에 길이도 무한 고정」)
+                const float thick = 1;
                 float Reach(float toward)
                 {
-                    if (!voyage.Data.Settings.NavLineEndless) return reach;
                     float sx = MathF.Sin(toward), sy = -MathF.Cos(toward);
                     float tx2 = sx > 0.0001f ? (mx + NavW - me.X) / sx : sx < -0.0001f ? (mx - me.X) / sx : float.MaxValue;
                     float ty3 = sy > 0.0001f ? (my + NavH - me.Y) / sy : sy < -0.0001f ? (my - me.Y) / sy : float.MaxValue;
                     return MathF.Max(0, MathF.Min(tx2, ty3));
                 }
                 float lookReach = Reach((float)CameraHeading);
-                reach = Reach(heading);
+                float reach = Reach(heading);
                 canvas.Line(me.X, me.Y, me.X + MathF.Sin(heading) * reach, me.Y - MathF.Cos(heading) * reach, new Color4(0, 0, 0, 1), thick + 2);
                 canvas.Line(me.X, me.Y, me.X + MathF.Sin(heading) * reach, me.Y - MathF.Cos(heading) * reach, new Color4(1f, 0.9f, 0.2f, 1), thick);
                 reach = lookReach;
@@ -8344,21 +8398,6 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             canvas.Circle(me.X, me.Y, 5, new Color4(0, 0, 0, 1));
             canvas.Circle(me.X, me.Y, 3.8f, new Color4(1f, 0.25f, 0.2f, 1));
         }
-        // 뱃머리 방향 선의 길이(6 ~ 240) · 두께(1 ~ 8) — 설정 파일에 남는다
-        var navSet = voyage.Data.Settings;
-        canvas.Text("방향 선", x + 232, y + 11, 44, 20, 12, Canvas.Dim);
-        // 무한 — 방향 선을 지도 끝까지(켜면 길이 값은 쉬고 단추가 금빛 테를 두른다)
-        if (canvas.Button("∞", x + 280, y + 6, 30, 28, true, 15)) { navSet.NavLineEndless = !navSet.NavLineEndless; voyage.Data.SaveSettings(); }
-        if (navSet.NavLineEndless) canvas.Frame(x + 280, y + 6, 30, 28, Canvas.Gold, 2);
-        if (canvas.Hover(x + 280, y + 6, 30, 28)) _tip = (navSet.NavLineEndless ? "방향 선 무한 — 켜짐\n누르면 길이 값대로 긋는다" : "방향 선 무한 — 꺼짐\n누르면 지도 끝까지 긋는다", x + 295, y + 76);
-        canvas.Text("길이", x + 312, y + 11, 24, 20, 11, Canvas.Dim);
-        if (canvas.Button("−", x + 336, y + 6, 28, 28, navSet.NavLineLength > 6, 13)) { navSet.NavLineLength = Math.Max(6, navSet.NavLineLength - 6); voyage.Data.SaveSettings(); }
-        canvas.Text($"{navSet.NavLineLength}", x + 366, y + 11, 34, 20, 12, Canvas.White, 1);
-        if (canvas.Button("+", x + 402, y + 6, 28, 28, navSet.NavLineLength < 240, 13)) { navSet.NavLineLength = Math.Min(240, navSet.NavLineLength + 6); voyage.Data.SaveSettings(); }
-        canvas.Text("두께", x + 452, y + 11, 34, 20, 12, Canvas.Dim);
-        if (canvas.Button("−", x + 488, y + 6, 28, 28, navSet.NavLineWidth > 1, 13)) { navSet.NavLineWidth = Math.Max(1, navSet.NavLineWidth - 1); voyage.Data.SaveSettings(); }
-        canvas.Text($"{navSet.NavLineWidth}", x + 518, y + 11, 34, 20, 12, Canvas.White, 1);
-        if (canvas.Button("+", x + 554, y + 6, 28, 28, navSet.NavLineWidth < 8, 13)) { navSet.NavLineWidth = Math.Min(8, navSet.NavLineWidth + 1); voyage.Data.SaveSettings(); }
         if (canvas.Button(_navTrack ? "지나온 항로 숨기기" : "지나온 항로 보기", x + w - 290, y + 6, 150, 28, true, 12)) _navTrack = !_navTrack;
         // 고른 조타 기록의 창 — 지도 오른쪽 위에 뜬다: 자리 · 며칠째, 침로를 1도 · 10도씩 고치기, 지우기
         if (!_navTurns || _navTurnPick >= voyage.TurnMarks.Count) _navTurnPick = -1;
@@ -8735,6 +8774,104 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
     /// <summary>
     /// 망명 확인 창 — 원본의 확인 글(화면 글 22062)에서 이 게임에 있는 줄만 보인다. 값과 기다리는 날은 지은 값(요청 딱지).
     /// </summary>
+    // 조선소 주인의 「제조」 — 이 도시에서만 만드는 고정 레시피의 목록. 줄을 누르면 생산 창(레시피 상세)이 열린다. 창의 짜임은 지은 것
+    private void YardRecipesWindow()
+    {
+        var local = voyage.LocalRecipes().Select(voyage.RuleOf).OfType<RecipeRule>().ToList();
+        if (local.Count == 0) { voyage.Dialog = Dialog.None; return; }
+        const float w = 640;
+        float h = 110 + local.Count * 50;
+        float x = (canvas.Width - w) / 2, y = (canvas.Height - h) / 2;
+        canvas.Panel(x, y, w, h);
+        canvas.Block(x, y, w, h);
+        canvas.Text($"조선소주인 — {voyage.City.Name}의 제조법", x + 20, y + 12, w - 40, 28, 19, Canvas.Gold, 0, true);
+        for (int i = 0; i < local.Count; i++)
+        {
+            var rule = local[i];
+            float ry = y + 52 + i * 50;
+            string needs = string.Join(" · ", new[] { rule.Skill, rule.Skill2 }.Where(t => t != ""));
+            string inputs = string.Join(" + ", rule.InputList().Select(input => $"{voyage.ItemName(input.Good)}{(input.Count > 1 ? $" {input.Count}" : "")}"));
+            if (canvas.Button(rule.Name, x + 20, ry, w - 40, 26, true, 14)) { voyage.Dialog = Dialog.Items; RecipeOpen = rule; return; }
+            canvas.Text($"{inputs}   ({needs})", x + 28, ry + 27, w - 56, 18, 12, voyage.ProduceBlocker(rule, 1) == null ? Canvas.White : Canvas.Dim);
+        }
+        if (canvas.CloseButton(voyage.Text(25419, "이전"), x + w - 140, y + h - 46, 120, 34)) voyage.Dialog = Dialog.ShipyardMenu;
+    }
+
+    // 남만 무역 — 무역 상인의 창. 허가가 없으면 선물(싣고 있는 교역품 가운데 하나를 골라 건넨다), 있으면 왼쪽에서 건넬 것 · 오른쪽에서 받을 남만품을 고른다.
+    // 창의 짜임은 지은 것이다(원본 화면을 못 봤다) — 글은 원본 화면 글 8408 · 8409 · 8412 를 쓴다
+    private int _nanbanGive, _nanbanGet, _nanbanPage;
+    private void NanbanWindow()
+    {
+        if (voyage.NanbanLandHere is not { } land || voyage.NanbanCityHere is not { } city) { voyage.Dialog = Dialog.None; return; }
+        const float w = 720, h = 470;
+        float x = (canvas.Width - w) / 2, y = (canvas.Height - h) / 2;
+        canvas.Panel(x, y, w, h);
+        canvas.Block(x, y, w, h);
+        var book = voyage.Data.Nanban;
+        canvas.Text($"무역 상인 — {city.City} ({land.Name})", x + 20, y + 12, w - 40, 28, 19, Canvas.Gold, 0, true);
+        canvas.Text($"{land.Name} 공헌도 {voyage.NanbanMeritOf(land):N0}   ·   {voyage.Text(42014, "남만 무역 허가 취득 상태")}: {(voyage.NanbanPermitted(land) ? "허가" : $"선물도 {voyage.NanbanGiftOf(land)} / {book.GiftGoal}")}", x + 20, y + 46, w - 40, 22, 14, Canvas.White);
+        bool close = canvas.CloseButton(voyage.Text(253, "닫기"), x + w - 140, y + h - 50, 120, 34);
+        if (!voyage.NanbanOpenHere)
+        {
+            canvas.Text($"{land.Name} 공헌도가 {city.Need:N0} 이 되어야 {city.City}에서 남만 무역을 할 수 있다.\n(지금 {voyage.NanbanMeritOf(land):N0} — {string.Join(" · ", land.Cities.Where(c => voyage.NanbanMeritOf(land) >= c.Need).Select(c => c.City))}에서 무역해 공헌도를 쌓는다)", x + 20, y + 90, w - 40, 80, 15, Canvas.White);
+        }
+        else if (!voyage.NanbanPermitted(land))
+        {
+            // 허가 — 교역품 한 가지를 선물해 선물도를 채운다
+            canvas.Text(voyage.Text(8409, "남만 무역의 허가를 신청합니다. 재고량과 명산품에 따라 효과가 다릅니다.") + "\n교역품 한 가지를 골라 선물한다 — 다른 교역품과 섞어 줄 수 없다.", x + 20, y + 76, w - 40, 60, 13, Canvas.Dim);
+            var cargo = voyage.Cargo.Select(c => (Good: voyage.Good(c.Key), c.Value.Count)).Where(c => c.Good != null).ToList();
+            const int shown = 8;
+            _nanbanPage = Math.Clamp(_nanbanPage, 0, Math.Max(0, (cargo.Count - 1) / shown));
+            if (cargo.Count == 0) canvas.Text("싣고 있는 교역품이 없다.", x + 20, y + 150, w - 40, 22, 15, Canvas.White);
+            for (int i = _nanbanPage * shown; i < Math.Min(cargo.Count, (_nanbanPage + 1) * shown); i++)
+            {
+                var (good, count) = (cargo[i].Good!, cargo[i].Count);
+                int worth = voyage.NanbanGiftWorth(good);
+                if (canvas.Button($"{good.Name} {count}개 선물   (한 개에 선물도 +{worth})", x + 20, y + 140 + (i - _nanbanPage * shown) * 32, w - 40, 28, true, 13)) voyage.NanbanGive(good, count);
+            }
+            if (cargo.Count > shown)
+            {
+                if (ArrowButton(133, x + 20, y + h - 44, 36, 28, _nanbanPage > 0, 12)) _nanbanPage--;
+                if (ArrowButton(136, x + 60, y + h - 44, 36, 28, (_nanbanPage + 1) * shown < cargo.Count, 12)) _nanbanPage++;
+            }
+        }
+        else
+        {
+            canvas.Text(voyage.Text(8412, "남만 무역을 실행합니다."), x + 20, y + 74, w - 40, 22, 13, Canvas.Dim);
+            var offers = voyage.NanbanOffers();
+            var goods = voyage.NanbanGoodsHere();
+            float half = (w - 60) / 2, rx = x + 40 + half;
+            canvas.Text("건넬 교역품 (싣고 있는 것)", x + 20, y + 102, half, 20, 13, Canvas.Gold);
+            canvas.Text($"받을 남만품 ({city.City})", rx, y + 102, half, 20, 13, Canvas.Gold);
+            _nanbanGive = Math.Clamp(_nanbanGive, 0, Math.Max(0, offers.Count - 1));
+            _nanbanGet = Math.Clamp(_nanbanGet, 0, Math.Max(0, goods.Count - 1));
+            if (offers.Count == 0)
+                canvas.Text($"{land.Name}이(가) 반기는 교역품을 싣고 있지 않다.\n반기는 것: {string.Join(" · ", land.Wants.Select(want => want.Name))}", x + 20, y + 128, half, 200, 13, Canvas.White);
+            for (int i = 0; i < Math.Min(offers.Count, 8); i++)
+            {
+                float ry = y + 126 + i * 30;
+                if (canvas.Button($"{offers[i].Good.Name} {offers[i].Count}개   (가치 {offers[i].Want.Value:N0})", x + 20, ry, half, 26, i != _nanbanGive, 13)) _nanbanGive = i;
+                if (i == _nanbanGive) canvas.Frame(x + 20, ry, half, 26, Canvas.Gold, 1.6f);
+            }
+            for (int i = 0; i < Math.Min(goods.Count, 8); i++)
+            {
+                float ry = y + 126 + i * 30;
+                string favoured = goods[i].Rule.Favoured.Count > 0 ? $"   우대: {string.Join(" · ", goods[i].Rule.Favoured)}" : "";
+                if (canvas.Button(goods[i].Open ? $"{goods[i].Good.Name}{favoured}" : $"{goods[i].Good.Name}   (공헌도 {goods[i].Rule.Need:N0} 부터)", rx, ry, half, 26, goods[i].Open && i != _nanbanGet, 12)) _nanbanGet = i;
+                if (i == _nanbanGet && goods[i].Open) canvas.Frame(rx, ry, half, 26, Canvas.Gold, 1.6f);
+            }
+            if (offers.Count > 0 && goods.Count > 0 && goods[_nanbanGet].Open)
+            {
+                var (give, get) = (offers[_nanbanGive], goods[_nanbanGet]);
+                int got = voyage.NanbanYield(give.Want, give.Count);
+                canvas.Text($"{give.Good.Name} {give.Count}개 → {get.Good.Name} {got}개   (100 : {voyage.NanbanYield(give.Want, 100)})", x + 20, y + h - 84, w - 40, 22, 15, Canvas.White);
+                if (canvas.Button("전부 교환", x + 20, y + h - 50, 150, 34, got > 0, 14)) voyage.NanbanTrade(give.Good, give.Count, get.Good);
+            }
+            Invented("nanban", 1, "남만 무역의 교환비 · 공헌도", x + 190, y + h - 44);
+        }
+        if (close) voyage.Dialog = Dialog.None;
+    }
+
     private void ExileWindow()
     {
         if (voyage.ExileTo is not { } nation) { voyage.Dialog = Dialog.None; return; }
@@ -8937,8 +9074,9 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         canvas.Text($"{voyage.Money:N0} Ð", rx, y + h - 82, rw - 8, 24, 16, Canvas.White, 2);
         if (canvas.CloseButton(voyage.Text(4, "확인"), x + w - 232, y + h - 46, 100, 34, _basket.Count > 0))
         {
+            int combo = _selling ? voyage.SpecialtyCombo(_basket.Select(b => (b.Key, b.Value))) : 1;
             foreach (var (id, count) in _basket.ToList())
-                if (voyage.Good(id) is { } good) { if (_selling) voyage.SellGood(good, count); else voyage.BuyGood(good, count); }
+                if (voyage.Good(id) is { } good) { if (_selling) voyage.SellGood(good, count, combo); else voyage.BuyGood(good, count); }
             if (!_selling) voyage.SpendMarkedSheets();      // 걸어 둔 발주서는 거래할 때 한꺼번에 쓰인다
             _basket.Clear();
         }
@@ -9035,6 +9173,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
 
     /// <summary>글자를 받는 칸에 입력하는 중인가 — 그동안은 단축키가 듣지 않는다.</summary>
     private string _addSearch = "";
+    private int _gearSkill;             // 아이템 추가 「장비품」의 부스트 스킬 거르기 — 0 이면 전체
+    private bool _gearSkillOpen;
     private bool _addSearching, _addDyes, _addPapers, _addTickets, _addShipItems, _addGear, _addLab, _addAll = true;
     private string? _addAllFor;
     private readonly List<(string Tag, int Id, string Name, string Note, int Recipe)> _addAllFound = [];

@@ -154,7 +154,7 @@ internal sealed partial class Voyage
             Build = [ShipMaterialId, ShipLoad],
             Ordered = Ordered is { } order ? [order.Ship.Id, order.Material, order.Load, order.DaysLeft, .. order.Skills.Select(s => (double)s)] : [],
             Court = [Title, Merit, Order?.Id ?? 0, OrderProgress],
-            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Track = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })], Turns = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI), m.Day })], Follow = TurnFollow ? [TurnFollowAt, TurnFollowBack ? 1 : 0] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, VeilLeft = VeilLeft, CharmPower = _charmPower, LevelCharm = [LevelCharmLeft, _levelCharmPower], Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
+            DelegateCity = DelegateTo?.Id ?? _delegateSaved, AtSea = Mode == Mode.Sea ? [ShipX, ShipY, Heading, SecondsAtSea] : [], Track = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })], Turns = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI), m.Day })], Follow = TurnFollow ? [TurnFollowAt, TurnFollowBack ? 1 : 0] : [], Invested = new Dictionary<int, long>(Invested), InvestedHome = [.. _homeShare], Farm = FarmSave(), FleetDay = _fleetDay, ExileDay = ExileDay, Infamy = Infamy, WreckPieces = WreckPieces, TowValue = TowValue, TowWreck = _towWreck, CharmLeft = CharmLeft, StuffedLeft = StuffedLeft, VeilLeft = VeilLeft, CharmPower = _charmPower, LevelCharm = [LevelCharmLeft, _levelCharmPower], Prayer = [Prayer, PrayerUntil], News = [News.Nation, News.Kind, News.Until], Pet = [PetId, PetLove], Insurance = Insurance, Found = [.. Found], WreckX = WreckAt?.X ?? 0, WreckY = WreckAt?.Y ?? 0, WreckState = [WreckRaised, WreckFails, WrecksSalvaged], Hostility = new Dictionary<int, int>(Hostility), Permits = [.. Permits], NanbanMerit = new(NanbanMerit), NanbanGift = new(NanbanGift), NanbanGiftGood = new(NanbanGiftGood), Honor = [Honor, PirateWins, NavyWins], Forged = Forged.ToDictionary(f => f.Key, f => f.Value.ToArray()),
             Bank = Savings, SailLook = [SailPattern, SailTint],
             Major = Major, Research = Studying?.No ?? 0, ResearchProgress = new Dictionary<string, int>(StudyProgress), Credits = Credits, ResearchDone = [.. StudyDone],
             Vault = new Dictionary<int, int>(Vault),
@@ -270,6 +270,10 @@ internal sealed partial class Voyage
         Hostility.Clear();
         foreach (var (nation, value) in save.Hostility ?? []) Hostility[nation] = value;
         foreach (int ocean in save.Permits) Permits.Add(ocean);
+        NanbanMerit.Clear(); NanbanGift.Clear(); NanbanGiftGood.Clear();
+        foreach (var (land, value) in save.NanbanMerit ?? []) NanbanMerit[land] = value;
+        foreach (var (land, value) in save.NanbanGift ?? []) NanbanGift[land] = value;
+        foreach (var (land, value) in save.NanbanGiftGood ?? []) NanbanGiftGood[land] = value;
         if (save.Honor.Length >= 3) (Honor, PirateWins, NavyWins) = (save.Honor[0], save.Honor[1], save.Honor[2]);
         foreach (var (id, added) in save.Forged) if (added.Length >= 2) Forged[id] = [added[0], added[1]];
         foreach (int recipe in save.Recipes) Recipes.Add(recipe);

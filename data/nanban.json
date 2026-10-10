@@ -1,0 +1,642 @@
+{
+ "Note": "남만 무역 — 나라 · 도시 · 남만품 · 선호 교역품은 나무위키 「대항해시대 온라인/남만무역」(2026-10-10 읽음)의 표. Ratio 는 한국 서버의 가장 좋은 교환비(100:33). GiftPerGood · GiftPerSpecialty · MeritPerGood · ValueFull 은 지은 값. CallChance · CallPapers 는 이용자 글(디시 294676)의 체감.",
+ "Ratio": 0.33,
+ "GiftGoal": 1000,
+ "GiftPerGood": 2,
+ "GiftPerSpecialty": 10,
+ "MeritPerGood": 1,
+ "ValueFull": 3000,
+ "CallChance": 0.1,
+ "CallPapers": 5,
+ "Lands": [
+  {
+   "Name": "조선",
+   "Cities": [
+    {
+     "City": "포항",
+     "Need": 0,
+     "Goods": [
+      {
+       "Name": "조선차",
+       "Need": 0,
+       "Favoured": [
+        "브리튼 섬",
+        "북유럽"
+       ]
+      },
+      {
+       "Name": "명주",
+       "Need": 0,
+       "Favoured": [
+        "브리튼 섬",
+        "터키"
+       ]
+      }
+     ]
+    },
+    {
+     "City": "한양",
+     "Need": 5000,
+     "Goods": [
+      {
+       "Name": "양주 밤",
+       "Need": 32000,
+       "Favoured": [
+        "북아프리카"
+       ]
+      },
+      {
+       "Name": "안동소주",
+       "Need": 0,
+       "Favoured": [
+        "독일",
+        "네덜란드",
+        "프랑스 북부"
+       ]
+      },
+      {
+       "Name": "호피",
+       "Need": 0,
+       "Favoured": [
+        "북유럽",
+        "네덜란드",
+        "서아시아"
+       ]
+      }
+     ]
+    },
+    {
+     "City": "부산",
+     "Need": 40000,
+     "Goods": [
+      {
+       "Name": "인삼",
+       "Need": 0,
+       "Favoured": [
+        "프랑스 북부"
+       ]
+      },
+      {
+       "Name": "한우",
+       "Need": 0,
+       "Favoured": [
+        "프랑스 북부",
+        "독일"
+       ]
+      }
+     ]
+    }
+   ],
+   "Wants": [
+    {
+     "Name": "담배",
+     "Value": 2688,
+     "Bonus": ""
+    },
+    {
+     "Name": "유리알",
+     "Value": 4920,
+     "Bonus": ""
+    },
+    {
+     "Name": "유리세공",
+     "Value": 2760,
+     "Bonus": ""
+    },
+    {
+     "Name": "당목향",
+     "Value": 4176,
+     "Bonus": ""
+    },
+    {
+     "Name": "사프란",
+     "Value": 2164,
+     "Bonus": ""
+    },
+    {
+     "Name": "고추",
+     "Value": 2464,
+     "Bonus": ""
+    },
+    {
+     "Name": "풋고추",
+     "Value": 2112,
+     "Bonus": ""
+    },
+    {
+     "Name": "페르시아 융단",
+     "Value": 2915,
+     "Bonus": ""
+    },
+    {
+     "Name": "터키 융단",
+     "Value": 2554,
+     "Bonus": ""
+    },
+    {
+     "Name": "양손검",
+     "Value": 2122,
+     "Bonus": "수해/전쟁"
+    },
+    {
+     "Name": "석탄",
+     "Value": 1664,
+     "Bonus": "조선 특수수요"
+    },
+    {
+     "Name": "철재",
+     "Value": 1760,
+     "Bonus": "조선 특수수요"
+    },
+    {
+     "Name": "마늘",
+     "Value": 1464,
+     "Bonus": "가뭄"
+    },
+    {
+     "Name": "고구마",
+     "Value": 1444,
+     "Bonus": "냉해/축제"
+    }
+   ]
+  },
+  {
+   "Name": "일본",
+   "Cities": [
+    {
+     "City": "나가사키",
+     "Need": 0,
+     "Goods": [
+      {
+       "Name": "모시",
+       "Need": 0,
+       "Favoured": [
+        "네덜란드"
+       ]
+      },
+      {
+       "Name": "서진 직물",
+       "Need": 0,
+       "Favoured": [
+        "브리튼 섬",
+        "네덜란드"
+       ]
+      },
+      {
+       "Name": "타네가시마 총",
+       "Need": 0,
+       "Favoured": [
+        "이베리아",
+        "발칸",
+        "터키",
+        "서아시아"
+       ]
+      }
+     ]
+    },
+    {
+     "City": "사카이",
+     "Need": 5000,
+     "Goods": [
+      {
+       "Name": "일본도",
+       "Need": 0,
+       "Favoured": [
+        "브리튼 섬",
+        "서아시아"
+       ]
+      },
+      {
+       "Name": "칠기",
+       "Need": 0,
+       "Favoured": [
+        "북유럽",
+        "터키"
+       ]
+      },
+      {
+       "Name": "가는 끈",
+       "Need": 45000,
+       "Favoured": [
+        "네덜란드",
+        "이베리아"
+       ]
+      },
+      {
+       "Name": "일본화",
+       "Need": 0,
+       "Favoured": [
+        "프랑스 북부",
+        "이탈리아·남프랑스"
+       ]
+      }
+     ]
+    },
+    {
+     "City": "에도",
+     "Need": 40000,
+     "Goods": [
+      {
+       "Name": "일본 서적",
+       "Need": 0,
+       "Favoured": [
+        "독일",
+        "이베리아"
+       ]
+      },
+      {
+       "Name": "초롱",
+       "Need": 43000,
+       "Favoured": [
+        "브리튼 섬",
+        "이탈리아·남프랑스",
+        "터키"
+       ]
+      }
+     ]
+    }
+   ],
+   "Wants": [
+    {
+     "Name": "와인",
+     "Value": 4136,
+     "Bonus": ""
+    },
+    {
+     "Name": "유리알",
+     "Value": 3936,
+     "Bonus": ""
+    },
+    {
+     "Name": "유리세공",
+     "Value": 2760,
+     "Bonus": ""
+    },
+    {
+     "Name": "사프란",
+     "Value": 2164,
+     "Bonus": ""
+    },
+    {
+     "Name": "화승총",
+     "Value": 2508,
+     "Bonus": ""
+    },
+    {
+     "Name": "감자",
+     "Value": 2436,
+     "Bonus": "냉해/축제"
+    },
+    {
+     "Name": "고구마",
+     "Value": 1444,
+     "Bonus": "냉해/축제"
+    },
+    {
+     "Name": "유황",
+     "Value": 1680,
+     "Bonus": "조선 특수수요"
+    },
+    {
+     "Name": "석탄",
+     "Value": 1664,
+     "Bonus": "조선 특수수요"
+    },
+    {
+     "Name": "백단",
+     "Value": 1993,
+     "Bonus": "가뭄"
+    }
+   ]
+  },
+  {
+   "Name": "대만",
+   "Cities": [
+    {
+     "City": "단수이",
+     "Need": 0,
+     "Goods": [
+      {
+       "Name": "애옥",
+       "Need": 0,
+       "Favoured": [
+        "독일",
+        "발칸"
+       ]
+      }
+     ]
+    },
+    {
+     "City": "안평",
+     "Need": 20000,
+     "Goods": [
+      {
+       "Name": "숭어알 젓갈",
+       "Need": 0,
+       "Favoured": [
+        "북유럽",
+        "프랑스 북부"
+       ]
+      },
+      {
+       "Name": "사슴 가죽",
+       "Need": 0,
+       "Favoured": [
+        "이베리아",
+        "터키"
+       ]
+      },
+      {
+       "Name": "마직물",
+       "Need": 0,
+       "Favoured": [
+        "네덜란드",
+        "터키"
+       ]
+      },
+      {
+       "Name": "동권총",
+       "Need": 0,
+       "Favoured": [
+        "브리튼 섬",
+        "서아시아"
+       ]
+      }
+     ]
+    }
+   ],
+   "Wants": [
+    {
+     "Name": "유리세공",
+     "Value": 2760,
+     "Bonus": ""
+    },
+    {
+     "Name": "사프란",
+     "Value": 2164,
+     "Bonus": ""
+    },
+    {
+     "Name": "초석",
+     "Value": 2462,
+     "Bonus": ""
+    },
+    {
+     "Name": "서양 서적",
+     "Value": 2574,
+     "Bonus": ""
+    },
+    {
+     "Name": "패츌리",
+     "Value": 1220,
+     "Bonus": "가뭄"
+    },
+    {
+     "Name": "유황",
+     "Value": 1680,
+     "Bonus": "조선 특수수요"
+    },
+    {
+     "Name": "동",
+     "Value": 1744,
+     "Bonus": "조선 특수수요"
+    },
+    {
+     "Name": "설탕",
+     "Value": 1144,
+     "Bonus": "냉해"
+    },
+    {
+     "Name": "망고",
+     "Value": 1400,
+     "Bonus": "냉해/축제"
+    },
+    {
+     "Name": "백단",
+     "Value": 1993,
+     "Bonus": "가뭄"
+    },
+    {
+     "Name": "꿀",
+     "Value": 1536,
+     "Bonus": "냉해"
+    },
+    {
+     "Name": "은",
+     "Value": 2132,
+     "Bonus": "수해"
+    }
+   ]
+  },
+  {
+   "Name": "화남",
+   "Cities": [
+    {
+     "City": "마카오",
+     "Need": 0,
+     "Goods": [
+      {
+       "Name": "두반장",
+       "Need": 0,
+       "Favoured": [
+        "이베리아"
+       ]
+      },
+      {
+       "Name": "파초",
+       "Need": 0,
+       "Favoured": [
+        "터키"
+       ]
+      },
+      {
+       "Name": "단안총",
+       "Need": 0,
+       "Favoured": [
+        "터키"
+       ]
+      },
+      {
+       "Name": "라한과",
+       "Need": 30000,
+       "Favoured": []
+      }
+     ]
+    },
+    {
+     "City": "천주",
+     "Need": 10000,
+     "Goods": [
+      {
+       "Name": "송백자",
+       "Need": 0,
+       "Favoured": [
+        "북유럽",
+        "이탈리아·남프랑스"
+       ]
+      },
+      {
+       "Name": "호필",
+       "Need": 40000,
+       "Favoured": [
+        "이베리아",
+        "터키"
+       ]
+      }
+     ]
+    },
+    {
+     "City": "항주",
+     "Need": 20000,
+     "Goods": [
+      {
+       "Name": "대나무",
+       "Need": 0,
+       "Favoured": [
+        "브리튼 섬",
+        "북아프리카"
+       ]
+      },
+      {
+       "Name": "송백자",
+       "Need": 0,
+       "Favoured": [
+        "북유럽",
+        "이탈리아·남프랑스"
+       ]
+      },
+      {
+       "Name": "오수",
+       "Need": 33000,
+       "Favoured": [
+        "브리튼 섬"
+       ]
+      }
+     ]
+    },
+    {
+     "City": "운대산",
+     "Need": 30000,
+     "Goods": [
+      {
+       "Name": "중국비단",
+       "Need": 0,
+       "Favoured": [
+        "발칸"
+       ]
+      },
+      {
+       "Name": "중국 서화",
+       "Need": 0,
+       "Favoured": [
+        "이탈리아·남프랑스"
+       ]
+      },
+      {
+       "Name": "중국 서적",
+       "Need": 0,
+       "Favoured": [
+        "발칸"
+       ]
+      },
+      {
+       "Name": "고묵",
+       "Need": 37000,
+       "Favoured": [
+        "북유럽",
+        "발칸",
+        "서아시아"
+       ]
+      }
+     ]
+    },
+    {
+     "City": "중경",
+     "Need": 40000,
+     "Goods": [
+      {
+       "Name": "면죽연화",
+       "Need": 0,
+       "Favoured": [
+        "네덜란드",
+        "이탈리아·남프랑스"
+       ]
+      }
+     ]
+    }
+   ],
+   "Wants": [
+    {
+     "Name": "대리석",
+     "Value": 2224,
+     "Bonus": ""
+    },
+    {
+     "Name": "사프란",
+     "Value": 2597,
+     "Bonus": ""
+    },
+    {
+     "Name": "사향",
+     "Value": 3879,
+     "Bonus": ""
+    },
+    {
+     "Name": "가르다몬",
+     "Value": 2496,
+     "Bonus": ""
+    },
+    {
+     "Name": "초석",
+     "Value": 2462,
+     "Bonus": ""
+    },
+    {
+     "Name": "서양 서적",
+     "Value": 2574,
+     "Bonus": ""
+    },
+    {
+     "Name": "터키 융단",
+     "Value": 3648,
+     "Bonus": ""
+    },
+    {
+     "Name": "페르시아 융단",
+     "Value": 2915,
+     "Bonus": ""
+    },
+    {
+     "Name": "백단",
+     "Value": 1993,
+     "Bonus": "가뭄"
+    },
+    {
+     "Name": "꿀",
+     "Value": 1536,
+     "Bonus": "냉해"
+    },
+    {
+     "Name": "유황",
+     "Value": 1680,
+     "Bonus": "조선 특수수요"
+    },
+    {
+     "Name": "석탄",
+     "Value": 1664,
+     "Bonus": "조선 특수수요"
+    },
+    {
+     "Name": "은",
+     "Value": 2132,
+     "Bonus": "수해"
+    },
+    {
+     "Name": "망고",
+     "Value": 1400,
+     "Bonus": "냉해/축제"
+    }
+   ]
+  }
+ ]
+}

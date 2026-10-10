@@ -1804,6 +1804,7 @@ internal sealed class GameWindow : IDisposable
             case "delegatewindow": _voyage.Dialog = Dialog.Delegate; break;
             case "nopirates": _voyage.Data.Settings.ModNoPirates = true; break;      // 이번 실행 동안만(설정 파일에는 안 적는다)
             case "gearsearch": _hud.GearSearchForTest(argument); break;
+            case "gearskill": _hud.GearSkillForTest(argument); break;
             case "seeport":
             {
                 // 그 도시의 앞바다에서 뭍 반대쪽으로 dist 만큼 물러난 자리로 옮긴다(먼바다에서 도시가 보이는지 볼 때): seeport:도시,거리
@@ -1831,7 +1832,6 @@ internal sealed class GameWindow : IDisposable
             case "navzoom": _hud.NavZoomForTest((int)Number()); break;      // 대본: navzoom:2 — 지도를 두 단계 크게
             case "loadroute": if (_voyage.Data.Routes.Count > 0) _voyage.LoadRoute(_voyage.Data.Routes[^1]); break;      // 대본: 마지막 항로를 불러온다
             case "followroute": if (_voyage.Data.Routes.Count > 0) _voyage.FollowRoute(int.TryParse(argument, out int routeAt) && routeAt >= 0 && routeAt < _voyage.Data.Routes.Count ? _voyage.Data.Routes[routeAt] : _voyage.Data.Routes[^1]); break;      // 대본: 항로를 따라간다(followroute:차례 — 안 적으면 마지막 것)
-            case "navendless": _voyage.Data.Settings.NavLineEndless = true; break;      // 대본: 방향 선 무한을 이 실행에서만 켠다(설정 파일에 적지 않는다)
             case "skillup": _voyage.SkillUpForTest((int)Number()); break;
             case "relieve": if (_voyage.Aides.Find(a => a.Ship != null) is { } captain) _voyage.RelieveCaptain(captain); break;
             case "captainpick": _hud.CaptainPickForTest(); break;
@@ -1941,6 +1941,10 @@ internal sealed class GameWindow : IDisposable
             case "pricetest": _voyage.ShipPricesForTest(); break;
             case "fatigue": _voyage.SetFatigueForTest(Number()); break;
             case "tradeguild": _voyage.Dialog = Dialog.TradeGuild; break;
+            case "nanban": _voyage.Dialog = Dialog.Nanban; break;
+            case "yardrecipes": _voyage.Dialog = Dialog.YardRecipes; break;
+            case "makeroute": { var ends = argument.Split(','); _voyage.MakeRouteBetween(int.Parse(ends[0]), int.Parse(ends[1])); break; }      // 대본: 두 도시 사이의 항로를 길찾기로 만들어 저장한다
+            case "nanbantest": _voyage.NanbanForTest((int)Number()); break;
             case "seaguild": _voyage.Dialog = Dialog.SeaGuild; break;
             case "seaaccept": if (_voyage.SeaQuestsHere().ElementAtOrDefault((int)Number()) is { } hunt) _voyage.AcceptSea(hunt); break;
             case "seatosite": _voyage.SeaToSiteForTest(); break;
@@ -2083,7 +2087,7 @@ internal sealed class GameWindow : IDisposable
             case "tactic": _voyage.SetTactic((int)Number()); break;
             case "retreat": _voyage.Retreat(); break;
             case "flee": _voyage.Flee(); break;
-            case "modwindow": _hud.OpenMod(); break;
+            case "modwindow": _hud.OpenMod(argument == "" ? -1 : (int)Number()); break;
             case "library": _voyage.Dialog = Dialog.Library; break;
             case "saveroundtrip": _voyage.SaveRoundTripForTest(); break;      // 대본: 저장 꼴로 바꿨다 되읽기(파일에는 안 적는다)
             case "fishfind": _voyage.FishFindForTest((int)Number()); break;      // 대본: 낚시 발견물 N 번째 자리로 가서 낚는다(음수면 세는 글만)

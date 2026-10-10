@@ -102,7 +102,9 @@ internal sealed partial class Voyage
         {
             (DelegateTo, _route, Sail) = (null, [], 0);
             Cues.Enqueue("Done");
-            Say($"{Text(3492, "목적지에 도착했습니다")} — {goal.Name} 앞바다. (F: 입항)");
+            // 닿으면 바로 입항한다(사용자, 2026-10-10) — 허가가 없어 못 들어가면 앞바다에 선다(까닭은 EnterPort 가 알린다)
+            EnterPort();
+            if (Mode == Mode.Sea) Say($"{Text(3492, "목적지에 도착했습니다")} — {goal.Name} 앞바다. (F: 입항)");
             return;
         }
         // 폭풍이면 돛을 한 단만 남기고, 걷히면 다시 편다(손으로 내린 돛은 건드리지 않는다)
@@ -181,6 +183,39 @@ internal sealed partial class Voyage
                 for (int dx = -r; dx <= r; dx++)
                     if (Math.Max(Math.Abs(dx), Math.Abs(dy)) == r && RouteSea(cx + dx, cy + dy) != 0) return (((cx + dx) % RouteW + RouteW) % RouteW, cy + dy);
         return null;
+    }
+
+    /// <summary>
+    /// 두 도시 사이의 항로를 위임 항해의 길찾기로 만들어 저장한다(사용자, 2026-10-10: 「천주에서 세비야 가는 항로 니가 입력 해줄 수 있나」).
+    /// 찾은 바닷길에서 곧게 갈 수 있는 구간은 한 줄로 줄여(뭍에 붙은 칸을 안 지나는 가장 먼 점까지) 꺾는 자리만 조타 기록으로 남긴다.
+    /// </summary>
+    public SavedRoute? MakeRouteBetween(int fromCity, int toCity)
+    {
+        if (Data.Cities.Find(c => c.Id == fromCity) is not { } from || Data.Cities.Find(c => c.Id == toCity) is not { } to) return null;
+        if (FindRoute(from.SeaX, from.SeaY, to.SeaX, to.SeaY) is not { Count: > 1 } path) { Say($"{from.Name}에서 {to.Name}까지 가는 바닷길을 찾지 못했다."); return null; }
+        var turns = new List<(double X, double Y)> { path[0] };
+        for (int at = 0; at < path.Count - 1;)
+        {
+            int next = at + 1;
+            for (int k = path.Count - 1; k > at + 1; k--)
+                if (ClearWay(path[at].X, path[at].Y, path[k].X, path[k].Y)) { next = k; break; }
+            turns.Add(path[next]);
+            at = next;
+        }
+        var points = new List<int>();
+        for (int k = 0; k < turns.Count; k++)
+        {
+            var (a, b) = k + 1 < turns.Count ? (turns[k], turns[k + 1]) : (turns[k - 1], turns[k]);
+            double heading = Normalize(Math.Atan2(WorldMap.DeltaX(a.X, b.X), -(b.Y - a.Y)));
+            points.AddRange([(int)WorldMap.WrapX(turns[k].X), (int)turns[k].Y, (int)Math.Round(heading * 180 / Math.PI)]);
+        }
+        string name = $"{from.Name} → {to.Name}";
+        for (int n = 2; Data.Routes.Exists(r => r.Name == name); n++) name = $"{from.Name} → {to.Name} ({n})";
+        var route = new SavedRoute { Name = name, Saved = $"{DateTime.Now:yyyy-MM-dd HH:mm}", Points = points, CityId = to.Id };
+        Data.Routes.Add(route);
+        Data.SaveRoutes();
+        Say($"항로 「{name}」을(를) 만들어 저장했다. (조타 기록 {turns.Count}개 · 길찾기 점 {path.Count}개)");
+        return route;
     }
 
     /// <summary>바닷길 — 8 단위 칸 위의 A*. 가로는 감긴다. 뭍에 붙은 칸은 세 배로 친다. 못 찾으면 null.</summary>

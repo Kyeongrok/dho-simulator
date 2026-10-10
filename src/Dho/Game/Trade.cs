@@ -285,7 +285,8 @@ internal sealed partial class Voyage
         Say($"{good.Name} {item.Count}개를 버렸다.");
     }
 
-    public void SellGood(GoodData good, int count)
+    /// <summary>combo = 이번 거래의 명산품 콤보 수(<see cref="SpecialtyCombo"/>) — 여러 품목을 한 번에 팔 때 화면이 세어 넘긴다.</summary>
+    public void SellGood(GoodData good, int count, int combo = 1)
     {
         if (Mode != Mode.Port || !Cargo.TryGetValue(good.Id, out var item)) return;
         count = Math.Min(count, item.Count);
@@ -299,10 +300,16 @@ internal sealed partial class Voyage
         if (item.Count == 0) Cargo.Remove(good.Id);
         if (profit > 0)
         {
-            // 명산품을 그것이 나는 문화권 밖에서 팔면 교역 경험 · 명성이 반 더 붙는다(「명산품」이 무엇인가는 gvdb 의 값, 반 더는 지은 값 — 원본은 거리에 따라 다르다)
-            double famed = SpecialtyBonus(good);
-            GainExp(1, (int)Math.Min(100_000, profit / 100 * famed), (int)Math.Min(1000, profit / 2000 * famed));      // 교역 명성은 이익 2000 에 1(지은 값)
-            if (famed > 1) Say($"{CultureOf(Data.Specialties[good.Id])}의 명산품 — 교역 경험이 더 붙었다.");
+            // 교역 경험 — 사용자가 준 원본 식(2026-10-10): 순이익 경험치 A = [{P + (T_Lv + 1)} / {100 × (T_Lv + 1)}] × M
+            // (P 순이익 · T_Lv 교역 레벨 · M 은 순이익 1만 아래 1, 10만 아래 2, 그 위 4), 총 경험치 = (A + B) × {1 + 0.05 × (콤보 − 1)},
+            // 상인 직업이 아니면 절반(한 번에 오르는 레벨의 상한은 GainExp 가 건다). 명산 경험치 B(개수 × 명산거리 × 50 / (T_Lv + 50), 품목당 500 까지)는
+            // 명산거리 표가 없어 아직 0 이다.
+            int level = LevelOf(TradeExp).Level;
+            long exp = (profit + level + 1) / (100L * (level + 1)) * (profit < 10_000 ? 1 : profit < 100_000 ? 2 : 4);
+            double total = exp * (1 + 0.05 * (Math.Max(1, combo) - 1));
+            if (Data.Jobs.Find(j => j.Id == JobId)?.Group != 1) total /= 2;
+            // 교역 명성은 이익 2000 에 1, 명산품을 그것이 나는 문화권 밖에서 팔면 반 더(둘 다 지은 값)
+            GainExp(1, (int)Math.Min(int.MaxValue / 4, total), (int)Math.Min(1000, profit / 2000 * SpecialtyBonus(good)));
             TrainEffect("Haggle", Math.Min(60, profit / 50.0));
             // 연구 과제(표 64): 흑자 교역 = 1회 교역으로 10만 두캇 이상 · 고수익 교역 = 100만 이상 · 일확천금 교역 = 1000만 이상
             if (profit >= 100_000) Studied("Profit");
@@ -315,6 +322,9 @@ internal sealed partial class Voyage
     /// <summary>그 교역품이 명산품이면 나는 문화권의 이름 — 아니면 빈 글.</summary>
     public string SpecialtyOf(GoodData good) => Data.Specialties.TryGetValue(good.Id, out int culture) ? CultureOf(culture) : "";
     private string CultureOf(int culture) => Data.Cultures.Find(c => c.Id == culture)?.Name ?? "";
+    /// <summary>명산품 콤보 수 — 한 번에 파는 품목 가운데 50개 이상 파는 명산품의 가짓수(적어도 1).</summary>
+    public int SpecialtyCombo(IEnumerable<(int Id, int Count)> sold) =>
+        Math.Max(1, sold.Count(s => s.Count >= 50 && Data.Specialties.TryGetValue(s.Id, out int culture) && City.Culture != culture));
     private double SpecialtyBonus(GoodData good) => Data.Specialties.TryGetValue(good.Id, out int culture) && City.Culture != culture ? 1.5 : 1;
 
     /// <summary>늘 같은 0 ~ 1 값.</summary>

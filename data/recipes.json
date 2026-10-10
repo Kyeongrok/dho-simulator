@@ -105,5 +105,14 @@
   {"RecipeId":18,"Name":"깃털 얻는 법(닭)","Output":1600303,"OutputCount":2,"Inputs":"1600032:1","Skill":"봉제 1"},
   {"RecipeId":28,"Name":"모직원단 제조법(양모)","Output":1600454,"OutputCount":2,"Inputs":"1600314:2","Skill":"봉제 3"},
   {"RecipeId":38,"Name":"니트 제조법","Output":1600463,"OutputCount":2,"Inputs":"1600314:2","Skill":"봉제 4"},
-  {"RecipeId":31,"Name":"비단원단 제조법","Output":1600453,"OutputCount":2,"Inputs":"1600306:2","Skill":"봉제 8"}
+  {"RecipeId":31,"Name":"비단원단 제조법","Output":1600453,"OutputCount":2,"Inputs":"1600306:2","Skill":"봉제 8"},
+  {"RecipeId": 900001, "Name": "동아시아 선체 제조법 — 동아시아 중형 선체", "Output": 0, "OutputCount": 1, "Inputs": "1500487:2,2200072:1,2200073:1", "Skill": "조선 13", "OutputItem": 2200201, "Cities": "한양,사카이,안평", "Skill2": "공예 11"},
+  {"RecipeId": 900002, "Name": "동아시아 선체 제조법 — 동아시아 대형 선체", "Output": 0, "OutputCount": 1, "Inputs": "1500487:3,2200072:1,2200073:1", "Skill": "조선 15", "OutputItem": 2200202, "Cities": "한양,사카이,안평", "Skill2": "공예 12"},
+  {"RecipeId": 900003, "Name": "동아시아 선체 제조법 — 동아시아 대형 도선", "Output": 0, "OutputCount": 1, "Inputs": "1500487:3,2200072:1,2200073:1", "Skill": "조선 15", "OutputItem": 2200205, "Cities": "한양,사카이,안평", "Skill2": "공예 12"},
+  {"RecipeId": 900004, "Name": "동아시아의 돛 제조법 — 소형 정크세일", "Output": 0, "OutputCount": 1, "Inputs": "1500487:1,2200072:1,2200074:1", "Skill": "봉제 12", "OutputItem": 2200210, "Cities": "부산,나가사키,단수이"},
+  {"RecipeId": 900005, "Name": "동아시아의 돛 제조법 — 중형 정크세일", "Output": 0, "OutputCount": 1, "Inputs": "1500487:1,2200072:1,2200075:1", "Skill": "봉제 14", "OutputItem": 2200211, "Cities": "부산,나가사키,단수이"},
+  {"RecipeId": 900006, "Name": "동아시아의 돛 제조법 — 대형 정크세일", "Output": 0, "OutputCount": 1, "Inputs": "1500487:2,2200072:1,2200075:1", "Skill": "봉제 16", "OutputItem": 2200212, "Cities": "부산,나가사키,단수이"},
+  {"RecipeId": 900007, "Name": "동아시아의 선실 설계법 — 강습용 선실", "Output": 0, "OutputCount": 1, "Inputs": "1500487:2,2200065:1,2200072:1", "Skill": "공예 12", "OutputItem": 2200213, "Cities": "포항,사카이,단수이"},
+  {"RecipeId": 900008, "Name": "동아시아의 선실 설계법 — 동아시아 무역선창", "Output": 0, "OutputCount": 1, "Inputs": "1500487:2,2200062:1,2200072:1", "Skill": "공예 13", "OutputItem": 2200216, "Cities": "포항,사카이,단수이"},
+  {"RecipeId": 900009, "Name": "동아시아의 강화판 제조법 — 선체 격벽판", "Output": 0, "OutputCount": 1, "Inputs": "1500487:2,2200068:1,2200073:1", "Skill": "주조 12", "OutputItem": 2200215, "Cities": "한양,에도,안평"}
 ]

@@ -18,11 +18,14 @@ internal sealed partial class Voyage
     public int FameOf(int kind) => kind switch { 0 => AdventureFame, 1 => TradeFame, _ => BattleFame };
 
     // 경험과 명성을 얻는다(kind: 0 모험 · 1 교역 · 2 전투). 경험은 모드의 배수를 받는다. 레벨이 오르면 알린다
+    // 한 번에 오르는 레벨에는 상한이 있다 — 넘는 경험은 버린다. 상한은 모드 창에서 정한다(기본 10, 0 이면 없음 — 원본에도 이런 제한이 있으나 수는 사용자가 정한 것)
     public void GainExp(int kind, int exp, int fame = 0)
     {
         if (exp <= 0 && fame <= 0) return;
         int before = LevelOf(ExpOf(kind)).Level;
         exp = ExpShown(exp);      // 바다짐승 시리즈를 쓴 동안 경험치 +10/30%
+        int maxLevels = Math.Clamp(Data.Settings.ModLevelUpMax, 0, 30);
+        if (maxLevels > 0) exp = Math.Clamp(50 * (before + maxLevels) * (before + maxLevels) - 1 - ExpOf(kind), 0, exp);
         fame = Math.Max(0, fame);
         if (kind == 0) (AdventureExp, AdventureFame) = (AdventureExp + exp, AdventureFame + fame);
         else if (kind == 1) (TradeExp, TradeFame) = (TradeExp + exp, TradeFame + fame);

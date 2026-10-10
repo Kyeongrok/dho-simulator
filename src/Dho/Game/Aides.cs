@@ -146,11 +146,16 @@ internal sealed partial class Voyage
             _aidePay += AidePay(aide) * days;
             AideGain(aide, AideMainKind(aide), days * 10 * GainFactor * (1 + GearEffect("AideGrow") * 0.10));      // 장비 효과 「부관 성장 촉진」(gvdb 「副官成長促進」) — 「항해일수에 따른 부관 경험치에만 적용, 1랭크당 10%」(인벤 498/20820)
         }
-        // 급여는 두캇 단위로 모아서 뗀다
-        if (_aidePay >= 1) { int pay = (int)_aidePay; _aidePay -= pay; Money = Math.Max(0, Money - pay); }
+        // 급여는 모아 두었다가 하루에 한 번 뗀다(사용자, 2026-10-10: 「소지금 줄어드는건 하루에 한번만」) — 전에는 한 두캇이 찰 때마다 떼어 소지금이 줄곧 줄었다
+        if ((int)Today != _aidePayDay)
+        {
+            _aidePayDay = (int)Today;
+            if (_aidePay >= 1) { int pay = (int)_aidePay; _aidePay -= pay; Money = Math.Max(0, Money - pay); }
+        }
     }
 
     private double _aidePay;
+    private int _aidePayDay = -1;
 
     /// <summary>부관의 한마디 — 얼굴과 함께 화면 가운데 위에 잠깐 뜬다(원본: 신뢰도가 높아질 때 「나는 선장을 믿어!」).</summary>
     public (NamedData Who, string Line, double Until)? AideSpeech { get; private set; }

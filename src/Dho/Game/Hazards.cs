@@ -161,6 +161,7 @@ internal sealed partial class Voyage
         Disasters.Remove(disaster);
         Studied("Cure", 1, 0, disaster.Data.Id);
         Say(Text((uint)disaster.Data.EndText, $"{disaster.Data.Name} — 풀렸다."));
+        Cues.Enqueue("Recover");
     }
 
     /// <summary>대본·개발 확인용: 재해를 바로 일으킨다.</summary>
@@ -178,8 +179,8 @@ internal sealed partial class Voyage
         _stormDays = Rules.StormDays;
         Studied("Storm");
         Say(Text(TextStorm, "폭풍이다! 돛을 편 채로 있으면 배가 뒤집힌다!"));
-        Say(StormProof ? $"이 배의 내파({Stats.WaveResist})라면 폭풍 속에서도 항해할 수 있다. (내파 {Rules.StormWaveResist} 이상)"
-                       : $"내파 {Stats.WaveResist} — {Rules.StormWaveResist} 이상이어야 폭풍 속을 항해할 수 있다.");
+        // 내파가 모자랄 때만 알린다 — 넉넉할 때의 「…항해할 수 있다」는 뺐다(사용자, 2026-10-10)
+        if (!StormProof) Say($"내파 {Stats.WaveResist} — {Rules.StormWaveResist} 이상이어야 폭풍 속을 항해할 수 있다.");
         Cues.Enqueue("Storm");
     }
 

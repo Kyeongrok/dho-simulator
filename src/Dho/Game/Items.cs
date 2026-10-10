@@ -340,7 +340,8 @@ internal sealed partial class Voyage
     }
 
     // 소지품은 백 가지까지(가짓수 — 같은 것은 겹쳐 든다)
-    public const int ItemKinds = 100;
+    // 소유물품의 상한(가짓수) — 기본 100, 모드 창에서 10개 단위로 바꾼다(사용자, 2026-10-10)
+    public int ItemKinds => Math.Clamp(Data.Settings.ModItemLimit / 10 * 10, 10, 1000);
 
     public void AddItem(int item, int count = 1)
     {

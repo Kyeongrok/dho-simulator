@@ -5,7 +5,7 @@ namespace Dho.Game;
 internal enum Mode { Port, Sea }
 
 /// <summary>어떤 창이 떠 있는가.</summary>
-internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile, Library, FoundList, Delegate, Chart, Nav, TradeGuild, Broker, HullPaint, SeaGuild }
+internal enum Dialog { None, Guild, QuestDetail, Landing, Discovery, Report, Supply, Wreck, Skills, Shipyard, Trade, ShipSwap, Items, ShipParts, Aides, Court, CustomBuild, Outfit, UseSkills, QuickSetup, Strengthen, Bank, Vault, Tavern, ShipInfo, University, Character, ShipyardMenu, SpecialBuild, Jobs, Cargo, Sail, Learn, WorkMethod, Combine, Fitting, Recruit, HullBuild, Equip, Battle, LandBattle, Invest, Farm, TavernMenu, FleetReport, Forge, Honors, Ashore, Exile, Library, FoundList, Delegate, Chart, Nav, TradeGuild, Broker, HullPaint, SeaGuild, Nanban, YardRecipes }
 
 internal enum QuestStage { None, Accepted, Discovered }
 
@@ -162,7 +162,7 @@ internal sealed partial class Voyage
     public IReadOnlyList<(double X, double Y)> Track => _track;
     /// <summary>조선소 일을 할 수 있는가 — 항구이거나, 모드를 켜고 바다 위일 때.</summary>
     public bool YardOpen => Mode == Mode.Port || Mode == Mode.Sea && Data.Settings.ModYardAtSea;
-    public void ClearTrack() { _track.Clear(); _turnMarks.Clear(); RouteLoaded = false; }
+    public void ClearTrack() { _track.Clear(); _turnMarks.Clear(); RouteLoaded = false; _routeGoal = null; }
     /// <summary>지금의 조타 기록이 저장해 둔 항로를 불러온 것인가 — 내비게이션이 점들을 줄로 이어 보인다.</summary>
     public bool RouteLoaded { get; private set; }
 
@@ -189,15 +189,30 @@ internal sealed partial class Voyage
         for (int k = 0; k + 2 < route.Points.Count; k += 3) _turnMarks.Add((route.Points[k], route.Points[k + 1], route.Points[k + 2] * Math.PI / 180, 0));
         // 불러온 항로는 점들을 이은 줄로 보인다(사용자, 2026-10-10) — 전에는 그 항로를 만들 때 지나온 자취를 「지나온 항로」에 덮어 보였다. 이제 지나온 항로는 건드리지 않는다
         RouteLoaded = true;
+        _routeGoal = RouteGoal(route);
         Say($"항로 「{route.Name}」을(를) 불러왔다. (조타 기록 {_turnMarks.Count}개)");
     }
+    // 불러온 항로의 목적지 도시 — 끝까지 따라가면 거기에 입항한다(사용자, 2026-10-10: 「늘 자동으로 입항」).
+    // 항로에 적힌 도시가 없으면(전에 저장한 항로) 지나온 점의 끝 — 없으면 조타 기록의 끝 점 — 이 앞바다(입항할 수 있는 거리)에 드는 항구
+    private CityData? _routeGoal;
+    private CityData? RouteGoal(SavedRoute route)
+    {
+        if (route.CityId != 0) return Data.Cities.Find(c => c.Id == route.CityId);
+        var end = route.Trail.Count >= 2 ? route.Trail[^2..] : route.Points.Count >= 3 ? route.Points.GetRange(route.Points.Count - 3, 2) : null;
+        if (end == null) return null;
+        return Data.Cities.Where(c => c.SeaX != 0 || c.SeaY != 0)
+            .Select(c => (City: c, Far: Math.Pow(WorldMap.DeltaX(end[0], c.SeaX), 2) + Math.Pow(c.SeaY - end[1], 2)))
+            .Where(c => c.Far < Settings.PortRange * Settings.PortRange).OrderBy(c => c.Far).Select(c => c.City).FirstOrDefault();
+    }
+    /// <summary>항로의 끝 점을 지나 목적지 항구로 들어가는 중이면 그 도시.</summary>
+    public CityData? FollowPort => TurnFollow && !TurnFollowBack && TurnFollowAt >= _turnMarks.Count ? _routeGoal : null;
     public void RemoveRoute(SavedRoute route) { Data.Routes.Remove(route); Data.SaveRoutes(); }
     /// <summary>항로를 복제한다 — 같은 점들로 「이름 (복제)」를 그 항로 바로 아래에 넣는다(사용자, 2026-10-10).</summary>
     public SavedRoute CopyRoute(SavedRoute route)
     {
         string name = $"{route.Name} (복제)";
         for (int n = 2; Data.Routes.Exists(r => r.Name == name); n++) name = $"{route.Name} (복제 {n})";
-        var copy = new SavedRoute { Name = name, Saved = $"{DateTime.Now:yyyy-MM-dd HH:mm}", Points = [.. route.Points], Trail = [.. route.Trail] };
+        var copy = new SavedRoute { Name = name, Saved = $"{DateTime.Now:yyyy-MM-dd HH:mm}", Points = [.. route.Points], Trail = [.. route.Trail], CityId = route.CityId };
         Data.Routes.Insert(Math.Max(0, Data.Routes.IndexOf(route)) + 1, copy);
         Data.SaveRoutes();
         Say($"항로 「{route.Name}」을(를) 복제했다 — 「{name}」.");
@@ -235,6 +250,7 @@ internal sealed partial class Voyage
             Name = name, Saved = $"{DateTime.Now:yyyy-MM-dd HH:mm}",
             Points = [.. _turnMarks.SelectMany(m => new[] { (int)m.X, (int)m.Y, (int)Math.Round(m.Heading * 180 / Math.PI) })],
             Trail = [.. _track.SelectMany(p => new[] { (int)p.X, (int)p.Y })],
+            CityId = city.Id,
         });
         Data.SaveRoutes();
         Say($"항로 「{name}」을(를) 저장했다. (지나온 점 {_track.Count}개 · 조타 기록 {_turnMarks.Count}개)");
@@ -279,6 +295,8 @@ internal sealed partial class Voyage
         if (Mode != Mode.Sea || from < 0 || from >= _turnMarks.Count) return;
         CancelDelegate("조타 기록을 따라간다");
         (TurnFollow, TurnFollowAt, TurnFollowBack) = (true, from, back);
+        // 돛이 전개(다 편 것)가 아니면 다 펴고 간다(사용자, 2026-10-10) — 내비게이션 창이 열린 채 누르므로 ChangeSail(창이 열려 있으면 안 듣는다)을 거치지 않는다
+        if (Sail < SailSteps) { Sail = SailSteps; Cues.Enqueue("Sail"); Say("돛을 전개했다."); }
         Say(back ? $"조타 기록 {from + 1}번부터 거꾸로 따라간다. (1번까지)" : $"조타 기록 {from + 1}번부터 따라간다. (기록 {_turnMarks.Count}개)");
     }
     /// <summary>
@@ -307,7 +325,6 @@ internal sealed partial class Voyage
             best = far;
             start = k + 1;
         }
-        if (Sail == 0) ChangeSail(SailSteps);      // 돛이 접혀 있으면 펴고 간다
         FollowTurns(start);
     }
     public void StopFollow(string why = "")
@@ -338,20 +355,30 @@ internal sealed partial class Voyage
         if (zone == _zoneNoted || zone == "") return;
         if (_zoneNoted != "") Say($"해역이 바뀌었다 — {zone}.");
         _zoneNoted = zone;
-        ZoneCardUntil = Clock + 6;      // 원본처럼 왼쪽 위에 해역 · 항해일수 · 날씨 네모가 잠깐 뜬다(출항한 첫 해역에서도)
+        ZoneCardUntil = Clock + 6;      // 화면 위쪽 가운데에 해역 이름 네모가 잠깐 뜬다(출항한 첫 해역에서도)
     }
     private void TickFollow()
     {
         if (!TurnFollow) return;
-        if (TurnFollowAt < 0 || TurnFollowAt >= _turnMarks.Count) { StopFollow("끝까지 왔다"); return; }
-        var next = _turnMarks[TurnFollowAt];
+        // 끝 점을 지났고 목적지 항구가 있으면 그 항구 자리로 더 가서, 앞바다에 들면 입항한다
+        var port = FollowPort;
+        if (port != null && PortInReach() == port)
+        {
+            TurnFollow = false;
+            EnterPort();
+            if (Mode == Mode.Sea && Sail > 0) { Sail = 0; Say("돛을 내렸다."); }      // 입항하지 못했다(허가 · 교전) — 까닭은 EnterPort 가 알렸다
+            return;
+        }
+        if (port == null && (TurnFollowAt < 0 || TurnFollowAt >= _turnMarks.Count)) { StopFollow("끝까지 왔다"); return; }
+        var next = port != null ? (X: (double)port.SeaX, Y: (double)port.SeaY, Heading: 0.0, Day: 0) : _turnMarks[TurnFollowAt];
         double dx = WorldMap.DeltaX(ShipX, next.X), dy = next.Y - ShipY;
-        if (Math.Abs(dx) + Math.Abs(dy) < 5)
+        if (port == null && Math.Abs(dx) + Math.Abs(dy) < 5)
         {
             // 앞으로 갈 때는 그 자리에 적힌 침로를 잡는다. 거꾸로 갈 때 적힌 침로는 온 쪽의 것이라 쓰지 않고, 다음 기록 쪽을 보게 둔다
             if (!TurnFollowBack) TargetHeading = next.Heading;
             TurnFollowAt += TurnFollowBack ? -1 : 1;
-            if (TurnFollowAt < 0 || TurnFollowAt >= _turnMarks.Count)
+            if (FollowPort != null) Say($"항로의 끝 점 — {_routeGoal!.Name}에 입항한다.");
+            else if (TurnFollowAt < 0 || TurnFollowAt >= _turnMarks.Count)
             {
                 // 끝 점에 닿으면 돛을 내린다 — 그대로 두면 마지막 침로로 계속 가다 뭍에 걸렸다(지은 처리)
                 StopFollow("끝까지 왔다");
@@ -517,10 +544,13 @@ internal sealed partial class Voyage
         return (head == "" ? "" : head + "\n") + (goods == "" ? "" : "특산: " + goods);
     }
 
-    /// <summary>이 도시에 조선소가 있는가(교역 탭의 Shipyard).</summary>
-    public bool HasShipyard => TownMap is { Marks.Count: > 0 } map
+    /// <summary>
+    /// 이 도시에 조선소가 있는가(교역 탭의 Shipyard). 시내 지도에 조선소 표식이 없어도 gvdb 에 그 도시 조선소가 파는 배가 적혀 있으면 있다 —
+    /// 천주가 그렇다(사용자, 2026-10-10: 「천주 왔는데 조선소가 없는데」) — 그때는 조선소 창만 연다.
+    /// </summary>
+    public bool HasShipyard => Data.Shipyards.ContainsKey(City.Id) || LocalRecipes().Count > 0 || (TownMap is { Marks.Count: > 0 } map
         ? map.Marks.Any(m => m.Place is 9 or 30)
-        : Data.Markets.Find(m => m.CityId == City.Id)?.Shipyard ?? true;
+        : Data.Markets.Find(m => m.CityId == City.Id)?.Shipyard ?? true);
 
     private (int City, TownMap? Map) _townMap;
 
