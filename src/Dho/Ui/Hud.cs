@@ -148,7 +148,8 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             bool over = canvas.Hover(x, y, w, h);
             overAny |= over;
             if (Command(buttons[k].Icon, x, y, true, buttons[k].Label, scale, buttons[k].Width)) _topMenu = _topMenu == k ? -1 : k;
-            if (over) { canvas.Pointer.Consumed = true; _tip = _topMenu == k ? null : (buttons[k].Label, x + w / 2, y + h + 34); }
+            // 이름은 Command 가 단추 아래에 띄운다 — 여기서 또 띄우면 두 장이 어긋나 겹친다. 차림이 내려와 있으면 그 자리라 안 띄운다
+            if (over) { canvas.Pointer.Consumed = true; if (_topMenu == k) _commandTip = null; }
             if (_topMenu != k) continue;
 
             var menu = buttons[k].Menu;
