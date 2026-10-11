@@ -7208,7 +7208,11 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
         string[] asks = [voyage.Text(6820, "쓸 선체를 고른다."), voyage.Text(6821, "지을 배의 종류를 고른다."), voyage.Text(6822, "쓸 재료를 고른다. 새로 지을 때는 「주요 돛」과 「포문」이 있어야 한다.")];
         string[] heads = ["선체", "선박종류", "재료"];
         canvas.Text(voyage.Text(523, "특수조선"), x + 20, y + 10, 200, 28, 20, Canvas.Gold, 0, true);
-        canvas.Text(asks[_hullStage], x + 150, y + 15, w - 330, 22, 14, Canvas.White);
+        // 머리글에는 첫 문장만 — 원본 글(6822)은 여러 문장이라 한 줄에 안 들어가 아래 칸들을 덮었다. 나머지는 오른쪽 칸에 적는다
+        string ask = asks[_hullStage].Replace("\n", " ");
+        int cut = ask.IndexOf('.');
+        string askRest = cut >= 0 && cut < ask.Length - 1 ? ask[(cut + 1)..].Trim() : "";
+        canvas.Text(cut >= 0 ? ask[..(cut + 1)] : ask, x + 150, y + 15, w - 330, 22, 14, Canvas.White);
         canvas.Text(voyage.ShipbuildingLine, x + 20, y + 15, w - 40, 22, 14, Canvas.Gold, 2);
         canvas.Fill(x + 20, y + 46, listWidth - 20, 24, new Color4(0.72f, 0.76f, 0.84f, 0.92f));
         canvas.Text(heads[_hullStage], x + 20, y + 47, listWidth - 20, 22, 15, new Color4(0.05f, 0.08f, 0.2f, 1), 1, true, false);
@@ -7269,7 +7273,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 var listed = plans[i];
                 bool here = listed.City == voyage.City.Name;
                 if (Row(i, i == _hullChosen, here, (px, py, size) => ShipIcon(listed.Ship.Id, px, py, size), listed.Ship.Name + (listed.MaterialName == "너도밤나무" ? "" : $" ({listed.MaterialName})"),
-                        here ? $"{voyage.BuildCost(listed.Ship, listed.Material):N0} Ð" : $"{listed.City}의 조선소에서만")) _hullChosen = i;
+                        here ? $"{voyage.BuildCost(listed.Ship, listed.Material):N0} Ð" : listed.City.Split(" · ") is { Length: > 2 } cities ? $"{cities[0]} 등 {cities.Length}곳의 조선소에서만" : $"{listed.City}의 조선소에서만")) _hullChosen = i;
             }
             if (plans.Count > 0)
             {
@@ -7316,6 +7320,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
             canvas.Text(voyage.Text(1019, "필요한 건조일수  %3d일").Replace("%3d", $"{Voyage.BuildDays(plan.Ship),3}"), rx, y + 240, rw, 20, 14, Canvas.White, 2);
             canvas.Text($"비용   {voyage.BuildCost(plan.Ship, plan.Material):N0} Ð", rx, y + 264, rw, 20, 14, Canvas.White, 2);
             canvas.Text($"소지금   {voyage.Money:N0} Ð", rx, y + 288, rw, 20, 14, Canvas.White, 2);
+            if (askRest != "") canvas.Text(askRest, rx, y + 312, rw, 48, 11, Canvas.Dim);
             blocker = voyage.HullBlocker(plan, _hullPicked);
             next = () =>
             {
@@ -7323,7 +7328,7 @@ internal sealed class Hud(Canvas canvas, Voyage voyage)
                 if (voyage.Ordered != null) { voyage.Dialog = Dialog.ShipyardMenu; _hullPicked.Clear(); }
             };
         }
-        if (blocker != null) canvas.Text(blocker, rx, y + h - 86, rw, 20, 14, new Color4(1f, 0.5f, 0.45f, 1));
+        if (blocker != null) canvas.Text(blocker, rx, y + h - 98, rw, 40, 13, new Color4(1f, 0.5f, 0.45f, 1));
         if (canvas.Button("돌아가기", x + w - 330, y + h - 50, 100, 34, true, 14))
         {
             if (_hullStage == 0) voyage.Dialog = Dialog.SpecialBuild;

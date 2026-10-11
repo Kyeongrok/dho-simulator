@@ -586,6 +586,16 @@ internal sealed partial class Voyage
         _ => null,
     };
 
+    /// <summary>
+    /// 이 도시에서 그 장소 앞에 서는 사람 — 내륙 도시(옥스포드)에서는 「항구」 표식이 마차 타는 곳이라 마부가 서고, 옥스포드의 문지기(17) 앞에도 사람이 선다
+    /// (말을 걸면 강의실 — 사람이 없어 들어갈 길이 안 보였다: 사용자, 2026-10-11 「마차로 왔는데 npc가 안보이는데」). 런던의 마차 표식에도 마부가 선다.
+    /// </summary>
+    public string? KeeperNameHere(int place) =>
+        Inland && place is 4 or 5 ? "마부"
+        : place == CarriagePlace && City.Id == LondonCity ? "마부"
+        : place == GatePlace && City.Id == OxfordCity ? "문지기"
+        : KeeperName(place);
+
     /// <summary>개발 메뉴: 돈을 늘리거나 줄인다.</summary>
     public void AddMoney(int amount)
     {

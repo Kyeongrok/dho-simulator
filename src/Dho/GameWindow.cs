@@ -1492,7 +1492,7 @@ internal sealed class GameWindow : IDisposable
         _outside = null;
         // 시설 앞에 서 있는 사람들 — 원본 시내 지도의 표식 자리에 세운다
         foreach (var mark in _voyage.TownMap?.Marks ?? [])
-            if (Voyage.KeeperName(mark.Place) is { } name && !_keepers.Exists(k => k.Name == name))
+            if (_voyage.KeeperNameHere(mark.Place) is { } name && !_keepers.Exists(k => k.Name == name))
             {
                 var spot = _grid.Nearest(mark.Place is 4 or 5 ? mark.Scene + new Vector2(230f, 60f) : mark.Scene);      // 항구 관리는 들어선 자리와 겹치지 않게 옆으로 비켜 선다
                 // 길 쪽(들어선 자리 쪽)을 보고 선다
@@ -2043,6 +2043,7 @@ internal sealed class GameWindow : IDisposable
             case "specialbuild": _voyage.Dialog = Dialog.SpecialBuild; break;
             case "hull": _hud.OpenHullBuild(); break;
             case "equip": _voyage.Dialog = Dialog.Equip; break;
+            case "townmarks": { var markArgs = argument.Split(',', 2); File.WriteAllLines(markArgs[1], (Dho.Data.TownMap.Load(int.Parse(markArgs[0]))?.Marks ?? []).Select(m => $"{m.Place} map=({m.MapX},{m.MapY}) scene=({m.Scene.X:0},{m.Scene.Y:0})")); break; }      // 대본: 그 도시의 시내 지도 표식을 파일에 적는다
             case "wear": { int worn = (int)Number(); _voyage.AddItem(worn); _voyage.Equip(worn); break; }      // 대본: 그 장비를 하나 넣고 입는다
             case "frame": _voyage.Looks[0] = (int)Number(); break;      // 대본: 몸 틀(0 ~ 7)을 바꾼다
             case "bonus": _voyage.Work.Bonuses.Add((int)Number()); _voyage.Work.Grade++; _voyage.AddMastery(1, true); break;
